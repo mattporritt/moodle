@@ -63,7 +63,7 @@ abstract class util {
             $pos  = strrpos($part, ':');
             if ($pos !== false) {
                 $host = substr($part, 0, $pos);
-                $port = substr($part, ($pos + 1));
+                $port = (int) substr($part, ($pos + 1));
             } else {
                 $host = $part;
                 $port = 11211;
