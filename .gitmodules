@@ -1,0 +1,4 @@
+[submodule "auth/catalyst"]
+	path = auth/catalyst
+	url = git@git.catalyst-au.net:elearning/mdl-auth_catalyst.git
+	branch = master
