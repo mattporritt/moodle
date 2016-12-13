@@ -6,3 +6,7 @@
 	path = lib/editor/atto/plugins/preview
 	url = git@github.com:dthies/moodle-atto_preview.git
 	branch = master
+[submodule "local/analytics"]
+	path = local/analytics
+	url = git@github.com:bmbrands/moodle-local_analytics.git
+	branch = master
