@@ -10,3 +10,7 @@
 	path = local/analytics
 	url = git@github.com:bmbrands/moodle-local_analytics.git
 	branch = master
+[submodule "local/datacleaner"]
+	path = local/datacleaner
+	url = git@github.com:brendanheywood/moodle-local_datacleaner.git
+	branch = master
