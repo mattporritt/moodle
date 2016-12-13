@@ -18,3 +18,7 @@
 	path = local/envbar
 	url = git@github.com:CatalystIT-AU/moodle-local_envbar.git
 	branch = master
+[submodule "report/benchmark"]
+	path = report/benchmark
+	url = git@github.com:mikasmart/benchmark.git
+	branch = master
