@@ -1,28 +1,29 @@
-[submodule "auth/catalyst"]
-	path = auth/catalyst
-	url = git@git.catalyst-au.net:elearning/mdl-auth_catalyst.git
-	branch = master
-[submodule "lib/editor/atto/plugins/preview"]
-	path = lib/editor/atto/plugins/preview
-	url = git@github.com:dthies/moodle-atto_preview.git
-	branch = master
-[submodule "local/analytics"]
-	path = local/analytics
-	url = git@github.com:bmbrands/moodle-local_analytics.git
-	branch = master
-[submodule "local/datacleaner"]
-	path = local/datacleaner
-	url = git@github.com:brendanheywood/moodle-local_datacleaner.git
-	branch = master
-[submodule "local/envbar"]
-	path = local/envbar
-	url = git@github.com:CatalystIT-AU/moodle-local_envbar.git
-	branch = master
-[submodule "report/benchmark"]
-	path = report/benchmark
-	url = git@github.com:mikasmart/benchmark.git
-	branch = master
+
 [submodule "admin/tool/heartbeat"]
+	branch = master
 	path = admin/tool/heartbeat
 	url = git@github.com:brendanheywood/moodle-tool_heartbeat.git
+[submodule "auth/catalyst"]
 	branch = master
+	path = auth/catalyst
+	url = git@git.catalyst-au.net:elearning/mdl-auth_catalyst.git
+[submodule "lib/editor/atto/plugins/preview"]
+	branch = master
+	path = lib/editor/atto/plugins/preview
+	url = git@github.com:dthies/moodle-atto_preview.git
+[submodule "local/analytics"]
+	branch = master
+	path = local/analytics
+	url = git@github.com:bmbrands/moodle-local_analytics.git
+[submodule "local/datacleaner"]
+	branch = master
+	path = local/datacleaner
+	url = git@github.com:brendanheywood/moodle-local_datacleaner.git
+[submodule "local/envbar"]
+	branch = master
+	path = local/envbar
+	url = git@github.com:CatalystIT-AU/moodle-local_envbar.git
+[submodule "report/benchmark"]
+	branch = master
+	path = report/benchmark
+	url = git@github.com:mikasmart/benchmark.git
