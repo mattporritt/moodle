@@ -22,3 +22,7 @@
 	path = report/benchmark
 	url = git@github.com:mikasmart/benchmark.git
 	branch = master
+[submodule "admin/tool/heartbeat"]
+	path = admin/tool/heartbeat
+	url = git@github.com:brendanheywood/moodle-tool_heartbeat.git
+	branch = master
