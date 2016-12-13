@@ -14,3 +14,7 @@
 	path = local/datacleaner
 	url = git@github.com:brendanheywood/moodle-local_datacleaner.git
 	branch = master
+[submodule "local/envbar"]
+	path = local/envbar
+	url = git@github.com:CatalystIT-AU/moodle-local_envbar.git
+	branch = master
