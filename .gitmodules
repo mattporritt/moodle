@@ -18,11 +18,11 @@
 [submodule "local/datacleaner"]
 	branch = master
 	path = local/datacleaner
-	url = git@github.com:brendanheywood/moodle-local_datacleaner.git
+	url = git@github.com:catalyst/moodle-local_datacleaner.git
 [submodule "local/envbar"]
 	branch = master
 	path = local/envbar
-	url = git@github.com:CatalystIT-AU/moodle-local_envbar.git
+	url = git@github.com:catalyst/moodle-local_envbar.git
 [submodule "report/benchmark"]
 	branch = master
 	path = report/benchmark
