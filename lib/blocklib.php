@@ -246,7 +246,7 @@ class block_manager {
             return false;
         }
 
-        $undeletableblocks = self::get_undeletable_block_types();
+        $requiredbythemeblocks = self::get_required_by_theme_block_types();
         foreach ($this->blockinstances as $region) {
             foreach ($region as $instance) {
                 if (empty($instance->instance->blockname)) {
@@ -254,7 +254,7 @@ class block_manager {
                 }
                 if ($instance->instance->blockname == $blockname) {
                     if ($instance->instance->requiredbytheme) {
-                        if (!in_array($block->name, $undeletableblocks)) {
+                        if (!in_array($blockname, $requiredbythemeblocks)) {
                             continue;
                         }
                     }
@@ -420,6 +420,7 @@ class block_manager {
         if (!in_array($block->name, $undeletableblocktypes)) {
             $undeletableblocktypes[] = $block->name;
             set_config('undeletableblocktypes', implode(',', $undeletableblocktypes));
+            add_to_config_log('block_protect', "0", "1", $block->name);
         }
     }
 
@@ -445,6 +446,7 @@ class block_manager {
         if (in_array($block->name, $undeletableblocktypes)) {
             $undeletableblocktypes = array_diff($undeletableblocktypes, array($block->name));
             set_config('undeletableblocktypes', implode(',', $undeletableblocktypes));
+            add_to_config_log('block_protect', "1", "0", $block->name);
         }
 
     }
