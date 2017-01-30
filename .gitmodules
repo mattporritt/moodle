@@ -1,4 +1,3 @@
-
 [submodule "admin/tool/heartbeat"]
 	branch = master
 	path = admin/tool/heartbeat
