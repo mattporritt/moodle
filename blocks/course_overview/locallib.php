@@ -86,7 +86,11 @@ function block_course_overview_get_myorder() {
     // If preference was not found, look in the old location and convert if found.
     $order = array();
     if ($value = get_user_preferences('course_overview_course_order')) {
-        $order = unserialize($value);
+        if (preg_match('/^a:[\d]+:\{([\d;i:]*)\}$/', $value, $matches)) {
+            $order = array_filter(explode(';', preg_replace('/i:/', '', $matches[1])));
+        } else {
+            $order = [];
+        }
         block_course_overview_update_myorder($order);
         unset_user_preference('course_overview_course_order');
     }

@@ -391,7 +391,17 @@ class core_user_external extends external_api {
         // Preferences.
         if (!empty($preferences)) {
             foreach ($preferences as $preference) {
-                set_user_preference($preference['type'], $preference['value'], $userid);
+                if ($preference['type'] === 'message_blocknoncontacts') {
+                    $value = clean_param($preference['value'], PARAM_BOOL);
+                } else if (preg_match('/^message_provider_([\w\d_]*)_logged(in|off)$/', $preference['type'])) {
+                    $values = array_map(function($v) {
+                        return clean_param($v, PARAM_ALPHANUMEXT);
+                    }, preg_split('/,/', $preference['value']));
+                    $value = join(',', array_filter($values));
+                } else {
+                    continue;
+                }
+                set_user_preference($preference['type'], $value, $userid);
             }
         }
 
@@ -583,7 +593,7 @@ class core_user_external extends external_api {
             // Preferences.
             if (!empty($user['preferences'])) {
                 foreach ($user['preferences'] as $preference) {
-                    set_user_preference($preference['type'], $preference['value'], $user['id']);
+                    //set_user_preference($preference['type'], $preference['value'], $user['id']);
                 }
             }
             if (isset($user['suspended']) and $user['suspended']) {
@@ -1714,6 +1724,7 @@ class core_user_external extends external_api {
 
         $userscache = array();
         foreach ($params['preferences'] as $pref) {
+            continue; // Completely disable this web service as a temporary quick-fix.
             // Check to which user set the preference.
             if (!empty($userscache[$pref['userid']])) {
                 $user = $userscache[$pref['userid']];
