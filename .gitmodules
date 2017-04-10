@@ -2,7 +2,7 @@
 	autoupdate = merge
 	branch = master
 	path = admin/tool/heartbeat
-	url = git@github.com:brendanheywood/moodle-tool_heartbeat.git
+	url = git@github.com:catalyst/moodle-tool_heartbeat.git
 [submodule "auth/catalyst"]
 	autoupdate = merge
 	branch = master
