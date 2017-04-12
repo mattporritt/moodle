@@ -199,6 +199,35 @@ abstract class engine {
     }
 
     /**
+     * Loop through given itterator of search documents
+     * and and have the search engine back end add them
+     * to the index.
+     *
+     * @param itterator $iterator
+     * @param bool $fileindexing Are we indexing files
+     * @return array Processed document counts
+     */
+    public function add_documents($iterator, $fileindexing){
+        $numrecords = 0;
+        $numdocs = 0;
+        $numdocsignored = 0;
+        $lastindexeddoc = 0;
+
+        foreach ($iterator as $document) {
+            if ($this->add_document($document, $fileindexing)) {
+                $numdocs++;
+            } else {
+                $numdocsignored++;
+            }
+
+            $lastindexeddoc = $document->get('modified');
+            $numrecords++;
+        }
+
+        return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
+    }
+
+    /**
      * Returns the plugin name.
      *
      * @return string Frankenstyle plugin name.

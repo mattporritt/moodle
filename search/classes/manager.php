@@ -549,36 +549,6 @@ class manager {
     }
 
     /**
-     * Loop through given itterator of search documents
-     * and and have the search engine back end add them
-     * to the index.
-     *
-     * @param itterator $iterator
-     * @param bool $fileindexing Are we indexing files
-     * @return array Processed document counts
-     */
-    public function add_documents($iterator, $fileindexing){
-        $numrecords = 0;
-        $numdocs = 0;
-        $numdocsignored = 0;
-        $lastindexeddoc = 0;
-
-        foreach ($iterator as $document) {
-            if ($this->engine->add_document($document, $fileindexing)) {
-                $numdocs++;
-            } else {
-                $numdocsignored++;
-            }
-
-            $lastindexeddoc = $document->get('modified');
-            $numrecords++;
-        }
-
-        return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
-    }
-
-
-    /**
      * Index all documents.
      *
      * @param bool $fullindex Whether we should reindex everything or not.
@@ -626,7 +596,7 @@ class manager {
             $fileindexing = $this->engine->file_indexing_enabled() && $searcharea->uses_file_indexing();
             $options = array('indexfiles' => $fileindexing, 'lastindexedtime' => $prevtimestart, 'searcharea' => $searcharea);
             $iterator = new \core\dml\recordset_walk($recordset, array($this, 'itterator_callback'), $options);
-            list($numrecords, $numdocs, $numdocsignored, $lastindexeddoc) = $this->add_documents($iterator, $fileindexing);
+            list($numrecords, $numdocs, $numdocsignored, $lastindexeddoc) = $this->engine->add_documents($iterator, $fileindexing);
 
             if (CLI_SCRIPT && !PHPUNIT_TEST) {
                 if ($numdocs > 0) {
