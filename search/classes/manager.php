@@ -518,6 +518,37 @@ class manager {
     }
 
     /**
+     * The Callback used by the itterator creator.
+     * It is called for every record in the search area recordset
+     * and is resonible for creating the documents that are loaded into
+     * the itterator.
+     *
+     * @param \stdClass $record A record containing, at least, the indexed document id and a modified timestamp
+     * @param array     $options Options for document creation
+     * @return \core_search\document
+     */
+    public function itterator_callback($record, $options) {
+        $searcharea = $options['searcharea'];
+        $document = $searcharea->get_document($record, $options);
+
+        if (!$document instanceof \core_search\document) {
+            return false;
+        }
+
+        if ($options['lastindexedtime'] == 0) {
+            // If we have never indexed this area before, it must be new.
+            $document->set_is_new(true);
+        }
+
+        if ($options['indexfiles']) {
+            // Attach files if we are indexing.
+            $searcharea->attach_files($document);
+        }
+
+        return $document;
+    }
+
+    /**
      * Index all documents.
      *
      * @param bool $fullindex Whether we should reindex everything or not.
@@ -568,23 +599,9 @@ class manager {
 
             // Pass get_document as callback.
             $fileindexing = $this->engine->file_indexing_enabled() && $searcharea->uses_file_indexing();
-            $options = array('indexfiles' => $fileindexing, 'lastindexedtime' => $prevtimestart);
-            $iterator = new \core\dml\recordset_walk($recordset, array($searcharea, 'get_document'), $options);
+            $options = array('indexfiles' => $fileindexing, 'lastindexedtime' => $prevtimestart, 'searcharea' => $searcharea);
+            $iterator = new \core\dml\recordset_walk($recordset, array($this, 'itterator_callback'), $options);
             foreach ($iterator as $document) {
-                if (!$document instanceof \core_search\document) {
-                    continue;
-                }
-
-                if ($prevtimestart == 0) {
-                    // If we have never indexed this area before, it must be new.
-                    $document->set_is_new(true);
-                }
-
-                if ($fileindexing) {
-                    // Attach files if we are indexing.
-                    $searcharea->attach_files($document);
-                }
-
                 if ($this->engine->add_document($document, $fileindexing)) {
                     $numdocs++;
                 } else {
