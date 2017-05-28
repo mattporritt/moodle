@@ -227,6 +227,18 @@ abstract class engine {
         return $classname;
     }
 
+
+    /**
+     * Return an instance of the search form.
+     * Search engine plugins can ovveride this form to provide custom behaviour.
+     *
+     * @return \core_search\output\form\search
+     */
+    public function get_form() {
+        $mform = new \core_search\output\form\search(null, array('searchengine' => $this->pluginname));
+        return $mform;
+    }
+
     /**
      * Run any pre-indexing operations.
      *
