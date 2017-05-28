@@ -169,6 +169,18 @@ class manager {
 
         return new $classname();
     }
+    
+    /**
+     *
+     * @return \core_search\output\form\search
+     */
+    public function get_form() {
+        $mform = new \core_search\output\form\search(null, array('searchengine' => $this->pluginname));
+        
+        return $mform;
+        
+        
+    }
 
     /**
      * Returns the search engine.

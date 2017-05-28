@@ -56,7 +56,7 @@ if (\core_search\manager::is_global_search_enabled() === false) {
 $search = \core_search\manager::instance();
 
 // We first get the submitted data as we want to set it all in the page URL.
-$mform = new \core_search\output\form\search(null, array('searchengine' => $search->get_engine()->get_plugin_name()));
+$mform = $search->get_form();
 
 $data = $mform->get_data();
 if (!$data && $q) {
