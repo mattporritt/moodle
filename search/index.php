@@ -56,7 +56,10 @@ if (\core_search\manager::is_global_search_enabled() === false) {
 $search = \core_search\manager::instance();
 
 // We first get the submitted data as we want to set it all in the page URL.
-$mform = $search->get_form();
+//$mform = $search->get_form();
+$mform = new \core_search\output\form\search(null, array('searchengine' => $search->get_engine()->get_plugin_name()));
+
+
 
 $data = $mform->get_data();
 if (!$data && $q) {
@@ -98,7 +101,9 @@ $url = new moodle_url('/search/index.php', $urlparams);
 $PAGE->set_url($url);
 
 // We are ready to render.
+
 echo $OUTPUT->header();
+echo '<div style="float: left; width: 200px; height: 300px; border-right: 1px solid; margin-right: 25px;">ddd</div>';
 echo $OUTPUT->heading($pagetitle);
 
 // Get the results.
