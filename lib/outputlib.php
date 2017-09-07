@@ -1281,8 +1281,18 @@ class theme_config {
                 if ($type === 'theme' || (!empty($excludes[$type]) and $excludes[$type] === true)) {
                     continue;
                 }
+
+                $pluginman  = core_plugin_manager::instance();
+                $enabledplugins = $pluginman->get_enabled_plugins($type);
+
                 $plugins = core_component::get_plugin_list($type);
                 foreach ($plugins as $plugin=>$fulldir) {
+                    if ($enabledplugins) {
+                        $enabled = in_array($plugin, $enabledplugins);
+                        if (!$enabled){
+                           continue;
+                        }
+                    }
                     if (!empty($excludes[$type]) and is_array($excludes[$type])
                             and in_array($plugin, $excludes[$type])) {
                         continue;
