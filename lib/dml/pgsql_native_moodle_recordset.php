@@ -45,19 +45,22 @@ class pgsql_native_moodle_recordset extends moodle_recordset {
      *
      * @param resource $result A pg_query() result object to create a recordset from.
      */
-    public function __construct($result) {
-        $this->result = $result;
+    public function __construct($conn) {
+        $this->conn = $conn;
+        $this->result = pg_query($conn, 'FETCH FIRST FROM curs1');;
 
         // Find out if there are any blobs.
-        $numfields = pg_num_fields($result);
+        $numfields = pg_num_fields($this->result);
         for ($i = 0; $i < $numfields; $i++) {
-            $type = pg_field_type($result, $i);
+            $type = pg_field_type($this->result, $i);
             if ($type == 'bytea') {
-                $this->blobs[] = pg_field_name($result, $i);
+                $this->blobs[] = pg_field_name($this->result, $i);
             }
         }
 
-        $this->current = $this->fetch_next();
+        pg_prepare($this->conn, 'fetch_next', 'FETCH FORWARD FROM curs1');
+
+        $this->current = $this->result;
     }
 
     public function __destruct() {
@@ -68,10 +71,15 @@ class pgsql_native_moodle_recordset extends moodle_recordset {
         if (!$this->result) {
             return false;
         }
-        if (!$row = pg_fetch_assoc($this->result)) {
-            pg_free_result($this->result);
+
+        $result = pg_execute($this->conn, 'fetch_next', array());
+        $row = pg_fetch_assoc($result);
+        if (!$row) {
+            pg_free_result($result);
             $this->result = null;
             return false;
+        } else {
+            $this->result = $row;
         }
 
         if ($this->blobs) {
@@ -105,6 +113,7 @@ class pgsql_native_moodle_recordset extends moodle_recordset {
     }
 
     public function close() {
+        pg_query($this->conn, 'COMMIT');
         if ($this->result) {
             pg_free_result($this->result);
             $this->result  = null;
