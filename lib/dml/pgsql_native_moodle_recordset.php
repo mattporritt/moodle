@@ -45,8 +45,9 @@ class pgsql_native_moodle_recordset extends moodle_recordset {
      *
      * @param resource $result A pg_query() result object to create a recordset from.
      */
-    public function __construct($conn) {
+    public function __construct($conn, $istransaction=false) {
         $this->conn = $conn;
+        $this->istransaction = $istransaction;
         $this->result = pg_query($conn, 'FETCH FIRST FROM curs1');;
 
         // Find out if there are any blobs.
@@ -113,7 +114,11 @@ class pgsql_native_moodle_recordset extends moodle_recordset {
     }
 
     public function close() {
-        pg_query($this->conn, 'COMMIT');
+        if ($this->$istransaction) {
+            pg_query($this->pgsql, 'RELEASE SAVEPOINT moodle_pg_cursor_savepoint');
+        } else {
+            pg_query($this->conn, 'COMMIT');
+        }
         if ($this->result) {
             pg_free_result($this->result);
             $this->result  = null;

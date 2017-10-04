@@ -736,17 +736,23 @@ class pgsql_native_moodle_database extends moodle_database {
         $this->query_start($sql, $params, SQL_QUERY_SELECT);
 
         // Call begin transaction explictly, it will be closed in the recordset class.
-        pg_query($this->pgsql, 'BEGIN ISOLATION LEVEL READ COMMITTED');
+        if ($this->savepointpresent == true) {
+            pg_query($this->pgsql, 'SAVEPOINT moodle_pg_cursor_savepoint');
+            $istransaction = false;
+        } else {
+            pg_query($this->pgsql, 'BEGIN ISOLATION LEVEL READ COMMITTED');
+            $istransaction = true;
+        }
         $cursorsql = 'DECLARE curs1 NO SCROLL CURSOR FOR ' . $sql;
         $result = pg_query_params($this->pgsql, $cursorsql, $params);
 
         $this->query_end($result);
 
-        return $this->create_recordset($this->pgsql);
+        return $this->create_recordset($this->pgsql, $istransaction);
     }
 
-    protected function create_recordset($conn) {
-        return new pgsql_native_moodle_recordset($conn);
+    protected function create_recordset($conn, $istransaction=false) {
+        return new pgsql_native_moodle_recordset($conn, $istransaction);
     }
 
     /**
