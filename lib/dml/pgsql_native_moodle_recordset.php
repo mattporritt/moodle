@@ -114,7 +114,7 @@ class pgsql_native_moodle_recordset extends moodle_recordset {
     }
 
     public function close() {
-        if ($this->$istransaction) {
+        if ($this->istransaction) {
             pg_query($this->pgsql, 'RELEASE SAVEPOINT moodle_pg_cursor_savepoint');
         } else {
             pg_query($this->conn, 'COMMIT');
