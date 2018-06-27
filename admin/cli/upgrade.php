@@ -183,9 +183,10 @@ upgrade_noncore(true);
 // log in as admin - we need doanything permission when applying defaults
 \core\session\manager::set_user(get_admin());
 
-// apply all default settings, just in case do it twice to fill all defaults
-admin_apply_default_settings(NULL, false);
-admin_apply_default_settings(NULL, false);
+// Apply default settings and output those that have changed.
+cli_heading(get_string('cliupgradedefaultheading', 'admin'));
+$settingsoutput = admin_apply_default_settings(null, false, true);
+echo $settingsoutput;
 
 // This needs to happen at the end to ensure it occurs after all caches
 // have been purged for the last time.
