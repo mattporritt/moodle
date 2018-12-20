@@ -641,4 +641,21 @@ abstract class backup_controller_dbops extends backup_dbops {
             }
         }
     }
+
+    /**
+     * Get the progress of a backup.
+     * Used in asynchronous backups.
+     *
+     * @param backup_controller $controller The backup controller to query.
+     * @return float $progress The backup progress.
+     */
+    public static function get_progress(backup_controller $controller) {
+        global $DB;
+
+        $backupid = $controller->get_backupid();
+        $progress = $DB->get_field('backup_controllers', 'progress', array('backupid' => $backupid));
+
+        return $progress;
+
+    }
 }
