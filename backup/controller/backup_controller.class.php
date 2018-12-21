@@ -85,10 +85,16 @@ class backup_controller extends base_controller {
         $this->userid = $userid;
 
         // Apply some defaults
-        $this->execution = backup::EXECUTION_INMEDIATE;
         $this->operation = backup::OPERATION_BACKUP;
         $this->executiontime = 0;
         $this->checksum = '';
+
+        // Set execution based on backup mode.
+        if ($mode == backup::MODE_ASYNC) {
+            $this->execution = backup::EXECUTION_DELAYED;
+        } else {
+            $this->execution = backup::EXECUTION_INMEDIATE;
+        }
 
         // Apply current backup version and release if necessary
         backup_controller_dbops::apply_version_and_release();
