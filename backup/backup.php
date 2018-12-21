@@ -179,10 +179,12 @@ if ($backup->get_stage() == backup_ui::STAGE_FINAL) {
         echo html_writer::end_div();
 
         // Create adhoc task for backup.
+        $asynctask = new \core\task\asynchronous_backup_task();
+        $asynctask->set_blocking(false);
+        $asynctask->set_custom_data(array('backupid' => $backupid));
+        \core\task\manager::queue_adhoc_task($asynctask);
 
-        // Add ajax progress bar
-
-        // Initiate ajax
+        // Add ajax progress bar and initiate ajax via a template.
 
 
     }
