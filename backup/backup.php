@@ -185,6 +185,13 @@ if ($backup->get_stage() == backup_ui::STAGE_FINAL) {
         \core\task\manager::queue_adhoc_task($asynctask);
 
         // Add ajax progress bar and initiate ajax via a template.
+//         $barsetup = array(
+//                 'id' => 'async-backup-bar',
+//                 'width' => '500'
+//         );
+//         echo $renderer->render_from_template('core/progress_bar', $barsetup);
+        echo $renderer->render_from_template('core/async_backup_status', array());
+
 
 
     }
