@@ -41,7 +41,7 @@ class core_backup_async_backup_testcase extends \core_privacy\tests\provider_tes
      * Tests the asynchronous backup.
      */
     public function test_async_backup() {
-        global $DB, $CFG;
+        global $DB, $CFG, $USER;
 
         $this->resetAfterTest(true);
         $this->setAdminUser();
@@ -80,6 +80,38 @@ class core_backup_async_backup_testcase extends \core_privacy\tests\provider_tes
                 'course' => $course->id, 'section' => 1));
 
         // Start backup process.
+
+        // Make the backup controller for an async backup.
+        $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
+                backup::INTERACTIVE_NO, backup::MODE_ASYNC, $USER->id);
+        $backupid = $bc->get_backupid();
+
+        $prebackuprec = $DB->get_record('backup_controllers', array('backupid' => $backupid));
+        $prebackuprec->controller = '';
+        error_log(print_r($prebackuprec, true));
+
+        // Create the adhoc task.
+        $asynctask = new \core\task\asynchronous_backup_task();
+        $asynctask->set_blocking(false);
+        $asynctask->set_custom_data(array('backupid' => $backupid));
+        \core\task\manager::queue_adhoc_task($asynctask);
+
+        // Squealch trace output from adhoc task during test.
+        $this->expectOutputRegex("//");
+
+        // Execute adhoc task.
+        $now = time();
+        $task = \core\task\manager::get_next_adhoc_task($now);
+        $this->assertInstanceOf('\\core\\task\\asynchronous_backup_task', $task);
+        $task->execute();
+        \core\task\manager::adhoc_task_complete($task);
+
+        $postbackuprec = $DB->get_record('backup_controllers', array('backupid' => $backupid));
+        $postbackuprec->controller = '';
+        error_log(print_r($postbackuprec, true));
+
+        // Check backup was created successfully.
+
 
 
     }

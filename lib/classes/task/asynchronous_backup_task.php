@@ -26,6 +26,8 @@ namespace core\task;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+
 /**
  * Adhoc task that performs asynchronous backups.
  *
@@ -39,8 +41,22 @@ class asynchronous_backup_task extends adhoc_task {
      * Run the task.
      */
     public function execute() {
-        // TODO: this.
+        $backupid = $this->get_custom_data()->backupid;
+        mtrace('foobarbarjoobar');
+
+        // Get the backup controller by backup id.
+        $bc = \backup_controller::load_controller($backupid);
+
+        // Do some preflight checks on the backup.
+
+
+        // Execute the backup.
+        $bc->execute_plan();
+        $bc->destroy();
 
         // Throw error on failure.
+
+        // Do some kind of progress tracking and add it to db.
+
     }
 }
