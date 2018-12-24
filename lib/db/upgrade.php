@@ -2889,5 +2889,26 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2018120301.02);
     }
 
+    if ($oldversion < 2018121400.01) {
+
+        // Define field and index to be added to backup_controllers.
+        $table = new xmldb_table('backup_controllers');
+        $field = new xmldb_field('progress', XMLDB_TYPE_NUMBER, '15, 14', null, XMLDB_NOTNULL, null, '0', 'timemodified');
+        $index = new xmldb_index('useritem_ix', XMLDB_INDEX_NOTUNIQUE, ['userid', 'itemid']);
+
+        // Conditionally launch add field progress.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Conditionally launch add index useritem_ix.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018121400.01);
+    }
+
     return true;
 }

@@ -27,6 +27,7 @@ namespace core\task;
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot . '/backup/moodle2/backup_plan_builder.class.php');
 
 /**
  * Adhoc task that performs asynchronous backups.
@@ -41,24 +42,28 @@ class asynchronous_backup_task extends adhoc_task {
      * Run the task.
      */
     public function execute() {
+        global $DB;
+
         $backupid = $this->get_custom_data()->backupid;
-        mtrace('foobarbarjoobar');
+        $backuprecordid = $DB->get_field('backup_controllers', 'id', array('backupid' => $backupid), MUST_EXIST);
+        mtrace('Processing asynchronous backup for backup: ' . $backupid);
 
         // Get the backup controller by backup id.
         $bc = \backup_controller::load_controller($backupid);
-        $bc->set_progress(new \core\progress\db_updater('backup_controllers', 'progress'));
+        $bc->set_progress(new \core\progress\db_updater($backuprecordid, 'backup_controllers', 'progress'));
 
         // Do some preflight checks on the backup.
-        //$rc->execute_precheck()
+        // Check that the backup is in the correct status.
+//        / $status = $bc->get_status();
+
+        // Check that the backup is asynchronous.
+       // $execution = $bc->get_execution();
 
         // Execute the backup.
         $bc->execute_plan();
         $bc->destroy();
 
         // Throw error on failure.
-
-        // Do some kind of progress tracking and add it to db.
-
     }
 }
 

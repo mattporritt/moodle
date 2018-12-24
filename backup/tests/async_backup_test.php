@@ -83,7 +83,8 @@ class core_backup_async_backup_testcase extends \core_privacy\tests\provider_tes
 
         // Make the backup controller for an async backup.
         $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
-                backup::INTERACTIVE_NO, backup::MODE_ASYNC, $USER->id);
+                backup::INTERACTIVE_YES, backup::MODE_ASYNC, $USER->id);
+        $bc->finish_ui();
         $backupid = $bc->get_backupid();
 
         $prebackuprec = $DB->get_record('backup_controllers', array('backupid' => $backupid));

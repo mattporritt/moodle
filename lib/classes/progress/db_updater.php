@@ -40,6 +40,13 @@ defined('MOODLE_INTERNAL') || die();
 class db_updater extends base {
 
     /**
+     * The primaray key of the database record to update.
+     *
+     * @var integer
+     */
+    protected $recordid = 0;
+
+    /**
      * The databse table to insert the progress updates into.
      *
      * @var string
@@ -64,17 +71,17 @@ class db_updater extends base {
     /**
      * Constructs the progress reporter.
      *
+     * @param int $recordid The primaray key of the database record to update.
      * @param string $table The databse table to insert the progress updates into.
      * @param string $field The table field to update with the progress.
      * @param int $interval The maximum frequency in seconds to update the database (default 5 seconds).
      */
-    public function __construct($table, $field, $interval=5) {
+    public function __construct($recordid, $table, $field, $interval=5) {
+        $this->recordid = $recordid;
         $this->table = $table;
         $this->field = $field;
         $this->interval = $interval;
-
     }
-
 
     /**
      * When update the database rogress is updated.
@@ -83,17 +90,27 @@ class db_updater extends base {
      * @see \core\progress\base::update_progress()
      */
     public function update_progress() {
-        // Get progress.
+        global $DB;
         $now = $this->get_time();
-        $nextupdate = $this->lastprogresstime + $this->interval;
-        if($now > $nextupdate) {
+        $lastprogress = $this->lastprogresstime > 0 ? $this->lastprogresstime : $now;
+        $nextupdate = $lastprogress + $this->interval;
+
+        $progressrecord = new \stdClass();
+        $progressrecord->id = $this->recordid;
+        $progressrecord->{$this->field} = '';
+
+        // Update database with progress
+        if($now > $nextupdate) {  // Limit database updates based on time.
             list ($min, $max) = $this->get_progress_proportion_range();
-            error_log($min * 100);
+
+            $progressrecord->{$this->field} = $min;
+            $DB->update_record($this->table, $progressrecord);
         }
 
         // Call when done.
         if (!$this->is_in_progress_section()) {
-            error_log('done');
+            $progressrecord->{$this->field} = 1;
+            $DB->update_record($this->table, $progressrecord);
         }
     }
 }

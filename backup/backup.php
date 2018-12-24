@@ -174,6 +174,8 @@ if ($backup->get_stage() == backup_ui::STAGE_FINAL) {
         echo html_writer::script('document.getElementById("executionprogress").style.display = "none";');
     } else {
         // Async backup handling.
+        $backup->get_controller()->finish_ui();
+
         echo html_writer::start_div('', array('id' => 'executionprogress'));
         echo $renderer->progress_bar($backup->get_progress_bar());
         echo html_writer::end_div();
