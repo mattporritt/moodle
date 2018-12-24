@@ -46,9 +46,10 @@ class asynchronous_backup_task extends adhoc_task {
 
         // Get the backup controller by backup id.
         $bc = \backup_controller::load_controller($backupid);
+        $bc->set_progress(new \core\progress\db_updater('backup_controllers', 'progress'));
 
         // Do some preflight checks on the backup.
-
+        //$rc->execute_precheck()
 
         // Execute the backup.
         $bc->execute_plan();
@@ -60,3 +61,4 @@ class asynchronous_backup_task extends adhoc_task {
 
     }
 }
+
