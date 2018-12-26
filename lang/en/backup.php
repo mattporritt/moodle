@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['asyncbadstatus'] = 'Bad backup controller status, is: {$a} should be 1000';
+$string['asyncbadexecution'] = 'Bad backup controller execution, is {$a} should be 2';
 $string['autoactivedisabled'] = 'Disabled';
 $string['autoactiveenabled'] = 'Enabled';
 $string['autoactivemanual'] = 'Manual';

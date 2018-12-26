@@ -88,8 +88,10 @@ class core_backup_async_backup_testcase extends \core_privacy\tests\provider_tes
         $backupid = $bc->get_backupid();
 
         $prebackuprec = $DB->get_record('backup_controllers', array('backupid' => $backupid));
-        $prebackuprec->controller = '';
-        error_log(print_r($prebackuprec, true));
+
+        // Check the initial backup controller was created correctly.
+        $this->assertEquals(700, $prebackuprec->status);
+        $this->assertEquals(2, $prebackuprec->execution);
 
         // Create the adhoc task.
         $asynctask = new \core\task\asynchronous_backup_task();
@@ -97,8 +99,8 @@ class core_backup_async_backup_testcase extends \core_privacy\tests\provider_tes
         $asynctask->set_custom_data(array('backupid' => $backupid));
         \core\task\manager::queue_adhoc_task($asynctask);
 
-        // Squealch trace output from adhoc task during test.
-        $this->expectOutputRegex("//");
+        // We are expecting trace output during this test.
+        $this->expectOutputRegex("/$backupid/");
 
         // Execute adhoc task.
         $now = time();
@@ -108,12 +110,9 @@ class core_backup_async_backup_testcase extends \core_privacy\tests\provider_tes
         \core\task\manager::adhoc_task_complete($task);
 
         $postbackuprec = $DB->get_record('backup_controllers', array('backupid' => $backupid));
-        $postbackuprec->controller = '';
-        error_log(print_r($postbackuprec, true));
 
         // Check backup was created successfully.
-
-
-
+        $this->assertEquals(1000, $postbackuprec->status);
+        $this->assertEquals(1.0, $postbackuprec->progress);
     }
 }

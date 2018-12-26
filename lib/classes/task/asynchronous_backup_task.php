@@ -39,10 +39,11 @@ require_once($CFG->dirroot . '/backup/moodle2/backup_plan_builder.class.php');
 class asynchronous_backup_task extends adhoc_task {
 
     /**
-     * Run the task.
+     * Run the adhoc task and preform the backup.
      */
     public function execute() {
         global $DB;
+        $started = time();
 
         $backupid = $this->get_custom_data()->backupid;
         $backuprecordid = $DB->get_field('backup_controllers', 'id', array('backupid' => $backupid), MUST_EXIST);
@@ -53,17 +54,25 @@ class asynchronous_backup_task extends adhoc_task {
         $bc->set_progress(new \core\progress\db_updater($backuprecordid, 'backup_controllers', 'progress'));
 
         // Do some preflight checks on the backup.
+        $status = $bc->get_status();
+        $execution = $bc->get_execution();
+
         // Check that the backup is in the correct status.
-//        / $status = $bc->get_status();
+        if ($status != 700) {
+            throw new \moodle_exception('asyncbadstatus', 'backup', '', $status);
+        }
 
         // Check that the backup is asynchronous.
-       // $execution = $bc->get_execution();
+        if ($execution != 2) {
+            throw new \moodle_exception('asyncbadexecution', 'backup', '', $execution);
+        }
 
         // Execute the backup.
         $bc->execute_plan();
         $bc->destroy();
 
-        // Throw error on failure.
+        $duration = time() - $started;
+        mtrace('Backup completed in: ' . $duration . ' seconds');
     }
 }
 
