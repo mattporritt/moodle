@@ -30,6 +30,10 @@ require_once('../config.php');
 require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 require_once($CFG->dirroot . '/backup/moodle2/backup_plan_builder.class.php');
 
+// Backup of large courses requires extra memory. Use the amount configured
+// in admin settings.
+raise_memory_limit(MEMORY_EXTRA);
+
 $courseid = required_param('id', PARAM_INT);
 $sectionid = optional_param('section', null, PARAM_INT);
 $cmid = optional_param('cm', null, PARAM_INT);
@@ -42,10 +46,13 @@ $backupid = optional_param('backup', false, PARAM_ALPHANUM);
 
 // Determine if we are performing realtime for asynchronous backups.
 $backupmode = backup::MODE_GENERAL;
+$async = false;
 if (isset($CFG->enableasyncbackup) && $CFG->enableasyncbackup) {
     $backupmode = backup::MODE_ASYNC;
+    $async = true;
 }
 
+$courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
 $url = new moodle_url('/backup/backup.php', array('id'=>$courseid));
 if ($sectionid !== null) {
     $url->param('section', $sectionid);
@@ -97,15 +104,6 @@ switch ($type) {
         print_error('unknownbackuptype');
 }
 
-// Backup of large courses requires extra memory. Use the amount configured
-// in admin settings.
-raise_memory_limit(MEMORY_EXTRA);
-
-if (!($bc = backup_ui::load_controller($backupid))) {
-    $bc = new backup_controller($type, $id, backup::FORMAT_MOODLE,
-            backup::INTERACTIVE_YES, $backupmode, $USER->id);
-}
-
 $PAGE->set_title($heading);
 $PAGE->set_heading($heading);
 
@@ -114,114 +112,137 @@ if (empty($cancel)) {
     echo $OUTPUT->header();
 }
 
-// Prepare a progress bar which can display optionally during long-running
-// operations while setting up the UI.
-$slowprogress = new \core\progress\display_if_slow(get_string('preparingui', 'backup'));
-$renderer = $PAGE->get_renderer('core','backup');
-$backup = new backup_ui($bc);
-
-if ($backup->get_stage() == backup_ui::STAGE_SCHEMA && !$previous) {
-    // After schema stage, we are probably going to get to the confirmation stage,
-    // The confirmation stage has 2 sets of progress, so this is needed to prevent
-    // it showing 2 progress bars.
-    $twobars = true;
-    $slowprogress->start_progress('', 2);
-} else {
-    $twobars = false;
-}
-$backup->get_controller()->set_progress($slowprogress);
-$backup->process();
-
-if ($backup->enforce_changed_dependencies()) {
-    debugging('Your settings have been altered due to unmet dependencies', DEBUG_DEVELOPER);
+// If we are in async mode check that they are no other pending backups.
+// Only do check if we are to save a DB call otherwise.
+$asyncpending = false;
+if ($async) {
+    $select = 'userid = ? AND itemid = ? AND execution = ? AND status < ? AND status > ?';
+    $params = array($USER->id, $id, 2, 900, 600);
+    $asyncpending = $DB->record_exists_select('backup_controllers', $select, $params);
 }
 
-// The mix of business logic and display elements below makes me sad.
-// This needs to refactored into the renderer and seperated out.
+// Only let user perform a backup if we aren't in async mode, or if we are
+// and there are no pending backups for this item for this user.
+if (!$asyncpending) {
 
-$loghtml = '';
-if ($backup->get_stage() == backup_ui::STAGE_FINAL) {
+    // The mix of business logic and display elements below makes me sad.
+    // This needs to refactored into the renderer and seperated out.
 
-    if ($backupmode != backup::MODE_ASYNC) {
-        // Synchronous backup handling.
+    if (!($bc = backup_ui::load_controller($backupid))) {
+        $bc = new backup_controller($type, $id, backup::FORMAT_MOODLE,
+                backup::INTERACTIVE_YES, $backupmode, $USER->id);
+    }
 
-        // Display an extra backup step bar so that we can show the 'processing' step first.
-        echo html_writer::start_div('', array('id' => 'executionprogress'));
-        echo $renderer->progress_bar($backup->get_progress_bar());
-        $backup->get_controller()->set_progress(new \core\progress\display());
+    // Prepare a progress bar which can display optionally during long-running
+    // operations while setting up the UI.
+    $slowprogress = new \core\progress\display_if_slow(get_string('preparingui', 'backup'));
+    $renderer = $PAGE->get_renderer('core','backup');
+    $backup = new backup_ui($bc);
 
-        // Prepare logger and add to end of chain.
-        $logger = new core_backup_html_logger($CFG->debugdeveloper ? backup::LOG_DEBUG : backup::LOG_INFO);
-        $backup->get_controller()->add_logger($logger);
-
-        // Carry out actual backup.
-        $backup->execute();
-
-        // Backup controller gets saved/loaded so the logger object changes and we
-        // have to retrieve it.
-        $logger = $backup->get_controller()->get_logger();
-        while (!is_a($logger, 'core_backup_html_logger')) {
-            $logger = $logger->get_next();
-        }
-
-        // Get HTML from logger.
-        if ($CFG->debugdisplay) {
-            $loghtml = $logger->get_html();
-        }
-
-        // Hide the progress display and first backup step bar (the 'finished' step will show next).
-        echo html_writer::end_div();
-        echo html_writer::script('document.getElementById("executionprogress").style.display = "none";');
+    if ($backup->get_stage() == backup_ui::STAGE_SCHEMA && !$previous) {
+        // After schema stage, we are probably going to get to the confirmation stage,
+        // The confirmation stage has 2 sets of progress, so this is needed to prevent
+        // it showing 2 progress bars.
+        $twobars = true;
+        $slowprogress->start_progress('', 2);
     } else {
-        // Async backup handling.
-        $backup->get_controller()->finish_ui();
+        $twobars = false;
+    }
+    $backup->get_controller()->set_progress($slowprogress);
+    $backup->process();
 
-        echo html_writer::start_div('', array('id' => 'executionprogress'));
+    if ($backup->enforce_changed_dependencies()) {
+        debugging('Your settings have been altered due to unmet dependencies', DEBUG_DEVELOPER);
+    }
+
+    $loghtml = '';
+    if ($backup->get_stage() == backup_ui::STAGE_FINAL) {
+
+        if ($backupmode != backup::MODE_ASYNC) {
+            // Synchronous backup handling.
+
+            // Display an extra backup step bar so that we can show the 'processing' step first.
+            echo html_writer::start_div('', array('id' => 'executionprogress'));
+            echo $renderer->progress_bar($backup->get_progress_bar());
+            $backup->get_controller()->set_progress(new \core\progress\display());
+
+            // Prepare logger and add to end of chain.
+            $logger = new core_backup_html_logger($CFG->debugdeveloper ? backup::LOG_DEBUG : backup::LOG_INFO);
+            $backup->get_controller()->add_logger($logger);
+
+            // Carry out actual backup.
+            $backup->execute();
+
+            // Backup controller gets saved/loaded so the logger object changes and we
+            // have to retrieve it.
+            $logger = $backup->get_controller()->get_logger();
+            while (!is_a($logger, 'core_backup_html_logger')) {
+                $logger = $logger->get_next();
+            }
+
+            // Get HTML from logger.
+            if ($CFG->debugdisplay) {
+                $loghtml = $logger->get_html();
+            }
+
+            // Hide the progress display and first backup step bar (the 'finished' step will show next).
+            echo html_writer::end_div();
+            echo html_writer::script('document.getElementById("executionprogress").style.display = "none";');
+        } else {
+            // Async backup handling.
+            $backup->get_controller()->finish_ui();
+
+            echo html_writer::start_div('', array('id' => 'executionprogress'));
+            echo $renderer->progress_bar($backup->get_progress_bar());
+            echo html_writer::end_div();
+
+            // Create adhoc task for backup.
+            $asynctask = new \core\task\asynchronous_backup_task();
+            $asynctask->set_blocking(false);
+            $asynctask->set_custom_data(array('backupid' => $backupid));
+            \core\task\manager::queue_adhoc_task($asynctask);
+
+            // Add ajax progress bar and initiate ajax via a template.
+            $restoreurl = new moodle_url('/backup/restorefile.php', array('contextid' => $coursecontext->id));
+            $progresssetup = array(
+                    'backupid' => $backupid,
+                    'courseid' => $courseid,
+                    'courseurl' => $courseurl->out_as_local_url(),
+                    'restoreurl' => $restoreurl->out_as_local_url(),
+                    'width' => '500'
+            );
+            echo $renderer->render_from_template('core/async_backup_status', $progresssetup);
+        }
+
+    } else {
+        $backup->save_controller();
+    }
+
+    if ($backup->get_stage() != backup_ui::STAGE_FINAL) {
+
+        // Displaying UI can require progress reporting, so do it here before outputting
+        // the backup stage bar (as part of the existing progress bar, if required).
+        $ui = $backup->display($renderer);
+        if ($twobars) {
+            $slowprogress->end_progress();
+        }
+
         echo $renderer->progress_bar($backup->get_progress_bar());
-        echo html_writer::end_div();
+        echo $ui;
 
-        // Create adhoc task for backup.
-        $asynctask = new \core\task\asynchronous_backup_task();
-        $asynctask->set_blocking(false);
-        $asynctask->set_custom_data(array('backupid' => $backupid));
-        \core\task\manager::queue_adhoc_task($asynctask);
-
-        // Add ajax progress bar and initiate ajax via a template.
-        $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
-        $restoreurl = new moodle_url('/backup/restorefile.php', array('contextid' => $coursecontext->id));
-        $progresssetup = array(
-                'backupid' => $backupid,
-                'courseid' => $courseid,
-                'courseurl' => $courseurl->out_as_local_url(),
-                'restoreurl' => $restoreurl->out_as_local_url(),
-                'width' => '500'
-        );
-        echo $renderer->render_from_template('core/async_backup_status', $progresssetup);
+        // Display log data if there was any.
+        if ($loghtml != '' && $backupmode != backup::MODE_ASYNC) {
+            echo $renderer->log_display($loghtml);
+        }
     }
 
-} else {
-    $backup->save_controller();
+    $backup->destroy();
+    unset($backup);
+
+} else { // User has a pending async operation.
+    echo $OUTPUT->notification(get_string('pendingasyncerror', 'backup'), 'error');
+    echo $OUTPUT->container(get_string('pendingasyncdetail', 'backup'));
+    echo $OUTPUT->continue_button($courseurl);
 }
-
-if ($backup->get_stage() != backup_ui::STAGE_FINAL) {
-
-    // Displaying UI can require progress reporting, so do it here before outputting
-    // the backup stage bar (as part of the existing progress bar, if required).
-    $ui = $backup->display($renderer);
-    if ($twobars) {
-        $slowprogress->end_progress();
-    }
-
-    echo $renderer->progress_bar($backup->get_progress_bar());
-    echo $ui;
-
-    // Display log data if there was any.
-    if ($loghtml != '' && $backupmode != backup::MODE_ASYNC) {
-        echo $renderer->log_display($loghtml);
-}
-}
-
-$backup->destroy();
-unset($backup);
 
 echo $OUTPUT->footer();
