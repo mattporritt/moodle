@@ -302,6 +302,16 @@ class backup_controller extends base_controller {
         return $this->executiontime;
     }
 
+
+    /**
+     * Get backup completion progress for asynchronous backups.
+     *
+     * @return float Backup progress.
+     */
+    public function get_progresscomplete() {
+        return backup_controller_dbops::get_progress($this);
+    }
+
     /**
      * @return backup_plan
      */

@@ -59,6 +59,7 @@ $PAGE->set_pagelayout('admin');
 $id = $courseid;
 $cm = null;
 $course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
+$coursecontext = context_course::instance($course->id);
 $type = backup::TYPE_1COURSE;
 if (!is_null($sectionid)) {
     $section = $DB->get_record('course_sections', array('course'=>$course->id, 'id'=>$sectionid), '*', MUST_EXIST);
@@ -74,11 +75,10 @@ require_login($course, false, $cm);
 
 switch ($type) {
     case backup::TYPE_1COURSE :
-        require_capability('moodle/backup:backupcourse', context_course::instance($course->id));
+        require_capability('moodle/backup:backupcourse', $coursecontext);
         $heading = get_string('backupcourse', 'backup', $course->shortname);
         break;
     case backup::TYPE_1SECTION :
-        $coursecontext = context_course::instance($course->id);
         require_capability('moodle/backup:backupsection', $coursecontext);
         if ((string)$section->name !== '') {
             $sectionname = format_string($section->name, true, array('context' => $coursecontext));
@@ -187,15 +187,17 @@ if ($backup->get_stage() == backup_ui::STAGE_FINAL) {
         \core\task\manager::queue_adhoc_task($asynctask);
 
         // Add ajax progress bar and initiate ajax via a template.
-//         $barsetup = array(
-//                 'id' => 'async-backup-bar',
-//                 'width' => '500'
-//         );
-//         echo $renderer->render_from_template('core/progress_bar', $barsetup);
-        echo $renderer->render_from_template('core/async_backup_status', array());
-
-
-
+        $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
+        $restoreurl = new moodle_url('/backup/restorefile.php', array('contextid' => $coursecontext->id));
+        $progresssetup = array(
+                'id' => 'async-backup-bar',
+                'backupid' => $backupid,
+                'courseid' => $courseid,
+                'courseurl' => $courseurl->out_as_local_url(),
+                'restoreurl' => $restoreurl->out_as_local_url(),
+                'width' => '500'
+        );
+        echo $renderer->render_from_template('core/async_backup_status', $progresssetup);
     }
 
 } else {

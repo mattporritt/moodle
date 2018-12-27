@@ -24,6 +24,9 @@
 
 $string['asyncbadstatus'] = 'Bad backup controller status, is: {$a} should be 1000';
 $string['asyncbadexecution'] = 'Bad backup controller execution, is {$a} should be 2';
+$string['asynccheckprogress'] = ' You can check the progress at anytime at the <a href="{$a}">course restore page.</a>';
+$string['asyncnowait'] = 'You don\'t need to wait here, the process will continue in the background.';
+$string['asyncreturn'] = 'Return to course';
 $string['autoactivedisabled'] = 'Disabled';
 $string['autoactiveenabled'] = 'Enabled';
 $string['autoactivemanual'] = 'Manual';
