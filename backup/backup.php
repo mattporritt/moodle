@@ -190,7 +190,6 @@ if ($backup->get_stage() == backup_ui::STAGE_FINAL) {
         $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
         $restoreurl = new moodle_url('/backup/restorefile.php', array('contextid' => $coursecontext->id));
         $progresssetup = array(
-                'id' => 'async-backup-bar',
                 'backupid' => $backupid,
                 'courseid' => $courseid,
                 'courseurl' => $courseurl->out_as_local_url(),

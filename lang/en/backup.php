@@ -22,6 +22,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['asyncbackupcomplete'] = 'The backup process has completed';
+$string['asyncbackupcompletebutton'] = 'Continue';
+$string['asyncbackupcompletedetail'] = 'The backup process has completed sucessfully completed. <br/> You can access the backup in the <a href="{$a}">course restore page.</a>';
+$string['asyncbackuperror'] = 'The backup process has failed';
+$string['asyncbackuperrordetail'] = 'The backup process has failed. Please contact your system administrator.';
+$string['asyncbackuppending'] = 'The backup process is pending';
+$string['asyncbackupprocessing'] = 'The backup is in progress';
 $string['asyncbadstatus'] = 'Bad backup controller status, is: {$a} should be 1000';
 $string['asyncbadexecution'] = 'Bad backup controller execution, is {$a} should be 2';
 $string['asynccheckprogress'] = ' You can check the progress at anytime at the <a href="{$a}">course restore page.</a>';

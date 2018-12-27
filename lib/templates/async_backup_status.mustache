@@ -34,7 +34,6 @@
 
     Example context (json):
     {
-        "id": "async-backup-bar",
         "backupid": "f04abf8cba0319e486a3dfa7e9cb4476",
         "courseid": "4",
         "courseurl": "/course/view.php?id=6",
@@ -42,19 +41,19 @@
         "width": "500"
     }
 }}
-<div class="progressbar_container" style="width: {{width}}px;" id="{{id}}">
-    <h3 id="{{id}}_status">The backup process is pending</h3>
+<div class="progressbar_container" style="width: {{width}}px;" id="{{backupid}}">
+    <h3 id="{{backupid}}_status">{{# str }} asyncbackuppending, backup {{/ str }}</h3>
     <div class="progress active" style="height: 25px;">
-        <div id="{{id}}_bar" class="progress-bar  progress-bar-striped progress-bar-animated" style="width: 100%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="{{backupid}}_bar" class="progress-bar  progress-bar-striped progress-bar-animated" style="width: 100%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             Process Pending
         </div>
     </div>
-    <p>{{# str }} asyncnowait, backup {{/ str }}<br/>{{# str }} asynccheckprogress, backup, {{restoreurl}} {{/ str }}</p>
-    <a href="{{courseurl}}" class="btn btn-primary">{{# str }} asyncreturn, backup {{/ str }}</a>
+    <p id="{{backupid}}_detail">{{# str }} asyncnowait, backup {{/ str }}<br/>{{# str }} asynccheckprogress, backup, {{restoreurl}} {{/ str }}</p>
+    <a id="{{backupid}}_button" href="{{courseurl}}" class="btn btn-primary">{{# str }} asyncreturn, backup {{/ str }}</a>
 </div>
 
 {{#js}}
 require(['core/async_backup'], function(Async) {
-    Async.init("{{backupid}}", "{{courseid}}");
+    Async.init("{{backupid}}", "{{courseid}}", "{{restoreurl}}");
 });
 {{/js}}
