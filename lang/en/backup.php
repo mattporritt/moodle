@@ -238,6 +238,7 @@ $string['norestoreoptions'] = 'There are no categories or existing courses you c
 $string['originalwwwroot'] = 'URL of backup';
 $string['overwrite'] = 'Overwrite';
 $string['pendingasyncdetail'] = 'Asynchronous backups only allow a user to have one pending backup for a resource at a time. <br/> Muliple asynchronous backups of the same resource can\'t be queued, as this would likely result in multiple backups with the same content.';
+$string['pendingasyncedit'] = 'There is a pending asynchronous backup for this course. Please do not edit this course until backup is complete.';
 $string['pendingasyncerror'] = 'Backup already pending for this resource';
 $string['previousstage'] = 'Previous';
 $string['preparingui'] = 'Preparing to display page';

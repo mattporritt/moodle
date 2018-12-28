@@ -46,10 +46,8 @@ $backupid = optional_param('backup', false, PARAM_ALPHANUM);
 
 // Determine if we are performing realtime for asynchronous backups.
 $backupmode = backup::MODE_GENERAL;
-$async = false;
 if (isset($CFG->enableasyncbackup) && $CFG->enableasyncbackup) {
     $backupmode = backup::MODE_ASYNC;
-    $async = true;
 }
 
 $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
@@ -112,18 +110,9 @@ if (empty($cancel)) {
     echo $OUTPUT->header();
 }
 
-// If we are in async mode check that they are no other pending backups.
-// Only do check if we are to save a DB call otherwise.
-$asyncpending = false;
-if ($async) {
-    $select = 'userid = ? AND itemid = ? AND execution = ? AND status < ? AND status > ?';
-    $params = array($USER->id, $id, 2, 900, 600);
-    $asyncpending = $DB->record_exists_select('backup_controllers', $select, $params);
-}
-
 // Only let user perform a backup if we aren't in async mode, or if we are
 // and there are no pending backups for this item for this user.
-if (!$asyncpending) {
+if (!\backup_controller::is_async_pending($id)) {
 
     // The mix of business logic and display elements below makes me sad.
     // This needs to refactored into the renderer and seperated out.

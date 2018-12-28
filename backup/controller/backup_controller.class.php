@@ -415,6 +415,24 @@ class backup_controller extends base_controller {
         $this->log("setting file inclusion to {$this->includefiles}", backup::LOG_DEBUG);
         return $this->includefiles;
     }
+
+    /**
+     *
+     * @param unknown $id
+     * @return boolean
+     */
+    public static function is_async_pending($id){
+        global $CFG, $DB, $USER;
+        $asyncpending = false;
+
+        // Only check for pending asynch operations if async mode is enabled.
+        if (isset($CFG->enableasyncbackup) && $CFG->enableasyncbackup) {
+            $select = 'userid = ? AND itemid = ? AND execution = ? AND status < ? AND status > ?';
+            $params = array($USER->id, $id, 2, 900, 600);
+            $asyncpending = $DB->record_exists_select('backup_controllers', $select, $params);
+        }
+        return $asyncpending;
+    }
 }
 
 /*
