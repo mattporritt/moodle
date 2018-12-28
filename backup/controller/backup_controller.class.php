@@ -417,9 +417,10 @@ class backup_controller extends base_controller {
     }
 
     /**
+     * Check if there is a pending async operation for a given id.
      *
-     * @param unknown $id
-     * @return boolean
+     * @param int $id The item id to check in the backup record.
+     * @return boolean $asyncpedning Is there a pending async operation.
      */
     public static function is_async_pending($id){
         global $CFG, $DB, $USER;
