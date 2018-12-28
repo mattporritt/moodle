@@ -22,6 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+global $CFG;
+require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot . '/backup/moodle2/backup_plan_builder.class.php');
+
 /**
  * The primary renderer for the backup.
  *
@@ -533,6 +537,50 @@ class core_backup_renderer extends plugin_renderer_base {
         return $this->render($files);
     }
 
+    public function get_status_icon($statuscode) {
+        global $OUTPUT;
+
+        if ($statuscode == 700 || $statuscode == 800) {  // Inprogress.
+            $icon = $OUTPUT->render(new \pix_icon('i/duration', get_string('inprogress', 'backup')));
+        } else if ($statuscode == 900) { // Error.
+            $icon = $OUTPUT->render(new \pix_icon('i/delete', get_string('failed', 'backup')));
+        } else if ($statuscode == 1000) { // Complete/
+            $icon = $OUTPUT->render(new \pix_icon('i/checked', get_string('successful', 'backup')));
+        }
+
+        $status = \html_writer::span($icon, 'action-icon');
+
+        return $status;
+    }
+
+    /**
+     *
+     * @param backup_files_viewer $viewer
+     */
+    public function get_async_backups($viewer){
+        global $DB;
+
+        $tabledata = array();
+
+        // Get relevant backup ids based on context instance id.
+        $instanceid = $viewer->currentcontext->instanceid;
+        $select = 'itemid = ? AND execution = ? AND status < ? AND status > ?';
+        $params = array($instanceid, 2, 900, 600);
+        $backups = $DB->get_records_select('backup_controllers', $select, $params, 'timecreated DESC', 'id, backupid, timecreated');
+
+        foreach($backups as $backup) {
+            $bc = \backup_controller::load_controller($backup->backupid);  // Get the backup controller.
+            $filename = $bc->get_plan()->get_setting('filename')->get_value();
+            $timecreated = $backup->timecreated;
+            $status = $this->get_status_icon($bc->get_status());
+
+            $tablerow = array($filename, userdate($timecreated), '-', '-', '-', $status);
+            $tabledata[] = $tablerow;
+        }
+
+        return $tabledata;
+    }
+
     /**
      * Displays a backup files viewer
      *
@@ -544,12 +592,28 @@ class core_backup_renderer extends plugin_renderer_base {
         global $CFG;
         $files = $viewer->files;
 
+        $async = false;
+        if (isset($CFG->enableasyncbackup) && $CFG->enableasyncbackup) {
+            $async = true;
+        }
+
+        $tablehead = array(get_string('filename', 'backup'), get_string('time'), get_string('size'), get_string('download'), get_string('restore'));
+        if ($async) {
+            $tablehead[] = get_string('status', 'backup');
+        }
+
         $table = new html_table();
         $table->attributes['class'] = 'backup-files-table generaltable';
-        $table->head = array(get_string('filename', 'backup'), get_string('time'), get_string('size'), get_string('download'), get_string('restore'));
+        $table->head = $tablehead;
         $table->width = '100%';
         $table->data = array();
 
+        // First add in progress asynchronous backups.
+        if ($async && ($viewer->filearea == 'course' || $viewer->filearea == 'activity')) {
+            $table->data = $this->get_async_backups($viewer);
+        }
+
+        // Add completed backups.
         foreach ($files as $file) {
             if ($file->is_directory()) {
                 continue;
@@ -585,13 +649,18 @@ class core_backup_renderer extends plugin_renderer_base {
                     $downloadlink = '';
                 }
             }
-            $table->data[] = array(
-                $file->get_filename(),
-                userdate($file->get_timemodified()),
-                display_size($file->get_filesize()),
-                $downloadlink,
-                $restorelink,
-                );
+            $tabledata = array (
+                    $file->get_filename (),
+                    userdate ( $file->get_timemodified () ),
+                    display_size ( $file->get_filesize () ),
+                    $downloadlink,
+                    $restorelink
+            );
+            if ($async) {
+                $tabledata[] = $this->get_status_icon(1000);
+            }
+
+            $table->data[] = $tabledata;
         }
 
         $html = html_writer::table($table);
