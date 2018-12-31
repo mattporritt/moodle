@@ -197,4 +197,13 @@ if (!empty($automatedbackups)) {
     echo $OUTPUT->container_end();
 }
 
+// In progress course restores.
+if (isset($CFG->enableasyncbackup) && $CFG->enableasyncbackup) {
+    echo $OUTPUT->heading_with_help(get_string('asyncrestoreinprogress', 'backup'), 'asyncrestoreinprogress', 'backup');
+    echo $OUTPUT->container_start();
+    $renderer = $PAGE->get_renderer('core', 'backup');
+    echo $renderer->restore_progress_viewer($USER->id);
+    echo $OUTPUT->container_end();
+}
+
 echo $OUTPUT->footer();

@@ -24,6 +24,7 @@
 
 global $CFG;
 require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/backup/moodle2/backup_plan_builder.class.php');
 
 /**
@@ -585,6 +586,31 @@ class core_backup_renderer extends plugin_renderer_base {
         return $tabledata;
     }
 
+
+    public function get_course_name($restoreid, $itemid){
+        global $DB;
+        // Try to get coursename from contoller.
+        try {
+            $rc = \restore_controller::load_controller($restoreid);
+            $coursename = $rc->get_plan()->get_setting('course_fullname')->get_value();
+        } catch (\backup_dbops_exception $e) {
+            // If controller doesn't exist, try to get it from course table.
+            $coursename = $DB->get_field('course', 'fullname', array('id' => $itemid));
+        }
+
+        return $coursename;
+    }
+
+    public function get_async_restores($userid) {
+        global $DB;
+
+        $select = 'userid = ? AND execution = ? AND status < ? AND status > ? AND operation = ?';
+        $params = array($userid, 2, 900, 600, 'restore');
+        $restores = $DB->get_records_select('backup_controllers', $select, $params, 'timecreated DESC', 'id, backupid, status, itemid, timecreated');
+
+        return $restores;
+    }
+
     /**
      * Displays a backup files viewer
      *
@@ -925,6 +951,37 @@ class core_backup_renderer extends plugin_renderer_base {
 
         $output .= html_writer::end_tag('div');
         return $output;
+    }
+
+    public function restore_progress_viewer ($userid) {
+        global $DB;
+        $user_context = context_user::instance($userid);
+
+        $tablehead = array(get_string('course'), get_string('time'), get_string('status', 'backup'));
+
+        $table = new html_table();
+        $table->attributes['class'] = 'backup-files-table generaltable';
+        $table->head = $tablehead;
+        $tabledata = array();
+
+        //  Get all in progress async restores for this user
+        $restores = $this->get_async_restores($userid);
+
+        //  For each backup get, new course name, time restore creted and progress
+        foreach ($restores as $restore) {
+
+            $coursename = $this->get_course_name($restore->backupid, $restore->itemid);
+            $timecreated = $restore->timecreated;
+            $status = $this->get_status_display($restore->status, $restore->backupid);
+
+            $tablerow = array($coursename, userdate($timecreated), $status);
+            $tabledata[] = $tablerow;
+        }
+
+        $table->data = $tabledata;
+        $html = html_writer::table($table);
+
+        return $html;
     }
 }
 
