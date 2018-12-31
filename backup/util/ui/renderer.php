@@ -537,18 +537,22 @@ class core_backup_renderer extends plugin_renderer_base {
         return $this->render($files);
     }
 
-    public function get_status_icon($statuscode) {
+    public function get_status_display($statuscode, $backupid) {
         global $OUTPUT;
 
         if ($statuscode == 700 || $statuscode == 800) {  // Inprogress.
-            $icon = $OUTPUT->render(new \pix_icon('i/duration', get_string('inprogress', 'backup')));
+            $progresssetup = array(
+                    'backupid' => $backupid,
+                    'width' => '100'
+            );
+            $status = $this->render_from_template('core/async_backup_progress', $progresssetup);
         } else if ($statuscode == 900) { // Error.
             $icon = $OUTPUT->render(new \pix_icon('i/delete', get_string('failed', 'backup')));
+            $status = \html_writer::span($icon, 'action-icon');
         } else if ($statuscode == 1000) { // Complete/
             $icon = $OUTPUT->render(new \pix_icon('i/checked', get_string('successful', 'backup')));
+            $status = \html_writer::span($icon, 'action-icon');
         }
-
-        $status = \html_writer::span($icon, 'action-icon');
 
         return $status;
     }
@@ -572,7 +576,7 @@ class core_backup_renderer extends plugin_renderer_base {
             $bc = \backup_controller::load_controller($backup->backupid);  // Get the backup controller.
             $filename = $bc->get_plan()->get_setting('filename')->get_value();
             $timecreated = $backup->timecreated;
-            $status = $this->get_status_icon($bc->get_status());
+            $status = $this->get_status_display($bc->get_status(), $bc->get_backupid());
 
             $tablerow = array($filename, userdate($timecreated), '-', '-', '-', $status);
             $tabledata[] = $tablerow;
@@ -657,7 +661,7 @@ class core_backup_renderer extends plugin_renderer_base {
                     $restorelink
             );
             if ($async) {
-                $tabledata[] = $this->get_status_icon(1000);
+                $tabledata[] = $this->get_status_display(1000, null);
             }
 
             $table->data[] = $tabledata;

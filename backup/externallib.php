@@ -48,8 +48,12 @@ class core_backup_external extends external_api {
     public static function async_backup_progress_parameters() {
         return new external_function_parameters(
             array(
-                'backupid' => new external_value(PARAM_ALPHANUM, 'Backup id to get progress for', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
-                'courseid' => new external_value(PARAM_INT, 'course id'),
+               // 'backupid' => new external_value(PARAM_ALPHANUM, 'Backup id to get progress for', VALUE_REQUIRED, null, NULL_ALLOWED),
+                'backupids' => new external_multiple_structure(
+                        new external_value(PARAM_ALPHANUM, 'Backup id to get progress for', VALUE_REQUIRED, null, NULL_ALLOWED),
+                        'Backup id to get progress for', VALUE_REQUIRED
+                 ),
+                'contextid' => new external_value(PARAM_INT, 'Context id', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
             )
         );
     }
@@ -61,7 +65,7 @@ class core_backup_external extends external_api {
      * @param int $courseid The course the backup relates to.
      * @since Moodle 3.7
      */
-    public static function async_backup_progress($backupid, $courseid) {
+    public static function async_backup_progress($backupids, $contextid) {
         global $CFG, $DB;
         require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
         require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
@@ -70,38 +74,33 @@ class core_backup_external extends external_api {
         $params = self::validate_parameters(
                 self::async_backup_progress_parameters(),
                 array(
-                    'backupid' => $backupid,
-                    'courseid' => $courseid
+                    'backupids' => $backupids,
+                    'contextid' => $contextid
                 )
         );
 
         // Context validation.
-        if (! ($course = $DB->get_record('course', array('id'=>$params['courseid'])))) {
-            throw new moodle_exception('invalidcourseid', 'error');
+        list($context, $course, $cm) = get_context_info_array($contextid);
+        self::validate_context($context);
+        require_capability('moodle/backup:backupcourse', $context);
+
+        if ($cm) {
+            $instanceid = $cm->id;
+        } else {
+            $instanceid = $course->id;
         }
 
-        $coursecontext = context_course::instance($course->id);
-        self::validate_context($coursecontext);
-        require_capability('moodle/backup:backupcourse', $coursecontext);
-
-        try {
-            // Get the backup controller by backup id.
-            $bc = \backup_controller::load_controller($backupid);
-
-            // Get backup status and progress.
-            $status = $bc->get_status();
-            $progress = $bc->get_progresscomplete();
-        } catch (\backup_dbops_exception $e) {
-            // If the backup has successfully completed there will be no
-            // controller object to load.
-            // In this case we get the info we need directly from the database.
-            $backuprecord = $DB->get_record('backup_controllers', array('backupid' => $backupid), 'status,progress', MUST_EXIST);
+        // Get backup records directly from database.
+        // If the backup has successfully completed there will be no controller object to load.
+        $results = array();
+        foreach ($backupids as $backupid) {
+            $backuprecord = $DB->get_record('backup_controllers', array('backupid' => $backupid), 'status, progress', MUST_EXIST);
             $status = $backuprecord->status;
             $progress = $backuprecord->progress;
+            $results[] = array('status' => $status, 'progress' => $progress, 'backupid' => $backupid);
         }
 
-
-        return array('status' => $status, 'progress' => $progress);
+        return $results;
     }
 
     /**
@@ -111,11 +110,14 @@ class core_backup_external extends external_api {
      * @since Moodle 3.7
      */
     public static function async_backup_progress_returns() {
-        return new external_single_structure(
-            array(
-                'status'       => new external_value(PARAM_INT, 'Backup Status'),
-                'progress' => new external_value(PARAM_FLOAT, 'Backup progress'),
-            )
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'status'   => new external_value(PARAM_INT, 'Backup Status'),
+                    'progress' => new external_value(PARAM_FLOAT, 'Backup progress'),
+                    'backupid' => new external_value(PARAM_ALPHANUM, 'Backup id'),
+                ), 'Backup completion status'
+          ), 'Backup data'
         );
     }
 

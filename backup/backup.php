@@ -65,6 +65,7 @@ $id = $courseid;
 $cm = null;
 $course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
 $coursecontext = context_course::instance($course->id);
+$contextid = $coursecontext->id;
 $type = backup::TYPE_1COURSE;
 if (!is_null($sectionid)) {
     $section = $DB->get_record('course_sections', array('course'=>$course->id, 'id'=>$sectionid), '*', MUST_EXIST);
@@ -95,7 +96,9 @@ switch ($type) {
         }
         break;
     case backup::TYPE_1ACTIVITY :
-        require_capability('moodle/backup:backupactivity', context_module::instance($cm->id));
+        $activitycontext = context_module::instance($cm->id);
+        require_capability('moodle/backup:backupactivity', $activitycontext);
+        $contextid = $activitycontext->id;
         $heading = get_string('backupactivity', 'backup', $cm->name);
         break;
     default :
@@ -192,10 +195,10 @@ if (!\backup_controller::is_async_pending($id)) {
             \core\task\manager::queue_adhoc_task($asynctask);
 
             // Add ajax progress bar and initiate ajax via a template.
-            $restoreurl = new moodle_url('/backup/restorefile.php', array('contextid' => $coursecontext->id));
+            $restoreurl = new moodle_url('/backup/restorefile.php', array('contextid' => $contextid));
             $progresssetup = array(
                     'backupid' => $backupid,
-                    'courseid' => $courseid,
+                    'contextid' => $contextid,
                     'courseurl' => $courseurl->out_as_local_url(),
                     'restoreurl' => $restoreurl->out_as_local_url(),
                     'width' => '500'

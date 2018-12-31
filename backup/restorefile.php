@@ -114,6 +114,7 @@ $PAGE->set_context($context);
 $PAGE->set_title(get_string('course') . ': ' . $coursefullname);
 $PAGE->set_heading($heading);
 $PAGE->set_pagelayout('admin');
+$PAGE->requires->js_call_amd('core/async_backup', 'asyncBackupAllStatus', array($context->id));
 
 $form = new course_restore_form(null, array('contextid'=>$contextid));
 $data = $form->get_data();

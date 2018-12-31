@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core/async_backup_status.
+    @template core/async_backup_progress.
 
     Moodle Asynchronous backup status template.
 
@@ -35,21 +35,11 @@
     Example context (json):
     {
         "backupid": "f04abf8cba0319e486a3dfa7e9cb4476",
-        "contextid": "4",
-        "courseurl": "/course/view.php?id=6",
-        "restoreurl": "/backup/restorefile.php?contextid=287",
         "width": "500"
     }
 }}
-<div class="progressbar_container" id="{{backupid}}">
-    <h3 id="{{backupid}}_status">{{# str }} asyncbackuppending, backup {{/ str }}</h3>
-    {{> core/async_backup_progress }}
-    <p id="{{backupid}}_detail">{{# str }} asyncnowait, backup {{/ str }}<br/>{{# str }} asynccheckprogress, backup, {{restoreurl}} {{/ str }}</p>
-    <a id="{{backupid}}_button" href="{{courseurl}}" class="btn btn-primary">{{# str }} asyncreturn, backup {{/ str }}</a>
+<div class="progress active" style="height: 25px; width: {{width}}px;">
+    <div id="{{backupid}}_bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        Process Pending
+    </div>
 </div>
-
-{{#js}}
-require(['core/async_backup'], function(Async) {
-    Async.asyncBackupStatus("{{backupid}}", "{{contextid}}", "{{restoreurl}}");
-});
-{{/js}}
