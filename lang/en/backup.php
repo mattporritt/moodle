@@ -73,6 +73,7 @@ $string['backupmode30'] = 'Hub';
 $string['backupmode40'] = 'Same site';
 $string['backupmode50'] = 'Automated';
 $string['backupmode60'] = 'Converted';
+$string['backupmode70'] = 'Asynchronous';
 $string['backupsection'] = 'Backup course section: {$a}';
 $string['backupsettings'] = 'Backup settings';
 $string['backupsitedetails'] = 'Site details';
