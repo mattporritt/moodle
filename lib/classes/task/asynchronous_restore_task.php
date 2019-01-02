@@ -24,6 +24,8 @@
 
 namespace core\task;
 
+use async_helper;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
@@ -68,6 +70,15 @@ class asynchronous_restore_task extends adhoc_task {
 
         // Execute the backup.
         $rc->execute_plan();
+
+        // Send message to user if enabled.
+        $messageenabled = (bool)get_config('backup', 'backup_async_message_users');
+        if ($messageenabled && $rc->get_status() == 1000){
+            $asynchelper = new async_helper('restore', $restoreid);
+            $asynchelper->send_message();
+        }
+
+        // Cleanup.
         $rc->destroy();
 
         $duration = time() - $started;

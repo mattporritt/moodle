@@ -79,7 +79,7 @@ class asynchronous_backup_task extends adhoc_task {
             $asynchelper->send_message();
         }
 
-        // Cleanup
+        // Cleanup.
         $bc->destroy();
 
         $duration = time() - $started;
