@@ -99,7 +99,6 @@ class core_backup_renderer_testcase extends \core_privacy\tests\provider_testcas
         $options->filearea = 'course';
 
         $result = $renderer->get_async_backups($options);
-        error_log(print_r($result, true));
     }
 
     public function test_get_status_icon() {
