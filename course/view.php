@@ -244,9 +244,9 @@
     $PAGE->set_heading($course->fullname);
     echo $OUTPUT->header();
 
-    if ($USER->editing == 1 && \backup_controller::is_async_pending($id)) {
-        echo $OUTPUT->notification(get_string('pendingasyncedit', 'backup'), 'warning');
-    }
+if ($USER->editing == 1 && \backup_controller::is_async_pending($id)) {
+    echo $OUTPUT->notification(get_string('pendingasyncedit', 'backup'), 'warning');
+}
 
     if ($completion->is_enabled()) {
         // This value tracks whether there has been a dynamic change to the page.

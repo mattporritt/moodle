@@ -128,7 +128,7 @@ if (!\backup_controller::is_async_pending($id)) {
     // Prepare a progress bar which can display optionally during long-running
     // operations while setting up the UI.
     $slowprogress = new \core\progress\display_if_slow(get_string('preparingui', 'backup'));
-    $renderer = $PAGE->get_renderer('core','backup');
+    $renderer = $PAGE->get_renderer('core', 'backup');
     $backup = new backup_ui($bc);
 
     if ($backup->get_stage() == backup_ui::STAGE_SCHEMA && !$previous) {

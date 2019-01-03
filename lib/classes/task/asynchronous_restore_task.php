@@ -73,7 +73,7 @@ class asynchronous_restore_task extends adhoc_task {
 
         // Send message to user if enabled.
         $messageenabled = (bool)get_config('backup', 'backup_async_message_users');
-        if ($messageenabled && $rc->get_status() == 1000){
+        if ($messageenabled && $rc->get_status() == 1000) {
             $asynchelper = new async_helper('restore', $restoreid);
             $asynchelper->send_message();
         }

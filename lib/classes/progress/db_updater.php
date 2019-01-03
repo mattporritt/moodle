@@ -99,8 +99,8 @@ class db_updater extends base {
         $progressrecord->id = $this->recordid;
         $progressrecord->{$this->field} = '';
 
-        // Update database with progress
-        if($now > $nextupdate) {  // Limit database updates based on time.
+        // Update database with progress.
+        if ($now > $nextupdate) {  // Limit database updates based on time.
             list ($min, $max) = $this->get_progress_proportion_range();
 
             $progressrecord->{$this->field} = $min;

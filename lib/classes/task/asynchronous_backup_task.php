@@ -74,7 +74,7 @@ class asynchronous_backup_task extends adhoc_task {
 
         // Send message to user if enabled.
         $messageenabled = (bool)get_config('backup', 'backup_async_message_users');
-        if ($messageenabled && $bc->get_status() == 1000){
+        if ($messageenabled && $bc->get_status() == 1000) {
             $asynchelper = new async_helper('backup', $backupid);
             $asynchelper->send_message();
         }

@@ -196,7 +196,11 @@ class core_backup_external extends external_api {
         $icon = $OUTPUT->render(new \pix_icon('i/checked', get_string('successful', 'backup')));
         $status = html_writer::span($icon, 'action-icon');
 
-        $results = array('filesize' => $filesize, 'dowloadlink' => $downloadlink, 'restorelink' => $restorelink, 'status' => $status);
+        $results = array(
+                'filesize' => $filesize,
+                'dowloadlink' => $downloadlink,
+                'restorelink' => $restorelink,
+                'status' => $status);
 
         return $results;
     }
