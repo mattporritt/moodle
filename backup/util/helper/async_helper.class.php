@@ -55,7 +55,7 @@ class async_helper  {
      */
     protected $backuprec;
 
-    public function __construct($type, $id){
+    public function __construct($type, $id) {
         $this->type = $type;
         $this->backupid = $id;
         $this->backuprec = $this->get_backup_record($id);
@@ -100,7 +100,7 @@ class async_helper  {
      * @param array $matches The match array from from preg_replace_callback.
      * @return string $match The replaced string.
      */
-    public function lookup_message_variables($matches){
+    public function lookup_message_variables($matches) {
         $options = array(
                 'operation' => $this->type,
                 'backupid' => $this->backupid,
@@ -111,7 +111,7 @@ class async_helper  {
                 'link' => $this->get_resource_link(),
         );
 
-        if (array_key_exists($matches[1], $options)){
+        if (array_key_exists($matches[1], $options)) {
             $match = $options[$matches[1]];
         } else {
             $match = $match;
@@ -120,7 +120,7 @@ class async_helper  {
         return $match;
     }
 
-    public function get_resource_link(){
+    public function get_resource_link() {
         if ($this->backuprec->type == 'activity') {  // Get activity context.
             $context = context_module::instance($this->backuprec->itemid);
         } else { // Course or Section which have the same context getter.
@@ -128,11 +128,11 @@ class async_helper  {
         }
 
         // Generate link based on operation type.
-        if($this->type == 'backup') {
+        if ($this->type == 'backup') {
             // For backups simply generate link to restore file area UI.
             $url = new moodle_url('/backup/restorefile.php', array('contextid' => $context->id));
         } else {
-           // For restore generate link to the item itself.
+            // For restore generate link to the item itself.
             $url = $context->get_url();
         }
 
@@ -144,19 +144,21 @@ class async_helper  {
      *
      * @return int $messageid The id of the sent message.
      */
-    public function send_message(){
+    public function send_message() {
         global $USER;
 
         $subjectraw = get_config('backup', 'backup_async_message_subject');
-        $subjecttext = preg_replace_callback('/\{([-_A-Za-z0-9]+)\}/u', array('async_helper', 'lookup_message_variables'), $subjectraw);
+        $subjecttext = preg_replace_callback(
+                '/\{([-_A-Za-z0-9]+)\}/u',
+                array('async_helper', 'lookup_message_variables'),
+                $subjectraw);
 
         $messageraw = get_config('backup', 'backup_async_message');
-        $messagehtml = preg_replace_callback('/\{([-_A-Za-z0-9]+)\}/u', array('async_helper', 'lookup_message_variables'), $messageraw);
+        $messagehtml = preg_replace_callback(
+                '/\{([-_A-Za-z0-9]+)\}/u',
+                array('async_helper', 'lookup_message_variables'),
+                $messageraw);
         $messagetext = html_to_text($messagehtml);
-
-        //$context = context::instance_by_id(1);
-        //$context->get_url()
-        //list($context, $course, $cm) = get_context_info_array($contextid);
 
         $message = new \core\message\message();
         $message->component = 'moodle';
@@ -173,8 +175,6 @@ class async_helper  {
         $messageid = message_send($message);
 
         return $messageid;
-
     }
-
 }
 

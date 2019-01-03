@@ -100,8 +100,7 @@ class core_backup_async_restore_testcase extends \core_privacy\tests\provider_te
         $fp = get_file_packer('application/vnd.moodle.backup');
         $fp->extract_to_pathname($backupfile, $path);
 
-
-        // Create restore controller
+        // Create restore controller.
         $newcourseid = restore_dbops::create_new_course(
                 $course->fullname, $course->shortname . '_2', $course->category);
         $rc = new restore_controller($backupdir, $newcourseid,
@@ -110,7 +109,6 @@ class core_backup_async_restore_testcase extends \core_privacy\tests\provider_te
 
         $this->assertTrue($rc->execute_precheck());
         $restoreid = $rc->get_restoreid();
-
 
         $prerestorerec = $DB->get_record('backup_controllers', array('backupid' => $restoreid));
         $prerestorerec->controller = '';

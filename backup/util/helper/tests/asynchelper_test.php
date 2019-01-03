@@ -69,7 +69,7 @@ class core_backup_async_helper_testcase extends \core_privacy\tests\provider_tes
 
         $sink = $this->redirectEmails();
 
-        // Send message
+        // Send message.
         $asynchelper = new async_helper('backup', $backupid);
         $messageid = $asynchelper->send_message();
 

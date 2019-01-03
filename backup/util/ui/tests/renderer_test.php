@@ -1,5 +1,4 @@
 <?php
-use tool_dataprivacy\context_instance;
 
 // This file is part of Moodle - http://moodle.org/
 //
