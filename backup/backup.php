@@ -201,6 +201,7 @@ if (!\backup_controller::is_async_pending($id)) {
                     'contextid' => $contextid,
                     'courseurl' => $courseurl->out_as_local_url(),
                     'restoreurl' => $restoreurl->out_as_local_url(),
+                    'headingident' => 'backup',
                     'width' => '500'
             );
             echo $renderer->render_from_template('core/async_backup_status', $progresssetup);

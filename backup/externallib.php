@@ -126,7 +126,7 @@ class core_backup_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 3.7
      */
-    public static function async_backup_links_parameters() {
+    public static function async_backup_links_backup_parameters() {
         return new external_function_parameters(
                 array(
                     'filename' => new external_value(PARAM_FILE, 'Backup filename', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
@@ -142,12 +142,12 @@ class core_backup_external extends external_api {
      * @param int $contextid The context the backup relates to.
      * @since Moodle 3.7
      */
-    public static function async_backup_links($filename, $contextid) {
+    public static function async_backup_links_backup($filename, $contextid) {
         global $OUTPUT;
 
         // Parameter validation.
         $params = self::validate_parameters(
-                self::async_backup_links_parameters(),
+                self::async_backup_links_backup_parameters(),
                     array(
                         'filename' => $filename,
                         'contextid' => $contextid
@@ -207,7 +207,7 @@ class core_backup_external extends external_api {
      * @return external_description
      * @since Moodle 3.7
      */
-    public static function async_backup_links_returns() {
+    public static function async_backup_links_backup_returns() {
         return new external_single_structure(
                     array(
                        'filesize'   => new external_value(PARAM_TEXT, 'Backup file size'),
@@ -216,5 +216,72 @@ class core_backup_external extends external_api {
                        'status' => new external_value(PARAM_RAW_TRIMMED, 'Backup status'),
                     ), 'Table row data.');
     }
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.7
+     */
+    public static function async_backup_links_restore_parameters() {
+        return new external_function_parameters(
+                array(
+                        'backupid' => new external_value(PARAM_ALPHANUMEXT, 'Backup id', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                        'contextid' => new external_value(PARAM_INT, 'Context id', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                )
+                );
+    }
 
+    /**
+     * Gets backup table row data.
+     *
+     * @param string $filename The file name of the backup file.
+     * @param int $contextid The context the backup relates to.
+     * @since Moodle 3.7
+     */
+    public static function async_backup_links_restore($backupid, $contextid) {
+        global $OUTPUT, $DB;
+
+        // Parameter validation.
+        $params = self::validate_parameters(
+                self::async_backup_links_restore_parameters(),
+                    array(
+                            'backupid' => $backupid,
+                            'contextid' => $contextid
+                    )
+                );
+
+        // Context validation.
+        $context = context::instance_by_id($contextid);
+        self::validate_context($context);
+        require_capability('moodle/backup:backupcourse', $context);
+
+        $backuprec = $DB->get_record('backup_controllers', array('backupid' => $backupid), 'type, itemid', MUST_EXIST);
+        if ($backuprec->type == 'activity') {  // Get activity context.
+            $newcontext = context_module::instance($backuprec->itemid);
+        } else { // Course or Section which have the same context getter.
+            $newcontext = context_course::instance($backuprec->itemid);
+        }
+
+        $restoreurl = $newcontext->get_url()->out_as_local_url();
+        $icon = $OUTPUT->render(new \pix_icon('i/checked', get_string('successful', 'backup')));
+        $status = html_writer::span($icon, 'action-icon');
+
+        $results = array('restoreurl' => $restoreurl, 'status' => $status);
+
+        return $results;
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description
+     * @since Moodle 3.7
+     */
+    public static function async_backup_links_restore_returns() {
+        return new external_single_structure(
+                array(
+                        'restoreurl' => new external_value(PARAM_URL, 'Restore url'),
+                        'status' => new external_value(PARAM_RAW_TRIMMED, 'Restore status'),
+                ), 'Table row data.');
+    }
 }

@@ -108,7 +108,7 @@ class async_helper  {
                 'user_email' => $this->user->email,
                 'user_firstname' => $this->user->firstname,
                 'user_lastname' => $this->user->lastname,
-                'link' => '#',  // TODO: make this a link to the backup screen if a backup and a link to the resource if it is a restore
+                'link' => $this->get_resource_link(),
         );
 
         if (array_key_exists($matches[1], $options)){
@@ -118,6 +118,25 @@ class async_helper  {
         }
 
         return $match;
+    }
+
+    public function get_resource_link(){
+        if ($this->backuprec->type == 'activity') {  // Get activity context.
+            $context = context_module::instance($this->backuprec->itemid);
+        } else { // Course or Section which have the same context getter.
+            $context = context_course::instance($this->backuprec->itemid);
+        }
+
+        // Generate link based on operation type.
+        if($this->type == 'backup') {
+            // For backups simply generate link to restore file area UI.
+            $url = new moodle_url('/backup/restorefile.php', array('contextid' => $context->id));
+        } else {
+           // For restore generate link to the item itself.
+            $url = $context->get_url();
+        }
+
+        return $url;
     }
 
     /**
@@ -146,7 +165,7 @@ class async_helper  {
         $message->userto            = $this->user;
         $message->subject           = $subjecttext;
         $message->fullmessage       = $messagetext;
-        $message->fullmessageformat = FORMAT_MARKDOWN;
+        $message->fullmessageformat = FORMAT_HTML;
         $message->fullmessagehtml   = $messagehtml;
         $message->smallmessage      = '';
         $message->notification      = '1';

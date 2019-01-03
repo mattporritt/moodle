@@ -83,15 +83,24 @@ $functions = array(
         'ajax'          => true,
         'loginrequired' => true,
     ),
-    'core_backup_async_backup_links' => array(
+    'core_backup_async_backup_links_backup' => array(
         'classname'   => 'core_backup_external',
         'classpath' => 'backup/externallib.php',
-        'methodname'  => 'async_backup_links',
-        'description' => 'Gets backup table row data.',
+        'methodname'  => 'async_backup_links_backup',
+        'description' => 'Gets backup table row data for backup operations.',
         'type'        => 'read',
         'ajax'          => true,
         'loginrequired' => true,
-        ),
+   ),
+   'core_backup_async_backup_links_restore' => array(
+        'classname'   => 'core_backup_external',
+        'classpath' => 'backup/externallib.php',
+        'methodname'  => 'async_backup_links_restore',
+        'description' => 'Gets backup table row data for restore operations.',
+        'type'        => 'read',
+        'ajax'          => true,
+        'loginrequired' => true,
+    ),
     'core_badges_get_user_badges' => array(
         'classname'     => 'core_badges_external',
         'methodname'    => 'get_user_badges',
