@@ -83,6 +83,15 @@ $functions = array(
         'ajax'          => true,
         'loginrequired' => true,
     ),
+    'core_backup_async_backup_links' => array(
+        'classname'   => 'core_backup_external',
+        'classpath' => 'backup/externallib.php',
+        'methodname'  => 'async_backup_links',
+        'description' => 'Gets backup table row data.',
+        'type'        => 'read',
+        'ajax'          => true,
+        'loginrequired' => true,
+        ),
     'core_badges_get_user_badges' => array(
         'classname'     => 'core_badges_external',
         'methodname'    => 'get_user_badges',
