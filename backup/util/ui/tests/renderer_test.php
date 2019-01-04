@@ -100,8 +100,4 @@ class core_backup_renderer_testcase extends \core_privacy\tests\provider_testcas
 
         $result = $renderer->get_async_backups($options);
     }
-
-    public function test_get_status_icon() {
-        // TODO: this.
-    }
 }

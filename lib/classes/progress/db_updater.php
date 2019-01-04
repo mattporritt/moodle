@@ -16,7 +16,6 @@
 
 /**
  * Progress handler that updates a database table with the progress.
- * Useful when used with an Ajax progress bar.
  *
  * @package    core
  * @copyright  2018 Matt Porritt <mattp@catalyst-au.net>
@@ -29,9 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Progress handler that updates a database table with the progress.
- * Useful when used with an Ajax progress bar.
- *
- * The database table and field must be supplied when class is instantiated.
  *
  * @package    core
  * @copyright  2018 Matt Porritt <mattp@catalyst-au.net>
