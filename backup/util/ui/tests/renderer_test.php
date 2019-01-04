@@ -32,6 +32,7 @@ require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 /**
  * Backup renderer tests.
  *
+ * @package    core_backup
  * @copyright  2018 Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

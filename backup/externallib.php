@@ -60,8 +60,9 @@ class core_backup_external extends external_api {
     /**
      * Get asynchronous backup porgress.
      *
-     * @param string $backupid The id of the backup to get progress for.
+     * @param string $backupids The ids of the backup to get progress for.
      * @param int $contextid The context the backup relates to.
+     * @return array $results The array of results.
      * @since Moodle 3.7
      */
     public static function async_backup_progress($backupids, $contextid) {
@@ -236,10 +237,11 @@ class core_backup_external extends external_api {
     }
 
     /**
-     * Gets backup table row data.
+     * Gets restore table row data.
      *
-     * @param string $filename The file name of the backup file.
-     * @param int $contextid The context the backup relates to.
+     * @param string $backupid The id of the backup record.
+     * @param int $contextid The context the restore relates to.
+     * @return array $results The array of results.
      * @since Moodle 3.7
      */
     public static function async_backup_links_restore($backupid, $contextid) {

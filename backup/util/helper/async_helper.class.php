@@ -55,6 +55,12 @@ class async_helper  {
      */
     protected $backuprec;
 
+    /**
+     * Class constructor.
+     *
+     * @param string $type The type of async operation.
+     * @param string $id The id of the backup or restore.
+     */
     public function __construct($type, $id) {
         $this->type = $type;
         $this->backupid = $id;
@@ -81,7 +87,6 @@ class async_helper  {
     /**
      * Given a user id return a user record from the database.
      *
-     * @param int $userid The user id to get.
      * @return object $user The limited user record.
      */
     private function get_user() {
@@ -120,6 +125,11 @@ class async_helper  {
         return $match;
     }
 
+    /**
+     * Get the link to the resource that is being backuped or restored.
+     *
+     * @return moodle_url $url The link to the resource.
+     */
     public function get_resource_link() {
         if ($this->backuprec->type == 'activity') {  // Get activity context.
             $context = context_module::instance($this->backuprec->itemid);

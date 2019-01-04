@@ -540,6 +540,14 @@ class core_backup_renderer extends plugin_renderer_base {
         return $this->render($files);
     }
 
+    /**
+     * Generate the status indicator markup for display in the
+     * backup restore file area UI.
+     *
+     * @param int $statuscode The status code of the backup.
+     * @param string $backupid The backup record id.
+     * @return string|boolean $status The status indicator for the operation.
+     */
     public function get_status_display($statuscode, $backupid) {
         global $OUTPUT;
 
@@ -561,8 +569,11 @@ class core_backup_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Get markup for in progress async backups,
+     * to use in backup table UI.
      *
-     * @param backup_files_viewer $viewer
+     * @param backup_files_viewer $viewer The backup viewer.
+     * @return array $tabledata the rows of table data.
      */
     public function get_async_backups($viewer) {
         global $DB;
@@ -589,6 +600,13 @@ class core_backup_renderer extends plugin_renderer_base {
     }
 
 
+    /**
+     * Get the course name of the resource being restored.
+     *
+     * @param string $restoreid The restore record id.
+     * @param int $itemid The restore item id.
+     * @return string $coursename The full name of the course
+     */
     public function get_course_name($restoreid, $itemid) {
         global $DB;
         // Try to get coursename from contoller.
@@ -603,6 +621,12 @@ class core_backup_renderer extends plugin_renderer_base {
         return $coursename;
     }
 
+    /**
+     * Get all the current in progress async restores for a user.
+     *
+     * @param int $userid Moodle user id.
+     * @return array $restores List of current restores in progress.
+     */
     public function get_async_restores($userid) {
         global $DB;
 
@@ -965,6 +989,13 @@ class core_backup_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    /**
+     * Get markup to render table for all of a users async
+     * in progress restores.
+     *
+     * @param int $userid The Moodle user id.
+     * @return string $html The table HTML.
+     */
     public function restore_progress_viewer ($userid) {
         global $DB;
 
