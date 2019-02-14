@@ -8094,13 +8094,16 @@ function admin_get_root($reload=false, $requirefulltree=true) {
  * @param bool $unconditional if true overrides all values with defaults, true by default
  * @param array $admindefaultsettings default admin settings to apply. Used recursively
  * @param array $settingsoutput The names and values of the changed settings. Used recursively
+ * @param integer $counter Used to keep track of settings count as they are recursively processed.
  * @return array $settingsoutput The names and values of the changed settings
  */
-function admin_apply_default_settings($node=null, $unconditional=true, $admindefaultsettings=array(), $settingsoutput=array()) {
+function admin_apply_default_settings(
+    $node=null, $unconditional=true, $admindefaultsettings=array(), $settingsoutput=array(), $counter=0) {
 
     if (is_null($node)) {
         core_plugin_manager::reset_caches();
         $node = admin_get_root(true, true);
+        $counter = count($settingsoutput);
     }
 
     if ($node instanceof admin_category) {
@@ -8113,7 +8116,7 @@ function admin_apply_default_settings($node=null, $unconditional=true, $admindef
 
     } else if ($node instanceof admin_settingpage) {
         foreach ($node->settings as $setting) {
-            if (!$unconditional and !is_null($setting->get_setting())) {
+            if (!$unconditional && !is_null($setting->get_setting())) {
                 // Do not override existing defaults.
                 continue;
             }
@@ -8139,7 +8142,7 @@ function admin_apply_default_settings($node=null, $unconditional=true, $admindef
     }
 
     // Call this function recursively until all settings are processed.
-    if (($node instanceof admin_root) && (!empty($admindefaultsettings))) {
+    if (($node instanceof admin_root) && ($counter != count($settingsoutput))) {
         $settingsoutput = admin_apply_default_settings(null, $unconditional, $admindefaultsettings, $settingsoutput);
     }
     // Just in case somebody modifies the list of active plugins directly.
