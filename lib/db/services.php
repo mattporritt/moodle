@@ -353,6 +353,30 @@ $functions = array(
         'capabilities'  => 'moodle/course:overridecompletion',
         'ajax'          => true,
     ),
+    'core_course_backup_async' => array(
+        'classname' => 'core_course_external',
+        'methodname' => 'backup_async',
+        'classpath' => 'course/externallib.php',
+        'description' => 'Asynchronously backup a course.',
+        'type' => 'write',
+        'capabilities' => 'moodle/backup:backupcourse'
+    ),
+    'core_course_backup_async_get_status' => array(
+        'classname' => 'core_course_external',
+        'methodname' => 'backup_async_get_status',
+        'classpath' => 'course/externallib.php',
+        'description' => 'Get the status and progress of an asynchronous backup.',
+        'type' => 'read',
+        'capabilities' => 'moodle/backup:backupcourse'
+        ),
+    'core_course_backup_list_backups' => array(
+        'classname' => 'core_course_external',
+        'methodname' => 'backup_list_backups',
+        'classpath' => 'course/externallib.php',
+        'description' => 'Get available backups for course from course backup area.',
+        'type' => 'read',
+         'capabilities' => 'moodle/backup:backupcourse'
+        ),
     'core_course_create_categories' => array(
         'classname' => 'core_course_external',
         'methodname' => 'create_categories',

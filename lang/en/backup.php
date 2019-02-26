@@ -254,6 +254,7 @@ $string['managefiles'] = 'Manage backup files';
 $string['missingfilesinpool'] = 'Some files could not be saved during the backup, and so it will not be possible to restore them.';
 $string['moodleversion'] = 'Moodle version';
 $string['moreresults'] = 'There are too many results, enter a more specific search.';
+$string['noasync'] = 'Asynchronous backups must be enabled at site level for this function to work.';
 $string['nomatchingcourses'] = 'There are no courses to display';
 $string['norestoreoptions'] = 'There are no categories or existing courses you can restore to.';
 $string['originalwwwroot'] = 'URL of backup';

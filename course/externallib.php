@@ -4031,4 +4031,332 @@ class core_course_external extends external_api {
     public static function get_recent_courses_returns() {
         return new external_multiple_structure(course_summary_exporter::get_read_structure(), 'Courses');
     }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.7
+     */
+    public static function backup_async_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_ALPHANUMEXT, 'Course id to backup', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+                'options' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'name' => new external_value(PARAM_ALPHAEXT, 'The backup option name:
+                                "activities" (int) Include course activites (default to 1 that is equal to yes),
+                                "blocks" (int) Include course blocks (default to 1 that is equal to yes),
+                                "filters" (int) Include course filters  (default to 1 that is equal to yes),
+                                "users" (int) Include users (default to 0 that is equal to no),
+                                "enrolments" (int) Include enrolment methods (default to 1 - restore only with users),
+                                "role_assignments" (int) Include role assignments  (default to 0 that is equal to no),
+                                "comments" (int) Include user comments  (default to 0 that is equal to no),
+                                "userscompletion" (int) Include user course completion information  (default to 0 that is equal to no),
+                                "logs" (int) Include course logs  (default to 0 that is equal to no),
+                                "grade_histories" (int) Include histories  (default to 0 that is equal to no)'
+                             ),
+                             'value' => new external_value(PARAM_INT, 'the value for the option 1 (yes) or 0 (no)')
+                         )
+                    ), VALUE_DEFAULT, array()
+                ),
+            )
+        );
+    }
+
+    /**
+     * Asynchronously backup a course.
+     *
+     * @param int $courseid id of course to backup.
+     * @param array $options List of backup options.
+     * @return array backup id.
+     * @since Moodle 3.7
+     */
+    public static function backup_async($courseid, $options=array()) {
+        global $CFG, $USER, $DB;
+        require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+
+        // Parameter validation.
+        $params = self::validate_parameters(
+                self::backup_async_parameters(),
+                array(
+                    'courseid' => $courseid,
+                    'options' => $options
+                )
+                );
+
+        // Context validation.
+        $course = $DB->get_record('course', array('id'=>$params['courseid']));
+        if (!$course) {
+            throw new moodle_exception('invalidcourseid', 'error');
+        }
+
+        // Course to be backed up.
+        $coursecontext = context_course::instance($course->id);
+        self::validate_context($coursecontext);
+
+        // Abort if system wide asynchronous backups and restores are disabled,
+        if (!async_helper::is_async_enabled()) {
+            throw new moodle_exception('noasync', 'backup');
+        }
+
+        // Check to see if this webservice user doesn't already have a backup in progress for this course.
+        if (backup_controller::is_async_pending($course->id)) {
+            throw new moodle_exception('pendingasyncerror', 'backup');
+        }
+
+        $backupdefaults = array(
+                'activities' => 1,
+                'blocks' => 1,
+                'filters' => 1,
+                'users' => 0,
+                'enrolments' => backup::ENROL_WITHUSERS,
+                'role_assignments' => 0,
+                'comments' => 0,
+                'userscompletion' => 0,
+                'logs' => 0,
+                'grade_histories' => 0
+        );
+
+        $backupsettings = array();
+        // Check for backup and restore options.
+        if (!empty($params['options'])) {
+            foreach ($params['options'] as $option) {
+
+                // Strict check for a correct value (allways 1 or 0, true or false).
+                $value = clean_param($option['value'], PARAM_INT);
+
+                if ($value !== 0 and $value !== 1) {
+                    throw new moodle_exception('invalidextparam', 'webservice', '', $option['name']);
+                }
+
+                if (!isset($backupdefaults[$option['name']])) {
+                    throw new moodle_exception('invalidextparam', 'webservice', '', $option['name']);
+                }
+
+                $backupsettings[$option['name']] = $value;
+            }
+        }
+
+        // Capability checking.
+        require_capability('moodle/backup:backupcourse', $coursecontext);
+
+        if (!empty($backupsettings['users'])) {
+            require_capability('moodle/backup:userinfo', $coursecontext);
+        }
+
+        // Backup the course asynchronously.
+        $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
+                backup::INTERACTIVE_YES, backup::MODE_ASYNC, $USER->id);
+
+        // Set the default filename.
+        $format = $bc->get_format();
+        $type = $bc->get_type();
+        $id = $bc->get_id();
+        $users = $bc->get_plan()->get_setting('users')->get_value();
+        $anonymised = $bc->get_plan()->get_setting('anonymize')->get_value();
+        $filename = backup_plan_dbops::get_default_backup_filename($format, $type, $id, $users, $anonymised);
+        $bc->get_plan()->get_setting('filename')->set_value($filename);
+
+        foreach ($backupsettings as $name => $value) {
+            if ($setting = $bc->get_plan()->get_setting($name)) {
+                $bc->get_plan()->get_setting($name)->set_value($value);
+            }
+        }
+
+        $backupid = $bc->get_backupid();
+        $bc->finish_ui();
+
+        // Create the adhoc task.
+        $asynctask = new \core\task\asynchronous_backup_task();
+        $asynctask->set_blocking(false);
+        $asynctask->set_custom_data(array('backupid' => $backupid));
+        \core\task\manager::queue_adhoc_task($asynctask);
+
+        // Do some cleanup.
+        $bc->destroy();
+
+        return array('backupid' => $backupid);
+    }
+
+    /**
+     * Returns the asynchronous backup id.
+     *
+     * @return external_description
+     * @since Moodle 3.7
+     */
+    public static function backup_async_returns() {
+        return new external_single_structure(
+            array('backupid' => new external_value(PARAM_ALPHANUMEXT, 'id of the created backup'))
+                );
+    }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.7
+     */
+    public static function backup_async_get_status_parameters() {
+        return new external_function_parameters(
+            array(
+                'backupid' => new external_value(PARAM_ALPHANUM, 'Backup id to get progress for', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+            )
+        );
+    }
+
+    /**
+     * Get asynchronous backup progress.
+     *
+     * @param string $backupid The id of the backup to get progress for.
+     * @return array $results The array of results.
+     * @since Moodle 3.7
+     */
+    public static function backup_async_get_status($backupid) {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+
+        // Parameter validation.
+        self::validate_parameters(
+            self::backup_async_get_status_parameters(),
+            array('backupid' => $backupid)
+        );
+
+        // Get backup record directly from database.
+        // If the backup has successfully completed there will be no controller object to load.
+        // We need to do this before we can check the context.
+        $backuprecord = $DB->get_record(
+                'backup_controllers',
+                array('backupid' => $backupid),
+                'status, progress, type, itemid',
+                MUST_EXIST);
+        $status = $backuprecord->status;
+        $progress = $backuprecord->progress;
+
+        if ($backuprecord->type == 'activity') {
+            $context = context_module::instance($backuprecord->itemid);
+            require_capability('moodle/backup:backupactivity', $context);
+        } else {
+            $context = context_course::instance($backuprecord->itemid);
+            require_capability('moodle/backup:backupcourse', $context);
+        }
+
+        self::validate_context($context);
+
+         $results[] = array('status' => $status, 'progress' => $progress);
+
+        return $results;
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 3.7
+     */
+    public static function backup_async_get_status_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'status'   => new external_value(PARAM_INT, 'Backup Status'),
+                    'progress' => new external_value(PARAM_FLOAT, 'Backup progress'),
+                ), 'Backup completion status'
+            )
+        );
+    }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.7
+     */
+    public static function backup_list_backups_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'Course id to get backup list for', VALUE_REQUIRED, null, NULL_NOT_ALLOWED),
+            )
+        );
+    }
+
+    /**
+     * Get available backups for course from course backup area.
+     *
+     * @param string $courseid Course id to get backup list for.
+     * @return array $results The array of results.
+     * @since Moodle 3.7
+     */
+    public static function backup_list_backups($courseid) {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+
+        // Parameter validation.
+        $params = self::validate_parameters(
+                self::backup_list_backups_parameters(),
+                array(
+                    'courseid' => $courseid,
+                )
+                );
+
+        // Context validation.
+        $course = $DB->get_record('course', array('id'=>$params['courseid']));
+        if (!$course) {
+            throw new moodle_exception('invalidcourseid', 'error');
+        }
+
+        // Course to get files for.
+        $coursecontext = context_course::instance($course->id);
+        self::validate_context($coursecontext);
+
+        $fs = new file_storage();
+        $files = $fs->get_area_files($coursecontext->id, 'backup', 'course');
+
+        $results = array();
+
+        foreach ($files as $file) {
+
+            if($file->get_filename() == '.') {
+                continue;
+            }
+
+            $filename = $file->get_filename();
+            $fileurl = moodle_url::make_webservice_pluginfile_url(
+                    $file->get_contextid(),
+                    $file->get_component(),
+                    $file->get_filearea(),
+                    null,
+                    $file->get_filepath(),
+                    $filename,
+                    true);
+
+            $fileinfo = array();
+            $fileinfo['filename'] = $filename;
+            $fileinfo['filesize'] = $file->get_filesize();
+            $fileinfo['downloadurl'] = $fileurl->raw_out();
+
+            $results[] = $fileinfo;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 3.7
+     */
+    public static function backup_list_backups_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'filename' => new external_value(PARAM_TEXT, 'Name of the file'),
+                    'filesize'   => new external_value(PARAM_INT, 'Size of the file in bytes'),
+                    'downloadurl'   => new external_value(PARAM_URL, 'URL to download backup file'),
+                ), 'Backup file data'
+            )
+        );
+    }
+
 }
