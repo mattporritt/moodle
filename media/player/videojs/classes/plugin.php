@@ -156,6 +156,9 @@ class media_videojs_plugin extends core_media_player_native {
             'class' => get_config('media_videojs', $isaudio ? 'audiocssclass' : 'videocssclass')
         ];
 
+        // Center the initial play button.
+        $attributes['class'] .= ' vjs-big-play-centered ' . $attributes['class'];
+
         if (!$responsive) {
             // Note we ignore limitsize setting if not responsive.
             parent::pick_video_size($width, $height);
