@@ -24,6 +24,8 @@
  */
 
 $string['eventreportviewed'] = 'Participation report viewed';
+$string['legacydata'] = 'Use legacy log data';
+$string['legacydata_desc'] = 'When enabled if legacy log data is available it will be used in the report.';
 $string['nologreaderenabled'] = 'No log reader enabled';
 $string['participation:view'] = 'View course participation report';
 $string['page-report-participation-x'] = 'Any participation report';

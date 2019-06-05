@@ -15,16 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
+ * Links and settings
  *
- * @package    report
- * @subpackage participation
- * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * Contains settings used by participatio report.
+ *
+ * @package    report_participation
+ * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2019060600;             // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2019051100;             // Requires this Moodle version
-$plugin->component = 'report_participation'; // Full name of the plugin (used for diagnostics)
+if ($hassiteconfig) {
+    // Report settings.
+    $settings = new admin_settingpage('report_participation_settings', new lang_string('pluginname', 'report_participation'));
+
+    $settings->add(new admin_setting_configcheckbox(
+            'report_participation/legacydata',
+            new lang_string('legacydata', 'report_participation'),
+            new lang_string('legacydata_desc', 'report_participation'),
+            '0'
+            ));
+}
