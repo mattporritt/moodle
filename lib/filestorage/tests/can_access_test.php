@@ -126,6 +126,7 @@ class core_files_can_access_testcase extends advanced_testcase {
      */
     public function test_can_access_blog() {
         $this->resetAfterTest();
+        global $DB;
 
         $fs = get_file_storage();
 
@@ -147,7 +148,28 @@ class core_files_can_access_testcase extends advanced_testcase {
             'filename' => 'attatchmentfile.txt');
         $fileattachment = $fs->create_file_from_string($filerecordattachment, 'the attachment test file');
 
-        $filepost->can_access();
+        // Post not found.
+        $this->assertFalse($filepost->can_access());
+        $this->assertFalse($fileattachment->can_access());
+
+        // Create default user.
+        $user = $this->getDataGenerator()->create_user();
+        @complete_user_login($user); // Hide session header errors when logging in user this way.
+
+        // Create default post.
+        $post = new stdClass();
+        $post->userid = $user->id;
+        $post->content = 'test post content text';
+        $post->module = 'blog';
+        $post->id = $DB->insert_record('post', $post);
+
+        $filerecordpost['itemid'] = $post->id;
+        $filerecordattachment['itemid'] = $post->id;
+        $filepost = $fs->create_file_from_string($filerecordpost, 'the post test file');
+        $fileattachment = $fs->create_file_from_string($filerecordattachment, 'the attachment test file');
+
+        $this->assertTrue($filepost->can_access());
+        $this->assertTrue($fileattachment->can_access());
 
     }
 }
