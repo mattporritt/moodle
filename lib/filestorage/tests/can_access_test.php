@@ -38,15 +38,116 @@ require_once($CFG->libdir . '/filestorage/stored_file.php');
  */
 class core_files_can_access_testcase extends advanced_testcase {
 
-    public function test_can_access_file() {
-        $fs = get_file_storage();
-        $access = $fs->can_access_file($contextid, $component, $filearea, $itemid, $filepath, $filename);
+    /**
+     * Test can access file method for blogs.
+     */
+    public function test_can_access_file_blog() {
+        $this->resetAfterTest();
+        global $DB;
 
-        $this->assertTrue($access);
+        $fs = get_file_storage();
+
+        $filerecordpost = array(
+            'contextid' =>  1,
+            'component' => 'blog',
+            'filearea' => 'post',
+            'itemid' => 1,
+            'filepath' => '/',
+            'filename' => 'postfile.txt');
+        $filepost = $fs->create_file_from_string($filerecordpost, 'the post test file');
+
+        $filerecordattachment = array(
+            'contextid' =>  1,
+            'component' => 'blog',
+            'filearea' => 'attachment',
+            'itemid' => 1,
+            'filepath' => '/',
+            'filename' => 'attatchmentfile.txt');
+        $fileattachment = $fs->create_file_from_string($filerecordattachment, 'the attachment test file');
+
+        $accesspost = $fs->can_access_file(
+            $filerecordpost['contextid'],
+            $filerecordpost['component'],
+            $filerecordpost['filearea'],
+            $filerecordpost['itemid'],
+            $filerecordpost['filepath'],
+            $filerecordpost['filename']);
+        $accessattachment = $fs->can_access_file(
+            $filerecordattachment['contextid'],
+            $filerecordattachment['component'],
+            $filerecordattachment['filearea'],
+            $filerecordattachment['itemid'],
+            $filerecordattachment['filepath'],
+            $filerecordattachment['filename']);
+
+        // Post not found.
+        $this->assertFalse($accesspost);
+        $this->assertFalse($accessattachment);
+
+        // Create default user.
+        $user = $this->getDataGenerator()->create_user();
+        @complete_user_login($user); // Hide session header errors when logging in user this way.
+
+        // Create default post.
+        $post = new stdClass();
+        $post->userid = $user->id;
+        $post->content = 'test post content text';
+        $post->module = 'blog';
+        $post->id = $DB->insert_record('post', $post);
+
+
+        $filerecordpost['itemid'] = $post->id;
+        $filerecordattachment['itemid'] = $post->id;
+        $filepost = $fs->create_file_from_string($filerecordpost, 'the post test file');
+        $fileattachment = $fs->create_file_from_string($filerecordattachment, 'the attachment test file');
+
+        $accesspost = $fs->can_access_file(
+            $filerecordpost['contextid'],
+            $filerecordpost['component'],
+            $filerecordpost['filearea'],
+            $filerecordpost['itemid'],
+            $filerecordpost['filepath'],
+            $filerecordpost['filename']);
+        $accessattachment = $fs->can_access_file(
+            $filerecordattachment['contextid'],
+            $filerecordattachment['component'],
+            $filerecordattachment['filearea'],
+            $filerecordattachment['itemid'],
+            $filerecordattachment['filepath'],
+            $filerecordattachment['filename']);
+
+        $this->assertTrue($accesspost);
+        $this->assertTrue($accessattachment);
 
     }
 
-    public function test_can_acess() {
+    /**
+     * Test can access file method for blogs.
+     */
+    public function test_can_access_blog() {
+        $this->resetAfterTest();
+
+        $fs = get_file_storage();
+
+        $filerecordpost = array(
+            'contextid' =>  1,
+            'component' => 'blog',
+            'filearea' => 'post',
+            'itemid' => 1,
+            'filepath' => '/',
+            'filename' => 'postfile.txt');
+        $filepost = $fs->create_file_from_string($filerecordpost, 'the post test file');
+
+        $filerecordattachment = array(
+            'contextid' =>  1,
+            'component' => 'blog',
+            'filearea' => 'attachment',
+            'itemid' => 1,
+            'filepath' => '/',
+            'filename' => 'attatchmentfile.txt');
+        $fileattachment = $fs->create_file_from_string($filerecordattachment, 'the attachment test file');
+
+        $filepost->can_access();
 
     }
 }

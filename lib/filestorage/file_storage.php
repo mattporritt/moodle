@@ -2426,7 +2426,20 @@ class file_storage {
     public function can_access_file(
         int $contextid, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
 
+        global $CFG;
         $canaccess = false;
+        list($context, $course, $cm) = get_context_info_array($contextid); // Get context info.
+
+        // First process special core components.
+        if ($component === 'blog') {
+            require_once($CFG->dirroot .'/blog/lib.php');
+            $canaccess = blog_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
+        }
+
+
+        // Next process standard mod components
+        // Next process blocks.
+        // Finally process everything else.
 
         return $canaccess;
 

@@ -1303,3 +1303,58 @@ function blog_validate_access($courseid, $modid, $groupid, $entryid, $userid) {
     }
     return array($courseid, $userid);
 }
+
+function blog_can_access_file (
+    \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+    global $CFG, $DB, $USER;
+
+    if ($context->contextlevel != CONTEXT_SYSTEM) {
+        return false;
+    }
+    if ($filearea !== 'attachment' and $filearea !== 'post') {
+        return false;
+    }
+
+    if (empty($CFG->enableblogs)) {
+        print_error('siteblogdisable', 'blog');
+    }
+
+    if (!$entry = $DB->get_record('post', array('module'=>'blog', 'id'=>$itemid))) {
+        return false;
+    }
+
+    if ($CFG->bloglevel < BLOG_GLOBAL_LEVEL) {
+        require_login();
+        if (isguestuser()) {
+            print_error('noguest');
+        }
+        if ($CFG->bloglevel == BLOG_USER_LEVEL) {
+            if ($USER->id != $entry->userid) {
+                return false;
+            }
+        }
+    }
+
+    if ($entry->publishstate === 'public') {
+        if ($CFG->forcelogin) {
+            require_login();
+        }
+
+    } else if ($entry->publishstate === 'site') {
+        require_login();
+        //ok
+    } else if ($entry->publishstate === 'draft') {
+        require_login();
+        if ($USER->id != $entry->userid) {
+            return false;
+        }
+    }
+
+    $fs = get_file_storage();
+    $file = $fs->get_file($context->id, $component, $filearea, $itemid, $filepath, $filename);
+    if (!$file || $file->is_directory()) {
+        return false;
+    }
+
+    return true;
+}
