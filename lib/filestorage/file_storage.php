@@ -2411,4 +2411,24 @@ class file_storage {
     public static function hash_from_string($content) {
         return sha1($content);
     }
+
+
+    /**
+     *
+     * @param int $contextid
+     * @param string $component
+     * @param string $filearea
+     * @param int $itemid
+     * @param string $filepath
+     * @param string $filename
+     * @return bool
+     */
+    public function can_access_file(
+        int $contextid, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+
+        $canaccess = false;
+
+        return $canaccess;
+
+    }
 }
