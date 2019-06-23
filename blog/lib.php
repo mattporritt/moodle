@@ -1304,6 +1304,16 @@ function blog_validate_access($courseid, $modid, $groupid, $entryid, $userid) {
     return array($courseid, $userid);
 }
 
+/**
+ *
+ * @param \context $context
+ * @param string $component
+ * @param string $filearea
+ * @param int $itemid
+ * @param string $filepath
+ * @param string $filename
+ * @return bool
+ */
 function blog_can_access_file (
     \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
     global $CFG, $DB, $USER;

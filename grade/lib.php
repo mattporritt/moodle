@@ -3377,3 +3377,64 @@ abstract class grade_helper {
     }
 }
 
+function grade_can_access_file (
+    \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+
+        //require_once($CFG->libdir . '/grade/constants.php');
+        global $CFG, $DB, $USER;
+        $fs = get_file_storage();
+
+        if (($filearea === 'outcome' or $filearea === 'scale') and $context->contextlevel == CONTEXT_SYSTEM) {
+            // Global gradebook files
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+            $fullpath = "/$context->id/$component/$filearea/$itemid$filepath$filename";
+            $file = $fs->get_file_by_hash(sha1($fullpath));
+
+            if (!$file || $file->is_directory()) {
+                return false;
+            }
+            return true;
+
+        } else if ($filearea == GRADE_FEEDBACK_FILEAREA || $filearea == GRADE_HISTORY_FEEDBACK_FILEAREA) {
+            if ($context->contextlevel != CONTEXT_MODULE) {
+                return false;
+            }
+
+            $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, MUST_EXIST);
+            require_login($cm->course, false);
+
+            if ($filearea == GRADE_HISTORY_FEEDBACK_FILEAREA) {
+                $grade = $DB->get_record('grade_grades_history', ['id' => $itemid]);
+            } else {
+                $grade = $DB->get_record('grade_grades', ['id' => $itemid]);
+            }
+
+            if (!$grade) {
+                return false;
+            }
+
+            $iscurrentuser = $USER->id == $grade->userid;
+
+            if (!$iscurrentuser) {
+                $coursecontext = context_course::instance($courseid);
+                if (!has_capability('moodle/grade:viewall', $coursecontext)) {
+                    return false;
+                }
+            }
+
+            $fullpath = "/$context->id/$component/$filearea/$itemid/$filename";
+            $file = $fs->get_file_by_hash(sha1($fullpath));
+
+            if (!$file || $file->is_directory()) {
+                return false;
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+
+}

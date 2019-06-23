@@ -2434,9 +2434,11 @@ class file_storage {
         if ($component === 'blog') {
             require_once($CFG->dirroot .'/blog/lib.php');
             $canaccess = blog_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
+
+        } else if ($component === 'grade') {
+            require_once($CFG->dirroot .'/grade/lib.php');
+            $canaccess = grade_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
         }
-
-
         // Next process standard mod components
         // Next process blocks.
         // Finally process everything else.
