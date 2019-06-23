@@ -2438,6 +2438,14 @@ class file_storage {
         } else if ($component === 'grade') {
             require_once($CFG->dirroot .'/grade/lib.php');
             $canaccess = grade_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
+
+        }  else if ($component === 'tag') {
+            require_once($CFG->dirroot .'/tag/lib.php');
+            $canaccess = tag_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
+
+        } else if ($component === 'badges') {
+            require_once($CFG->dirroot .'/badges/lib.php');
+            $canaccess = tag_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
         }
         // Next process standard mod components
         // Next process blocks.

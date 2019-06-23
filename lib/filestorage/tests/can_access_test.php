@@ -275,7 +275,7 @@ class core_files_can_access_testcase extends advanced_testcase {
     }
 
     /**
-     * Test can access file method for grades.
+     * Test can access method for grades.
      */
     public function test_can_access_grade() {
         global $DB;
@@ -351,6 +351,118 @@ class core_files_can_access_testcase extends advanced_testcase {
 
         // Test access.
         $this->assertTrue($filefeedback->can_access());
+
+    }
+
+    /**
+     * Test can access file method for grades.
+     */
+    public function test_can_access_file_tag() {
+        $tag = $this->getDataGenerator()->create_tag();
+
+        $filerecorddescription = array(
+            'contextid' =>  10,
+            'component' => 'tag',
+            'itemid' => $tag->id,
+            'filearea' => 'description',
+            'filepath' => '/',
+            'filename' => 'descriptionfile.txt');
+        $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
+
+        $accessdescription = $this->fs->can_access_file(
+            $filerecorddescription['contextid'],
+            $filerecorddescription['component'],
+            $filerecorddescription['filearea'],
+            $filerecorddescription['itemid'],
+            $filerecorddescription['filepath'],
+            $filerecorddescription['filename']);
+
+        // Fail due to wrong context.
+        $this->assertFalse($accessdescription);
+
+        $filerecorddescription['contextid'] = 1;
+        $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
+
+        $accessdescription = $this->fs->can_access_file(
+            $filerecorddescription['contextid'],
+            $filerecorddescription['component'],
+            $filerecorddescription['filearea'],
+            $filerecorddescription['itemid'],
+            $filerecorddescription['filepath'],
+            $filerecorddescription['filename']);
+
+        $this->assertTrue($accessdescription);
+
+    }
+
+    /**
+     * Test can access method for grades.
+     */
+    public function test_can_access_tag() {
+        $tag = $this->getDataGenerator()->create_tag();
+
+        $filerecorddescription = array(
+            'contextid' =>  10,
+            'component' => 'tag',
+            'itemid' => $tag->id,
+            'filearea' => 'description',
+            'filepath' => '/',
+            'filename' => 'descriptionfile.txt');
+        $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
+
+        // Fail due to wrong context.
+        $this->assertFalse($filedescription->can_access());
+
+        $filerecorddescription['contextid'] = 1;
+        $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
+
+        $this->assertTrue($filedescription->can_access());
+    }
+
+    /**
+     * Test can access file method for grades.
+     */
+    public function test_can_access_file_badges() {
+        global $DB;
+        $now = time();
+        $user = $this->getDataGenerator()->create_user();
+
+        // Mock up a badge.
+        $badgerecord = new stdClass();
+        $badgerecord->id = null;
+        $badgerecord->name = 'Test badge';
+        $badgerecord->description = 'Testing badges';
+        $badgerecord->timecreated = $now - 12;
+        $badgerecord->timemodified = $now - 12;
+        $badgerecord->usercreated = $user->id;
+        $badgerecord->usermodified = $user->id;
+        $badgerecord->issuername = 'Test issuer';
+        $badgerecord->issuerurl = 'http://issuer-url.domain.co.nz';
+        $badgerecord->issuercontact = 'issuer@example.com';
+        $badgerecord->expiredate = null;
+        $badgerecord->expireperiod = null;
+        $badgerecord->type = 1;
+        $badgerecord->courseid = null;
+        $badgerecord->messagesubject = 'Test message subject for badge';
+        $badgerecord->message = 'Test message body for badge';
+        $badgerecord->attachment = 1;
+        $badgerecord->notification = 0;
+        $badgerecord->status = 0;
+        $badgerecord->version = 'Version';
+        $badgerecord->language = 'en';
+        $badgerecord->imagecaption = 'Image caption';
+        $badgerecord->imageauthorname = 'Image authors name';
+        $badgerecord->imageauthoremail = 'author@example.com';
+        $badgerecord->imageauthorname = 'Image authors name';
+
+        $badgeid = $DB->insert_record('badge', $badgerecord, true);
+        $badge = new \core_badges\badge($badgeid);
+    }
+
+    /**
+     * Test can access method for grades.
+     */
+    public function test_can_access_badges() {
 
     }
 }

@@ -3377,10 +3377,19 @@ abstract class grade_helper {
     }
 }
 
+/**
+ *
+ * @param \context $context
+ * @param string $component
+ * @param string $filearea
+ * @param int $itemid
+ * @param string $filepath
+ * @param string $filename
+ * @return bool
+ */
 function grade_can_access_file (
     \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
 
-        //require_once($CFG->libdir . '/grade/constants.php');
         global $CFG, $DB, $USER;
         $fs = get_file_storage();
 

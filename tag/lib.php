@@ -69,3 +69,41 @@ function core_tag_inplace_editable($itemtype, $itemid, $newvalue) {
         return \core_tag\output\tagisstandard::update($itemid, $newvalue);
     }
 }
+
+/**
+ *
+ * @param \context $context
+ * @param string $component
+ * @param string $filearea
+ * @param int $itemid
+ * @param string $filepath
+ * @param string $filename
+ * @return bool
+ */
+function tag_can_access_file (
+    \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+
+    global $CFG;
+
+    if ($filearea === 'description' and $context->contextlevel == CONTEXT_SYSTEM) {
+
+        // All tag descriptions are going to be public but we still need to respect forcelogin
+        if ($CFG->forcelogin) {
+            require_login();
+        }
+
+        $fullpath = "/$context->id/tag/description/$itemid$filepath$filename";
+        $fs = get_file_storage();
+        $file = $fs->get_file_by_hash(sha1($fullpath));
+
+        if (!$file || $file->is_directory()) {
+            return false;
+        }
+
+        return true;
+
+    } else {
+        return false;
+    }
+
+}

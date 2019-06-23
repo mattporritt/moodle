@@ -73,3 +73,35 @@ function core_badges_myprofile_navigation(\core_user\output\myprofile\tree $tree
         }
     }
 }
+
+
+function badges_can_access_file (
+    \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+
+    global $CFG;
+    require_once($CFG->libdir . '/badgeslib.php');
+
+    $badge = new badge($itemid);
+    $fs = get_file_storage();
+
+    if ($filearea === 'badgeimage') {
+        if ($filename !== 'f1' && $filename !== 'f2' && $filename !== 'f3') {
+            return false;
+        }
+        $file = $fs->get_file($context->id, 'badges', 'badgeimage', $badge->id, '/', $filename.'.png');
+        if (!$file) {
+            return false;
+        }
+
+        return true;
+
+    } else if ($filearea === 'userbadge'  and $context->contextlevel == CONTEXT_USER) {
+        $file = $fs->get_file($context->id, 'badges', 'userbadge', $badge->id, '/', $filename.'.png');
+        if (!$file) {
+            return false;
+        }
+
+        return true;
+    }
+
+}
