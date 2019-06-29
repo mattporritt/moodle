@@ -537,6 +537,28 @@ define('EMAIL_VIA_ALWAYS', 1);
  */
 define('EMAIL_VIA_NO_REPLY_ONLY', 2);
 
+/**
+ * File access check: Access allowed.
+ */
+define('FILE_ACCESS_ALLOWED', 200);
+
+/**
+ * File access check: Login required.
+ */
+define('FILE_ACCESS_REQUIRE_LOGIN', 401);
+
+/**
+ * File access check: Access denied.
+ */
+define('FILE_ACCESS_DENIED', 403);
+
+/**
+ * File access check: File not found.
+ */
+define('FILE_ACCESS_NOT_FOUND', 404);
+
+
+
 // PARAMETER HANDLING.
 
 /**

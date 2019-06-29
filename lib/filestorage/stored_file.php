@@ -1131,37 +1131,4 @@ class stored_file {
         return $this->get_contenthash() === file_storage::hash_from_string($content);
     }
 
-    public function can_access() : bool {
-        global $CFG;
-        $canaccess = false;
-        $contextid = $this->get_contextid();
-        $component = $this->get_component();
-        $filearea = $this->get_filearea();
-        $itemid = $this->get_itemid();
-        $filepath = $this->get_filepath();
-        $filename = $this->get_filename();
-
-        list($context, $course, $cm) = get_context_info_array($contextid); // Get context info.
-
-        // First process special core components.
-        if ($component === 'blog') {
-            require_once($CFG->dirroot .'/blog/lib.php');
-            $canaccess = blog_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
-
-        }  else if ($component === 'grade') {
-            require_once($CFG->dirroot .'/grade/lib.php');
-            $canaccess = grade_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
-
-        }  else if ($component === 'tag') {
-            require_once($CFG->dirroot .'/tag/lib.php');
-            $canaccess = tag_can_access_file($context, $component, $filearea, $itemid, $filepath, $filename);
-
-        }
-
-        // Next process standard mod components
-        // Next process blocks.
-        // Finally process everything else.
-
-        return $canaccess;
-    }
 }

@@ -1314,8 +1314,7 @@ function blog_validate_access($courseid, $modid, $groupid, $entryid, $userid) {
  * @param string $filename
  * @return bool
  */
-function blog_can_access_file (
-    \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+function blog_can_access_file (\stored_file $file) : bool {
     global $CFG, $DB, $USER;
 
     if ($context->contextlevel != CONTEXT_SYSTEM) {

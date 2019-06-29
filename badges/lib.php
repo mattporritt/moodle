@@ -75,8 +75,7 @@ function core_badges_myprofile_navigation(\core_user\output\myprofile\tree $tree
 }
 
 
-function badges_can_access_file (
-    \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+function badges_can_access_file (\stored_file $file) : bool {
 
     global $CFG;
     require_once($CFG->libdir . '/badgeslib.php');

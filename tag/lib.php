@@ -80,8 +80,7 @@ function core_tag_inplace_editable($itemtype, $itemid, $newvalue) {
  * @param string $filename
  * @return bool
  */
-function tag_can_access_file (
-    \context $context, string $component, string $filearea, int $itemid, string $filepath, string $filename) : bool {
+function tag_can_access_file (\stored_file $file) : bool {
 
     global $CFG;
 

@@ -76,20 +76,8 @@ class core_files_can_access_testcase extends advanced_testcase {
             'filename' => 'attatchmentfile.txt');
         $fileattachment = $this->fs->create_file_from_string($filerecordattachment, 'the attachment test file');
 
-        $accesspost = $this->fs->can_access_file(
-            $filerecordpost['contextid'],
-            $filerecordpost['component'],
-            $filerecordpost['filearea'],
-            $filerecordpost['itemid'],
-            $filerecordpost['filepath'],
-            $filerecordpost['filename']);
-        $accessattachment = $this->fs->can_access_file(
-            $filerecordattachment['contextid'],
-            $filerecordattachment['component'],
-            $filerecordattachment['filearea'],
-            $filerecordattachment['itemid'],
-            $filerecordattachment['filepath'],
-            $filerecordattachment['filename']);
+        $accesspost = $this->fs->can_access_file($filepost);
+        $accessattachment = $this->fs->can_access_file($fileattachment);
 
         // Post not found.
         $this->assertFalse($accesspost);
@@ -107,68 +95,11 @@ class core_files_can_access_testcase extends advanced_testcase {
         $filepost = $this->fs->create_file_from_string($filerecordpost, 'the post test file');
         $fileattachment = $this->fs->create_file_from_string($filerecordattachment, 'the attachment test file');
 
-        $accesspost = $this->fs->can_access_file(
-            $filerecordpost['contextid'],
-            $filerecordpost['component'],
-            $filerecordpost['filearea'],
-            $filerecordpost['itemid'],
-            $filerecordpost['filepath'],
-            $filerecordpost['filename']);
-        $accessattachment = $this->fs->can_access_file(
-            $filerecordattachment['contextid'],
-            $filerecordattachment['component'],
-            $filerecordattachment['filearea'],
-            $filerecordattachment['itemid'],
-            $filerecordattachment['filepath'],
-            $filerecordattachment['filename']);
+        $accesspost = $this->fs->can_access_file($filepost);
+        $accessattachment = $this->fs->can_access_file($fileattachment);
 
         $this->assertTrue($accesspost);
         $this->assertTrue($accessattachment);
-
-    }
-
-    /**
-     * Test can access file method for blogs.
-     */
-    public function test_can_access_blog() {
-        global $DB;
-
-        $filerecordpost = array(
-            'contextid' =>  1,
-            'component' => 'blog',
-            'filearea' => 'post',
-            'itemid' => 1,
-            'filepath' => '/',
-            'filename' => 'postfile.txt');
-        $filepost = $this->fs->create_file_from_string($filerecordpost, 'the post test file');
-
-        $filerecordattachment = array(
-            'contextid' =>  1,
-            'component' => 'blog',
-            'filearea' => 'attachment',
-            'itemid' => 1,
-            'filepath' => '/',
-            'filename' => 'attatchmentfile.txt');
-        $fileattachment = $this->fs->create_file_from_string($filerecordattachment, 'the attachment test file');
-
-        // Post not found.
-        $this->assertFalse($filepost->can_access());
-        $this->assertFalse($fileattachment->can_access());
-
-        // Create default post.
-        $post = new stdClass();
-        $post->userid = $this->user->id;
-        $post->content = 'test post content text';
-        $post->module = 'blog';
-        $post->id = $DB->insert_record('post', $post);
-
-        $filerecordpost['itemid'] = $post->id;
-        $filerecordattachment['itemid'] = $post->id;
-        $filepost = $this->fs->create_file_from_string($filerecordpost, 'the post test file');
-        $fileattachment = $this->fs->create_file_from_string($filerecordattachment, 'the attachment test file');
-
-        $this->assertTrue($filepost->can_access());
-        $this->assertTrue($fileattachment->can_access());
 
     }
 
@@ -197,20 +128,8 @@ class core_files_can_access_testcase extends advanced_testcase {
             'filename' => 'attatchmentfile.txt');
         $filescale = $this->fs->create_file_from_string($filerecordscale, 'the scale test file');
 
-        $accessoutcome = $this->fs->can_access_file(
-            $filerecordoutcome['contextid'],
-            $filerecordoutcome['component'],
-            $filerecordoutcome['filearea'],
-            $filerecordoutcome['itemid'],
-            $filerecordoutcome['filepath'],
-            $filerecordoutcome['filename']);
-        $accessscale = $this->fs->can_access_file(
-            $filerecordscale['contextid'],
-            $filerecordscale['component'],
-            $filerecordscale['filearea'],
-            $filerecordscale['itemid'],
-            $filerecordscale['filepath'],
-            $filerecordscale['filename']);
+        $accessoutcome = $this->fs->can_access_file($fileoutcome);
+        $accessscale = $this->fs->can_access_file($filescale);
 
         $this->assertTrue($accessoutcome);
         $this->assertTrue($accessscale);
@@ -263,95 +182,9 @@ class core_files_can_access_testcase extends advanced_testcase {
         $filefeedback = $this->fs->create_file_from_string($filerecordfeedback, 'feedback file');
 
         // Test access.
-        $accessfeedback = $this->fs->can_access_file(
-            $filerecordfeedback['contextid'],
-            $filerecordfeedback['component'],
-            $filerecordfeedback['filearea'],
-            $filerecordfeedback['itemid'],
-            $filerecordfeedback['filepath'],
-            $filerecordfeedback['filename']);
+        $accessfeedback = $this->fs->can_access_file($filefeedback);
 
         $this->assertTrue($accessfeedback);
-    }
-
-    /**
-     * Test can access method for grades.
-     */
-    public function test_can_access_grade() {
-        global $DB;
-
-        // Outcome and scale files.
-        $filerecordoutcome = array(
-            'contextid' =>  1,
-            'component' => 'grade',
-            'filearea' => 'outcome',
-            'itemid' => 1,
-            'filepath' => '/',
-            'filename' => 'outcomefile.txt');
-        $fileoutcome = $this->fs->create_file_from_string($filerecordoutcome, 'the outcome test file');
-
-        $filerecordscale = array(
-            'contextid' =>  1,
-            'component' => 'grade',
-            'filearea' => 'scale',
-            'itemid' => 1,
-            'filepath' => '/',
-            'filename' => 'attatchmentfile.txt');
-        $filescale = $this->fs->create_file_from_string($filerecordscale, 'the scale test file');
-
-        $this->assertTrue($fileoutcome->can_access());
-        $this->assertTrue($filescale->can_access());
-
-        // Feedback and history feedback files.
-
-        // Create the data we need for the tests.
-        $course1 = $this->getDataGenerator()->create_course();
-        $assign1 = $this->getDataGenerator()->create_module('assign', ['course' => $course1->id]);
-        $assign1context = context_module::instance($assign1->cmid);
-
-        // Enrol user in course;
-        $this->getDataGenerator()->enrol_user($this->user->id, $course1->id);
-
-        $gradeitem = new grade_item($this->getDataGenerator()->create_grade_item(
-            [
-                'courseid' => $course1->id,
-                'itemtype' => 'mod',
-                'itemmodule' => 'assign',
-                'iteminstance' => $assign1->id
-            ]
-            ), false);
-
-        // Create grade entry.
-        $grades['feedback'] = 'Nice feedback!';
-        $grades['feedbackformat'] = FORMAT_MOODLE;
-        $grades['feedbackfiles'] = [
-            'contextid' => $assign1context->id,
-            'component' => 'grade',
-            'filearea' => 'feedback',
-            'itemid' => $gradeitem->id
-        ];
-
-        $grades['userid'] = $this->user->id;
-        grade_update('mod/assign', $gradeitem->courseid, $gradeitem->itemtype, $gradeitem->itemmodule, $gradeitem->iteminstance,
-            $gradeitem->itemnumber, $grades);
-        $grades = $DB->get_records('grade_grades');
-        $gradeid = $DB->get_field('grade_grades', 'id', array('itemid' => $gradeitem->id));
-
-
-        // Create file.
-        $filerecordfeedback = array(
-            'contextid' => $assign1context->id,
-            'component' => 'grade',
-            'filearea' => 'feedback',
-            'itemid' => $gradeid,
-            'filepath' => '/',
-            'filename' => 'feedback1.txt'
-        );
-        $filefeedback = $this->fs->create_file_from_string($filerecordfeedback, 'feedback file');
-
-        // Test access.
-        $this->assertTrue($filefeedback->can_access());
-
     }
 
     /**
@@ -369,13 +202,7 @@ class core_files_can_access_testcase extends advanced_testcase {
             'filename' => 'descriptionfile.txt');
         $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
 
-        $accessdescription = $this->fs->can_access_file(
-            $filerecorddescription['contextid'],
-            $filerecorddescription['component'],
-            $filerecorddescription['filearea'],
-            $filerecorddescription['itemid'],
-            $filerecorddescription['filepath'],
-            $filerecorddescription['filename']);
+        $accessdescription = $this->fs->can_access_file($filedescription);
 
         // Fail due to wrong context.
         $this->assertFalse($accessdescription);
@@ -383,40 +210,10 @@ class core_files_can_access_testcase extends advanced_testcase {
         $filerecorddescription['contextid'] = 1;
         $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
 
-        $accessdescription = $this->fs->can_access_file(
-            $filerecorddescription['contextid'],
-            $filerecorddescription['component'],
-            $filerecorddescription['filearea'],
-            $filerecorddescription['itemid'],
-            $filerecorddescription['filepath'],
-            $filerecorddescription['filename']);
+        $accessdescription = $this->fs->can_access_file($filedescription);
 
         $this->assertTrue($accessdescription);
 
-    }
-
-    /**
-     * Test can access method for grades.
-     */
-    public function test_can_access_tag() {
-        $tag = $this->getDataGenerator()->create_tag();
-
-        $filerecorddescription = array(
-            'contextid' =>  10,
-            'component' => 'tag',
-            'itemid' => $tag->id,
-            'filearea' => 'description',
-            'filepath' => '/',
-            'filename' => 'descriptionfile.txt');
-        $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
-
-        // Fail due to wrong context.
-        $this->assertFalse($filedescription->can_access());
-
-        $filerecorddescription['contextid'] = 1;
-        $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
-
-        $this->assertTrue($filedescription->can_access());
     }
 
     /**
@@ -457,12 +254,7 @@ class core_files_can_access_testcase extends advanced_testcase {
 
         $badgeid = $DB->insert_record('badge', $badgerecord, true);
         $badge = new \core_badges\badge($badgeid);
-    }
 
-    /**
-     * Test can access method for grades.
-     */
-    public function test_can_access_badges() {
-
+        // based on badges/tests/badgeslib_test.php
     }
 }
