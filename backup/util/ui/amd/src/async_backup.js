@@ -46,6 +46,7 @@ define(['jquery', 'core/ajax', 'core/str', 'core/notification', 'core/templates'
     var typeid; //  The type of operation backup or restore.
     var backupintervalid; //  The id of the setInterval function.
     var allbackupintervalid; //  The id of the setInterval function.
+    var timeout = 1000; //  Initial timeout for ajax requests.
 
     /**
      * Helper function to update UI components.
@@ -85,7 +86,7 @@ define(['jquery', 'core/ajax', 'core/str', 'core/notification', 'core/templates'
                 'filename': filename,
                 'contextid': contextid
             },
-        }])[0].done(function(response) {
+        }], true, true, false, timeout)[0].done(function(response) {
             // We have the data now update the UI.
             var context = {
                     filename: filename,
@@ -234,7 +235,7 @@ define(['jquery', 'core/ajax', 'core/str', 'core/notification', 'core/templates'
                         'backupid': backupid,
                         'contextid': contextid
                     },
-                }])[0].done(function(response) {
+                }], true, true, false, timeout)[0].done(function(response) {
                     var strDetail = 'async' + typeid + 'completedetail';
                     var strButton = 'async' + typeid + 'completebutton';
                     var stringRequests = [
@@ -348,9 +349,13 @@ define(['jquery', 'core/ajax', 'core/str', 'core/notification', 'core/templates'
                 'backupids': [backupid],
                 'contextid': contextid
             },
-        }])[0].done(function(response) {
+        }], true, true, false, timeout)[0].done(function(response) {
             // We have the progress now update the UI.
             updateProgress(response[0]);
+        }).fail(function() {
+            window.console.log('ajax call timedout');
+            //notification.exception(new Error('Failed to load table row'));
+           // return;
         });
     }
 
@@ -373,7 +378,7 @@ define(['jquery', 'core/ajax', 'core/str', 'core/notification', 'core/templates'
                     'backupids': backupids,
                     'contextid': contextid
                 },
-            }])[0].done(function(response) {
+            }], true, true, false, timeout)[0].done(function(response) {
                 updateProgressAll(response);
             });
         } else {
