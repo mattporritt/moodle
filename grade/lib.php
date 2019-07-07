@@ -3378,41 +3378,38 @@ abstract class grade_helper {
 }
 
 /**
+ * Module check file access.
+ * Called by \file_storage\can_access_file when checking
+ * user access to a file.
  *
- * @param \context $context
- * @param string $component
- * @param string $filearea
- * @param int $itemid
- * @param string $filepath
- * @param string $filename
- * @return bool
+ * @param \stored_file $file File to check access for.
+ * @return int Access status code.
  */
-function grade_can_access_file (\stored_file $file) : bool {
+function grade_can_access_file (\stored_file $file) : int {
 
         global $CFG, $DB, $USER;
-        $fs = get_file_storage();
+
+        $filearea = $file->get_filearea();
+        $itemid = $file->get_itemid();
+        $contextid = $file->get_contextid();
+        $context = context::instance_by_id($contextid);
+
+        if ($file->is_directory()) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
 
         if (($filearea === 'outcome' or $filearea === 'scale') and $context->contextlevel == CONTEXT_SYSTEM) {
             // Global gradebook files
-            if ($CFG->forcelogin) {
-                require_login();
+            if ($CFG->forcelogin && !isloggedin()) {
+                return FILE_ACCESS_REQUIRE_LOGIN;
             }
 
-            $fullpath = "/$context->id/$component/$filearea/$itemid$filepath$filename";
-            $file = $fs->get_file_by_hash(sha1($fullpath));
-
-            if (!$file || $file->is_directory()) {
-                return false;
-            }
-            return true;
+            return FILE_ACCESS_ALLOWED;
 
         } else if ($filearea == GRADE_FEEDBACK_FILEAREA || $filearea == GRADE_HISTORY_FEEDBACK_FILEAREA) {
             if ($context->contextlevel != CONTEXT_MODULE) {
-                return false;
+                return FILE_ACCESS_DENIED;
             }
-
-            $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, MUST_EXIST);
-            require_login($cm->course, false);
 
             if ($filearea == GRADE_HISTORY_FEEDBACK_FILEAREA) {
                 $grade = $DB->get_record('grade_grades_history', ['id' => $itemid]);
@@ -3421,7 +3418,7 @@ function grade_can_access_file (\stored_file $file) : bool {
             }
 
             if (!$grade) {
-                return false;
+                return FILE_ACCESS_DENIED;
             }
 
             $iscurrentuser = $USER->id == $grade->userid;
@@ -3429,20 +3426,13 @@ function grade_can_access_file (\stored_file $file) : bool {
             if (!$iscurrentuser) {
                 $coursecontext = context_course::instance($courseid);
                 if (!has_capability('moodle/grade:viewall', $coursecontext)) {
-                    return false;
+                    return FILE_ACCESS_DENIED;
                 }
             }
 
-            $fullpath = "/$context->id/$component/$filearea/$itemid/$filename";
-            $file = $fs->get_file_by_hash(sha1($fullpath));
-
-            if (!$file || $file->is_directory()) {
-                return false;
-            }
-
-            return true;
+            return FILE_ACCESS_ALLOWED;
         } else {
-            return false;
+            return FILE_ACCESS_DENIED;
         }
 
 }

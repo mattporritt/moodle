@@ -1305,65 +1305,64 @@ function blog_validate_access($courseid, $modid, $groupid, $entryid, $userid) {
 }
 
 /**
+ * Module check file access.
+ * Called by \file_storage\can_access_file when checking
+ * user access to a file.
  *
- * @param \context $context
- * @param string $component
- * @param string $filearea
- * @param int $itemid
- * @param string $filepath
- * @param string $filename
- * @return bool
+ * @param \stored_file $file File to check access for.
+ * @return int Access status code.
  */
-function blog_can_access_file (\stored_file $file) : bool {
+function blog_can_access_file (\stored_file $file) : int {
     global $CFG, $DB, $USER;
 
+    $filearea = $file->get_filearea();
+    $itemid = $file->get_itemid();
+    $contextid = $file->get_contextid();
+    $context = context::instance_by_id($contextid);
+
+
+    if ($file->is_directory()) {
+        return FILE_ACCESS_NOT_FOUND;
+    }
+
     if ($context->contextlevel != CONTEXT_SYSTEM) {
-        return false;
+        return FILE_ACCESS_DENIED;
     }
     if ($filearea !== 'attachment' and $filearea !== 'post') {
-        return false;
+        return FILE_ACCESS_DENIED;
     }
 
     if (empty($CFG->enableblogs)) {
-        print_error('siteblogdisable', 'blog');
+        return FILE_ACCESS_DENIED;
     }
 
     if (!$entry = $DB->get_record('post', array('module'=>'blog', 'id'=>$itemid))) {
-        return false;
+        return FILE_ACCESS_DENIED;
     }
 
     if ($CFG->bloglevel < BLOG_GLOBAL_LEVEL) {
-        require_login();
-        if (isguestuser()) {
-            print_error('noguest');
+        if (!isloggedin() || isguestuser()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
         }
         if ($CFG->bloglevel == BLOG_USER_LEVEL) {
             if ($USER->id != $entry->userid) {
-                return false;
+                return FILE_ACCESS_DENIED;
             }
         }
     }
 
     if ($entry->publishstate === 'public') {
         if ($CFG->forcelogin) {
-            require_login();
+            return FILE_ACCESS_REQUIRE_LOGIN;
         }
 
     } else if ($entry->publishstate === 'site') {
-        require_login();
-        //ok
+        return FILE_ACCESS_REQUIRE_LOGIN;
     } else if ($entry->publishstate === 'draft') {
-        require_login();
-        if ($USER->id != $entry->userid) {
-            return false;
+        if (!isloggedin() || ($USER->id != $entry->userid)) {
+            return FILE_ACCESS_DENIED;
         }
     }
 
-    $fs = get_file_storage();
-    $file = $fs->get_file($context->id, $component, $filearea, $itemid, $filepath, $filename);
-    if (!$file || $file->is_directory()) {
-        return false;
-    }
-
-    return true;
+    return FILE_ACCESS_ALLOWED;
 }

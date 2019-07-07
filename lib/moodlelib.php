@@ -557,8 +557,6 @@ define('FILE_ACCESS_DENIED', 403);
  */
 define('FILE_ACCESS_NOT_FOUND', 404);
 
-
-
 // PARAMETER HANDLING.
 
 /**

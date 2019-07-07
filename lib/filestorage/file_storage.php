@@ -2412,21 +2412,15 @@ class file_storage {
         return sha1($content);
     }
 
-
     /**
+     * Check a users access to a file.
      *
-     * @param int $contextid
-     * @param string $component
-     * @param string $filearea
-     * @param int $itemid
-     * @param string $filepath
-     * @param string $filename
-     * @return bool
+     * @param \stored_file $file
+     * @return int $canaccess Access status code.
      */
-    public function can_access_file(\stored_file $file) : bool {
-
+    public function can_access_file(\stored_file $file) : int {
         global $CFG;
-        $canaccess = false;
+        $canaccess = FILE_ACCESS_DENIED;
         list($context, $course, $cm) = get_context_info_array($contextid); // Get context info.
 
         // First process special core components.

@@ -74,33 +74,53 @@ function core_badges_myprofile_navigation(\core_user\output\myprofile\tree $tree
     }
 }
 
-
-function badges_can_access_file (\stored_file $file) : bool {
-
+/**
+ * Module check file access.
+ * Called by \file_storage\can_access_file when checking
+ * user access to a file.
+ *
+ * @param \stored_file $file File to check access for.
+ * @return int Access status code.
+ */
+function badges_can_access_file (\stored_file $file) : int {
     global $CFG;
     require_once($CFG->libdir . '/badgeslib.php');
 
+    $contextid = $file->get_contextid();
+    $filearea = $file->get_filearea();
+    $filename = $file->get_filename();
+    $component = $file->get_component();
+    $itemid = $file->get_itemid();
+
     $badge = new badge($itemid);
+    $context = context::instance_by_id($contextid);
     $fs = get_file_storage();
+
+    if ($file->is_directory()) {
+        return FILE_ACCESS_NOT_FOUND;
+    }
 
     if ($filearea === 'badgeimage') {
         if ($filename !== 'f1' && $filename !== 'f2' && $filename !== 'f3') {
-            return false;
+            return FILE_ACCESS_NOT_FOUND;
         }
-        $file = $fs->get_file($context->id, 'badges', 'badgeimage', $badge->id, '/', $filename.'.png');
-        if (!$file) {
-            return false;
+        $checkfile = $fs->get_file($context->id, 'badges', 'badgeimage', $badge->id, '/', $filename.'.png');
+
+        if (!$checkfile) {
+            return FILE_ACCESS_NOT_FOUND;
         }
 
-        return true;
+        return FILE_ACCESS_ALLOWED;
 
     } else if ($filearea === 'userbadge'  and $context->contextlevel == CONTEXT_USER) {
-        $file = $fs->get_file($context->id, 'badges', 'userbadge', $badge->id, '/', $filename.'.png');
-        if (!$file) {
-            return false;
+        $checkfile = $fs->get_file($context->id, 'badges', 'userbadge', $badge->id, '/', $filename.'.png');
+        if (!$checkfile) {
+            return FILE_ACCESS_NOT_FOUND;
         }
 
-        return true;
+        return FILE_ACCESS_ALLOWED;
     }
+
+    return FILE_ACCESS_DENIED;
 
 }

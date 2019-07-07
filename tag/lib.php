@@ -71,38 +71,35 @@ function core_tag_inplace_editable($itemtype, $itemid, $newvalue) {
 }
 
 /**
+ * Module check file access.
+ * Called by \file_storage\can_access_file when checking
+ * user access to a file.
  *
- * @param \context $context
- * @param string $component
- * @param string $filearea
- * @param int $itemid
- * @param string $filepath
- * @param string $filename
- * @return bool
+ * @param \stored_file $file File to check access for.
+ * @return int Access status code.
  */
-function tag_can_access_file (\stored_file $file) : bool {
+function tag_can_access_file (\stored_file $file) : int {
 
     global $CFG;
+    $filearea = $file->get_filearea();
+    $contextid = $file->get_contextid();
+    $context = context::instance_by_id($contextid);
+
+    if (!$file || $file->is_directory()) {
+        return FILE_ACCESS_DENIED;
+    }
 
     if ($filearea === 'description' and $context->contextlevel == CONTEXT_SYSTEM) {
 
-        // All tag descriptions are going to be public but we still need to respect forcelogin
-        if ($CFG->forcelogin) {
-            require_login();
+        // All tag descriptions are going to be public but we still need to respect forcelogin.
+        if ($CFG->forcelogin && !isloggedin()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
         }
 
-        $fullpath = "/$context->id/tag/description/$itemid$filepath$filename";
-        $fs = get_file_storage();
-        $file = $fs->get_file_by_hash(sha1($fullpath));
-
-        if (!$file || $file->is_directory()) {
-            return false;
-        }
-
-        return true;
+        return FILE_ACCESS_ALLOWED;
 
     } else {
-        return false;
+        return FILE_ACCESS_DENIED;
     }
 
 }

@@ -1130,5 +1130,4 @@ class stored_file {
     public function compare_to_string($content) {
         return $this->get_contenthash() === file_storage::hash_from_string($content);
     }
-
 }
