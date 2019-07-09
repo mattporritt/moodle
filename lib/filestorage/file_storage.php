@@ -2421,7 +2421,7 @@ class file_storage {
     public function can_access_file(\stored_file $file) : int {
         global $CFG;
         $canaccess = FILE_ACCESS_DENIED;
-        list($context, $course, $cm) = get_context_info_array($contextid); // Get context info.
+        $component = $file->get_component();
 
         // First process special core components.
         if ($component === 'blog') {

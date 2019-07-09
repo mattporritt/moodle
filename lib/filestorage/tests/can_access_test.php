@@ -49,7 +49,6 @@ class core_files_can_access_testcase extends advanced_testcase {
 
         // Create default user.
         $this->user = $this->getDataGenerator()->create_user();
-        @complete_user_login($this->user); // Hide session header errors when logging in user this way.
     }
 
     /**
@@ -80,8 +79,8 @@ class core_files_can_access_testcase extends advanced_testcase {
         $accessattachment = $this->fs->can_access_file($fileattachment);
 
         // Post not found.
-        $this->assertFalse($accesspost);
-        $this->assertFalse($accessattachment);
+        $this->assertEquals(FILE_ACCESS_DENIED,$accesspost);
+        $this->assertEquals(FILE_ACCESS_DENIED,$accessattachment);
 
         // Create default post.
         $post = new stdClass();
@@ -98,8 +97,16 @@ class core_files_can_access_testcase extends advanced_testcase {
         $accesspost = $this->fs->can_access_file($filepost);
         $accessattachment = $this->fs->can_access_file($fileattachment);
 
-        $this->assertTrue($accesspost);
-        $this->assertTrue($accessattachment);
+        $this->assertEquals(FILE_ACCESS_REQUIRE_LOGIN, $accesspost);
+        $this->assertEquals(FILE_ACCESS_REQUIRE_LOGIN, $accessattachment);
+
+        @complete_user_login($this->user); // Hide session header errors when logging in user this way.
+
+        $accesspost = $this->fs->can_access_file($filepost);
+        $accessattachment = $this->fs->can_access_file($fileattachment);
+
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accesspost);
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessattachment);
 
     }
 
@@ -131,8 +138,8 @@ class core_files_can_access_testcase extends advanced_testcase {
         $accessoutcome = $this->fs->can_access_file($fileoutcome);
         $accessscale = $this->fs->can_access_file($filescale);
 
-        $this->assertTrue($accessoutcome);
-        $this->assertTrue($accessscale);
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessoutcome);
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessscale);
 
         // Feedback and history feedback files.
 
@@ -182,9 +189,10 @@ class core_files_can_access_testcase extends advanced_testcase {
         $filefeedback = $this->fs->create_file_from_string($filerecordfeedback, 'feedback file');
 
         // Test access.
+        @complete_user_login($this->user); // Hide session header errors when logging in user this way.
         $accessfeedback = $this->fs->can_access_file($filefeedback);
 
-        $this->assertTrue($accessfeedback);
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessfeedback);
     }
 
     /**
@@ -205,14 +213,14 @@ class core_files_can_access_testcase extends advanced_testcase {
         $accessdescription = $this->fs->can_access_file($filedescription);
 
         // Fail due to wrong context.
-        $this->assertFalse($accessdescription);
+        $this->assertEquals(FILE_ACCESS_DENIED, $accessdescription);
 
         $filerecorddescription['contextid'] = 1;
         $filedescription = $this->fs->create_file_from_string($filerecorddescription, 'the description test file');
 
         $accessdescription = $this->fs->can_access_file($filedescription);
 
-        $this->assertTrue($accessdescription);
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessdescription);
 
     }
 

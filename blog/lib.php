@@ -1320,7 +1320,6 @@ function blog_can_access_file (\stored_file $file) : int {
     $contextid = $file->get_contextid();
     $context = context::instance_by_id($contextid);
 
-
     if ($file->is_directory()) {
         return FILE_ACCESS_NOT_FOUND;
     }

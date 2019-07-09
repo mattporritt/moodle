@@ -3411,6 +3411,10 @@ function grade_can_access_file (\stored_file $file) : int {
                 return FILE_ACCESS_DENIED;
             }
 
+            if (!isloggedin()) {
+                return FILE_ACCESS_REQUIRE_LOGIN;
+            }
+
             if ($filearea == GRADE_HISTORY_FEEDBACK_FILEAREA) {
                 $grade = $DB->get_record('grade_grades_history', ['id' => $itemid]);
             } else {
