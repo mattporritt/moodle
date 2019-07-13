@@ -1,4 +1,6 @@
 <?php
+use core_badges\badge;
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -225,7 +227,7 @@ class core_files_can_access_testcase extends advanced_testcase {
     }
 
     /**
-     * Test can access file method for grades.
+     * Test can access file method for badges.
      */
     public function test_can_access_file_badges() {
         global $DB;
@@ -261,8 +263,48 @@ class core_files_can_access_testcase extends advanced_testcase {
         $badgerecord->imageauthorname = 'Image authors name';
 
         $badgeid = $DB->insert_record('badge', $badgerecord, true);
-        $badge = new \core_badges\badge($badgeid);
+        $badbadgeid = $badgeid * 2;
 
-        // based on badges/tests/badgeslib_test.php
+        $badge = new \core_badges\badge($badgeid);
+        $badge->issue($user->id, true);
+        $usercontext = context_user::instance($user->id);
+
+        $badgeimagefilerecord = array(
+            'contextid' =>  1,
+            'component' => 'badges',
+            'itemid' => $badgeid,
+            'filearea' => 'badgeimage',
+            'filepath' => '/',
+            'filename' => 'f1.png');
+        $badgeimage = $this->fs->create_file_from_string($badgeimagefilerecord, 'I am an image');
+
+        $userbadgefilerecord = array(
+            'contextid' =>  $usercontext->id,
+            'component' => 'badges',
+            'itemid' => $badgeid,
+            'filearea' => 'userbadge',
+            'filepath' => '/',
+            'filename' => 'f1.png');
+        $userbadgeimage = $this->fs->create_file_from_string($userbadgefilerecord, 'I am an image');
+
+        $badnamefilerecord = $badgeimagefilerecord;
+        $badnamefilerecord['filename'] = 'bad.png';
+        $badname = $this->fs->create_file_from_string($badnamefilerecord, 'I am an image');
+
+        $badidfilerecord = $badgeimagefilerecord;
+        $badidfilerecord['itemid'] = $badbadgeid;
+        $badid = $this->fs->create_file_from_string($badidfilerecord, 'I am an image');
+
+        $badgeresult = $this->fs->can_access_file($badgeimage);
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $badgeresult);
+
+        $userbadgeresult = $this->fs->can_access_file($userbadgeimage);
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $userbadgeresult);
+
+        $badnameresult = $this->fs->can_access_file($badname);
+        $this->assertEquals(FILE_ACCESS_NOT_FOUND, $badnameresult);
+
+        $badidresult = $this->fs->can_access_file($badid);
+        $this->assertEquals(FILE_ACCESS_NOT_FOUND, $badidresult);
     }
 }

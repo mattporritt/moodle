@@ -2438,12 +2438,11 @@ class file_storage {
 
         } else if ($component === 'badges') {
             require_once($CFG->dirroot .'/badges/lib.php');
-            $canaccess = tag_can_access_file($file);
+            $canaccess = badges_can_access_file($file);
         }
         // Next process standard mod components
         // Next process blocks.
         // Finally process everything else.
-
         return $canaccess;
 
     }

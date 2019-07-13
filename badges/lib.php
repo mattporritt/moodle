@@ -83,7 +83,7 @@ function core_badges_myprofile_navigation(\core_user\output\myprofile\tree $tree
  * @return int Access status code.
  */
 function badges_can_access_file (\stored_file $file) : int {
-    global $CFG;
+    global $CFG, $DB;
     require_once($CFG->libdir . '/badgeslib.php');
 
     $contextid = $file->get_contextid();
@@ -92,7 +92,11 @@ function badges_can_access_file (\stored_file $file) : int {
     $component = $file->get_component();
     $itemid = $file->get_itemid();
 
-    $badge = new badge($itemid);
+    $badge = $DB->record_exists('badge', array('id' => $itemid));
+    if (!$badge) {
+        return FILE_ACCESS_NOT_FOUND;
+    }
+
     $context = context::instance_by_id($contextid);
     $fs = get_file_storage();
 
@@ -101,10 +105,10 @@ function badges_can_access_file (\stored_file $file) : int {
     }
 
     if ($filearea === 'badgeimage') {
-        if ($filename !== 'f1' && $filename !== 'f2' && $filename !== 'f3') {
+        if ($filename !== 'f1.png' && $filename !== 'f2.png' && $filename !== 'f3.png') {
             return FILE_ACCESS_NOT_FOUND;
         }
-        $checkfile = $fs->get_file($context->id, 'badges', 'badgeimage', $badge->id, '/', $filename.'.png');
+        $checkfile =$fs->file_exists($context->id, 'badges', 'badgeimage', $itemid, '/', $filename);
 
         if (!$checkfile) {
             return FILE_ACCESS_NOT_FOUND;
@@ -112,8 +116,8 @@ function badges_can_access_file (\stored_file $file) : int {
 
         return FILE_ACCESS_ALLOWED;
 
-    } else if ($filearea === 'userbadge'  and $context->contextlevel == CONTEXT_USER) {
-        $checkfile = $fs->get_file($context->id, 'badges', 'userbadge', $badge->id, '/', $filename.'.png');
+    } else if ($filearea === 'userbadge' && $context->contextlevel == CONTEXT_USER) {
+        $checkfile = $fs->file_exists($context->id, 'badges', 'userbadge', $itemid, '/', $filename);
         if (!$checkfile) {
             return FILE_ACCESS_NOT_FOUND;
         }
