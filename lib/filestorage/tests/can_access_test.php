@@ -102,7 +102,7 @@ class core_files_can_access_testcase extends advanced_testcase {
         $this->assertEquals(FILE_ACCESS_REQUIRE_LOGIN, $accesspost);
         $this->assertEquals(FILE_ACCESS_REQUIRE_LOGIN, $accessattachment);
 
-        @complete_user_login($this->user); // Hide session header errors when logging in user this way.
+        $this->setUser($this->user);
 
         $accesspost = $this->fs->can_access_file($filepost);
         $accessattachment = $this->fs->can_access_file($fileattachment);
@@ -191,14 +191,14 @@ class core_files_can_access_testcase extends advanced_testcase {
         $filefeedback = $this->fs->create_file_from_string($filerecordfeedback, 'feedback file');
 
         // Test access.
-        @complete_user_login($this->user); // Hide session header errors when logging in user this way.
+        $this->setUser($this->user);
         $accessfeedback = $this->fs->can_access_file($filefeedback);
 
         $this->assertEquals(FILE_ACCESS_ALLOWED, $accessfeedback);
     }
 
     /**
-     * Test can access file method for grades.
+     * Test can access file method for tags.
      */
     public function test_can_access_file_tag() {
         $tag = $this->getDataGenerator()->create_tag();
@@ -306,5 +306,51 @@ class core_files_can_access_testcase extends advanced_testcase {
 
         $badidresult = $this->fs->can_access_file($badid);
         $this->assertEquals(FILE_ACCESS_NOT_FOUND, $badidresult);
+    }
+
+    /**
+     * Test can access file method for the calendar.
+     */
+    public function test_can_access_file_calendar() {
+
+        $this->setAdminUser();
+        $context = context_system::instance();
+        $course = $this->getDataGenerator()->create_course();
+        $coursecontext = context_course::instance($course->id);
+
+        $event1 = $this->getDataGenerator()->create_event(array('eventtype' => 'site', 'context' => $context));
+
+        $filerecordevent = array(
+            'contextid' =>  $event1->context->id,
+            'component' => 'calendar',
+            'itemid' => $event1->id,
+            'filearea' => 'event_description',
+            'filepath' => '/',
+            'filename' => 'descriptionfile.txt');
+        $fileevent = $this->fs->create_file_from_string($filerecordevent, 'the description test file');
+        $accessevent = $this->fs->can_access_file($fileevent);
+
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessevent);
+
+        $event2 = $this->getDataGenerator()->create_event(
+            array('eventtype' => 'course', 'context' => $coursecontext, 'courseid' => $course->id));
+        $filerecordevent['contextid'] = $event2->context->id;
+        $filerecordevent['itemid'] = $event2->id;
+
+        $fileevent = $this->fs->create_file_from_string($filerecordevent, 'the description test file');
+        $accessevent = $this->fs->can_access_file($fileevent);
+
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessevent);
+
+        $this->setUser($this->user);  // Change from Admin.
+        $event3 = $this->getDataGenerator()->create_event(array('eventtype' => 'user', 'user' => $this->user->id));
+        $filerecordevent['contextid'] = $event3->context->id;
+        $filerecordevent['itemid'] = $event3->id;
+
+        $fileevent = $this->fs->create_file_from_string($filerecordevent, 'the description test file');
+        $accessevent = $this->fs->can_access_file($fileevent);
+
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessevent);
+
     }
 }

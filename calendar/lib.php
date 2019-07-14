@@ -3838,3 +3838,104 @@ function calendar_get_allowed_event_types(int $courseid = null) {
 
     return $types;
 }
+
+/**
+ * Module check file access.
+ * Called by \file_storage\can_access_file when checking
+ * user access to a file.
+ *
+ * @param \stored_file $file File to check access for.
+ * @return int Access status code.
+ */
+function calendar_can_access_file (\stored_file $file) : int {
+    global $CFG, $DB, $USER;
+
+    $contextid = $file->get_contextid();
+    $filearea = $file->get_filearea();
+    $itemid = $file->get_itemid();
+    $filename = $file->get_filename();
+    $filepath = $file->get_filepath();
+
+    $context = context::instance_by_id($contextid);
+    $fs = get_file_storage();
+
+    if ($file->is_directory()) {
+        return FILE_ACCESS_NOT_FOUND;
+    }
+
+    $checkfile = $fs->file_exists($context->id, 'calendar', 'event_description', $itemid, $filepath, $filename);
+    if (!$checkfile) {
+        return FILE_ACCESS_NOT_FOUND;
+    }
+
+    if ($filearea === 'event_description' && $context->contextlevel == CONTEXT_SYSTEM) {
+
+        // All events here are public the one requirement is that we respect forcelogin
+        if ($CFG->forcelogin && !isloggedin()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+        }
+
+        // Load the event from the database
+        if (!$event = $DB->get_record('event', array('id'=>$itemid, 'eventtype'=>'site'))) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        return FILE_ACCESS_ALLOWED;
+
+    } else if ($filearea === 'event_description' && $context->contextlevel == CONTEXT_USER) {
+
+        // Must be logged in, if they are not then they obviously can't be this user
+        // Don't want guests here.
+        if (!isloggedin() || isguestuser()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+        }
+
+
+        // Load the event from the database - user id must match
+        if (!$event = $DB->get_record('event', array('id'=>$itemid, 'userid'=>$USER->id, 'eventtype'=>'user'))) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        return FILE_ACCESS_ALLOWED;
+
+    } else if ($filearea === 'event_description' && $context->contextlevel == CONTEXT_COURSE) {
+        $coursecontext = $context->get_course_context(false);
+        if(!$coursecontext) {
+            return FILE_ACCESS_DENIED;
+        }
+        $courseid = $coursecontext->instanceid;
+
+        // Respect forcelogin and require login unless this is the site.
+        if (($CFG->forcelogin || $courseid != SITEID) && !isloggedin()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+        }
+
+        // Must be able to at least view the course. This does not apply to the front page.
+        if ($courseid != SITEID && (!is_enrolled($context)) && (!is_viewing($context))) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        // Load the event from the database we need to check whether it is
+        // a) valid course event
+        // b) a group event
+        // Group events use the course context (there is no group context).
+        if (!$event = $DB->get_record('event', array('id'=>$itemid, 'courseid'=>$courseid))) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        // If it's a group event require either membership of view all groups capability.
+        if ($event->eventtype === 'group') {
+            if (!has_capability('moodle/site:accessallgroups', $context) && !groups_is_member($event->groupid, $USER->id)) {
+                return FILE_ACCESS_NOT_FOUND;
+            }
+        } else if ($event->eventtype !== 'course' && $event->eventtype !== 'site') {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        return FILE_ACCESS_ALLOWED;
+
+    } else {
+        return FILE_ACCESS_NOT_FOUND;
+    }
+
+}
