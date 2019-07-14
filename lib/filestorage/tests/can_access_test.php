@@ -353,4 +353,38 @@ class core_files_can_access_testcase extends advanced_testcase {
         $this->assertEquals(FILE_ACCESS_ALLOWED, $accessevent);
 
     }
+
+    /**
+     * Test can access file method for users.
+     */
+    public function test_can_access_file_user() {
+        global $CFG;
+
+        set_config('forcelogin', 1);
+        $usercontext = context_user::instance($this->user->id);
+
+        $filerecord = array(
+            'contextid' =>  $usercontext->id,
+            'component' => 'user',
+            'itemid' => 0,
+            'filearea' => 'icon',
+            'filepath' => '/',
+            'filename' => 'f1.png');
+        $file = $this->fs->create_file_from_string($filerecord, 'I am an image');
+        $accessicon = $this->fs->can_access_file($file);
+
+        $this->assertEquals(FILE_ACCESS_REQUIRE_LOGIN, $accessicon);
+
+        $this->setUser($this->user);
+        $accessicon = $this->fs->can_access_file($file);
+
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessicon);
+
+        $filerecord['filearea'] = 'private';
+        $accessprivate = $this->fs->can_access_file($file);
+
+        $this->assertEquals(FILE_ACCESS_ALLOWED, $accessprivate);
+
+
+    }
 }

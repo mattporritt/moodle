@@ -2439,6 +2439,14 @@ class file_storage {
         } else if ($component === 'badges') {
             require_once($CFG->dirroot .'/badges/lib.php');
             $canaccess = badges_can_access_file($file);
+
+        } else if ($component === 'calendar') {
+            require_once($CFG->dirroot .'/calendar/lib.php');
+            $canaccess = calendar_can_access_file($file);
+
+        } else if ($component === 'user') {
+            require_once($CFG->dirroot .'/user/lib.php');
+            $canaccess = user_can_access_file($file);
         }
         // Next process standard mod components
         // Next process blocks.

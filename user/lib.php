@@ -1617,3 +1617,153 @@ function user_edit_map_field_purpose($userid, $fieldname) {
     return $purpose;
 }
 
+/**
+ * Module check file access.
+ * Called by \file_storage\can_access_file when checking
+ * user access to a file.
+ *
+ * @param \stored_file $file File to check access for.
+ * @return int Access status code.
+ */
+function user_can_access_file (\stored_file $file) : int {
+    global $CFG;
+
+    $contextid = $file->get_contextid();
+    $filearea = $file->get_filearea();
+    $filename = $file->get_filename();
+    $itemid = $file->get_itemid();
+
+    $context = context::instance_by_id($contextid);
+    $fs = get_file_storage();
+
+    if ($file->is_directory()) {
+        return FILE_ACCESS_NOT_FOUND;
+    }
+
+    if ($filearea === 'icon' and $context->contextlevel == CONTEXT_USER) {
+
+        if ((!empty($CFG->forcelogin) && !isloggedin()) ||
+            (!empty($CFG->forceloginforprofileimage) && (!isloggedin() || isguestuser()))) {
+                // protect images if login required and not logged in;
+                // also if login is required for profile images and is not logged in or guest
+                // do not use require_login() because it is expensive and not suitable here anyway
+                return FILE_ACCESS_REQUIRE_LOGIN;
+            }
+
+            $checkfile = $fs->file_exists($context->id, 'user', 'icon', 0, '/', $filename);
+            if (!$checkfile) {
+                return FILE_ACCESS_NOT_FOUND;
+            }
+
+            return FILE_ACCESS_ALLOWED;
+
+    } else if ($filearea === 'private' and $context->contextlevel == CONTEXT_USER) {
+        if (!isloggedin() || isguestuser()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+        }
+
+        if ($USER->id !== $context->instanceid) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        return FILE_ACCESS_ALLOWED;
+
+    } else if ($filearea === 'profile' and $context->contextlevel == CONTEXT_USER) {
+
+        if ($CFG->forcelogin && !isloggedin()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+        }
+
+        $userid = $context->instanceid;
+
+        if ($USER->id != $userid) {
+            return FILE_ACCESS_DENIED;
+
+        } else if (!empty($CFG->forceloginforprofiles)) {
+            if (!isloggedin() || isguestuser()) {
+                return FILE_ACCESS_REQUIRE_LOGIN;
+            }
+
+            // we allow access to site profile of all course contacts (usually teachers)
+            if (!has_coursecontact_role($userid) && !has_capability('moodle/user:viewdetails', $context)) {
+                return FILE_ACCESS_DENIED;
+            }
+
+            $canview = false;
+            if (has_capability('moodle/user:viewdetails', $context)) {
+                $canview = true;
+            } else {
+                $courses = enrol_get_my_courses();
+            }
+
+            while (!$canview && count($courses) > 0) {
+                $course = array_shift($courses);
+                if (has_capability('moodle/user:viewdetails', context_course::instance($course->id))) {
+                    $canview = true;
+                }
+            }
+
+            if($canview) {
+                return FILE_ACCESS_ALLOWED;
+            } else {
+                return FILE_ACCESS_DENIED;
+            }
+
+        }
+
+        return FILE_ACCESS_ALLOWED;
+
+    } else if ($filearea === 'profile' and $context->contextlevel == CONTEXT_COURSE) {
+        $usercontext = context_user::instance($itemid);
+
+        if ($CFG->forcelogin && !isloggedin()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+        }
+
+        if (!empty($CFG->forceloginforprofiles) && (!isloggedin() || isguestuser())) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+
+            if (!has_coursecontact_role($userid) && !has_capability('moodle/user:viewdetails', $usercontext)) {
+                return FILE_ACCESS_DENIED;
+            }
+            if (!has_capability('moodle/user:viewdetails', $context) && !has_capability('moodle/user:viewdetails', $usercontext)) {
+                return FILE_ACCESS_DENIED;
+            }
+            if (!is_enrolled($context, $userid)) {
+                return FILE_ACCESS_DENIED;
+            }
+            if (groups_get_course_groupmode($course) == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
+                return FILE_ACCESS_DENIED;
+            }
+        }
+
+        $checkfile = $fs->file_exists($context->id, 'user', 'profile', 0, $filepath, $filename);
+        if (!$checkfile) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        return FILE_ACCESS_ALLOWED;
+
+    } else if ($filearea === 'backup' and $context->contextlevel == CONTEXT_USER) {
+        if (!isloggedin() || isguestuser()) {
+            return FILE_ACCESS_REQUIRE_LOGIN;
+        }
+
+        $userid = $context->instanceid;
+
+        if ($USER->id != $userid) {
+            return FILE_ACCESS_DENIED;
+        }
+
+        $checkfile = $fs->file_exists($context->id, 'user', 'backup', 0, $filepath, $filename);
+        if (!$checkfile) {
+            return FILE_ACCESS_NOT_FOUND;
+        }
+
+        return FILE_ACCESS_ALLOWED;
+
+    } else {
+        return FILE_ACCESS_NOT_FOUND;
+    }
+
+}

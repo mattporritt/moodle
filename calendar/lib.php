@@ -3935,7 +3935,7 @@ function calendar_can_access_file (\stored_file $file) : int {
         return FILE_ACCESS_ALLOWED;
 
     } else {
-        return FILE_ACCESS_NOT_FOUND;
+        return FILE_ACCESS_DENIED;
     }
 
 }
