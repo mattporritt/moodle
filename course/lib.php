@@ -4002,6 +4002,7 @@ function course_get_user_administration_options($course, $context) {
     $options->reports = has_capability('moodle/site:viewreports', $context);
     $options->backup = has_capability('moodle/backup:backupcourse', $context);
     $options->restore = has_capability('moodle/restore:restorecourse', $context);
+    $options->copy = has_all_capabilities(['moodle/backup:backupcourse', 'moodle/restore:restorecourse'], $context);
     $options->files = ($course->legacyfiles == 2 && has_capability('moodle/course:managefiles', $context));
 
     if (!$isfrontpage) {
@@ -4906,4 +4907,44 @@ function course_get_course_dates_for_user_ids(stdClass $course, array $userids):
  */
 function course_get_course_dates_for_user_id(stdClass $course, int $userid): array {
     return (course_get_course_dates_for_user_ids($course, [$userid]))[$userid];
+}
+
+/**
+ * Renders the course copy form for the modal on the course management screen.
+ *
+ * @param array $args
+ * @param context $args['context']
+ * @return string
+ */
+function course_output_fragment_new_base_form($args) {
+    global $CFG;
+    require_once($CFG->dirroot . '/backup/copy_form.php');
+
+    $serialiseddata = json_decode($args['jsonformdata'], true);
+    $formdata = [];
+    if (!empty($serialiseddata)) {
+        parse_str($serialiseddata, $formdata);
+    }
+
+    $context = context_course::instance($args['courseid']);
+    require_capability('moodle/backup:backupcourse', $context);
+    require_capability('moodle/restore:restorecourse', $context);
+
+    $course = get_course($args['courseid']);
+    $mform = new \core_backup\copy\course_copy_form(
+        null,
+        array('course' => $course, 'returnto' => '', 'returnurl' => ''),
+        'post', '', ['class' => 'ignoredirty'], true, $formdata);
+
+    if (!empty($serialiseddata)) {
+        // If we were passed non-empty form data we want the mform to call validation functions and show errors.
+        $mform->is_validated();
+    }
+
+    ob_start();
+    $mform->display();
+    $o = ob_get_contents();
+    ob_end_clean();
+
+    return $o;
 }

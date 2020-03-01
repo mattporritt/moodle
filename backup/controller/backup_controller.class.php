@@ -82,6 +82,7 @@ class backup_controller extends base_controller {
      * @param bool $releasesession Should release the session? backup::RELEASESESSION_YES or backup::RELEASESESSION_NO
      */
     public function __construct($type, $id, $format, $interactive, $mode, $userid, $releasesession = backup::RELEASESESSION_NO) {
+
         $this->type = $type;
         $this->id   = $id;
         $this->courseid = backup_controller_dbops::get_courseid_from_type_id($this->type, $this->id);
@@ -97,7 +98,7 @@ class backup_controller extends base_controller {
         $this->checksum = '';
 
         // Set execution based on backup mode.
-        if ($mode == backup::MODE_ASYNC) {
+        if ($mode == backup::MODE_ASYNC || $mode == backup::MODE_COPY) {
             $this->execution = backup::EXECUTION_DELAYED;
         } else {
             $this->execution = backup::EXECUTION_INMEDIATE;
@@ -291,7 +292,7 @@ class backup_controller extends base_controller {
 
         // When a backup is intended for the same site, we don't need to include the files.
         // Note, this setting is only used for duplication of an entire course.
-        if ($this->get_mode() === backup::MODE_SAMESITE) {
+        if ($this->get_mode() === backup::MODE_SAMESITE || $this->get_mode() === backup::MODE_COPY) {
             $includefiles = false;
         }
 

@@ -355,6 +355,14 @@ class helper {
                 'attributes' => array('class' => 'action-edit')
             );
         }
+        // Copy.
+        if ($course->can_copy()) {
+            $actions[] = array(
+                'url' => new \moodle_url('/backup/copy.php', array('id' => $course->id, 'returnto' => 'catmanage')),
+                'icon' => new \pix_icon('t/copy', \get_string('copycourse')),
+                'attributes' => array('class' => 'action-copy')
+            );
+        }
         // Delete.
         if ($course->can_delete()) {
             $actions[] = array(

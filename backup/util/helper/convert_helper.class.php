@@ -165,8 +165,13 @@ abstract class convert_helper {
      */
     public static function to_moodle2_format($tempdir, $format = null, $logger = null) {
 
-        if (is_null($format)) {
+        if (is_null($format) || $format == 'unknown') {
             $format = backup_general_helper::detect_backup_format($tempdir);
+        }
+
+        // Exit early if the detected format is Moodle.
+        if($format == backup::FORMAT_MOODLE) {
+            return true;
         }
 
         // get the supported conversion paths from all available converters

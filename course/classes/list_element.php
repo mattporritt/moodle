@@ -466,4 +466,17 @@ class core_course_list_element implements IteratorAggregate {
     public function can_restore() {
         return has_capability('moodle/restore:restorecourse', $this->get_context());
     }
+
+    /**
+     * Returns true if the current user can copy this course.
+     *
+     * Note: this function does not check that the current user can access the course.
+     * To do that please call require_login with the course, or if not possible call
+     * {@link core_course_list_element::can_access()}
+     *
+     * @return bool
+     */
+    public function can_copy() {
+        return has_all_capabilities(['moodle/backup:backupcourse', 'moodle/restore:restorecourse'], $this->get_context());
+    }
 }
