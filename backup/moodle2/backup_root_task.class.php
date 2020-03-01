@@ -99,6 +99,18 @@ class backup_root_task extends backup_task {
         $this->add_setting($roleassignments);
         $users->add_dependency($roleassignments);
 
+        // Define what users to backup based on their roles in the source course (dependent of users).
+        $keepenrol = new backup_users_setting('keep_enrol', base_setting::IS_TEXT, '1');
+        $keepenrol->set_visibility(base_setting::HIDDEN); // No UI for this setting (yet).
+        $this->add_setting($keepenrol);
+        $users->add_dependency($keepenrol);
+
+        // Define user data setting (dependent of users).
+        $userdata = new backup_users_setting('users_data', base_setting::IS_BOOLEAN, true);
+        $userdata->set_visibility(base_setting::HIDDEN); // No UI for this setting (yet).
+        $this->add_setting($userdata);
+        $users->add_dependency($userdata);
+
         // Define activities
         $activities = new backup_activities_setting('activities', base_setting::IS_BOOLEAN, true);
         $activities->set_ui(new backup_setting_ui_checkbox($activities, get_string('rootsettingactivities', 'backup')));

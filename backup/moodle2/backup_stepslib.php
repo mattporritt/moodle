@@ -514,6 +514,9 @@ class backup_enrolments_structure_step extends backup_structure_step {
         // To know if we are including users
         $users = $this->get_setting_value('users');
 
+        // To know if we are restricting enrolments by role.
+        $roleids = $this->get_setting_value('keep_enrol');
+
         // Define each element separated
 
         $enrolments = new backup_nested_element('enrolments');
@@ -546,8 +549,28 @@ class backup_enrolments_structure_step extends backup_structure_step {
         $enrol->set_source_table('enrol', array('courseid' => backup::VAR_COURSEID), 'sortorder ASC');
 
         // User enrolments only added only if users included
-        if ($users) {
+        if ($users && $roleids == '-1') {
             $enrolment->set_source_table('user_enrolments', array('enrolid' => backup::VAR_PARENTID));
+            $enrolment->annotate_ids('user', 'userid');
+        } else if ($users && $roleids == '0') {
+            error_log('here');
+
+        } else if ($users) {
+            // TODO: make sure we only apply the roles via config.
+            $enrolment->set_source_sql('
+                SELECT ue.*
+                  FROM {user_enrolments} ue
+            INNER JOIN {role_assignments} ra ON ue.userid = ra.userid
+            INNER JOIN {enrol} e ON ue.enrolid = e.id
+                 WHERE ra.contextid = ?
+                       AND ra.roleid IN (?)
+                       AND ue.enrolid = ?
+                       AND e.enrol = ?',
+                array(
+                    backup::VAR_CONTEXTID,
+                    backup_helper::is_sqlparam(1),
+                    backup::VAR_PARENTID,
+                    backup_helper::is_sqlparam('manual')));
             $enrolment->annotate_ids('user', 'userid');
         }
 
