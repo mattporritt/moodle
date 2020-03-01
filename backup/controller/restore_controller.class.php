@@ -116,7 +116,7 @@ class restore_controller extends base_controller {
         $this->logger = backup_factory::get_logger_chain($this->interactive, $this->execution, $this->restoreid);
 
         // Set execution based on backup mode.
-        if ($mode == backup::MODE_ASYNC) {
+        if ($mode == backup::MODE_ASYNC || $mode == backup::MODE_COPY) {
             $this->execution = backup::EXECUTION_DELAYED;
         } else {
             $this->execution = backup::EXECUTION_INMEDIATE;

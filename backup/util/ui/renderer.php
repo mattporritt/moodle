@@ -974,6 +974,36 @@ class core_backup_renderer extends plugin_renderer_base {
 
         return $html;
     }
+
+    /**
+     * Get markup to render table for all of a users course copies.
+     *
+     * @param int $userid The Moodle user id.
+     * @return string $html The table HTML.
+     */
+    public function copy_progress_viewer ($userid) {
+        $tablehead = array(
+            get_string('copysource', 'backup'),
+            get_string('copydest', 'backup'),
+            get_string('time'),
+            get_string('copyop', 'backup'),
+            get_string('status', 'backup')
+        );
+
+        $table = new html_table();
+        $table->attributes['class'] = 'backup-files-table generaltable';
+        $table->head = $tablehead;
+
+        $tabledata = array();
+
+        // Get all in progress course copies for this user.
+        $tabledata = \core_backup\copy\core_backup_copy::get_copies($userid);
+
+        $table->data = $tabledata;
+        $html = html_writer::table($table);
+
+        return $html;
+    }
 }
 
 /**
