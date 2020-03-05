@@ -105,7 +105,7 @@ class core_backup_copy  {
                     || $copyrecord->status == \backup::STATUS_FINISHED_ERR) {
                         continue;
                 } else {
-                    $rc = \restore_controller::load_controller($copyrecord->backupid);
+                    $rc = \restore_controller::load_controller($copyrecord->restoreid);
                     if ($rc->get_copy()->courseid == $courseid) {
                         $copies[] = $copyrecord;
                     }

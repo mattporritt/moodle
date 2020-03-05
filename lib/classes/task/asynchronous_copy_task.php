@@ -95,7 +95,6 @@ class asynchronous_copy_task extends adhoc_task {
         $shortname = $plan->get_setting('course_shortname');
         $shortname->set_value($copyinfo->shortname);
 
-
         // Do some preflight checks on the restore.
         $rc->execute_precheck();
         $status = $rc->get_status();

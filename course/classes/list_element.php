@@ -477,6 +477,8 @@ class core_course_list_element implements IteratorAggregate {
      * @return bool
      */
     public function can_copy() {
-        return has_all_capabilities(['moodle/backup:backupcourse', 'moodle/restore:restorecourse'], $this->get_context());
+        return has_all_capabilities(
+            ['moodle/backup:backupcourse', 'moodle/restore:restorecourse', 'moodle/course:view'],
+            $this->get_context());
     }
 }
