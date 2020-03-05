@@ -121,7 +121,7 @@ class core_backup_course_copy_testcase extends advanced_testcase {
         $formdata->category = 1;
         $formdata->visible = 0;
         $formdata->startdate = 1582376400;
-        $formdata->enddate = 0;
+        $formdata->enddate = 1582386400;
         $formdata->idnumber = 123;
         $formdata->userdata = 1;
         $formdata->manualenrols = array(1, 3, 5);
@@ -160,6 +160,8 @@ class core_backup_course_copy_testcase extends advanced_testcase {
         $modinfo = get_fast_modinfo($postrestorerec->itemid);
         $course = $modinfo->get_course();
 
+        $this->assertEquals($formdata->startdate, $course->startdate);
+        $this->assertEquals($formdata->enddate, $course->enddate);
         $this->assertEquals('copy course', $course->fullname);
         $this->assertEquals('copy course short',  $course->shortname);
         $this->assertEquals(0,  $course->visible);

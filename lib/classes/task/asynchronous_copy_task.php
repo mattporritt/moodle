@@ -86,6 +86,16 @@ class asynchronous_copy_task extends adhoc_task {
         $rc->set_progress(new \core\progress\db_updater($restorerecord->id, 'backup_controllers', 'progress'));
         $rc->convert();
 
+        // Set the course settings we can do now (the remaining settings will be done after restore completes).
+        $plan = $rc->get_plan();
+        $startdate = $plan->get_setting('course_startdate');
+        $startdate->set_value($copyinfo->startdate);
+        $fullname = $plan->get_setting('course_fullname');
+        $fullname->set_value($copyinfo->fullname);
+        $shortname = $plan->get_setting('course_shortname');
+        $shortname->set_value($copyinfo->shortname);
+
+
         // Do some preflight checks on the restore.
         $rc->execute_precheck();
         $status = $rc->get_status();
@@ -112,12 +122,12 @@ class asynchronous_copy_task extends adhoc_task {
         $bc->destroy();
         $rc->destroy();
 
-        // Set up new course name as visibility.
+        // Set up remaining course settings.
         $course = $DB->get_record('course', array('id' => $restorerecord->itemid), '*', MUST_EXIST);
-        $course->fullname = $copyinfo->fullname;
-        $course->shortname = $copyinfo->shortname;
         $course->visible = $copyinfo->visible;
         $course->idnumber = $copyinfo->idnumber;
+        $course->enddate = $copyinfo->enddate;
+
         $DB->update_record('course', $course);
 
         $duration = time() - $started;
