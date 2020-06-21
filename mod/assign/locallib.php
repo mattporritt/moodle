@@ -72,6 +72,9 @@ define("ASSIGN_MAX_EVENT_LENGTH", "432000");
 // Name of file area for intro attachments.
 define('ASSIGN_INTROATTACHMENT_FILEAREA', 'introattachment');
 
+// Name of file area for activity attachments.
+define('ASSIGN_ACTIVITYATTACHMENT_FILEAREA', 'activityattachment');
+
 // Event types.
 define('ASSIGN_EVENT_TYPE_DUE', 'due');
 define('ASSIGN_EVENT_TYPE_GRADINGDUE', 'gradingdue');
@@ -91,6 +94,10 @@ require_once($CFG->dirroot . '/mod/assign/gradingtable.php');
 require_once($CFG->libdir . '/portfolio/caller.php');
 
 use \mod_assign\output\grading_app;
+use \mod_assign\output\assign_header;
+use \mod_assign\output\assign_submission_status;
+use \mod_assign\output\assign_attempt_timelimit_panel;
+use mod_assign\output\renderer;
 
 /**
  * Standard base class for mod_assign (assignment types).
@@ -702,6 +709,13 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
+        if (isset($formdata->activityeditor)) {
+            $update->activity = $this->save_editor_draft_files($formdata);
+            $update->activityformat = $formdata->activityeditor['format'];
+        }
+        if (isset($formdata->submissionattachments)) {
+            $update->submissionattachments = $formdata->submissionattachments;
+        }
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -713,6 +727,9 @@ class assign {
         $update->duedate = $formdata->duedate;
         $update->cutoffdate = $formdata->cutoffdate;
         $update->gradingduedate = $formdata->gradingduedate;
+        if (isset($formdata->timelimit)) {
+            $update->timelimit = $formdata->timelimit;
+        }
         $update->allowsubmissionsfromdate = $formdata->allowsubmissionsfromdate;
         $update->grade = $formdata->grade;
         $update->completionsubmit = !empty($formdata->completionsubmit);
@@ -747,6 +764,7 @@ class assign {
         $this->course = $DB->get_record('course', array('id'=>$formdata->course), '*', MUST_EXIST);
 
         $this->save_intro_draft_files($formdata);
+        $this->save_editor_draft_files($formdata);
 
         if ($callplugins) {
             // Call save_settings hook for submission plugins.
@@ -934,7 +952,7 @@ class assign {
         $override = $this->override_exists($userid);
 
         // Merge with assign defaults.
-        $keys = array('duedate', 'cutoffdate', 'allowsubmissionsfromdate');
+        $keys = array('duedate', 'cutoffdate', 'allowsubmissionsfromdate', 'timelimit');
         foreach ($keys as $key) {
             if (isset($override->{$key})) {
                 $this->get_instance($userid)->{$key} = $override->{$key};
@@ -1001,7 +1019,7 @@ class assign {
         // return arrays containing keys for only the defined overrides. So we get the
         // desired behaviour as per the algorithm.
         return (object)array_merge(
-            ['duedate' => null, 'cutoffdate' => null, 'allowsubmissionsfromdate' => null],
+            ['timelimit' => null, 'duedate' => null, 'cutoffdate' => null, 'allowsubmissionsfromdate' => null],
             $getgroupoverride($userid),
             $getuseroverride($userid)
         );
@@ -1444,6 +1462,13 @@ class assign {
         $update->intro = $formdata->intro;
         $update->introformat = $formdata->introformat;
         $update->alwaysshowdescription = !empty($formdata->alwaysshowdescription);
+        if (isset($formdata->activityeditor)) {
+            $update->activity = $this->save_editor_draft_files($formdata);
+            $update->activityformat = $formdata->activityeditor['format'];
+        }
+        if (isset($formdata->submissionattachments)) {
+            $update->submissionattachments = $formdata->submissionattachments;
+        }
         $update->submissiondrafts = $formdata->submissiondrafts;
         $update->requiresubmissionstatement = $formdata->requiresubmissionstatement;
         $update->sendnotifications = $formdata->sendnotifications;
@@ -1454,6 +1479,9 @@ class assign {
         }
         $update->duedate = $formdata->duedate;
         $update->cutoffdate = $formdata->cutoffdate;
+        if (isset($formdata->timelimit)) {
+            $update->timelimit = $formdata->timelimit;
+        }
         $update->gradingduedate = $formdata->gradingduedate;
         $update->allowsubmissionsfromdate = $formdata->allowsubmissionsfromdate;
         $update->grade = $formdata->grade;
@@ -1521,7 +1549,7 @@ class assign {
     }
 
     /**
-     * Save the attachments in the draft areas.
+     * Save the attachments in the intro description.
      *
      * @param stdClass $formdata
      */
@@ -1531,6 +1559,25 @@ class assign {
                                        'mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA, 0);
         }
     }
+
+    /**
+     * Save the attachments in the editor description.
+     *
+     * @param stdClass $formdata
+     */
+    protected function save_editor_draft_files($formdata): string {
+        $text = '';
+        if (isset($formdata->activityeditor)) {
+            $text = $formdata->activityeditor['text'];
+            if (isset($formdata->activityeditor['itemid'])) {
+                $text = file_save_draft_area_files($formdata->activityeditor['itemid'], $this->get_context()->id,
+                    'mod_assign', ASSIGN_ACTIVITYATTACHMENT_FILEAREA,
+                    0, array('subdirs' => true), $formdata->activityeditor['text']);
+            }
+        }
+        return $text;
+    }
+
 
     /**
      * Add elements in grading plugin form.
@@ -3006,6 +3053,18 @@ class assign {
         }
 
         if ($submission) {
+            if ($create) {
+                $action = optional_param('action', '', PARAM_TEXT);
+                if ($action == 'editsubmission') {
+                    $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                    if (!$submissionattempt) {
+                        $submissionattempt = new stdClass();
+                        $submissionattempt->submissionid = $submission->id;
+                        $submissionattempt->timecreated = time();
+                        $said = $DB->insert_record('assign_submission_attempts', $submissionattempt);
+                    }
+                }
+            }
             return $submission;
         }
         if ($create) {
@@ -3754,6 +3813,18 @@ class assign {
         }
 
         if ($submission) {
+            if ($create) {
+                $action = optional_param('action', '', PARAM_TEXT);
+                if ($action == 'editsubmission') {
+                    $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+                    if (!$submissionattempt) {
+                        $submissionattempt = new stdClass();
+                        $submissionattempt->submissionid = $submission->id;
+                        $submissionattempt->timecreated = time();
+                        $said = $DB->insert_record('assign_submission_attempts', $submissionattempt);
+                    }
+                }
+            }
             return $submission;
         }
         if ($create) {
@@ -4021,7 +4092,8 @@ class assign {
                                                                      $instance->maxattempts,
                                                                      $this->get_grading_status($userid),
                                                                      $instance->preventsubmissionnotingroup,
-                                                                     $usergroups);
+                                                                     $usergroups,
+                                                                     $instance->timelimit);
             $o .= $this->get_renderer()->render($submissionstatus);
         }
 
@@ -4215,7 +4287,8 @@ class assign {
                                                              $instance->maxattempts,
                                                              $this->get_grading_status($userid),
                                                              $instance->preventsubmissionnotingroup,
-                                                             $usergroups);
+                                                             $usergroups,
+                                                             $instance->timelimit);
             $o .= $this->get_renderer()->render($submissionstatus);
         }
 
@@ -4729,13 +4802,14 @@ class assign {
      * @return string The page output.
      */
     protected function view_edit_submission_page($mform, $notices) {
-        global $CFG, $USER, $DB;
+        global $CFG, $USER, $DB, $PAGE;
 
         $o = '';
         require_once($CFG->dirroot . '/mod/assign/submission_form.php');
         // Need submit permission to submit an assignment.
         $userid = optional_param('userid', $USER->id, PARAM_INT);
         $user = $DB->get_record('user', array('id'=>$userid), '*', MUST_EXIST);
+        $timelimitenabled = get_config('assign', 'enabletimelimit');
 
         // This variation on the url will link direct to this student.
         // The benefit is the url will be the same every time for this student, so Atto autosave drafts can match up.
@@ -4768,14 +4842,6 @@ class assign {
         if ($this->has_visible_attachments()) {
             $postfix = $this->render_area_files('mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA, 0);
         }
-        $o .= $this->get_renderer()->render(new assign_header($this->get_instance(),
-                                                      $this->get_context(),
-                                                      $this->show_intro(),
-                                                      $this->get_course_module()->id,
-                                                      $title, '', $postfix));
-
-        // Show plagiarism disclosure for any user submitter.
-        $o .= $this->plagiarism_print_disclosure();
 
         $data = new stdClass();
         $data->userid = $userid;
@@ -4783,17 +4849,65 @@ class assign {
             $mform = new mod_assign_submission_form(null, array($this, $data));
         }
 
+        if ($this->get_instance()->teamsubmission) {
+            $submission = $this->get_group_submission($userid, 0, false);
+        } else {
+            $submission = $this->get_user_submission($userid, false);
+        }
+
+        $submissionattempt = $DB->get_record('assign_submission_attempts', array('submissionid' => $submission->id));
+        if ($timelimitenabled && $submissionattempt && $this->get_instance()->timelimit) {
+            $output = $this->get_renderer();
+            $navbc = $this->get_timelimit_panel($output, $submissionattempt);
+            $regions = $PAGE->blocks->get_regions();
+            $PAGE->blocks->add_fake_block($navbc, reset($regions));
+
+            if ($submissionattempt->timecreated + $this->get_instance()->timelimit < time()) {
+                $notices[] = get_string('caneditsubmission', 'assign');
+            }
+        }
+        $o .= $this->get_renderer()->render(new assign_header($this->get_instance(),
+                                                      $this->get_context(),
+                                                      $this->show_intro(),
+                                                      $this->get_course_module()->id,
+                                                      $title, '', $postfix, true));
+
+        // Show plagiarism disclosure for any user submitter.
+        $o .= $this->plagiarism_print_disclosure();
+
         foreach ($notices as $notice) {
             $o .= $this->get_renderer()->notification($notice);
         }
 
         $o .= $this->get_renderer()->render(new assign_form('editsubmissionform', $mform));
-
         $o .= $this->view_footer();
 
         \mod_assign\event\submission_form_viewed::create_from_user($this, $user)->trigger();
 
         return $o;
+    }
+
+    /**
+     * Get the time limit panel object for this submission attempt.
+     *
+     * @param renderer $output the assign renderer to use to output things.
+     * @param stdClass $submissionattempt assign submission attempt.
+     * @return block_contents the requested object.
+     */
+    public function get_timelimit_panel(renderer $output, $submissionattempt) {
+        global $USER;
+
+        // Apply overrides.
+        $this->update_effective_access($USER->id);
+
+        $panel = new assign_attempt_timelimit_panel($submissionattempt, $this->get_instance());
+        $bc = new block_contents();
+        $bc->attributes['id'] = 'mod_assign_timelimit_block';
+        $bc->attributes['role'] = 'navigation';
+        $bc->attributes['aria-labelledby'] = 'mod_assign_timelimit_block_title';
+        $bc->title = html_writer::span(get_string('assigntimeleft', 'assign'), '', array('id' => 'mod_assign_timelimit_title'));
+        $bc->content = $output->timelimit_panel($panel);
+        return $bc;
     }
 
     /**
@@ -5277,7 +5391,8 @@ class assign {
                                                           $instance->maxattempts,
                                                           $gradingstatus,
                                                           $instance->preventsubmissionnotingroup,
-                                                          $usergroups);
+                                                          $usergroups,
+                                                          $instance->timelimit);
         return $submissionstatus;
     }
 
@@ -5649,6 +5764,7 @@ class assign {
                 $this->count_submissions_with_status($submitted, $activitygroup),
                 $instance->cutoffdate,
                 $this->get_duedate($activitygroup),
+                $instance->timelimit,
                 $this->get_course_module()->id,
                 $this->count_submissions_need_grading($activitygroup),
                 $instance->teamsubmission,
@@ -5669,6 +5785,7 @@ class assign {
                 $this->count_submissions_with_status($submitted, $activitygroup),
                 $instance->cutoffdate,
                 $this->get_duedate($activitygroup),
+                $instance->timelimit,
                 $this->get_course_module()->id,
                 $this->count_submissions_need_grading($activitygroup),
                 $instance->teamsubmission,
@@ -5720,9 +5837,10 @@ class assign {
         $o = '';
 
         $postfix = '';
-        if ($this->has_visible_attachments()) {
+        if ($this->has_visible_attachments() && (!$this->get_instance($USER->id)->submissionattachments)) {
             $postfix = $this->render_area_files('mod_assign', ASSIGN_INTROATTACHMENT_FILEAREA, 0);
         }
+
         $o .= $this->get_renderer()->render(new assign_header($instance,
                                                       $this->get_context(),
                                                       $this->show_intro(),
@@ -5737,6 +5855,10 @@ class assign {
             }
         }
 
+        if ($this->can_view_submission($USER->id)) {
+            $o .= $this->view_student_summary($USER, true);
+        }
+
         if ($this->can_view_grades()) {
             // Group selector will only be displayed if necessary.
             $currenturl = new moodle_url('/mod/assign/view.php', array('id' => $this->get_course_module()->id));
@@ -5744,12 +5866,6 @@ class assign {
 
             $summary = $this->get_assign_grading_summary_renderable();
             $o .= $this->get_renderer()->render($summary);
-        }
-        $grade = $this->get_user_grade($USER->id, false);
-        $submission = $this->get_user_submission($USER->id, false);
-
-        if ($this->can_view_submission($USER->id)) {
-            $o .= $this->view_student_summary($USER, true);
         }
 
         $o .= $this->view_footer();
@@ -9833,4 +9949,15 @@ function reorder_group_overrides($assignid) {
             $DB->set_field('event', 'priority', $f->sortorder, $params);
         }
     }
+}
+
+/**
+ * Get the information about the standard assign JavaScript module.
+ * @return array a standard jsmodule structure.
+ */
+function assign_get_js_module() {
+    return array(
+        'name' => 'mod_assign',
+        'fullpath' => '/mod/assign/module.js',
+    );
 }

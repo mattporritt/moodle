@@ -22,6 +22,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['activityattachments'] = 'Assignment activity attachments';
+$string['activityeditor'] = 'Activity';
+$string['activityeditor_help'] = 'The actions you would like the student to complete for this assignment. This is only shown on the submission page where a students edits and submits their assignment.';
 $string['activityoverview'] = 'You have assignments that need attention';
 $string['addsubmission'] = 'Add submission';
 $string['addsubmission_help'] = 'You have not made a submission yet.';
@@ -309,7 +312,7 @@ $string['indicator:socialbreadthdef_help'] = 'The participant has reached this p
 $string['indicator:socialbreadthdef_link'] = 'Learning_analytics_indicators#Social_breadth';
 $string['instructionfiles'] = 'Instruction files';
 $string['introattachments'] = 'Additional files';
-$string['introattachments_help'] = 'Additional files for use in the assignment, such as answer templates, may be added. Download links for the files will then be displayed on the assignment page under the description.';
+$string['introattachments_help'] = 'Additional files for use in the assignment, such as answer templates, may be added. Download links for the files will then be displayed on the assignment page under the activty description.';
 $string['invalidgradeforscale'] = 'The grade supplied was not valid for the current scale';
 $string['invalidfloatforgrade'] = 'The grade provided could not be understood: {$a}';
 $string['invalidoverrideid'] = 'Invalid override id';
@@ -496,6 +499,10 @@ $string['settings'] = 'Assignment settings';
 $string['showrecentsubmissions'] = 'Show recent submissions';
 $string['status'] = 'Status';
 $string['studentnotificationworkflowstateerror'] = 'Marking workflow state must be \'Released\' to notify students.';
+$string['submissionattachments'] = 'Only show files during submission.';
+$string['submissionattachments_help'] = 'When enabled files will only be shown on submission screen.
+When disabled files will be shown on both assignment view and submission screens.';
+$string['confirmstart'] = 'Your submission will have a time limit of {$a}. When you start, the timer will begin to count down and cannot be paused. You must finish your submission before it expires. Are you sure you wish to start now? ';
 $string['submissioncopiedtext'] = 'You have made a copy of your previous
 assignment submission for \'{$a->assignment}\'
 
@@ -581,6 +588,8 @@ $string['teamsubmission_help'] = 'If enabled, students will be divided into grou
 $string['teamsubmissiongroupingid'] = 'Grouping for student groups';
 $string['teamsubmissiongroupingid_help'] = 'This is the grouping that the assignment will use to find groups for student groups. If not set, the default set of groups will be used.';
 $string['textinstructions'] = 'Assignment instructions';
+$string['timelimit'] = 'Time limit';
+$string['timelimit_help'] = 'If enabled, the time limit is stated on the assignment page and a countdown timer is displayed during the assignment.';
 $string['timemodified'] = 'Last modified';
 $string['timeremaining'] = 'Time remaining';
 $string['timeremainingcolon'] = 'Time remaining: {$a}';
@@ -634,3 +643,9 @@ $string['nolatesubmissions'] = 'No late submissions accepted. ';
 $string['nosubmissionsacceptedafter'] = 'No submissions accepted after ';
 $string['notsubmittedyet'] = 'Not submitted yet';
 $string['submissionsnotgraded'] = 'Submissions not graded: {$a}';
+$string['timelimitpassed'] = 'Time limit has been passed';
+$string['assigntimeleft'] = 'Time left';
+$string['enabletimelimit'] = 'Enable timed assignments';
+$string['enabletimelimit_help'] = 'If enabled, you can set a time limit on assignment settings page.';
+$string['beginassignment'] = 'Begin assignment';
+$string['caneditsubmission'] = 'You can submit/edit submission after time limit passed, but it will be marked as late.';
