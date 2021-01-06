@@ -282,6 +282,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         $o .= $this->output->heading(get_string('gradingsummary', 'assign'), 3);
         $o .= $this->output->box_start('boxaligncenter gradingsummarytable');
         $t = new html_table();
+        $t->attributes['class'] = 'generaltable table-bordered';
 
         // Visibility Status.
         $cell1content = get_string('hiddenfromstudents');
@@ -733,6 +734,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         $o .= $this->output->box_start('boxaligncenter submissionsummarytable');
 
         $t = new html_table();
+        $t->attributes['class'] = 'generaltable table-bordered';
 
         $warningmsg = '';
         if ($status->teamsubmissionenabled) {
@@ -853,9 +855,10 @@ class mod_assign_renderer extends plugin_renderer_base {
         if ($status->gradingstatus == ASSIGN_GRADING_STATUS_GRADED ||
             $status->gradingstatus == ASSIGN_MARKING_WORKFLOW_STATE_RELEASED) {
             $cell2attributes = array('class' => 'submissiongraded');
-        } else {
+        }  else {
             $cell2attributes = array('class' => 'submissionnotgraded');
         }
+
         $this->add_table_row_tuple($t, $cell1content, $cell2content, [], $cell2attributes);
 
         $duedate = $status->duedate;
