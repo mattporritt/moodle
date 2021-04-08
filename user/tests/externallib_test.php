@@ -775,6 +775,7 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
         global $USER, $CFG, $DB;
 
         $this->resetAfterTest(true);
+        $this->preventResetByRollback();
 
         $wsuser = self::getDataGenerator()->create_user();
         self::setUser($wsuser);
@@ -840,8 +841,20 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
         $user4['id'] = $userdeleted->id;
         user_delete_user($userdeleted);
 
+        $user5 = self::getDataGenerator()->create_user();
+        $user5 = array('id' => $user5->id, 'email' => $user5->email);
+
         // Call the external function.
-        core_user_external::update_users(array($user1, $user2, $user3, $user4));
+        $returnvalue = core_user_external::update_users(array($user1, $user2, $user3, $user4));
+        $returnvalue = external_api::clean_returnvalue(core_user_external::update_users_returns(), $returnvalue);
+
+        // Check warnings.
+        $this->assertEquals($user2['id'], $returnvalue['warnings'][0]['itemid']); // Guest user.
+        $this->assertEquals('usernotupdatedguest', $returnvalue['warnings'][0]['warningcode']);
+        $this->assertEquals($user3['id'], $returnvalue['warnings'][1]['itemid']); // Admin user.
+        $this->assertEquals('usernotupdatedadmin', $returnvalue['warnings'][1]['warningcode']);
+        $this->assertEquals($user4['id'], $returnvalue['warnings'][2]['itemid']); // Deleted user.
+        $this->assertEquals('usernotupdateddeleted', $returnvalue['warnings'][2]['warningcode']);
 
         $dbuser2 = $DB->get_record('user', array('id' => $user2['id']));
         $this->assertNotEquals($dbuser2->username, $user2['username']);
@@ -884,6 +897,31 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
         $dbuserdelpic = $DB->get_record('user', array('id' => $user1['id']));
         $this->assertEquals(0, $dbuserdelpic->picture, 'Picture must be deleted when sent as 0.');
 
+        // Updating user with an invalid email.
+        $user5['email'] = 'bogus';
+        $returnvalue = core_user_external::update_users(array($user5));
+        $returnvalue = external_api::clean_returnvalue(core_user_external::update_users_returns(), $returnvalue);
+        $this->assertEquals('useremailinvalid', $returnvalue['warnings'][0]['warningcode']);
+
+        // Updating user with a duplicate email.
+        $user5['email'] = $user1['email'];
+        $returnvalue = core_user_external::update_users(array($user1, $user5));
+        $returnvalue = external_api::clean_returnvalue(core_user_external::update_users_returns(), $returnvalue);
+        $this->assertEquals('useremailduplicate', $returnvalue['warnings'][0]['warningcode']);
+
+        // Updating a user that does not exist.
+        $user5['id'] = -1;
+        $returnvalue = core_user_external::update_users(array($user5));
+        $returnvalue = external_api::clean_returnvalue(core_user_external::update_users_returns(), $returnvalue);
+        $this->assertEquals('invaliduserid', $returnvalue['warnings'][0]['warningcode']);
+
+        // Updating a remote user.
+        $user1['mnethostid'] = 5;
+        user_update_user($user1); // Update user not using webservice.
+        unset($user1['mnethostid']); // The mnet host ID field is not in the allowed field list for the webservice.
+        $returnvalue = core_user_external::update_users(array($user1));
+        $returnvalue = external_api::clean_returnvalue(core_user_external::update_users_returns(), $returnvalue);
+        $this->assertEquals('usernotupdatedremote', $returnvalue['warnings'][0]['warningcode']);
 
         // Call without required capability.
         $this->unassignUserCapability('moodle/user:update', $context->id, $roleid);
