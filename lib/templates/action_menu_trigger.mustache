@@ -78,7 +78,7 @@
     }
 }}
 <div class="dropdown{{^secondary.items}} hidden{{/secondary.items}}">
-    <a href="#" tabindex="0" class="d-inline-block {{triggerextraclasses}} dropdown-toggle icon-no-margin" id="action-menu-toggle-{{instance}}" aria-label="{{title}}" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" aria-controls="action-menu-{{instance}}-menu">
+    <button tabindex="0" class="btn btn-primary btn-sm {{triggerextraclasses}} dropdown-toggle icon-no-margin" id="action-menu-toggle-{{instance}}" aria-label="{{title}}" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" aria-controls="action-menu-{{instance}}-menu">
         {{{actiontext}}}
         {{{menutrigger}}}
             {{#icon}}
@@ -90,7 +90,7 @@
         {{#menutrigger}}
         <b class="caret"></b>
         {{/menutrigger}}
-    </a>
+    </button>
     {{#secondary}}
         <div class="dropdown-menu dropdown-menu-right {{classes}}"{{#attributes}} {{name}}="{{value}}"{{/attributes}}>
             {{#items}}
