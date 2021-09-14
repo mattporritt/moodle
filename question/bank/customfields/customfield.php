@@ -14,25 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_viewcreator;
-
-use core_question\local\bank\plugin_features_base;
-
 /**
- * Class plugin_feature is the entrypoint for the columns.
+ * Manage question custom fields
  *
- * @package    qbank_viewcreator
- * @copyright  2021 Catalyst IT Australia Pty Ltd
- * @author     Ghaly Marc-Alexandre <marc-alexandreghaly@catalyst-ca.net>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   qbank_customfields
+ * @copyright 2021 mattp@catalyst-au.net <mattp@catalyst-au.net>
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plugin_feature extends plugin_features_base {
 
-    public function get_question_columns($qbank): array {
-        return [
-            new creator_name_column($qbank),
-            new modifier_name_column($qbank),
-                new creator_name_column($qbank),
-        ];
-    }
-}
+require_once('../../..//config.php');
+require_once($CFG->libdir.'/adminlib.php');
+
+admin_externalpage_setup('qbank_customfields');
+
+$output = $PAGE->get_renderer('core_customfield');
+$handler = qbank_customfields\customfield\question_handler::create();
+$outputpage = new \core_customfield\output\management($handler);
+
+echo $output->header(),
+     $output->heading(new lang_string('pluginname', 'qbank_customfields')),
+     $output->render($outputpage),
+     $output->footer();

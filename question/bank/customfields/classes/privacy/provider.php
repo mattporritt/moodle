@@ -14,25 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_viewcreator;
-
-use core_question\local\bank\plugin_features_base;
+namespace qbank_customfields\privacy;
 
 /**
- * Class plugin_feature is the entrypoint for the columns.
+ * Privacy Subsystem for qbank_customfields implementing null_provider.
  *
- * @package    qbank_viewcreator
+ * @package    qbank_customfields
  * @copyright  2021 Catalyst IT Australia Pty Ltd
- * @author     Ghaly Marc-Alexandre <marc-alexandreghaly@catalyst-ca.net>
+ * @author     Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plugin_feature extends plugin_features_base {
+class provider implements \core_privacy\local\metadata\null_provider {
 
-    public function get_question_columns($qbank): array {
-        return [
-            new creator_name_column($qbank),
-            new modifier_name_column($qbank),
-                new creator_name_column($qbank),
-        ];
+    public static function get_reason(): string {
+        return 'privacy:metadata';
     }
 }

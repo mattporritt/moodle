@@ -4739,7 +4739,6 @@ class restore_create_categories_and_questions extends restore_structure_step {
     protected $cachedcategory = null;
 
     protected function define_structure() {
-
         $category = new restore_path_element('question_category', '/question_categories/question_category');
         $question = new restore_path_element('question', '/question_categories/question_category/questions/question');
         $hint = new restore_path_element('question_hint',
@@ -4756,7 +4755,7 @@ class restore_create_categories_and_questions extends restore_structure_step {
         // Apply for 'local' plugins optional paths at question level
         $this->add_plugin_structure('local', $question);
 
-        return [$category, $question, $hint, $tag];
+        return array($category, $question, $hint, $tag);
     }
 
     protected function process_question_category($data) {

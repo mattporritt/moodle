@@ -243,6 +243,10 @@ abstract class column_base {
      */
     abstract public function get_name();
 
+    public function get_unique_name() {
+        return get_class($this);
+    }
+
     /**
      * Any extra class names you would like applied to every cell in this column.
      *

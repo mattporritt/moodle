@@ -14,25 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_viewcreator;
+namespace qbank_customfields;
 
 use core_question\local\bank\plugin_features_base;
+use qbank_customfields\customfield\question_handler;
 
 /**
  * Class plugin_feature is the entrypoint for the columns.
  *
- * @package    qbank_viewcreator
+ * @package    qbank_customfields
  * @copyright  2021 Catalyst IT Australia Pty Ltd
  * @author     Ghaly Marc-Alexandre <marc-alexandreghaly@catalyst-ca.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class plugin_feature extends plugin_features_base {
 
+
     public function get_question_columns($qbank): array {
-        return [
-            new creator_name_column($qbank),
-            new modifier_name_column($qbank),
-                new creator_name_column($qbank),
-        ];
+        // We make a column for each custom field and load the data into it.
+        $columns = [];
+
+        // First get all the available question custom fields.
+        $customfieldhandler = question_handler::create();
+        $fields = $customfieldhandler->get_fields();
+        $context = $qbank->get_most_specific_context();
+
+        // Iterate through the fields initialising a column for each.
+        // We don't need to know the values that questions have at this stage.
+        foreach ($fields as $field) {
+            if ($customfieldhandler->can_view_type($field, $context)) {
+                $customfieldcolumn = new custom_field_column($qbank, $field);
+                $columns[] = $customfieldcolumn;
+            }
+
+        }
+
+        return $columns;
     }
 }
