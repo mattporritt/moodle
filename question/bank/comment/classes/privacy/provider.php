@@ -61,7 +61,7 @@ class provider implements
                  WHERE component = :component
                        AND userid = :userid";
         $params = [
-                'area' => 'core_question',
+                'area' => 'question',
                 'component' => 'qbank_comment',
                 'userid' => $userid
         ];
@@ -80,7 +80,7 @@ class provider implements
 
         $params = [
                 'contextid' => $context->id,
-                'area' => 'core_question',
+                'area' => 'question',
                 'component' => 'qbank_comment'
         ];
 
@@ -103,7 +103,7 @@ class provider implements
             \core_comment\privacy\provider::export_comments(
                     $context,
                     'qbank_comment',
-                    'core_question',
+                    'question',
                     0,
                     []
             );

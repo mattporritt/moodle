@@ -41,7 +41,7 @@ class comment_count_column extends column_base {
         global $DB, $PAGE;
         $args = [
             'component' => 'qbank_comment',
-            'commentarea' => 'core_question',
+            'commentarea' => 'question',
             'itemid' => $question->id,
             'contextid' => 1
         ];

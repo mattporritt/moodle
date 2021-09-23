@@ -39,7 +39,7 @@ defined('MOODLE_INTERNAL') || die();
  * @return boolean
  */
 function qbank_comment_comment_validate($commentparam): bool {
-    if ($commentparam->commentarea != 'core_question' && $commentparam->component != 'qbank_comment') {
+    if ($commentparam->commentarea != 'question' && $commentparam->component != 'qbank_comment') {
         throw new comment_exception('invalidcommentarea');
     }
     return true;
@@ -58,12 +58,12 @@ function qbank_comment_comment_permissions($args): array {
 /**
  * Validate comment data before displaying comments.
  *
- * @param stdClass $comments
+ * @param array $comments
  * @param stdClass $args
- * @return stdClass
+ * @return array $comments
  */
 function qbank_comment_comment_display($comments, $args): array {
-    if ($args->commentarea != 'core_question' && $args->component != 'qbank_comment') {
+    if ($args->commentarea != 'question' && $args->component != 'qbank_comment') {
         throw new comment_exception('core_question');
     }
     return $comments;
@@ -84,7 +84,7 @@ function qbank_comment_preview_display($question, $courseid): string {
         $args = new \stdClass;
         $args->contextid = 1; // Static data to bypass comment sql as context is not needed.
         $args->courseid  = $courseid;
-        $args->area      = 'core_question';
+        $args->area      = 'question';
         $args->itemid    = $question->id;
         $args->component = 'qbank_comment';
         $args->notoggle  = true;

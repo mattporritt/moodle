@@ -33,7 +33,7 @@ use stdClass;
  * @author     Safat Shahin <safatshahin@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class comment_created_deleted_test extends advanced_testcase {
+class qbank_comment_comment_created_deleted_test extends advanced_testcase {
 
     /** @var stdClass Keeps course object */
     private $course;
@@ -79,7 +79,7 @@ class comment_created_deleted_test extends advanced_testcase {
         $args = new stdClass;
         $args->context = $this->context;
         $args->course = $this->course;
-        $args->area = 'core_question';
+        $args->area = 'question';
         $args->itemid = $this->questiondata->id;
         $args->component = 'qbank_comment';
         $args->linktext = get_string('commentheader', 'qbank_comment');

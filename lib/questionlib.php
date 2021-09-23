@@ -389,7 +389,7 @@ function question_delete_question($questionid) {
 
     // Delete question comments.
     $DB->delete_records('comments', ['itemid' => $questionid, 'component' => 'qbank_comment',
-                                            'commentarea' => 'core_question']);
+                                            'commentarea' => 'question']);
     // Finally delete the question record itself
     $DB->delete_records('question', array('id' => $questionid));
     question_bank::notify_question_edited($questionid);

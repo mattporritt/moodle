@@ -4747,16 +4747,13 @@ class restore_create_categories_and_questions extends restore_structure_step {
 
         $tag = new restore_path_element('tag','/question_categories/question_category/questions/question/tags/tag');
 
-        $comment = new restore_path_element('comment',
-                '/question_categories/question_category/questions/question/comments/comment');
-
         // Apply for 'qtype' plugins optional paths at question level
         $this->add_plugin_structure('qtype', $question);
 
         // Apply for 'local' plugins optional paths at question level
         $this->add_plugin_structure('local', $question);
 
-        return [$category, $question, $hint, $tag, $comment];
+        return [$category, $question, $hint, $tag];
     }
 
     protected function process_question_category($data) {
@@ -5002,25 +4999,6 @@ class restore_create_categories_and_questions extends restore_structure_step {
                     context::instance_by_id($tagcontextid),
                     $tagname);
         }
-    }
-
-    protected function process_comment($data) {
-        global $DB, $CFG;
-
-        $data = (object)$data;
-
-        $newquestionid = $this->get_new_parentid('question');
-        $questioncreated = (bool) $this->get_mappingid('question_created', $this->get_old_parentid('question'));
-        if (!$questioncreated) {
-            // This question already exists in the question bank. Nothing for us to do.
-            return;
-        }
-
-        if ($CFG->usecomments) {
-            $data->itemid = $newquestionid;
-            $DB->insert_record('comments', $data);
-        }
-
     }
 
     protected function after_execute() {
