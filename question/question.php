@@ -221,8 +221,8 @@ if ($cm !== null){
 $toform->inpopup = $inpopup;
 
 // Prepare custom fields data.
-$handler = core_question\customfield\question_handler::create();
-$handler->instance_form_before_set_data($toform);
+$customfieldhandler = core_question\customfield\question_handler::create();
+$customfieldhandler->instance_form_before_set_data($toform);
 
 $mform->set_data($toform);
 
@@ -293,8 +293,7 @@ if ($mform->is_cancelled()) {
     }
 
     // Update custom fields if there are any of them in the form.
-    $handler = core_question\customfield\question_handler::create();
-    $handler->instance_form_save($fromform);
+    $customfieldhandler->instance_form_save($fromform);
 
     // Purge this question from the cache.
     question_bank::notify_question_edited($question->id);

@@ -1538,6 +1538,7 @@ $capabilities = array(
         'clonepermissionsfrom' => 'moodle/question:editall'
     ),
 
+    // Controls if a user can can change the value of a locked custom field.
     'moodle/question:changelockedcustomfields' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -1547,6 +1548,7 @@ $capabilities = array(
         ),
     ),
 
+    // Controls if a user can configure question custom fields.
     'moodle/question:configurecustomfields' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -1554,6 +1556,7 @@ $capabilities = array(
         'clonepermissionsfrom' => 'moodle/site:config'
     ),
 
+    // Controls if a user can view the content of hidden custom fields.
     'moodle/question:viewhiddencustomfields' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,

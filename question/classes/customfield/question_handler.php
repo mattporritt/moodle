@@ -48,17 +48,19 @@ class question_handler extends \core_customfield\handler {
      */
     protected $parentcontext;
 
-    /** @var int Field is displayed in the course listing, visible to everybody */
+    /** @var int Field is displayed in the question display and question preview, visible to everybody */
     const VISIBLETOALL = 2;
-    /** @var int Field is displayed in the course listing but only for teachers */
+    /** @var int Field is displayed in the question display and question preview but only for "teachers" */
     const VISIBLETOTEACHERS = 1;
-    /** @var int Field is not displayed in the course listing */
+    /** @var int Field is not displayed in the question display and question preview */
     const NOTVISIBLE = 0;
 
     /**
-     * Returns a singleton
+     * Creates the custom field handler and returns a singleton.
+     * Itemid is always zero as the custom fields are the same
+     * for every question across the system.
      *
-     * @param int $itemid
+     * @param int $itemid Always zero.
      * @return \core_question\customfield\question_handler
      */
     public static function create(int $itemid = 0) : \core_customfield\handler {
@@ -102,14 +104,12 @@ class question_handler extends \core_customfield\handler {
             $context = $this->get_parent_context();
         }
 
-        $returnval = (!$field->get_configdata_property('locked') ||
+        return (!$field->get_configdata_property('locked') ||
                 has_capability('moodle/question:changelockedcustomfields', $context));
-
-        return $returnval;
     }
 
     /**
-     * The current user can view custom fields on the given course.
+     * The current user can view custom fields for the given question.
      *
      * @param field_controller $field
      * @param int $instanceid id of the question to test edit permission
@@ -127,7 +127,7 @@ class question_handler extends \core_customfield\handler {
     }
 
     /**
-     * Sets parent context for the course
+     * Sets parent context for the question.
      *
      * This may be needed when question is being created, there is no question context but we need to check capabilities
      *
@@ -138,12 +138,11 @@ class question_handler extends \core_customfield\handler {
     }
 
     /**
-     * Returns the parent context for the course
+     * Returns the parent context for the question.
      *
      * @return \context
      */
     protected function get_parent_context() : \context {
-        global $PAGE;
         if ($this->parentcontext) {
             return $this->parentcontext;
         } else {
@@ -152,7 +151,7 @@ class question_handler extends \core_customfield\handler {
     }
 
     /**
-     * Context that should be used for new categories created by this handler
+     * Context that should be used for new categories created by this handler.
      *
      * @return \context the context for configuration
      */
@@ -161,7 +160,7 @@ class question_handler extends \core_customfield\handler {
     }
 
     /**
-     * URL for configuration of the fields on this handler.
+     * URL for configuration page for the fields for the question custom fields.
      *
      * @return \moodle_url The URL to configure custom fields for this component
      */
@@ -174,24 +173,23 @@ class question_handler extends \core_customfield\handler {
      *
      * @param int $instanceid id of the record to get the context for
      * @return \context the context for the given record
+     * @throws \coding_exception
      */
     public function get_instance_context(int $instanceid = 0) : \context {
-
         if ($instanceid > 0) {
-            $questiondata = question_preload_questions([$instanceid]);
-            $contextid = $questiondata[$instanceid]->contextid;
+            $questiondata = \question_bank::load_question_data($instanceid);
+            $contextid = $questiondata->contextid;
             $context = \context::instance_by_id($contextid);
             return $context;
-
         } else {
-            return \context_system::instance();
+            throw new \coding_exception('Instance id must be provided.');
         }
     }
 
     /**
-     * Allows adding custom controls to the field configuration form that will be saved.
+     * Add custom controls to the field configuration form that will be saved.
      *
-     * @param \MoodleQuickForm $mform
+     * @param \MoodleQuickForm $mform The form to add the custom fields to.
      */
     public function config_form_definition(\MoodleQuickForm $mform) {
         $mform->addElement('header', 'question_handler_header', get_string('customfieldsettings', 'core_question'));
@@ -213,7 +211,7 @@ class question_handler extends \core_customfield\handler {
     }
 
     /**
-     * Creates or updates custom field data when restoring from a backup.
+     * Creates or updates the question custom field data when restoring from a backup.
      *
      * @param \restore_task $task
      * @param array $data
