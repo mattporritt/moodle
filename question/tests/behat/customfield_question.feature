@@ -14,35 +14,45 @@ Feature: A teacher can edit question with custom fields
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
-    And the following "question categories" exist:
-      | contextlevel | reference | name           |
-      | Course       | C1        | Test questions |
-    And the following "questions" exist:
-      | questioncategory | qtype | name                       | questiontext                  |
-      | Test questions   | essay | Test question to be edited | Write about whatever you want |
     And the following "custom field categories" exist:
       | name              | component     | area     | itemid |
       | Category for test | core_question | question | 0      |
     And the following "custom fields" exist:
       | name    | category          | type | shortname |
       | Field 1 | Category for test | text | f1        |
+    And the following "activity" exists:
+      | activity | quiz                  |
+      | course   | C1                    |
+      | idnumber | 00001                 |
+      | name     | Test quiz name        |
+      | intro    | Test quiz description |
+      | section  | 1                     |
+      | grade    | 10                    |
     And I log in as "teacher1"
-    And I am on "Course 1" course homepage
+    And I am on "Course 1" course homepage with editing mode on
+    And I add a "True/False" question to the "Test quiz name" quiz with:
+      | Question name                      | First question                          |
+      | Question text                      | Answer the first question               |
+      | General feedback                   | Thank you, this is the general feedback |
+      | Correct answer                     | False                                   |
+      | Feedback for the response 'True'.  | So you think it is true                 |
+      | Feedback for the response 'False'. | So you think it is false                |
+    And I am on the "Test quiz name" "quiz activity" page
     And I navigate to "Question bank > Questions" in current page administration
 
   Scenario: Edit a previously created question and see the custom field in the preview.
-    When I choose "Edit question" action for "Test question to be edited" in the question bank
-    Then I should see "Category for test"
+    When I choose "Edit question" action for "First question" in the question bank
+    And I should see "Category for test"
     And I click on "Expand all" "link"
     And I should see "Field 1"
     And I set the following fields to these values:
       | Field 1 | custom field text |
     And I press "id_submitbutton"
-    Then I should see "Test question to be edited"
-    And I choose "Preview" action for "Test question to be edited" in the question bank
-    Then I should see "Field 1"
-    And I should see "custom field text"
+    And I should see "First question"
+    And I choose "Preview" action for "First question" in the question bank
+    And I should see "Field 1"
+    Then I should see "custom field text"
 
   Scenario: Preview a previously created question with custom fields set with empty values
-    When I choose "Preview" action for "Test question to be edited" in the question bank
+    When I choose "Preview" action for "First question" in the question bank
     Then I should not see "Field 1"

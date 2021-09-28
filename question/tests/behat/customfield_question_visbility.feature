@@ -46,38 +46,38 @@ Feature: The visibility of question custom fields control where they are display
   Scenario: Display custom question fields to students and teachers in a quiz
     When I am on the "Test quiz name" "mod_quiz > View" page logged in as teacher1
     And I press "Preview quiz now"
-    Then I should see "Question 1"
+    And I should see "Question 1"
     And I should see "Field 1"
     And I should see "Test custom field text"
-    Then I log out
-    When I am on the "Test quiz name" "mod_quiz > View" page logged in as student1
+    And I log out
+    And I am on the "Test quiz name" "mod_quiz > View" page logged in as student1
     And I press "Attempt quiz now"
-    Then I should see "Question 1"
+    And I should see "Question 1"
     And I should see "Field 1"
-    And I should see "Test custom field text"
+    Then I should see "Test custom field text"
 
   Scenario: Do not display question fields to students but show to teachers in a quiz
     When I am on the "Test quiz name" "mod_quiz > View" page logged in as teacher1
     And I press "Preview quiz now"
-    Then I should see "Question 1"
+    And I should see "Question 1"
     And I should see "Field 2"
     And I should see "Test custom field2 text"
-    Then I log out
-    When I am on the "Test quiz name" "mod_quiz > View" page logged in as student1
+    And I log out
+    And I am on the "Test quiz name" "mod_quiz > View" page logged in as student1
     And I press "Attempt quiz now"
-    Then I should see "Question 1"
+    And I should see "Question 1"
     And I should not see "Field 2"
-    And I should not see "Test custom field2 text"
+    Then I should not see "Test custom field2 text"
 
   Scenario: Do not display question fields to students and teachers in a quiz
     When I am on the "Test quiz name" "mod_quiz > View" page logged in as teacher1
     And I press "Preview quiz now"
-    Then I should see "Question 1"
+    And I should see "Question 1"
     And I should not see "Field 3"
     And I should not see "secret"
-    Then I log out
-    When I am on the "Test quiz name" "mod_quiz > View" page logged in as student1
+    And I log out
+    And I am on the "Test quiz name" "mod_quiz > View" page logged in as student1
     And I press "Attempt quiz now"
-    Then I should see "Question 1"
+    And I should see "Question 1"
     And I should not see "Field 3"
-    And I should not see "secret"
+    Then I should not see "secret"
