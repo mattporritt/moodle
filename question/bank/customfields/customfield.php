@@ -25,13 +25,13 @@
 require_once('../../..//config.php');
 require_once($CFG->libdir.'/adminlib.php');
 
-admin_externalpage_setup('question_customfield');
+admin_externalpage_setup('qbank_customfields');
 
-$output = $PAGE->get_renderer('qbank_customfields');
+$output = $PAGE->get_renderer('core_customfield');
 $handler = qbank_customfields\customfield\question_handler::create();
 $outputpage = new \core_customfield\output\management($handler);
 
 echo $output->header(),
-     $output->heading(new lang_string('question_customfield', 'admin')),
+     $output->heading(new lang_string('pluginname', 'qbank_customfields')),
      $output->render($outputpage),
      $output->footer();
