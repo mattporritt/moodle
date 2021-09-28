@@ -2366,9 +2366,7 @@ class backup_questions_structure_step extends backup_structure_step {
         $tag = new backup_nested_element('tag', array('id', 'contextid'), array('name', 'rawname'));
 
         $customfields = new backup_nested_element('customfields');
-        $customfield = new backup_nested_element('customfield', array('id'), array(
-                'shortname', 'type', 'value', 'valueformat'
-        ));
+        $customfield = new backup_nested_element('customfield', ['id'], ['shortname', 'type', 'value', 'valueformat']);
 
         // Build the tree
 

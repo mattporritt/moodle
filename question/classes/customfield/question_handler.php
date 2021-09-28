@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * question handler for custom fields
- *
- * @package   core_question
- * @copyright 2021 mattp@catalyst-au.net <mattp@catalyst-au.net>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace core_question\customfield;
-
-defined('MOODLE_INTERNAL') || die;
 
 use core_customfield\api;
 use core_customfield\field_controller;
@@ -133,7 +123,7 @@ class question_handler extends \core_customfield\handler {
      *
      * @param \context $context
      */
-    public function set_parent_context(\context $context) {
+    public function set_parent_context(\context $context): void {
         $this->parentcontext = $context;
     }
 
