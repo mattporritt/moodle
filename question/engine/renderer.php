@@ -401,8 +401,7 @@ class core_question_renderer extends plugin_renderer_base {
      * @return string $fieldmarkup The custom field rendered markup.
      */
     protected function custom_fields(question_attempt $qa, qtype_renderer $qtoutput) {
-        $fieldmarkup = $qtoutput->custom_field_markup($qa);
-        return $fieldmarkup;
+        return $qtoutput->custom_field_markup($qa);
     }
 
     /**
