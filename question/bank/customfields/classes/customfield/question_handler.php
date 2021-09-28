@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_question\customfield;
+namespace qbank_customfields\customfield;
 
 use core_customfield\api;
 use core_customfield\field_controller;
@@ -22,7 +22,7 @@ use core_customfield\field_controller;
 /**
  * Question handler for custom fields.
  *
- * @package core_question
+ * @package qbank_customfields
  * @copyright 2021 mattp@catalyst-au.net <mattp@catalyst-au.net>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -51,7 +51,7 @@ class question_handler extends \core_customfield\handler {
      * for every question across the system.
      *
      * @param int $itemid Always zero.
-     * @return \core_question\customfield\question_handler
+     * @return \qbank_customfields\customfield\question_handler
      */
     public static function create(int $itemid = 0) : \core_customfield\handler {
         if (static::$singleton === null) {
@@ -182,22 +182,26 @@ class question_handler extends \core_customfield\handler {
      * @param \MoodleQuickForm $mform The form to add the custom fields to.
      */
     public function config_form_definition(\MoodleQuickForm $mform) {
-        $mform->addElement('header', 'question_handler_header', get_string('customfieldsettings', 'core_question'));
+        $mform->addElement('header', 'question_handler_header',
+                get_string('customfieldsettings', 'qbank_customfields'));
         $mform->setExpanded('question_handler_header', true);
 
         // If field is locked.
-        $mform->addElement('selectyesno', 'configdata[locked]', get_string('customfield_islocked', 'core_question'));
-        $mform->addHelpButton('configdata[locked]', 'customfield_islocked', 'core_question');
+        $mform->addElement('selectyesno', 'configdata[locked]',
+                get_string('customfield_islocked', 'qbank_customfields'));
+        $mform->addHelpButton('configdata[locked]', 'customfield_islocked', 'qbank_customfields');
 
         // Field data visibility.
         $visibilityoptions = [
-                self::VISIBLETOALL => get_string('customfield_visibletoall', 'core_question'),
-                self::VISIBLETOTEACHERS => get_string('customfield_visibletoteachers', 'core_question'),
-                self::NOTVISIBLE => get_string('customfield_notvisible', 'core_question')
+                self::VISIBLETOALL => get_string('customfield_visibletoall', 'qbank_customfields'),
+                self::VISIBLETOTEACHERS => get_string('customfield_visibletoteachers', 'qbank_customfields'),
+                self::NOTVISIBLE => get_string('customfield_notvisible', 'qbank_customfields')
         ];
-        $mform->addElement('select', 'configdata[visibility]', get_string('customfield_visibility', 'core_question'),
+        $mform->addElement('select', 'configdata[visibility]',
+                get_string('customfield_visibility', 'qbank_customfields'),
                 $visibilityoptions);
-        $mform->addHelpButton('configdata[visibility]', 'customfield_visibility', 'core_question');
+        $mform->addHelpButton(
+                'configdata[visibility]', 'customfield_visibility', 'qbank_customfields');
     }
 
     /**

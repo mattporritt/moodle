@@ -17,18 +17,18 @@
 /**
  * Manage question custom fields
  *
- * @package   core_question
+ * @package   qbank_customfields
  * @copyright 2021 mattp@catalyst-au.net <mattp@catalyst-au.net>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once('../config.php');
+require_once('../../..//config.php');
 require_once($CFG->libdir.'/adminlib.php');
 
 admin_externalpage_setup('question_customfield');
 
-$output = $PAGE->get_renderer('core_customfield');
-$handler = core_question\customfield\question_handler::create();
+$output = $PAGE->get_renderer('qbank_customfields');
+$handler = qbank_customfields\customfield\question_handler::create();
 $outputpage = new \core_customfield\output\management($handler);
 
 echo $output->header(),

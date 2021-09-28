@@ -17,7 +17,7 @@
 /**
  * Unit tests for question custom fields.
  *
- * @package   core_question
+ * @package   qbank_customfields
  * @copyright 2021 mattp@catalyst-au.net <mattp@catalyst-au.net>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,13 +29,13 @@ require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 
 /**
- * Class core_question_customfield_testcase
+ * Class qbank_customfields_customfield_testcase
  *
- * @package    core_question
+ * @package    qbank_customfields
  * @copyright  2021 mattp@catalyst-au.net <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_question_customfield_testcase extends advanced_testcase {
+class qbank_customfields_customfield_testcase extends advanced_testcase {
 
     /**
      * @var array Data object for generating a question.
@@ -73,7 +73,7 @@ class core_question_customfield_testcase extends advanced_testcase {
         // Set up custom fields.
         $dg = self::getDataGenerator();
         $data = new \stdClass();
-        $data->component = 'core_question';
+        $data->component = 'qbank_customfields';
         $data->area = 'question';
 
         $catid = $dg->create_custom_field_category($data)->get('id');
@@ -90,7 +90,7 @@ class core_question_customfield_testcase extends advanced_testcase {
         $this->course = $this->getDataGenerator()->create_course(['category' => $this->category->id]);
         $now = 1632278491;
         $context = context_coursecat::instance($this->category->id);
-        $this->qgen = $this->getDataGenerator()->get_plugin_generator('core_question');
+        $this->qgen = $this->getDataGenerator()->get_plugin_generator('qbank_customfields');
         $qcat = $this->qgen->create_question_category(['contextid' => $context->id]);
 
         $this->question1data = [
@@ -170,7 +170,7 @@ class core_question_customfield_testcase extends advanced_testcase {
         $question2 = $this->qgen->create_question('shortanswer', null, $this->question2data);
 
         // Explicitly save the custom field data for the questions, like a form would.
-        $handler = \core_question\customfield\question_handler::create();
+        $handler = \qbank_customfields\customfield\question_handler::create();
         $this->question1data['id'] = $question1->id;
         $this->question2data['id'] = $question2->id;
         $handler->instance_form_save((object)$this->question1data);
@@ -205,7 +205,7 @@ class core_question_customfield_testcase extends advanced_testcase {
         $question2 = $this->qgen->create_question('shortanswer', null, $this->question2data);
 
         // Explicitly save the custom field data for the questions, like a form would.
-        $handler = \core_question\customfield\question_handler::create();
+        $handler = \qbank_customfields\customfield\question_handler::create();
         $this->question1data['id'] = $question1->id;
         $this->question2data['id'] = $question2->id;
         $handler->instance_form_save((object)$this->question1data);
@@ -249,7 +249,7 @@ class core_question_customfield_testcase extends advanced_testcase {
         $question2 = $this->qgen->create_question('shortanswer', null, $this->question2data);
 
         // Explicitly save the custom field data for the questions, like a form would.
-        $handler = \core_question\customfield\question_handler::create();
+        $handler = \qbank_customfields\customfield\question_handler::create();
         $this->question1data['id'] = $question1->id;
         $this->question2data['id'] = $question2->id;
         $handler->instance_form_save((object)$this->question1data);

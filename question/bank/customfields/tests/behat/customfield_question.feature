@@ -1,4 +1,4 @@
-@core @core_question @core_customfield @question_customfield @javascript
+@core @core_question @core_customfield @qbank_customfields @javascript
 Feature: A teacher can edit question with custom fields
   In order to improve my questions
   As a teacher

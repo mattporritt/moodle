@@ -1,4 +1,4 @@
-@core @core_question @core_customfield @question_customfield @javascript
+@core @core_question @core_customfield @qbank_customfields @javascript
 Feature: Site administrators can manage categories for question custom fields
   In order to have additional data in questions
   As a site site administrator
