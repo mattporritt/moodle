@@ -223,7 +223,7 @@ abstract class question_edit_form extends question_wizard_form {
         }
 
         // Add custom fields to the form.
-        $handler = core_question\customfield\question_handler::create();
+        $handler = qbank_customfields\customfield\question_handler::create();
         $handler->set_parent_context($this->categorycontext); // For question handler only.
         $handler->instance_form_definition($mform, empty($this->question->id) ? 0 : $this->question->id);
 
@@ -296,7 +296,7 @@ abstract class question_edit_form extends question_wizard_form {
     public function definition_after_data() {
         $mform = $this->_form;
 
-        $handler = core_question\customfield\question_handler::create();
+        $handler = qbank_customfields\customfield\question_handler::create();
         $handler->instance_form_definition_after_data($mform, empty($this->question->id) ? 0 : $this->question->id);
     }
 

@@ -18,6 +18,7 @@ namespace qbank_customfields\customfield;
 
 use core_customfield\api;
 use core_customfield\field_controller;
+use core_customfield\output\field_data;
 
 /**
  * Question handler for custom fields.
@@ -117,6 +118,27 @@ class question_handler extends \core_customfield\handler {
     }
 
     /**
+     * Determine if the current user can view custom field in their given context.
+     * This determines if the user can see the field at all not just the field for
+     * a particular instance.
+     * Used primarily in showing or not the field in the question bank table.
+     *
+     * @param field_controller $field The field trying to be viewed.
+     * @param context $context The context the field is being displayed in.
+     * @return bool true if the current can edit custom fields, false otherwise.
+     */
+    public function can_view_type(field_controller $field, \context $context) : bool {
+        $visibility = $field->get_configdata_property('visibility');
+        if ($visibility == self::NOTVISIBLE) {
+            return false;
+        } else if ($visibility == self::VISIBLETOTEACHERS) {
+            return has_capability('moodle/question:viewhiddencustomfields', $context);
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * Sets parent context for the question.
      *
      * This may be needed when question is being created, there is no question context but we need to check capabilities
@@ -174,6 +196,30 @@ class question_handler extends \core_customfield\handler {
         } else {
             throw new \coding_exception('Instance id must be provided.');
         }
+    }
+
+    public function get_field_data(\core_customfield\field_controller $field, int $instanceid) {
+        $fields = [$field->get('id') => $field];
+        $fieldsdata =  api::get_instance_fields_data($fields, $instanceid);
+        return $fieldsdata[$field->get('id')];
+    }
+
+    /**
+     * Display visible custom fields.
+     * This is a sample implementation that can be overridden in each handler.
+     *
+     * @return string
+     */
+    /**
+     * @param field_controller $field
+     * @return string
+     */
+    public function display_custom_field_data($field) : string {
+        global $PAGE;
+        $output = $PAGE->get_renderer('qbank_customfields');
+        $fielddata = new field_data($field);
+
+        return $output->render_for_table($fielddata);
     }
 
     /**

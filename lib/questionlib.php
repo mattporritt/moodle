@@ -965,7 +965,7 @@ function get_question_options(&$questions, $loadtags = false, $filtercourses = n
         }
 
         if ($loadcustomfields) {
-            $handler = \core_question\customfield\question_handler::create();
+            $handler = \qbank_customfields\customfield\question_handler::create();
             $customfields = $handler->get_instance_data($question->id);
 
             $question->customfields = $customfields;

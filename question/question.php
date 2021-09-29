@@ -221,7 +221,7 @@ if ($cm !== null){
 $toform->inpopup = $inpopup;
 
 // Prepare custom fields data.
-$customfieldhandler = core_question\customfield\question_handler::create();
+$customfieldhandler = qbank_customfields\customfield\question_handler::create();
 $customfieldhandler->instance_form_before_set_data($toform);
 
 $mform->set_data($toform);
