@@ -49,6 +49,9 @@ class qbank_comment_provider_test extends \core_privacy\tests\provider_testcase 
     /** @var stdClass A test course. */
     protected $course2;
 
+    /**
+     * Set up function for tests in this class.
+     */
     protected function setUp(): void {
         global $DB;
 

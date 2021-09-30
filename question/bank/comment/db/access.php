@@ -17,32 +17,34 @@
 /**
  * Capability definitions for this module.
  *
- * @package    qbank_deletequestion
+ * @package    qbank_comment
  * @copyright  2021 Catalyst IT Australia Pty Ltd
  * @author     Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$capabilities = [
-    // Controls whether users can comment their own questions.
-    'moodle/question:commentmine' => [
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => [
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-       ],
-       'clonepermissionsfrom' => 'moodle/question:editmine'
-    ],
+defined('MOODLE_INTERNAL') || die();
 
-    // Controls whether users can comment all questions.
-    'moodle/question:commentall' => [
-        'captype' => 'write',
-            'contextlevel' => CONTEXT_COURSE,
-            'archetypes' => [
-                'editingteacher' => CAP_ALLOW,
-                'manager' => CAP_ALLOW
-            ],
-       'clonepermissionsfrom' => 'moodle/question:editall'
-    ],
+$capabilities = [
+        // Controls whether users can comment their own questions.
+        'moodle/question:commentmine' => [
+                'captype' => 'write',
+                'contextlevel' => CONTEXT_COURSE,
+                'archetypes' => [
+                        'editingteacher' => CAP_ALLOW,
+                        'manager' => CAP_ALLOW
+                ],
+                'clonepermissionsfrom' => 'moodle/question:editmine'
+        ],
+
+        // Controls whether users can comment all questions.
+        'moodle/question:commentall' => [
+                'captype' => 'write',
+                'contextlevel' => CONTEXT_COURSE,
+                'archetypes' => [
+                        'editingteacher' => CAP_ALLOW,
+                        'manager' => CAP_ALLOW
+                ],
+                'clonepermissionsfrom' => 'moodle/question:editall'
+        ],
 ];

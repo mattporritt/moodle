@@ -26,10 +26,20 @@ namespace qbank_comment\event;
  */
 class comment_created extends \core\event\comment_created {
 
+    /**
+     * Get URL related to the action, null in this case.
+     *
+     * @return null
+     */
     public function get_url() {
         return null;
     }
 
+    /**
+     * Returns description of what happened.
+     *
+     * @return string
+     */
     public function get_description() {
         $a = new \stdClass();
         $a->userid = $this->userid;

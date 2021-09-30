@@ -29,14 +29,30 @@ use question_bank;
  */
 class comment_count_column extends column_base {
 
+    /**
+     * Get the name of the column, used internally.
+     *
+     * @return string
+     */
     public function get_name(): string {
         return 'commentcount';
     }
 
+    /**
+     * Get the title of the column that will be displayed.
+     *
+     * @return string
+     */
     protected function get_title(): string {
         return get_string('commentplural', 'qbank_comment');
     }
 
+    /**
+     * Generate the content to be displayed.
+     *
+     * @param object $question The question object.
+     * @param string $rowclasses Classes that can be added.
+     */
     protected function display_content($question, $rowclasses): void {
         global $DB, $PAGE;
         $args = [

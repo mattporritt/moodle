@@ -14,27 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_comment;
+/**
+ * Defines backup_qbank_plugin class.
+ *
+ * @package     core_backup
+ * @subpackage  moodle2
+ * @category    backup
+ * @copyright   2021 Catalyst IT Australia Pty Ltd
+ * @author      Safat Shahin <safatshahin@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 /**
- * Class plugin_features is the entrypoint for the columns.
+ * Base class for qbank backup plugins.
  *
- * @package    qbank_comment
- * @copyright  2021 Catalyst IT Australia Pty Ltd
- * @author     Safat Shahin <safatshahin@catalyst-au.net>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     core_backup
+ * @copyright   2021 Catalyst IT Australia Pty Ltd
+ * @author      Safat Shahin <safatshahin@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plugin_feature extends \core_question\local\bank\plugin_features_base {
-
-    /**
-     * Get the columns provided by this plugin.
-     *
-     * @param \core_question\local\bank\view $qbank
-     * @return comment_count_column[]
-     */
-    public function get_question_columns($qbank): array {
-        return [
-            new comment_count_column($qbank)
-        ];
-    }
+abstract class backup_qbank_plugin extends backup_plugin {
+    // Use default parent behaviour.
 }
