@@ -2350,6 +2350,9 @@ class backup_questions_structure_step extends backup_structure_step {
         // attach qtype plugin structure to $question element, only one allowed
         $this->add_plugin_structure('qtype', $question, false);
 
+        // Attach qbank plugin stucture to $question element, multiple allowed.
+        $this->add_plugin_structure('qbank', $question, true);
+
         // attach local plugin stucture to $question element, multiple allowed
         $this->add_plugin_structure('local', $question, true);
 

@@ -63,6 +63,7 @@ const commentEvent = (questionId, courseID, contextId) => {
         ]).then((strings) => {
             modal.setButtonText('save', strings[0]);
             modal.setButtonText('cancel', strings[1]);
+            return;
         }).fail(Notification.exception);
 
         root.on(ModalEvents.cancel, function() {
