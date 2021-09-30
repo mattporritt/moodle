@@ -151,8 +151,11 @@ class core_question_bank_renderer extends plugin_renderer_base {
      *
      * @param array $displaydata
      * @return bool|string
+     * @todo Final deprecation on Moodle 4.4 MDL-72438
      */
     public function render_showtext_checkbox($displaydata) {
+        debugging('Method render_showtext_checkbox is deprecated, ' .
+            'see viewquestion text renderer.', DEBUG_DEVELOPER);
         return $this->render_from_template('core_question/showtext_checkbox', $displaydata);
     }
 

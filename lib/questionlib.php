@@ -1652,18 +1652,9 @@ function question_extend_settings_navigation(navigation_node $navigationnode, $c
                     'title' => get_string('questions', 'question'),
                     'url' => new moodle_url($baseurl)
             ],
-            'categories' => [
-                    'title' => get_string('categories', 'question'),
-                    'url' => new moodle_url('/question/bank/managecategories/category.php')
-            ],
-            'import' => [
-                    'title' => get_string('import', 'question'),
-                    'url' => new moodle_url('/question/bank/importquestions/import.php')
-            ],
-            'export' => [
-                    'title' => get_string('export', 'question'),
-                    'url' => new moodle_url('/question/bank/exportquestions/export.php')
-            ]
+            'categories' => [],
+            'import' => [],
+            'export' => []
     ];
 
     $plugins = \core_component::get_plugin_list_with_class('qbank', 'plugin_feature', 'plugin_feature.php');
@@ -1688,16 +1679,23 @@ function question_extend_settings_navigation(navigation_node $navigationnode, $c
                 ];
             }
         }
+    }
 
+    // Mitigate the risk of regression.
+    foreach ($corenavigations as $node => $corenavigation) {
+        if (empty($corenavigation)) {
+            unset($corenavigations[$node]);
+        }
     }
 
     // Community/additional plugins have navigation node.
     $pluginnavigations = [];
     foreach ($plugins as $componentname => $plugin) {
-        $pluginentrypoin = new $plugin();
-        $pluginentrypointobject = $pluginentrypoin->get_navigation_node();
-        if (!\core\plugininfo\qbank::is_plugin_enabled($componentname)) {
-            unset($corenavigations[$key]);
+        $pluginentrypoint = new $plugin();
+        $pluginentrypointobject = $pluginentrypoint->get_navigation_node();
+        // Don't need the plugins without navigation node.
+        if ($pluginentrypointobject === null || !\core\plugininfo\qbank::is_plugin_enabled($componentname)) {
+            unset($plugins[$componentname]);
             continue;
         }
         $pluginnavigations[$pluginentrypointobject->get_navigation_key()] = [

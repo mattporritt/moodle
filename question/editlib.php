@@ -499,7 +499,7 @@ function print_choose_qtype_to_add_form($hiddenparams, array $allowedqtypes = nu
      please use \qbank_editquestion\editquestion_helper::print_choose_qtype_to_add_form() instead.', DEBUG_DEVELOPER);
     global $CFG, $PAGE, $OUTPUT;
 
-    $chooser = core_question\output\qbank_chooser::get($PAGE->course, $hiddenparams, $allowedqtypes);
+    $chooser = \qbank_editquestion\qbank_chooser::get($PAGE->course, $hiddenparams, $allowedqtypes);
     $renderer = $PAGE->get_renderer('question', 'bank');
 
     return $renderer->render($chooser);
@@ -526,7 +526,7 @@ function create_new_question_button($categoryid, $params, $caption, $tooltip = '
     global $CFG, $PAGE, $OUTPUT;
     static $choiceformprinted = false;
     $params['category'] = $categoryid;
-    $url = new moodle_url('/question/addquestion.php', $params);
+    $url = new moodle_url('/question/bank/editquestion/addquestion.php', $params);
     echo $OUTPUT->single_button($url, $caption, 'get', array('disabled'=>$disabled, 'title'=>$tooltip));
 
     if (!$choiceformprinted) {

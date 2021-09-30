@@ -266,6 +266,13 @@ class view {
             $questionbankclasscolumns[$key] = $newpluginclasscolumn;
         }
 
+        // Mitigate the error in case of any regression.
+        foreach ($questionbankclasscolumns as $shortname => $questionbankclasscolumn) {
+            if (empty($questionbankclasscolumn)){
+                unset($questionbankclasscolumns[$shortname]);
+            }
+        }
+
         return $questionbankclasscolumns;
     }
 
@@ -851,8 +858,6 @@ class view {
             if (\core\plugininfo\qbank::is_plugin_enabled('qbank_viewquestiontext')) {
                 echo $PAGE->get_renderer('core_question', 'bank')->render_showtext_checkbox($displaydata);
             }
-        } else {
-            echo $PAGE->get_renderer('core_question', 'bank')->render_showtext_checkbox($displaydata);
         }
     }
 
