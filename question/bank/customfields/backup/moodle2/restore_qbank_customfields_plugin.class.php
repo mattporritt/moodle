@@ -29,30 +29,35 @@ class restore_qbank_customfields_plugin extends restore_qbank_plugin {
      */
     protected function define_question_plugin_structure() {
         return array(
-            new restore_path_element('comment', $this->get_pathfor('/comments/comment'))
+            new restore_path_element('customfield', $this->get_pathfor('/customfields/customfield'))
         );
     }
 
     /**
-     * Process the question comments element.
+     * Process the question custom field element.
      *
-     * @param array $data The comment data to restore.
+     * @param array $data The custom field data to restore.
      */
-    public function process_comment($data) {
-        global $DB, $CFG;
+    protected function process_customfield($data) {
+        global $DB;
 
-        $data = (object)$data;
+        $newquestion = $this->get_new_parentid('question');
 
-        $newquestionid = $this->get_new_parentid('question');
-        $questioncreated = (bool) $this->get_mappingid('question_created', $this->get_old_parentid('question'));
-        if (!$questioncreated) {
-            // This question already exists in the question bank. Nothing for us to do.
-            return;
+        if (!empty($data->contextid) && $newcontextid = $this->get_mappingid('context', $data->contextid)) {
+            $fieldcontextid = $newcontextid;
+        } else {
+            // Get the category, so we can then later get the context.
+            $categoryid = $this->get_new_parentid('question_category');
+            if (empty($this->cachedcategory) || $this->cachedcategory->id != $categoryid) {
+                $this->cachedcategory = $DB->get_record('question_categories', array('id' => $categoryid));
+            }
+            $fieldcontextid = $this->cachedcategory->contextid;
         }
 
-        if ($CFG->usecomments) {
-            $data->itemid = $newquestionid;
-            $DB->insert_record('comments', $data);
-        }
+        $data['newquestion'] = $newquestion;
+        $data['fieldcontextid'] = $fieldcontextid;
+
+        $handler = qbank_customfields\customfield\question_handler::create();
+        $handler->restore_instance_data_from_backup($this->task, $data);
     }
 }

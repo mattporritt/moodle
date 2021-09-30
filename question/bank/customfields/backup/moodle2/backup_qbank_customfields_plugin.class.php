@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides the information to backup essay questions
+ * Provides the information to backup question custom field.
  *
  * @package    qbank_customfields
  * @copyright   2021 Catalyst IT Australia Pty Ltd
@@ -38,21 +38,24 @@ class backup_qbank_customfields_plugin extends \backup_qbank_plugin {
         // Connect the visible container ASAP.
         $plugin->add_child($pluginwrapper);
 
-        $comments = new backup_nested_element('comments');
+        $customfields = new backup_nested_element('customfields');
+        $customfield = new backup_nested_element('customfield', ['id'], ['shortname', 'type', 'value', 'valueformat']);
 
-        $comment = new backup_nested_element('comment', ['id'], ['component', 'commentarea', 'itemid', 'contextid',
-                'content', 'format', 'userid', 'timecreated']);
+        $pluginwrapper>add_child($customfields);
+        $customfields->add_child($customfield);
 
-        $pluginwrapper->add_child($comments);
-        $comments->add_child($comment);
+        $customfield->set_source_sql("SELECT cfd.id, cff.shortname, cff.type,  cfd.value, cfd.valueformat
+                                            FROM {customfield_data} cfd
+                                            JOIN {customfield_field} cff ON cff.id = cfd.fieldid
+                                            JOIN {customfield_category} cfc ON cfc.id = cff.categoryid
+                                           WHERE cfc.component = 'core_question'
+                                                 AND cfc.area = 'question'
+                                                 AND cfd.instanceid = ?",
+                [
+                        backup::VAR_PARENTID
+                ]);
 
-        $comment->set_source_sql("SELECT c.*
-                                        FROM {comments} c
-                                       WHERE c.commentarea = 'question'
-                                         AND c.component = 'qbank_customfields'
-                                         AND c.itemid = ?", [backup::VAR_PARENTID]);
-
-        $comment->annotate_ids('user', 'userid');
+        // don't need to annotate ids nor files
 
         return $plugin;
     }
