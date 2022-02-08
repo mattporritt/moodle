@@ -1652,6 +1652,12 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
     protected $clientvalidation = false;
 
     /**
+     * Whether the form contains any confirm required elements.
+     * @var bool
+     */
+    protected $hasconfirm = false;
+
+    /**
      * Is this a 'disableIf' dependency ?
      */
     const DEP_DISABLE = 0;
@@ -2996,6 +3002,40 @@ require([
     public function is_new_repeat($name) {
         return in_array($name, $this->_newrepeats);
     }
+
+    /**
+     * Add a confirmation check at submit time for the specified element.
+     * If the user entered value of the form element doesn't match the supplied value to this function,
+     * a form submission confirmation modal will be displayed to the user.
+     *
+     * @param string $elementname Name of the element in the form.
+     * @param bool|string $value The value to compare against.
+     * @param string $description Optional description of why confirmation was displayed.
+     * @return void
+     */
+    public function addConfirm(string $elementname, $value, string $description=''): void {
+        if (array_key_exists($elementname, $this->_elementIndex)) {
+            $element = $this->_elements[$this->_elementIndex[$elementname]];
+            $confirmdata = ['data-confirm' => $value];
+
+            if ($description) {
+                $confirmdata['data-confirmdesc'] = $description;
+            }
+
+            $element->updateAttributes($confirmdata);
+
+            $this->hasconfirm = true;
+        }
+    }
+
+    /**
+     * Get the has confirm status.
+     *
+     * @return bool
+     */
+    public function getHasConfirm(): bool {
+        return $this->hasconfirm;
+    }
 }
 
 /**
@@ -3152,6 +3192,11 @@ class MoodleQuickForm_Renderer extends HTML_QuickForm_Renderer_Tableless{
         if (!empty($this->_advancedElements)){
             $PAGE->requires->js_call_amd('core_form/showadvanced', 'init', [$formid]);
         }
+
+        if ($form->getHasConfirm()) {
+            $PAGE->requires->js_call_amd('core_form/confirm', 'init', [$formid]);
+        }
+
     }
 
     /**
