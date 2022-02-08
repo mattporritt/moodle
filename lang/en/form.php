@@ -26,6 +26,7 @@
 $string['addfields'] = 'Add {$a} field(s) to form';
 $string['advancedelement'] = 'Advanced element';
 $string['close'] = 'Close';
+$string['confirm'] = 'Confirm form submission?';
 $string['custom'] = 'Custom';
 $string['day'] = 'Day';
 $string['default'] = 'Default';
@@ -44,6 +45,8 @@ $string['err_rangelength'] = 'You must enter between {$a->format[0]} and {$a->fo
 $string['err_required'] = 'You must supply a value here.';
 $string['err_wrappingwhitespace'] = 'The value must not start or end with whitespace.';
 $string['err_wrongfileextension'] = 'Some files ({$a->wrongfiles}) cannot be uploaded. Only file types {$a->allowlist} are allowed.';
+$string['field'] = 'Field: {$a}';
+$string['fieldimpact'] = 'Values of the following form fields may have an impact on system security or performance, please review before submission:';
 $string['filesofthesetypes'] = 'Accepted file types:';
 $string['filetypesany'] = 'All file types';
 $string['filetypesnotall'] = 'It is not allowed to select \'All file types\' here';
