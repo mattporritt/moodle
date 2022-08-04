@@ -34,6 +34,8 @@ use SessionHandlerInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class database extends handler implements SessionHandlerInterface {
+    use \core\session\util\fallback_session_store;
+
     /** @var \stdClass $record session record */
     protected $recordid = null;
 
