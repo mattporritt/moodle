@@ -91,6 +91,7 @@ $string['favourite'] = 'Starred course';
 $string['gradetopassnotset'] = 'This course does not have a grade to pass set. It may be set in the grade item of the course (Gradebook setup).';
 $string['informationformodule'] = 'Information about the {$a} activity';
 $string['module'] = 'Activity';
+$string['namewithlink'] = 'Category name with link';
 $string['nocourseactivity'] = 'Not enough course activity between the start and the end of the course';
 $string['nocourseendtime'] = 'The course does not have an end time';
 $string['nocoursesections'] = 'No course sections';
@@ -102,7 +103,7 @@ $string['norecentaccessesinfomessage'] = 'Hi {$a->userfirstname},
 $string['noteachinginfomessage'] = 'Hi {$a->userfirstname},
 <p>Courses with start dates in the next week have been identified as having no teacher or student enrolments.</p>';
 $string['participants:perpage'] = 'Number of participants per page';
-$string['participants:perpage_help'] = 'Specify the number of participants that are shown per page';
+$string['participants:perpage_help'] = 'The number of users shown per page on the participants page in each course.';
 $string['participantsnavigation'] = 'Participants tertiary navigation.';
 $string['privacy:perpage'] = 'The number of courses to show per page.';
 $string['privacy:completionpath'] = 'Course completion';

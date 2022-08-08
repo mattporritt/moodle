@@ -154,10 +154,10 @@ Note: For recipient verification purposes, please avoid changing this setting on
 $string['badgesdisabled'] = 'Badges are not enabled on this site.';
 $string['badgesearned'] = 'Number of badges earned: {$a}';
 $string['badgesettings'] = 'Badges settings';
-$string['badgestatus_0'] = 'Not available to users';
-$string['badgestatus_1'] = 'Available to users';
-$string['badgestatus_2'] = 'Not available to users';
-$string['badgestatus_3'] = 'Available to users';
+$string['badgestatus_0'] = 'Not available';
+$string['badgestatus_1'] = 'Available';
+$string['badgestatus_2'] = 'Not available (criteria locked)';
+$string['badgestatus_3'] = 'Available (criteria locked)';
 $string['badgestatus_4'] = 'Archived';
 $string['badgestoearn'] = 'Number of badges available: {$a}';
 $string['badgesview'] = 'Course badges';
@@ -575,10 +575,6 @@ $string['version_help'] = 'The version field may be used to keep track of the ba
 $string['warnexpired'] = ' (This badge has expired!)';
 $string['year'] = 'Year(s)';
 $string['includeauthdetails'] = "Include authentication details with the backpack";
-
-// Deprecated since Moodle 3.9.
-$string['editsettings'] = 'Edit settings';
-$string['sitebackpackverify'] = 'Backpack connection';
 
 // Deprecated since Moodle 3.10.
 $string['backpackneedsupdate'] = 'The backpack connected to this profile does not match the backpack for the site. You need to disconnect and reconnect the backpack.';

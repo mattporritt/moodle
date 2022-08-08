@@ -589,7 +589,7 @@ function required_param($parname, $type) {
     } else if (isset($_GET[$parname])) {
         $param = $_GET[$parname];
     } else {
-        print_error('missingparam', '', '', $parname);
+        throw new \moodle_exception('missingparam', '', '', $parname);
     }
 
     if (is_array($param)) {
@@ -628,10 +628,10 @@ function required_param_array($parname, $type) {
     } else if (isset($_GET[$parname])) {
         $param = $_GET[$parname];
     } else {
-        print_error('missingparam', '', '', $parname);
+        throw new \moodle_exception('missingparam', '', '', $parname);
     }
     if (!is_array($param)) {
-        print_error('missingparam', '', '', $parname);
+        throw new \moodle_exception('missingparam', '', '', $parname);
     }
 
     $result = array();
@@ -1004,8 +1004,18 @@ function clean_param($param, $type) {
             return preg_replace('/[^a-zA-Z0-9_-]/i', '', $param);
 
         case PARAM_SAFEPATH:
-            // Remove everything not a-zA-Z0-9/_- .
-            return preg_replace('/[^a-zA-Z0-9\/_-]/i', '', $param);
+            // Replace MS \ separators.
+            $param = str_replace('\\', '/', $param);
+            // Remove any number of ../ to prevent path traversal.
+            $param = preg_replace('/\.\.+\//', '', $param);
+            // Remove everything not a-zA-Z0-9/:_- .
+            $param = preg_replace('/[^a-zA-Z0-9\/:_-]/i', '', $param);
+            // Remove leading slash.
+            $param = ltrim($param, '/');
+            if ($param === '.') {
+                $param = '';
+            }
+            return $param;
 
         case PARAM_FILE:
             // Strip all suspicious characters from filename.
@@ -1258,7 +1268,7 @@ function clean_param($param, $type) {
 
         default:
             // Doh! throw error, switched parameters in optional_param or another serious problem.
-            print_error("unknownparamtype", '', '', $type);
+            throw new \moodle_exception("unknownparamtype", '', '', $type);
     }
 }
 
@@ -2356,6 +2366,18 @@ function date_format_string($date, $format, $tz = 99) {
     }
 
     date_default_timezone_set(core_date::get_user_timezone($tz));
+
+    if (strftime('%p', 0) === strftime('%p', HOURSECS * 18)) {
+        $datearray = getdate($date);
+        $format = str_replace([
+            '%P',
+            '%p',
+        ], [
+            $datearray['hours'] < 12 ? get_string('am', 'langconfig') : get_string('pm', 'langconfig'),
+            $datearray['hours'] < 12 ? get_string('amcaps', 'langconfig') : get_string('pmcaps', 'langconfig'),
+        ], $format);
+    }
+
     $datestring = strftime($format, $date);
     core_date::set_default_server_timezone();
 
@@ -2777,7 +2799,8 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
     if ($course->id != SITEID and \core\session\manager::is_loggedinas()) {
         if ($USER->loginascontext->contextlevel == CONTEXT_COURSE) {
             if ($USER->loginascontext->instanceid != $course->id) {
-                print_error('loginasonecourse', '', $CFG->wwwroot.'/course/view.php?id='.$USER->loginascontext->instanceid);
+                throw new \moodle_exception('loginasonecourse', '',
+                    $CFG->wwwroot.'/course/view.php?id='.$USER->loginascontext->instanceid);
             }
         }
     }
@@ -3242,17 +3265,17 @@ function validate_user_key($keyvalue, $script, $instance) {
     global $DB;
 
     if (!$key = $DB->get_record('user_private_key', array('script' => $script, 'value' => $keyvalue, 'instance' => $instance))) {
-        print_error('invalidkey');
+        throw new \moodle_exception('invalidkey');
     }
 
     if (!empty($key->validuntil) and $key->validuntil < time()) {
-        print_error('expiredkey');
+        throw new \moodle_exception('expiredkey');
     }
 
     if ($key->iprestriction) {
         $remoteaddr = getremoteaddr(null);
         if (empty($remoteaddr) or !address_in_subnet($remoteaddr, $key->iprestriction)) {
-            print_error('ipmismatch');
+            throw new \moodle_exception('ipmismatch');
         }
     }
     return $key;
@@ -3272,7 +3295,7 @@ function require_user_key_login($script, $instance = null, $keyvalue = null) {
     global $DB;
 
     if (!NO_MOODLE_COOKIES) {
-        print_error('sessioncookiesdisable');
+        throw new \moodle_exception('sessioncookiesdisable');
     }
 
     // Extra safety.
@@ -3285,7 +3308,7 @@ function require_user_key_login($script, $instance = null, $keyvalue = null) {
     $key = validate_user_key($keyvalue, $script, $instance);
 
     if (!$user = $DB->get_record('user', array('id' => $key->userid))) {
-        print_error('invaliduserid');
+        throw new \moodle_exception('invaliduserid');
     }
 
     core_user::require_active_user($user, true, true);
@@ -3766,7 +3789,7 @@ function get_auth_plugin($auth) {
 
     // Check the plugin exists first.
     if (! exists_auth_plugin($auth)) {
-        print_error('authpluginnotfound', 'debug', '', $auth);
+        throw new \moodle_exception('authpluginnotfound', 'debug', '', $auth);
     }
 
     // Return auth plugin instance.
@@ -4621,7 +4644,7 @@ function complete_user_login($user) {
                 redirect($CFG->wwwroot.'/login/change_password.php');
             }
         } else {
-            print_error('nopasswordchangeforced', 'auth');
+            throw new \moodle_exception('nopasswordchangeforced', 'auth');
         }
     }
     return $USER;
@@ -4880,23 +4903,6 @@ function get_complete_user_data($field, $value, $mnethostid = null, $throwexcept
     if ($lastaccesses = $DB->get_records('user_lastaccess', array('userid' => $user->id))) {
         foreach ($lastaccesses as $lastaccess) {
             $user->lastcourseaccess[$lastaccess->courseid] = $lastaccess->timeaccess;
-        }
-    }
-
-    $sql = "SELECT g.id, g.courseid
-              FROM {groups} g, {groups_members} gm
-             WHERE gm.groupid=g.id AND gm.userid=?";
-
-    // This is a special hack to speedup calendar display.
-    $user->groupmember = array();
-    if (!isguestuser($user)) {
-        if ($groups = $DB->get_records_sql($sql, array($user->id))) {
-            foreach ($groups as $group) {
-                if (!array_key_exists($group->courseid, $user->groupmember)) {
-                    $user->groupmember[$group->courseid] = array();
-                }
-                $user->groupmember[$group->courseid][$group->id] = $group->id;
-            }
         }
     }
 
@@ -5874,7 +5880,7 @@ function email_should_be_diverted($email) {
         return true;
     }
 
-    $patterns = array_map('trim', preg_split("/[\s,]+/", $CFG->divertallemailsexcept));
+    $patterns = array_map('trim', preg_split("/[\s,]+/", $CFG->divertallemailsexcept, -1, PREG_SPLIT_NO_EMPTY));
     foreach ($patterns as $pattern) {
         if (preg_match("/$pattern/", $email)) {
             return false;
@@ -6423,7 +6429,7 @@ function reset_password_and_mail($user) {
     $newpassword = generate_password();
 
     if (!$userauth->user_update_password($user, $newpassword)) {
-        print_error("cannotsetpassword");
+        throw new \moodle_exception("cannotsetpassword");
     }
 
     $a = new stdClass();

@@ -2795,10 +2795,18 @@ EOD;
             $html .= <<<EOD
     <div id="file_info_{$client_id}" class="mdl-left filepicker-filelist" style="position: relative">
     <div class="filepicker-filename">
-        <div class="filepicker-container">$currentfile<div class="dndupload-message">$strdndenabled <br/><div class="dndupload-arrow"></div></div></div>
+        <div class="filepicker-container">$currentfile
+            <div class="dndupload-message">$strdndenabled <br/>
+                <div class="dndupload-arrow d-flex"><i class="fa fa-arrow-circle-o-down fa-3x m-auto"></i></div>
+            </div>
+        </div>
         <div class="dndupload-progressbars"></div>
     </div>
-    <div><div class="dndupload-target">{$strdroptoupload}<br/><div class="dndupload-arrow"></div></div></div>
+    <div>
+        <div class="dndupload-target">{$strdroptoupload}<br/>
+            <div class="dndupload-arrow d-flex"><i class="fa fa-arrow-circle-o-down fa-3x m-auto"></i></div>
+        </div>
+    </div>
     </div>
 EOD;
         }
@@ -2894,9 +2902,8 @@ EOD;
     /**
      * Do not call this function directly.
      *
-     * To terminate the current script with a fatal error, call the {@link print_error}
-     * function, or throw an exception. Doing either of those things will then call this
-     * function to display the error, before terminating the execution.
+     * To terminate the current script with a fatal error, throw an exception.
+     * Doing this will then call this function to display the error, before terminating the execution.
      *
      * @param string $message The message to output
      * @param string $moreinfourl URL where more info can be found about the error
@@ -3823,13 +3830,21 @@ EOD;
             $strlang = get_string('language');
             $currentlang = current_language();
             if (isset($langs[$currentlang])) {
-                $currentlang = $langs[$currentlang];
+                $currentlangstr = $langs[$currentlang];
             } else {
-                $currentlang = $strlang;
+                $currentlangstr = $strlang;
             }
-            $this->language = $menu->add($currentlang, new moodle_url('#'), $strlang, 10000);
+            $this->language = $menu->add($currentlangstr, new moodle_url('#'), $strlang, 10000);
             foreach ($langs as $langtype => $langname) {
-                $this->language->add($langname, new moodle_url($this->page->url, array('lang' => $langtype)), $langname);
+                $attributes = [];
+                // Set the lang attribute for languages different from the page's current language.
+                if ($langtype !== $currentlang) {
+                    $attributes[] = [
+                        'key' => 'lang',
+                        'value' => get_html_lang_attribute_value($langtype),
+                    ];
+                }
+                $this->language->add($langname, new moodle_url($this->page->url, ['lang' => $langtype]), null, null, $attributes);
             }
         }
 

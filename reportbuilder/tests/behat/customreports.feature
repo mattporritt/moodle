@@ -66,6 +66,36 @@ Feature: Manage custom reports
       | Name      | Report source |
       | My report | Users         |
 
+  Scenario: Create custom report as a manager
+    # Create a report that our manager can access, but not edit.
+    Given the following "core_reportbuilder > Report" exists:
+      | name    | My report                                |
+      | source  | core_user\reportbuilder\datasource\users |
+    And the following "core_reportbuilder > Audience" exists:
+      | report     | My report                                          |
+      | classname  | core_reportbuilder\reportbuilder\audience\allusers |
+      | configdata |                                                    |
+    And the following "users" exist:
+      | username  | firstname | lastname |
+      | manager1  | Manager   | One        |
+    And the following "role assigns" exist:
+      | user     | role    | contextlevel   | reference |
+      | manager1 | manager | System         |           |
+    And I log in as "manager1"
+    When I navigate to "Reports > Report builder > Custom reports" in site administration
+    And I click on "New report" "button"
+    And I set the following fields in the "New report" "dialogue" to these values:
+      | Name          | Manager report |
+      | Report source | Users          |
+    And I click on "Save" "button" in the "New report" "dialogue"
+    And I click on "Close 'Manager report' editor" "button"
+    # Manager can edit their own report, but not those of other users.
+    And I set the field "Edit report name" in the "Manager report" "table_row" to "Manager report (renamed)"
+    And I open the action menu in "Manager report (renamed)" "table_row"
+    Then "Edit report content" "link" should be visible
+    And "Edit report name" "link" should not exist in the "My report" "table_row"
+    And ".dropdown-toggle" "css_element" should not exist in the "My report" "table_row"
+
   Scenario: Rename custom report
     Given the following "core_reportbuilder > Reports" exist:
       | name      | source                                   |
@@ -203,3 +233,17 @@ Feature: Manage custom reports
       | customreportslimit     | 2 |
     And I reload the page
     And "New report" "button" should not exist
+
+  Scenario: Disable live editing of custom reports
+    Given the following config values are set as admin:
+      | customreportsliveediting     | 0 |
+    And the following "core_reportbuilder > Reports" exist:
+      | name           | source                                       |
+      | Report users   | core_user\reportbuilder\datasource\users     |
+    When I am on the "Report users" "reportbuilder > Editor" page logged in as "admin"
+    Then I should see "Viewing of report data while editing is disabled by the site administrator. Switch to preview mode to view the report." in the "[data-region='core_table/dynamic']" "css_element"
+    And I click on "Switch to preview mode" "button"
+    And I should see "admin" in the "reportbuilder-table" "table"
+    And I click on "Close 'Report users' editor" "button"
+    And I press "View" action in the "Report users" report row
+    And I should see "admin" in the "reportbuilder-table" "table"
