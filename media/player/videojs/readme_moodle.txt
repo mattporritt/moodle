@@ -1,4 +1,4 @@
-VideoJS 7.20.3
+VideoJS 8.0.4
 --------------
 https://github.com/videojs/video.js
 
@@ -14,10 +14,17 @@ Instructions to import VideoJS player into Moodle:
    Check status of:
    https://github.com/videojs/video.js/issues/2777
 6. copy 'lang/' into 'videojs/' subfolder (so the result will be media/player/videojs/videojs/lang).
+7. Follow the import plugins below (they may not have changed but worth checking).
+8. Update thirdpartylibs.xml in this folder with the changed details.
 
 Import plugins:
 
-1. Copy https://github.com/videojs/videojs-youtube/blob/master/dist/Youtube.js into 'amd/src/Youtube-lazy.js'
+1. Check the status of https://github.com/videojs/videojs-youtube/issues/604 and https://github.com/videojs/videojs-youtube/pull/606
+   If they are still open
+     Copy https://github.com/mattporritt/videojs-youtube/blob/master/dist/Youtube.js into 'amd/src/Youtube-lazy.js'
+   If they have been closed
+     Copy https://github.com/videojs/videojs-youtube/blob/master/dist/Youtube.js into 'amd/src/Youtube-lazy.js'
+
    In the beginning of the js file replace
      define(['videojs']
    with
