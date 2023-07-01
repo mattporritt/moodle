@@ -159,5 +159,31 @@ class simplex {
         return 70.0 * ($n0 + $n1 + $n2);
     }
 
-}
+    function fractal_brownian_motion($x, $y, $octaves, $lacunarity, $gain, $simplex) {
+        $total = 0;
+        $frequency = 1;
+        $amplitude = 1;
+        $maxAmplitude = 0;
 
+        for ($i = 0; $i < $octaves; $i++) {
+            $total += $this->noise2D($x * $frequency, $y * $frequency) * $amplitude;
+
+            $maxAmplitude += $amplitude;
+
+            $frequency *= $lacunarity;
+            $amplitude *= $gain;
+        }
+
+        // Normalize the result to the range [0, 1].
+        return $total / $maxAmplitude;
+    }
+
+
+    function domain_warp($x, $y, $octaves, $lacunarity, $gain, $warp, $simplex) {
+    $dx = $this->fractal_brownian_motion($x + 0.1, $y, $octaves, $lacunarity, $gain, $simplex) * $warp;
+    $dy = $this->fractal_brownian_motion($x, $y + 0.1, $octaves, $lacunarity, $gain, $simplex) * $warp;
+
+    return $this->fractal_brownian_motion($x + $dx, $y + $dy, $octaves, $lacunarity, $gain, $simplex);
+    }
+
+}
