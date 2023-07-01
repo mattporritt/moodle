@@ -3,7 +3,8 @@
 require_once('../config.php');
 
 
-use core\noise\simplex\simplex;
+use core\pattern\noise\simplex;
+use core\pattern\gradient\linear;
 
 function createNebulaPlaceholder($inputString) {
     $hash = md5($inputString); // Create a hash for determinism
@@ -11,34 +12,25 @@ function createNebulaPlaceholder($inputString) {
 
     $width = 400; // Image width
     $height = 400; // Image height
-    $scale = 0.06; // Scale factor for the noise function
+    $scale = 0.01; // Scale factor for the noise function
 
     $noise = new simplex($seed);
     $image = imagecreatetruecolor($width, $height);
+    imagesavealpha($image, true);
 
-    // Create colors
-    $background = imagecolorallocate($image, 0, 0, 0); // black background
-    $nebula1 = imagecolorallocate($image, 255, 140, 0); // orange nebula
-    $nebula2 = imagecolorallocate($image, 75, 0, 130); // indigo nebula
-
-    // Generate the nebula pattern by blending two layers of noise
+    // Generate the nebula pattern
     for ($x = 0; $x < $width; $x++) {
         for ($y = 0; $y < $height; $y++) {
-            $value1 = $noise->noise2D($x * $scale, $y * $scale);
-            $value2 = $noise->noise2D($x * $scale * 2, $y * $scale * 2); // Second layer with a different scale
-            if ($value1 > 0) { // The noise function returns values between -1 and 1
-                imagesetpixel($image, $x, $y, $nebula1);
-            }
-            if ($value2 > 0) {
-                // Use imagecolorset to blend the second layer with the first
-                $index = imagecolorat($image, $x, $y);
-                $colors = imagecolorsforindex($image, $index);
-                $blend = imagecolorallocate($image,
-                        ($colors['red'] + $nebula2['red']) / 2,
-                        ($colors['green'] + $nebula2['green']) / 2,
-                        ($colors['blue'] + $nebula2['blue']) / 2);
-                imagesetpixel($image, $x, $y, $blend);
-            }
+            $value = ($noise->noise2D($x * $scale, $y * $scale) + 1) / 2; // Scale the noise value to [0, 1]
+
+            // Create a gradient from black to your nebula color based on the noise value
+            $r = 255 * $value;
+            $g = 140 * $value;
+            $b = 0;
+
+            // Use imagecolorallocatealpha for a more cloud-like appearance, with varying transparency
+            $color = imagecolorallocatealpha($image, $r, $g, $b, 127 * (1 - $value));
+            imagesetpixel($image, $x, $y, $color);
         }
     }
 
@@ -49,5 +41,7 @@ function createNebulaPlaceholder($inputString) {
     return 'data:image/png;base64,' . base64_encode($data);
 }
 
-echo '<img src="' . createNebulaPlaceholder('test') . '" />';
-echo '<img src="' . createNebulaPlaceholder('foobarcccccc') . '" />';
+//echo '<img src="' . createNebulaPlaceholder('test') . '" />';
+//echo '<img src="' . createNebulaPlaceholder('foobarcccccc') . '" />';
+
+echo '<img src="' . linear::generate_random_gradient(400, 400, 22345) . '" />';
