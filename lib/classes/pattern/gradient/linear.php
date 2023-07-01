@@ -106,7 +106,88 @@ class linear {
         return 'data:image/png;base64,' . base64_encode($data);
     }
 
+    public static function generate_radial_gradient(int $width, int $height, array $colorStops): string {
+        // Create a new true color image.
+        $image = imagecreatetruecolor($width, $height);
 
+        // Calculate the center of the image.
+        $centerX = $width / 2;
+        $centerY = $height / 2;
+
+        // Calculate the radius (half of the diagonal of the image).
+        $radius = sqrt($width * $width + $height * $height) / 2;
+
+        // Generate the gradient
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                // Calculate the distance from the center of the image.
+                $distance = sqrt(($x - $centerX) * ($x - $centerX) + ($y - $centerY) * ($y - $centerY));
+
+                // Normalize the distance value between 0 and 1.
+                $position = $distance / $radius;
+
+                // Find the two color stops that the current position is between
+                $prevStop = null;
+                $nextStop = null;
+                for ($i = 0; $i < count($colorStops); $i++) {
+                    if ($colorStops[$i]['position'] <= $position &&
+                            ($prevStop === null || $colorStops[$i]['position'] > $prevStop['position'])) {
+                        $prevStop = $colorStops[$i];
+                    }
+                    if ($colorStops[$i]['position'] >= $position &&
+                            ($nextStop === null || $colorStops[$i]['position'] < $nextStop['position'])) {
+                        $nextStop = $colorStops[$i];
+                    }
+                }
+
+                // If there's no previous stop, the next stop is the color.
+                // If there's no next stop, the previous stop is the color.
+                // Otherwise, interpolate between the colors of the two stops.
+                if ($prevStop === null) {
+                    $red = $nextStop['color'][0];
+                    $green = $nextStop['color'][1];
+                    $blue = $nextStop['color'][2];
+                } elseif ($nextStop === null) {
+                    $red = $prevStop['color'][0];
+                    $green = $prevStop['color'][1];
+                    $blue = $prevStop['color'][2];
+                } else {
+                    // Avoid division by zero
+                    if ($nextStop['position'] - $prevStop['position'] == 0) {
+                        $relativePosition = 0;
+                    } else {
+                        $relativePosition = ($position - $prevStop['position']) /
+                                ($nextStop['position'] - $prevStop['position']);
+                    }
+
+
+                    $red = (1 - $relativePosition) * $prevStop['color'][0] +
+                            $relativePosition * $nextStop['color'][0];
+                    $green = (1 - $relativePosition) * $prevStop['color'][1] +
+                            $relativePosition * $nextStop['color'][1];
+                    $blue = (1 - $relativePosition) * $prevStop['color'][2] +
+                            $relativePosition * $nextStop['color'][2];
+                }
+
+                $color = imagecolorallocate($image, $red, $green, $blue);
+
+                // Set the pixel color at the current position.
+                imagesetpixel($image, $x, $y, $color);
+            }
+        }
+
+        // Start output buffering.
+        ob_start();
+
+        // Output the image to the buffer.
+        imagepng($image);
+
+        // Get the contents of the buffer.
+        $data = ob_get_clean();
+
+        // Return the image as a base64 data URL.
+        return 'data:image/png;base64,' . base64_encode($data);
+    }
 
     /**
      * Generates a PNG image with a linear gradient between two random colors,
@@ -151,9 +232,12 @@ class linear {
         $angle = mt_rand(0, 180);
 
         // Generate the gradient.
-        return self::generate_gradient($width, $height, $stops, $angle);
+        // Randomly choose between linear and radial gradients.
+        if (mt_rand(0, 1) == 0) {
+            return self::generate_gradient($width, $height, $stops, $angle);
+        } else {
+            return self::generate_radial_gradient($width, $height, $stops);
+        }
     }
-
-
 }
 
