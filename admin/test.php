@@ -4,7 +4,7 @@ require_once('../config.php');
 
 
 use core\pattern\noise\simplex;
-use core\pattern\gradient\linear;
+use core\pattern\gradient\gradient;
 
 function createNebulaPlaceholder($inputString) {
     $hash = md5($inputString); // Create a hash for determinism
@@ -44,7 +44,12 @@ function createNebulaPlaceholder($inputString) {
 //echo '<img src="' . createNebulaPlaceholder('test') . '" />';
 //echo '<img src="' . createNebulaPlaceholder('foobarcccccc') . '" />';
 
-echo '<img src="' . linear::generate_random_gradient(300, 300, 22445) . '" />';
-echo '<img src="' . linear::generate_random_gradient(300, 300, 23345) . '" />';
-echo '<img src="' . linear::generate_random_gradient(300, 300, 10) . '" />';
-echo '<img src="' . linear::generate_random_gradient(300, 300, 11) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 2) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 3) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 4) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 5) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 6) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 7) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 8) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 9) . '" />';
+echo '<img src="' . gradient::generate_random_gradient(260, 115, 10) . '" />';
