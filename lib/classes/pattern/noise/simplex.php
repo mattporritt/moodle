@@ -159,7 +159,7 @@ class simplex {
         return 70.0 * ($n0 + $n1 + $n2);
     }
 
-    function fractal_brownian_motion($x, $y, $octaves, $lacunarity, $gain, $simplex) {
+    function fractal_brownian_motion($x, $y, $octaves, $lacunarity, $gain) {
         $total = 0;
         $frequency = 1;
         $amplitude = 1;
@@ -179,11 +179,11 @@ class simplex {
     }
 
 
-    function domain_warp($x, $y, $octaves, $lacunarity, $gain, $warp, $simplex) {
-    $dx = $this->fractal_brownian_motion($x + 0.1, $y, $octaves, $lacunarity, $gain, $simplex) * $warp;
-    $dy = $this->fractal_brownian_motion($x, $y + 0.1, $octaves, $lacunarity, $gain, $simplex) * $warp;
+    public function domain_warp($x, $y, $octaves, $lacunarity, $gain, $warp) {
+    $dx = $this->fractal_brownian_motion($x + 0.1, $y, $octaves, $lacunarity, $gain) * $warp;
+    $dy = $this->fractal_brownian_motion($x, $y + 0.1, $octaves, $lacunarity, $gain) * $warp;
 
-    return $this->fractal_brownian_motion($x + $dx, $y + $dy, $octaves, $lacunarity, $gain, $simplex);
+    return $this->fractal_brownian_motion($x + $dx, $y + $dy, $octaves, $lacunarity, $gain);
     }
 
 }

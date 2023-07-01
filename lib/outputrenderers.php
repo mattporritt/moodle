@@ -38,6 +38,7 @@
 use core\output\named_templatable;
 use core_completion\cm_completion_details;
 use core_course\output\activity_information;
+use core\pattern\gradient\gradient;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -1672,7 +1673,7 @@ class core_renderer extends renderer_base {
         $pattern = new \core_geopattern();
         $pattern->setColor($color);
         $pattern->patternbyid($id);
-        return $pattern->datauri();
+        return gradient::generate_random_gradient(260, 115, $id);
     }
 
     /**
@@ -1696,7 +1697,7 @@ class core_renderer extends renderer_base {
         $pattern = new \core_geopattern();
         $pattern->setColor($color);
         $pattern->patternbyid($id);
-        return $pattern->toSVG();
+        return linear::generate_random_gradient(300, 300, $id);
     }
 
     /**
