@@ -44,4 +44,7 @@ function createNebulaPlaceholder($inputString) {
 //echo '<img src="' . createNebulaPlaceholder('test') . '" />';
 //echo '<img src="' . createNebulaPlaceholder('foobarcccccc') . '" />';
 
-echo '<img src="' . linear::generate_random_gradient(400, 400, 22345) . '" />';
+echo '<img src="' . linear::generate_random_gradient(300, 300, 22345) . '" />';
+echo '<img src="' . linear::generate_random_gradient(300, 300, 23345) . '" />';
+echo '<img src="' . linear::generate_random_gradient(300, 300, 10) . '" />';
+echo '<img src="' . linear::generate_random_gradient(300, 300, 11) . '" />';

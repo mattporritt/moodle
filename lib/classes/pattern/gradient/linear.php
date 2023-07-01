@@ -57,7 +57,7 @@ class linear {
      * @param string $color2 The Hex value of the end color of the gradient.
      * @return string The generated image as a base64 data URL.
      */
-    public static function generate_gradient(int $width, int $height, string $color1, string $color2): string {
+    public static function generate_gradient(int $width, int $height, string $color1, string $color2, int $angle): string {
         // Create a new true color image.
         $image = imagecreatetruecolor($width, $height);
 
@@ -65,36 +65,59 @@ class linear {
         $color1 = self::hex_to_rgb($color1);
         $color2 = self::hex_to_rgb($color2);
 
-        // Generate the gradient.
-        for ($i = 0; $i < $height; $i++) {
-            // Calculate the alpha value (i.e., the position in the gradient).
-            $alpha = $i / $height;
+        // Calculate the center of the image.
+        $centerX = $width / 2;
+        $centerY = $height / 2;
 
-            // Calculate the RGB values for the current position in the gradient.
-            // This is done by interpolating between the start and end colors based on the alpha value.
-            $red = (1 - $alpha) * $color1[0] + $alpha * $color2[0];
-            $green = (1 - $alpha) * $color1[1] + $alpha * $color2[1];
-            $blue = (1 - $alpha) * $color1[2] + $alpha * $color2[2];
+        // Calculate the radius (half of the diagonal of the image).
+        $radius = sqrt($width * $width + $height * $height) / 2;
 
-            // Allocate a color for the image.
-            $color = imagecolorallocate($image, $red, $green, $blue);
+        // Convert the angle from degrees to radians.
+        $angleRad = deg2rad($angle);
 
-            // Draw a line with the calculated color at the current position.
-            imageline($image, 0, $i, $width, $i, $color);
+        // Calculate the starting and ending points of the gradient line.
+        $startX = $centerX + $radius * cos($angleRad);
+        $startY = $centerY + $radius * sin($angleRad);
+        $endX = $centerX - $radius * cos($angleRad);
+        $endY = $centerY - $radius * sin($angleRad);
+
+        // Calculate the length of the gradient line.
+        $lineLength = sqrt(($endX - $startX) * ($endX - $startX) + ($endY - $startY) * ($endY - $startY));
+
+        // Generate the gradient
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                // Calculate the position of the pixel along the gradient line.
+                $position = (($x - $startX) * ($endX - $startX) + ($y - $startY) * ($endY - $startY)) / ($lineLength * $lineLength);
+
+                // Clamp the position value between 0 and 1.
+                $position = max(0, min(1, $position));
+
+                // Calculate the color of the pixel
+                $red = (1 - $position) * $color1[0] + $position * $color2[0];
+                $green = (1 - $position) * $color1[1] + $position * $color2[1];
+                $blue = (1 - $position) * $color1[2] + $position * $color2[2];
+
+                $color = imagecolorallocate($image, $red, $green, $blue);
+
+                // Set the pixel color at the current position.
+                imagesetpixel($image, $x, $y, $color);
+            }
         }
 
-        // Start output buffering.
-        ob_start();
+    // Start output buffering.
+    ob_start();
 
-        // Output the image to the buffer.
-        imagepng($image);
+    // Output the image to the buffer.
+    imagepng($image);
 
-        // Get the contents of the buffer.
-        $data = ob_get_clean();
+    // Get the contents of the buffer.
+    $data = ob_get_clean();
 
-        // Return the image as a base64 data URL.
-        return 'data:image/png;base64,' . base64_encode($data);
-    }
+    // Return the image as a base64 data URL.
+    return 'data:image/png;base64,' . base64_encode($data);
+}
+
 
     /**
      * Generates a PNG image with a linear gradient between two random colors,
@@ -113,9 +136,11 @@ class linear {
         $color1 = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
         $color2 = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
 
-        // Generate the gradient.
-        return self::generate_gradient($width, $height, $color1, $color2);
-    }
+        // Generate a random angle between 0 and 180 degrees.
+        $angle = mt_rand(0, 180);
 
+        // Generate the gradient
+        return self::generate_gradient($width, $height, $color1, $color2, $angle);
+    }
 }
 
