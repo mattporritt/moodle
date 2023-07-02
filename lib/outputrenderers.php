@@ -38,7 +38,9 @@
 use core\output\named_templatable;
 use core_completion\cm_completion_details;
 use core_course\output\activity_information;
+use core\pattern\noise\simplex;
 use core\pattern\gradient\gradient;
+use core\pattern\color\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -1673,7 +1675,12 @@ class core_renderer extends renderer_base {
         $pattern = new \core_geopattern();
         $pattern->setColor($color);
         $pattern->patternbyid($id);
-        return gradient::generate_random_gradient(260, 115, $id);
+        $simplex = Simplex::create($id, 260, 115);
+        list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+        $fg = utils::generate_preferred_color();
+        $finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, [34,37,69]);
+
+        return $finalImage;
     }
 
     /**

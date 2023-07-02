@@ -374,56 +374,24 @@ function generateColoredImage($grayImage, $alphaMap, $foregroundColor, $backgrou
     return 'data:image/png;base64,' . base64_encode($data);
 }
 
-$simplex = Simplex::create(2, 260, 115, 0.005, 0.5);
+$simplex = Simplex::create(2, 260, 115, 0.007, 0.5);
 list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
 $fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, [0,0,0]);
 echo '<img src="' . $finalImage . '" />';
 
 $simplex = Simplex::create(3, 260, 115);
 list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
 $fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, [0,0,0]);
 echo '<img src="' . $finalImage . '" />';
 
 $simplex = Simplex::create(4, 260, 115);
 list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
 $fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, [0,0,0]);
 echo '<img src="' . $finalImage . '" />';
 
-$simplex = Simplex::create(5, 260, 115);
-list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
-$fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
-echo '<img src="' . $finalImage . '" />';
-
-$simplex = Simplex::create(6, 260, 115);
-list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
-$fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
-echo '<img src="' . $finalImage . '" />';
-
-$simplex = Simplex::create(7, 260, 115);
-list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
-$fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
-echo '<img src="' . $finalImage . '" />';
-$simplex = Simplex::create(8, 260, 115);
-list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
-$fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
-echo '<img src="' . $finalImage . '" />';
-$simplex = Simplex::create(9, 260, 115);
-list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
-$fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
-echo '<img src="' . $finalImage . '" />';
-$simplex = Simplex::create(10, 260, 115);
-list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
-$fg = utils::generate_preferred_color();
-$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
-echo '<img src="' . $finalImage . '" />';
 
 
 

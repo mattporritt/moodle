@@ -182,16 +182,21 @@ class utils {
      * @param array $color The RGB color, as an array of three integers between 0 and 255.
      * @return array The RGB color complementary to the input, as an array of three integers between 0 and 255.
      */
-    public static function complementary_color(array $color): array {
+    public static function complementary_color(array $color, $makeDarker = true): array {
         // Decompose the input color into its red, green, and blue components
         list($r, $g, $b) = $color;
         // Convert the RGB color to the HSL color space
         list($h, $s, $l) = self::rgb_to_hsl($r, $g, $b);
         // Add 0.5 to the hue (equivalent to rotating the hue by 180 degrees on the color wheel)
         $h = ($h + 0.5) % 1;
+        // If makeDarker is true, reduce lightness by 20%
+        if ($makeDarker) {
+            $l *= 0.5;
+        }
         // Convert the color back to the RGB color space and return it
         return self::hsl_to_rgb($h, $s, $l);
     }
+
 
     /**
      * Generates a vibrant RGB color with a bias towards red and blue.
