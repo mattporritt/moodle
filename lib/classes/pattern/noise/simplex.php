@@ -226,4 +226,149 @@ class simplex {
         // Compute the final noise value at the warped coordinates
         return $this->fractal_brownian_motion($x + $dx, $y + $dy, $octaves, $lacunarity, $gain);
     }
+
+       /**
+        * Generates a noise pattern and an alpha map for the pattern.
+        *
+        * This function first generates a grayscale noise pattern by applying domain warping to each pixel in the pattern.
+        * The grayscale value of each pixel is determined by the resulting noise value. The grayscale values are then
+        * adjusted to enhance contrast and optionally inverted.
+        *
+        * At the same time, an alpha map is generated where the transparency of each pixel is adjusted based on its
+        * distance to the closest edge of the image, creating a fade-out effect at the edges.
+        *
+        * This function returns both the noise pattern and the alpha map as GD image resources.
+        *
+        * @param int $octaves The number of octaves to use for the domain warping and noise generation. Higher numbers
+        * result in more detail in the noise.
+        * @param float $lacunarity The lacunarity to use for the domain warping and noise generation. Higher numbers
+        * result in more fine-grained detail in the noise.
+        * @param float $gain The gain to use for the domain warping and noise generation. Lower numbers result in the
+        * higher frequency detail being less pronounced.
+        * @param float $blackWhiteRatio The ratio of black to white in the final grayscale noise pattern. A higher ratio
+        * results in a lighter image.
+        * @param bool $invertColors Whether to invert the grayscale values in the final noise pattern. If true, lighter
+        * grayscale values become darker and vice versa.
+        * @param float $edgeFadeWidth The width of the fade-out effect at the edges of the image, expressed as a proportion
+        * of the image width.
+        * @return array An array of two GD image resources. The first element is the noise pattern, and the second element
+        * is the alpha map for the pattern.
+        */
+    public function generate_pattern_and_map($octaves = 4, $lacunarity = 2.5, $gain = 0.4, $blackWhiteRatio = 0.5, $invertColors = true, $edgeFadeWidth = 0.2) {
+        $width = 512;
+        $height = 512;
+        $scale = 0.005;
+        $warp = 0.5;
+
+        // Create a new true color image
+        $image = imagecreatetruecolor($width, $height);
+
+        // Create a new true color image for the alpha map
+        $alphaMap = imagecreatetruecolor($width, $height);
+
+        // Set the blending mode for the image to allow alpha channels
+        imagesavealpha($image, true);
+
+        // Calculate the number of pixels for the fade at the edge of the image
+        $edgeFadePixels = $width * $edgeFadeWidth;
+
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                // Generate a noise value using simplex noise algorithm with domain warp and fbm.
+                $noise = $this->domain_warp($x * $scale, $y * $scale, $octaves, $lacunarity, $gain, $warp);
+
+                // Normalize the noise value to the range [0, 1]
+                $noise = ($noise + 1) / 2;
+
+                // Calculate the grayscale value based on the noise value
+                if ($noise > $blackWhiteRatio) {
+                    $grayValue = 200 + ($noise - $blackWhiteRatio) / (1 - $blackWhiteRatio) * 55;
+                } else {
+                    $grayValue = 200 * ($noise / $blackWhiteRatio);
+                }
+
+                // Ensure the grayscale value is within the range [0, 255]
+                $grayValue = max(0, min(255, $grayValue));
+
+                // Invert the grayscale value if invertColors is true
+                if ($invertColors) {
+                    $grayValue = 255 - $grayValue;
+                }
+
+                // Calculate the distance to the closest edge of the image
+                $distToEdge = min($x, $y, $width - $x, $height - $y);
+
+                // Calculate the alpha value for the edge fade effect
+                $alpha = 0;
+                if ($distToEdge < $edgeFadePixels) {
+                    $alpha = round((1 - $distToEdge / $edgeFadePixels) * 127);
+                }
+
+                // Set the grayscale value for the current pixel in the image
+                $color = imagecolorallocate($image, $grayValue, $grayValue, $grayValue);
+                imagesetpixel($image, $x, $y, $color);
+
+                // Set the alpha value for the current pixel in the alpha map
+                $alphaColor = imagecolorallocate($alphaMap, $alpha, $alpha, $alpha);
+                imagesetpixel($alphaMap, $x, $y, $alphaColor);
+            }
+        }
+
+        // Return the image and the alpha map
+        return [$image, $alphaMap];
+    }
+
+    /**
+     * Generates a colored image from a grayscale image and an alpha map.
+     *
+     * The output image is colored based on the grayscale values of the input
+     * image, and the transparency of each pixel is determined by the corresponding
+     * pixel in the alpha map. Foreground and background colors are blended
+     * according to the grayscale values.
+     *
+     * @param \GdImage $grayImage An image resource with grayscale data. Its size determines the size of the output image.
+     * @param \GdImage $alphaMap An image resource with alpha channel data. Must be the same size as $grayImage.
+     * @param array $foregroundColor An RGB array for the color to use where $grayImage is black.
+     * @param array $backgroundColor An RGB array for the color to use where $grayImage is white.
+     * @param bool $invertalpha If true, inverts the alpha values from the alpha map (optional, default is true).
+     *
+     * @return string The generated image, encoded as a PNG data URL.
+     */
+    public function generate_colored_image(\GdImage $grayImage, \GDimage $alphaMap, array $foregroundColor, array $backgroundColor, bool $invertalpha = true): string {
+        $width = imagesx($grayImage);
+        $height = imagesy($grayImage);
+
+        $outputImage = imagecreatetruecolor($width, $height);
+        imagesavealpha($outputImage, true);
+
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                // Get grayscale and alpha value
+                $gray = imagecolorat($grayImage, $x, $y) & 0xFF;
+
+                if ($invertalpha) {
+                    $alpha = 127 - (imagecolorat($alphaMap, $x, $y) & 0xFF); // invert alpha
+                } else {
+                    $alpha = imagecolorat($alphaMap, $x, $y) & 0xFF;
+                }
+
+                // Calculate final color based on grayscale and alpha
+                $finalColor = [
+                        (($foregroundColor[0] * $gray) + ($backgroundColor[0] * (255 - $gray))) / 255,
+                        (($foregroundColor[1] * $gray) + ($backgroundColor[1] * (255 - $gray))) / 255,
+                        (($foregroundColor[2] * $gray) + ($backgroundColor[2] * (255 - $gray))) / 255,
+                ];
+
+                // Set pixel color in the output image
+                $color = imagecolorallocatealpha($outputImage, $finalColor[0], $finalColor[1], $finalColor[2], 127 - $alpha);
+                imagesetpixel($outputImage, $x, $y, $color);
+            }
+        }
+
+        ob_start();
+        imagepng($outputImage);
+        $data = ob_get_clean();
+        return 'data:image/png;base64,' . base64_encode($data);
+    }
+
 }
