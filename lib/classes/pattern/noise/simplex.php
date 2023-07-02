@@ -17,7 +17,7 @@
 namespace core\pattern\noise;
 
 /**
- * Simplex noise generator.
+ * Simplex based noise and pattern generator.
  *
  * @package   core_pattern
  * @copyright Matt Porritt <matt.porritt@catalyst-au.net>
@@ -159,31 +159,71 @@ class simplex {
         return 70.0 * ($n0 + $n1 + $n2);
     }
 
-    function fractal_brownian_motion($x, $y, $octaves, $lacunarity, $gain) {
+
+    /**
+     * This method implements Fractal Brownian Motion (FBM) which is a way of combining several octaves of
+     * simplex noise to generate noise patterns with more complex, natural appearance.
+     *
+     * In FBM, each octave of noise is a scaled and warped version of the main noise function. Each octave is added to
+     * the total, but with each iteration the frequency is increased by the lacunarity and the amplitude is decreased
+     * by the gain, creating variation at different scales. The final noise value is normalized by dividing it by the
+     * maximum possible amplitude.
+     *
+     * @param float $x The x coordinate.
+     * @param float $y The y coordinate.
+     * @param int $octaves The number of octaves, representing layers or iterations of noise.
+     * @param float $lacunarity A frequency multiplier for each successive octave of noise. A lacunarity > 1 results in
+     * increased frequency with each octave, adding detail.
+     * @param float $gain An amplitude scaler for each successive octave of noise. A gain < 1 results in decreased
+     * amplitude with each octave, reducing the impact of high frequency detail.
+     * @return float The Fractal Brownian Motion (FBM) value at the specified point.
+     */
+    function fractal_brownian_motion(float $x, float $y, int $octaves, float $lacunarity, float $gain): float {
         $total = 0;
         $frequency = 1;
         $amplitude = 1;
         $maxAmplitude = 0;
 
+        // Loop through each octave
         for ($i = 0; $i < $octaves; $i++) {
+            // Generate noise for this octave, scaled by the current amplitude
             $total += $this->noise2D($x * $frequency, $y * $frequency) * $amplitude;
 
+            // Keep track of the maximum possible amplitude for normalization later
             $maxAmplitude += $amplitude;
 
+            // Increase frequency and decrease amplitude for the next octave
             $frequency *= $lacunarity;
             $amplitude *= $gain;
         }
 
-        // Normalize the result to the range [0, 1].
+        // Normalize the result to the range [0, 1]
         return $total / $maxAmplitude;
     }
 
+    /**
+     * The `domain_warp` method warps the input space (domain) before computing the noise value.
+     *
+     * In domain warping, we add extra complexity to the output by moving the input coordinates according to some
+     * function (in this case, Fractal Brownian Motion), before computing the final noise value. This results in
+     * distorted or "warped" patterns, adding more variety and detail to the noise.
+     *
+     * @param float $x The x coordinate.
+     * @param float $y The y coordinate.
+     * @param int $octaves The number of octaves, representing layers or iterations of noise.
+     * @param float $lacunarity A frequency multiplier for each successive octave of noise. A lacunarity > 1 results in
+     * increased frequency with each octave, adding detail.
+     * @param float $gain An amplitude scaler for each successive octave of noise. A gain < 1 results in decreased
+     * amplitude with each octave, reducing the impact of high frequency detail.
+     * @param float $warp The factor by which to warp the domain.
+     * @return float The domain-warped noise value at the specified point.
+     */
+    public function domain_warp(float $x, float $y, int $octaves, float $lacunarity, float $gain, float $warp): float {
+        // Calculate displacement values using Fractal Brownian Motion (FBM)
+        $dx = $this->fractal_brownian_motion($x + 0.1, $y, $octaves, $lacunarity, $gain) * $warp;
+        $dy = $this->fractal_brownian_motion($x, $y + 0.1, $octaves, $lacunarity, $gain) * $warp;
 
-    public function domain_warp($x, $y, $octaves, $lacunarity, $gain, $warp) {
-    $dx = $this->fractal_brownian_motion($x + 0.1, $y, $octaves, $lacunarity, $gain) * $warp;
-    $dy = $this->fractal_brownian_motion($x, $y + 0.1, $octaves, $lacunarity, $gain) * $warp;
-
-    return $this->fractal_brownian_motion($x + $dx, $y + $dy, $octaves, $lacunarity, $gain);
+        // Compute the final noise value at the warped coordinates
+        return $this->fractal_brownian_motion($x + $dx, $y + $dy, $octaves, $lacunarity, $gain);
     }
-
 }
