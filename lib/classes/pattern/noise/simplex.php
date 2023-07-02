@@ -50,6 +50,11 @@ class simplex {
      */
     private array $doubledpermutationarray = [];
 
+    private int $width;
+    private int $height;
+    private float $scale;
+    private float $warp;
+
     /**
      * Constructor for the SimplexNoise class.
      * Initializes the permutation array with a shuffled sequence of integers from 0 to 255,
@@ -58,11 +63,42 @@ class simplex {
      *
      * @param int $seed Seed value for initializing the permutation array.
      */
-    public function __construct($seed) {
-        srand($seed);
+    private function __construct($seed) {
+        mt_srand($seed);
         $this->permutationarray = range(0, 255);
         shuffle($this->permutationarray);
         $this->doubledpermutationarray = array_merge($this->permutationarray, $this->permutationarray);
+    }
+
+    // Factory method.
+    public static function create (
+            $seed,
+            $width,
+            $height,
+            $scale = null,
+            $warp = null) {
+        // Make the class.
+        $simplex = new self($seed);
+
+        // Set required values.
+        $simplex->set_property('width', $width);
+        $simplex->set_property('height', $height);
+
+        // Set the properties with random values if they are not set.
+        $simplex->set_property('scale', $scale ?? mt_rand(0.001 * 1000, 0.009 * 1000) /1000);
+        $simplex->set_property('warp', $warp ?? mt_rand(0.1 * 10 , 0.9 * 10) / 10);
+
+        return $simplex;
+    }
+
+    // Generic property setter
+    public function set_property($property, $value) {
+        if (property_exists($this, $property)) {
+            $this->$property = $value;
+        } else {
+            // Optionally, throw an exception or handle the error in some way.
+            throw new \InvalidArgumentException("The property '{$property}' does not exist in class " . get_class($this));
+        }
     }
 
     /**
@@ -254,11 +290,11 @@ class simplex {
         * @return array An array of two GD image resources. The first element is the noise pattern, and the second element
         * is the alpha map for the pattern.
         */
-    public function generate_pattern_and_map($octaves = 4, $lacunarity = 2.5, $gain = 0.4, $blackWhiteRatio = 0.5, $invertColors = true, $edgeFadeWidth = 0.2) {
-        $width = 512;
-        $height = 512;
-        $scale = 0.005;
-        $warp = 0.5;
+    public function generate_pattern_and_map($octaves = 4, $lacunarity = 2.5, $gain = 0.4, $blackWhiteRatio = 0.6, $invertColors = true, $edgeFadeWidth = 0.001) {
+        $width = $this->width;
+        $height = $this->height;
+        $scale = $this->scale;
+        $warp = $this->warp;
 
         // Create a new true color image
         $image = imagecreatetruecolor($width, $height);

@@ -5,6 +5,7 @@ require_once('../config.php');
 
 use core\pattern\noise\simplex;
 use core\pattern\gradient\gradient;
+use core\pattern\color\utils;
 
 function createNebulaPlaceholder($inputString) {
     $hash = md5($inputString); // Create a hash for determinism
@@ -284,6 +285,149 @@ function smoke4($seed, $octaves = 4, $lacunarity = 2.5, $gain = 0.4, $blackWhite
     return 'data:image/png;base64,' . base64_encode($data);
 }
 
+function smoke5($seed, $octaves = 4, $lacunarity = 2.5, $gain = 0.4, $blackWhiteRatio = 0.5, $invertColors = true, $edgeFadeWidth = 0.2) {
+    $simplex = new simplex($seed);
 
-echo '<img src="' . smoke2('12345') . '" />';
-echo '<img src="' . smoke3('12345') . '" />';
+    $width = 512;
+    $height = 512;
+    $scale = 0.005;
+    $warp = 0.5;
+
+    $image = imagecreatetruecolor($width, $height);
+    $alphaMap = imagecreatetruecolor($width, $height);
+
+    imagesavealpha($image, true); // Enable alpha blending
+
+    $edgeFadePixels = $width * $edgeFadeWidth; // The width of the fade out area
+
+    for ($x = 0; $x < $width; $x++) {
+        for ($y = 0; $y < $height; $y++) {
+            $noise = $simplex->domain_warp($x * $scale, $y * $scale, $octaves, $lacunarity, $gain, $warp);
+
+            $noise = ($noise + 1) / 2;
+
+            if ($noise > $blackWhiteRatio) {
+                $grayValue = 200 + ($noise - $blackWhiteRatio) / (1 - $blackWhiteRatio) * 55;
+            } else {
+                $grayValue = 200 * ($noise / $blackWhiteRatio);
+            }
+
+            $grayValue = max(0, min(255, $grayValue));
+
+            if ($invertColors) {
+                $grayValue = 255 - $grayValue;
+            }
+
+            // Calculate the distance to the closest edge of the image
+            $distToEdge = min($x, $y, $width - $x, $height - $y);
+
+            // If the pixel is within the edge fade area, decrease its alpha value (increase transparency)
+            $alpha = 0;
+            if ($distToEdge < $edgeFadePixels) {
+                $alpha = round((1 - $distToEdge / $edgeFadePixels) * 127);
+            }
+
+            // Set grayscale value in image
+            $color = imagecolorallocate($image, $grayValue, $grayValue, $grayValue);
+            imagesetpixel($image, $x, $y, $color);
+
+            // Set alpha value in alphaMap
+            $alphaColor = imagecolorallocate($alphaMap, $alpha, $alpha, $alpha);
+            imagesetpixel($alphaMap, $x, $y, $alphaColor);
+        }
+    }
+
+    return [$image, $alphaMap];
+}
+
+function generateColoredImage($grayImage, $alphaMap, $foregroundColor, $backgroundColor) {
+    $width = imagesx($grayImage);
+    $height = imagesy($grayImage);
+
+    $outputImage = imagecreatetruecolor($width, $height);
+    imagesavealpha($outputImage, true);
+
+    for ($x = 0; $x < $width; $x++) {
+        for ($y = 0; $y < $height; $y++) {
+            // Get grayscale and alpha value
+            $gray = imagecolorat($grayImage, $x, $y) & 0xFF;
+            //$alpha = imagecolorat($alphaMap, $x, $y) & 0xFF;
+            $alpha = 127 - (imagecolorat($alphaMap, $x, $y) & 0xFF); // invert alpha
+
+
+            // Calculate final color based on grayscale and alpha
+            $finalColor = [
+                    (($foregroundColor[0] * $gray) + ($backgroundColor[0] * (255 - $gray))) / 255,
+                    (($foregroundColor[1] * $gray) + ($backgroundColor[1] * (255 - $gray))) / 255,
+                    (($foregroundColor[2] * $gray) + ($backgroundColor[2] * (255 - $gray))) / 255,
+            ];
+
+            // Set pixel color in the output image
+            $color = imagecolorallocatealpha($outputImage, $finalColor[0], $finalColor[1], $finalColor[2], 127 - $alpha);
+            imagesetpixel($outputImage, $x, $y, $color);
+        }
+    }
+
+    ob_start();
+    imagepng($outputImage);
+    $data = ob_get_clean();
+    return 'data:image/png;base64,' . base64_encode($data);
+}
+
+$simplex = Simplex::create(2, 260, 115, 0.005, 0.5);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+
+$simplex = Simplex::create(3, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+
+$simplex = Simplex::create(4, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+
+$simplex = Simplex::create(5, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+
+$simplex = Simplex::create(6, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+
+$simplex = Simplex::create(7, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+$simplex = Simplex::create(8, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+$simplex = Simplex::create(9, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+$simplex = Simplex::create(10, 260, 115);
+list($grayImage, $alphaMap) = $simplex->generate_pattern_and_map();
+$fg = utils::generate_preferred_color();
+$finalImage = $simplex->generate_colored_image($grayImage, $alphaMap, $fg, utils::complementary_color($fg));
+echo '<img src="' . $finalImage . '" />';
+
+
+
+//echo '<img src="' . smoke2('12345') . '" />';
+//echo '<img src="' . smoke3('12345') . '" />';
+//echo '<img src="' . smoke4('12345') . '" />';
+
