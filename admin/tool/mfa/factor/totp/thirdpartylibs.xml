@@ -3,22 +3,22 @@
   <library>
     <location>extlib/Assert</location>
     <name>Assert</name>
-    <version></version>
+    <version>2.1</version>
     <license>MIT</license>
-    <licenseversion>2.1+</licenseversion>
+    <repository>https://github.com/beberlei/assert/releases/tag/v2.1</repository>
   </library>
   <library>
     <location>extlib/OTPHP</location>
     <name>OTPHP</name>
-    <version></version>
+    <version>9.1.1</version>
     <license>MIT</license>
-    <licenseversion>2.1+</licenseversion>
+    <repository>https://github.com/Spomky-Labs/otphp/releases/tag/v9.1.1</repository>
   </library>
   <library>
-    <location>extlib/ParagonIE</location>
-    <name>ParagonIE</name>
-    <version></version>
-    <license>Custom</license>
-    <licenseversion></licenseversion>
+    <location>extlib/ParagonIE/ConstantTime</location>
+    <name>Constant-Time Encoding</name>
+    <version>2.1.1</version>
+    <license>MIT</license>
+    <repository>https://github.com/paragonie/constant_time_encoding/releases/tag/v2.1.1</repository>
   </library>
 </libraries>

@@ -125,15 +125,29 @@ class factor extends object_factor_base {
         $selectedcohorts = get_config('factor_cohort', 'cohorts');
         if (empty($selectedcohorts)) {
             return get_string('summarycondition', 'factor_cohort', get_string('none'));
-        } else {
-            $selectedcohorts = explode(',', $selectedcohorts);
         }
-        $names = [];
-        foreach ($selectedcohorts as $cohort) {
+
+        return get_string('summarycondition', 'factor_cohort', $this->get_cohorts($selectedcohorts));
+    }
+
+    /**
+     * Get string lang for the cohorts.
+     *
+     * @param string $selectedcohorts
+     * @return string
+     */
+    public function get_cohorts(string $selectedcohorts) : string {
+        global $DB;
+
+        $cohorts = [];
+        foreach (explode(',', $selectedcohorts) as $cohort) {
+            if ($cohort === 'admin') {
+                $cohorts[] = get_string('administrator');
+            } else {
                 $record = $DB->get_record('cohort', ['id' => $cohort]);
-                $names[] = $record->name;
+                $cohorts[] = $record->name;
+            }
         }
-        $string = implode(', ', $names);
-        return get_string('summarycondition', 'factor_cohort', $string);
+        return implode(', ', $cohorts);
     }
 }

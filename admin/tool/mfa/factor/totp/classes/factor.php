@@ -135,7 +135,7 @@ class factor extends object_factor_base {
     public function setup_factor_form_definition_after_data($mform) {
         global $OUTPUT, $SITE, $USER;
 
-        // Array of elements to allow XSS on when we're running Totara.
+        // Array of elements to allow XSS.
         $xssallowedelements = [];
 
         $mform->addElement('html', $OUTPUT->heading(get_string('setupfactor', 'factor_totp'), 2));
@@ -199,7 +199,7 @@ class factor extends object_factor_base {
         $html = $togglelink . $html;
         $xssallowedelements[] = $mform->addElement('static', 'enter', '', $html);
 
-        // Allow XSS on Totara.
+        // Allow XSS.
         if (method_exists('MoodleQuickForm_static', 'set_allow_xss')) {
             foreach ($xssallowedelements as $xssallowedelement) {
                 $xssallowedelement->set_allow_xss(true);

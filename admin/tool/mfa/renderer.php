@@ -231,7 +231,7 @@ class tool_mfa_renderer extends plugin_renderer_base {
 
         // Logout button.
         $url = new \moodle_url('/admin/tool/mfa/auth.php', ['logout' => 1]);
-        $btn = new \single_button($url, get_string('logout'), 'post', true);
+        $btn = new \single_button($url, get_string('logout'), 'post', \single_button::BUTTON_PRIMARY);
         $return .= $this->render($btn);
 
         $return .= $this->guide_link();
@@ -326,8 +326,8 @@ class tool_mfa_renderer extends plugin_renderer_base {
 
         // Auth rows.
         $authtypes = get_enabled_auth_plugins(true);
+        $row = [];
         foreach ($authtypes as $authtype) {
-            $row = [];
             $row[] = \html_writer::tag('b', $authtype);
 
             // Setup the overall totals columns.
