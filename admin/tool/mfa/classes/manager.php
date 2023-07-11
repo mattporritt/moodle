@@ -486,7 +486,7 @@ class manager {
 
         // Site policy.
         if (isset($USER->policyagreed) && !$USER->policyagreed) {
-            // Privacy classes may not exist in older Moodles/Totara.
+            // Privacy classes may not exist in older Moodles.
             if (class_exists('\core_privacy\local\sitepolicy\manager')) {
                 $manager = new \core_privacy\local\sitepolicy\manager();
                 $policyurl = $manager->get_redirect_url(false);
@@ -596,7 +596,7 @@ class manager {
             $duration = 0.05;
         }
         set_user_preference('mfa_sleep_duration', $duration, $USER);
-        sleep($duration);
+        sleep((int)$duration);
     }
 
     /**

@@ -143,21 +143,31 @@ class factor extends object_factor_base {
         $selectedroles = get_config('factor_role', 'roles');
         if (empty($selectedroles)) {
             return get_string('summarycondition', 'factor_role', get_string('none'));
-        } else {
-            $selectedroles = explode(',', $selectedroles);
         }
 
-        $names = [];
-        foreach ($selectedroles as $role) {
+        return get_string('summarycondition', 'factor_role', $this->get_roles($selectedroles));
+    }
+
+    /**
+     * Get string lang for the roles.
+     *
+     * @param string $selectedroles
+     * @return string
+     */
+    public function get_roles(string $selectedroles) : string {
+        global $DB;
+
+        $roles = [];
+        foreach (explode(',', $selectedroles) as $role) {
             if ($role === 'admin') {
-                $names[] = get_string('administrator');
+                $roles[] = get_string('administrator');
             } else {
                 $record = $DB->get_record('role', ['id' => $role]);
-                $names[] = role_get_name($record);
+                if (!empty($record)) {
+                    $roles[] = role_get_name($record);
+                }
             }
         }
-
-        $string = implode(', ', $names);
-        return get_string('summarycondition', 'factor_role', $string);
+        return implode(', ', $roles);
     }
 }

@@ -75,8 +75,7 @@ class setup_factor_form extends \moodleform {
     }
 
     /**
-     * In newer versions of Totara with consistent cleaning enabled we need to ensure to mark static elements
-     *  as "xss safe". Or in Totara's ideal world to use 'html' if form-like display is not required.
+     * Form elements clean up
      *
      * @param \HTML_QuickForm $mform
      * @return void
