@@ -155,7 +155,7 @@ class factor extends object_factor_base {
      * Grace Factor implementation.
      * State cannot be set. Return true.
      *
-     * @param mixed $state the state constant to set
+     * @param string $state the state constant to set
      * @return bool
      */
     public function set_state(string $state): bool {

@@ -307,14 +307,14 @@ class factor extends \core\plugininfo\base {
             $stateb = $b->get_state();
 
             if ($statea === $state && $stateb !== $state) {
-                return -1;  // $a comes before $b
+                return -1;  // A comes before b.
             }
 
             if ($stateb === $state && $statea !== $state) {
-                return 1;   // $b comes before $a
+                return 1;   // B comes before a.
             }
 
-            return 0;       // they are the same, keep current order
+            return 0;       // They are the same, keep current order.
         });
 
         return $factors;
