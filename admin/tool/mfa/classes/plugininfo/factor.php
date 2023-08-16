@@ -124,32 +124,18 @@ class factor extends \core\plugininfo\base {
     }
 
     /**
-     * Finds active factors for current user.
+     * Finds active factors for a user.
+     * If user is not specified, current user is used.
      *
+     * @param mixed $user user object or null.
      * @return array of factor objects.
      */
-    public static function get_active_user_factor_types() {
+    public static function get_active_user_factor_types(mixed $user = null) {
         global $USER;
-        $return = [];
-        $factors = self::get_enabled_factors();
-
-        foreach ($factors as $factor) {
-            $userfactors = $factor->get_active_user_factors($USER);
-            if (count($userfactors) > 0) {
-                $return[] = $factor;
-            }
+        if (is_null($user)) {
+            $user = $USER;
         }
 
-        return $return;
-    }
-
-    /**
-     * Finds active factors for given user.
-     *
-     * @param stdClass $user the user to get types for.
-     * @return array of factor objects.
-     */
-    public static function get_active_other_user_factor_types($user) {
         $return = [];
         $factors = self::get_enabled_factors();
 
@@ -165,10 +151,11 @@ class factor extends \core\plugininfo\base {
 
     /**
      * Returns next factor to authenticate user.
+     * Only returns factors that require user input.
      *
      * @return mixed factor object the next factor to be authenticated or false.
      */
-    public static function get_next_user_factor() {
+    public static function get_next_user_login_factor(): mixed {
         $factors = self::get_active_user_factor_types();
 
         foreach ($factors as $factor) {
@@ -182,6 +169,22 @@ class factor extends \core\plugininfo\base {
         }
 
         return new \tool_mfa\local\factor\fallback();
+    }
+    /**
+     * Returns all factors that require user input.
+     *
+     * @return array of factor objects.
+     */
+    public static function get_all_user_login_factors(): array {
+        $factors = self::get_active_user_factor_types();
+        $loginfactors = [];
+        foreach ($factors as $factor) {
+            if ($factor->has_input()) {
+                $loginfactors[] = $factor;
+            }
+
+        }
+        return $loginfactors;
     }
 
     /**
@@ -289,5 +292,31 @@ class factor extends \core\plugininfo\base {
     public static function get_instance_from_id($factorid) {
         global $DB;
         return $DB->get_record('tool_mfa', ['id' => $factorid]);
+    }
+
+    /**
+     * Sorts factors by state.
+     *
+     * @param array $factors The factors to sort.
+     * @param string $state The state to sort by.
+     * @return array $factors The sorted factors.
+     */
+    public static function sort_factors_by_state(array $factors, string $state): array {
+        usort($factors, function ($a, $b) use ($state) {
+            $statea = $a->get_state();
+            $stateb = $b->get_state();
+
+            if ($statea === $state && $stateb !== $state) {
+                return -1;  // $a comes before $b
+            }
+
+            if ($stateb === $state && $statea !== $state) {
+                return 1;   // $b comes before $a
+            }
+
+            return 0;       // they are the same, keep current order
+        });
+
+        return $factors;
     }
 }
