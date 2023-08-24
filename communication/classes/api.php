@@ -452,6 +452,9 @@ class api {
                 );
             }
 
+            // Reload so the currently selected provider is used.
+            $this->reload();
+
             // Update provider record from form data.
             if ($instance !== null) {
                 $this->communication->get_form_provider()->save_form_data($instance);
@@ -515,8 +518,8 @@ class api {
             return;
         }
 
-        // No userids? don't bother doing anything.
-        if (empty($userids)) {
+        // No user IDs or this provider does not manage users? No action required.
+        if (empty($userids) || !$this->communication->supports_user_features()) {
             return;
         }
 
@@ -571,12 +574,14 @@ class api {
             return;
         }
 
-        if ($this->communication->get_provider() === processor::PROVIDER_NONE) {
+        $provider = $this->communication->get_provider();
+
+        if ($provider === processor::PROVIDER_NONE) {
             return;
         }
 
-        // No user ids? don't bother doing anything.
-        if (empty($userids)) {
+        // No user IDs or this provider does not manage users? No action required.
+        if (empty($userids) || !$this->communication->supports_user_features()) {
             return;
         }
 
