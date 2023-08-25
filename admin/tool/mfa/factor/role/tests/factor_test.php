@@ -33,12 +33,14 @@ class factor_test extends \advanced_testcase {
      * @covers ::get_roles
      */
     public function test_get_summary_condition() {
+        global $DB;
+
         $this->resetAfterTest();
 
         set_config('enabled', 1, 'factor_role');
         $rolefactor = \tool_mfa\plugininfo\factor::get_factor('role');
 
-        // Admin is disabled by default in this role.
+        // Admin is disabled by default in this factor.
         $selectedroles = get_config('factor_role', 'roles');
         $this->assertStringContainsString(
             $rolefactor->get_roles($selectedroles),
@@ -46,16 +48,26 @@ class factor_test extends \advanced_testcase {
         );
 
         // Disabled role factor for managers.
-        set_config('roles', '1', 'factor_role');
+        $managerrole = $DB->get_record('role', ['shortname' => 'manager']);
+        set_config('roles', $managerrole->id, 'factor_role');
 
-        $selectedroles = get_config('factor_role', 'roles');
         $this->assertStringContainsString(
-            $rolefactor->get_roles($selectedroles),
+            $rolefactor->get_roles($managerrole->id),
+            $rolefactor->get_summary_condition()
+        );
+
+        // Disabled role factor for teachers.
+        $teacherrole = $DB->get_record('role', ['shortname' => 'teacher']);
+        set_config('roles', $teacherrole->id, 'factor_role');
+
+        $this->assertStringContainsString(
+            $rolefactor->get_roles($teacherrole->id),
             $rolefactor->get_summary_condition()
         );
 
         // Disabled role factor for students.
-        set_config('roles', '5', 'factor_role');
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
+        set_config('roles', $studentrole->id, 'factor_role');
 
         $selectedroles = get_config('factor_role', 'roles');
         $this->assertStringContainsString(
@@ -63,8 +75,11 @@ class factor_test extends \advanced_testcase {
             $rolefactor->get_summary_condition()
         );
 
-        // Disabled role factor for admins, managers and students.
-        set_config('roles', 'admin,1,5', 'factor_role');
+        // Disabled role factor for admins, managers, teachers and students.
+        $managerrole = $DB->get_record('role', ['shortname' => 'manager']);
+        $teacherrole = $DB->get_record('role', ['shortname' => 'teacher']);
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
+        set_config('roles', "admin,$managerrole->id,$teacherrole->id,$studentrole->id", 'factor_role');
 
         $selectedroles = get_config('factor_role', 'roles');
         $this->assertStringContainsString(

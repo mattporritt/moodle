@@ -157,14 +157,19 @@ class factor extends object_factor_base {
 
         $roles = [];
         $selectedroles = explode(',', $selectedroles);
-        $records = $DB->get_records('role');
-        foreach ($records as $roleid => $roleobject) {
-            if (in_array('admin', $selectedroles)) {
-                $roles[] = get_string('administrator');
-            }
 
-            if (in_array($roleid, $selectedroles)) {
-                $roles[] = role_get_name($roleobject);
+        // Checks for admin role and gets its role name.
+        if (($key = array_search('admin', $selectedroles)) !== false) {
+            $roles[] = get_string('administrator');
+            unset($selectedroles[$key]);
+        }
+
+        // Gets role name for all non admin roles.
+        if (count($selectedroles) > 0) {
+            [$insql, $inparams] = $DB->get_in_or_equal($selectedroles);
+            $otherroles = $DB->get_records_select('role', 'id ' . $insql, $inparams);
+            foreach ($otherroles as $role) {
+                $roles[] = role_get_name($role);
             }
         }
 
