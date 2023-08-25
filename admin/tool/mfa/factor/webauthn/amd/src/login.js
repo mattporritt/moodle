@@ -25,9 +25,9 @@
 define(['factor_webauthn/utils'], function(utils) {
     return {
         init: function(getArgs) {
-            const idsubmitbutton = document.getElementById('id_submitbutton');
-            if (idsubmitbutton) {
-                idsubmitbutton.addEventListener('click', async function(e) {
+            const idSubmitButton = document.getElementById('id_submitbutton');
+            if (idSubmitButton) {
+                idSubmitButton.addEventListener('click', async function(e) {
                     e.preventDefault();
                     if (!navigator.credentials || !navigator.credentials.create) {
                         throw new Error('Browser not supported.');
@@ -53,8 +53,9 @@ define(['factor_webauthn/utils'], function(utils) {
                         userHandle: cred.response.userHandle ? utils.arrayBufferToBase64(cred.response.userHandle) : null
                     };
 
-                    document.getElementById('id_response_input').value = JSON.stringify(authenticatorAttestationResponse);
-                    document.getElementById('id_response_input').form.submit();
+                    const responseInput = document.getElementById('id_response_input');
+                    responseInput.value = JSON.stringify(authenticatorAttestationResponse);
+                    responseInput.form.submit();
                 });
             }
         }

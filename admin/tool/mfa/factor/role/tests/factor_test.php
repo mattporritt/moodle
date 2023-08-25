@@ -33,51 +33,43 @@ class factor_test extends \advanced_testcase {
      * @covers ::get_roles
      */
     public function test_get_summary_condition() {
-        $this->resetAfterTest(true);
+        $this->resetAfterTest();
 
         set_config('enabled', 1, 'factor_role');
         $rolefactor = \tool_mfa\plugininfo\factor::get_factor('role');
 
         // Admin is disabled by default in this role.
         $selectedroles = get_config('factor_role', 'roles');
-        $this->assertTrue(
-            strpos(
-                $rolefactor->get_summary_condition(),
-                $rolefactor->get_roles($selectedroles)
-            ) !== false
+        $this->assertStringContainsString(
+            $rolefactor->get_roles($selectedroles),
+            $rolefactor->get_summary_condition()
         );
 
         // Disabled role factor for managers.
         set_config('roles', '1', 'factor_role');
 
         $selectedroles = get_config('factor_role', 'roles');
-        $this->assertTrue(
-            strpos(
-                $rolefactor->get_summary_condition(),
-                $rolefactor->get_roles($selectedroles)
-            ) !== false
+        $this->assertStringContainsString(
+            $rolefactor->get_roles($selectedroles),
+            $rolefactor->get_summary_condition()
         );
 
         // Disabled role factor for students.
         set_config('roles', '5', 'factor_role');
 
         $selectedroles = get_config('factor_role', 'roles');
-        $this->assertTrue(
-            strpos(
-                $rolefactor->get_summary_condition(),
-                $rolefactor->get_roles($selectedroles)
-            ) !== false
+        $this->assertStringContainsString(
+            $rolefactor->get_roles($selectedroles),
+            $rolefactor->get_summary_condition()
         );
 
         // Disabled role factor for admins, managers and students.
         set_config('roles', 'admin,1,5', 'factor_role');
 
         $selectedroles = get_config('factor_role', 'roles');
-        $this->assertTrue(
-            strpos(
-                $rolefactor->get_summary_condition(),
-                $rolefactor->get_roles($selectedroles)
-            ) !== false
+        $this->assertStringContainsString(
+            $rolefactor->get_roles($selectedroles),
+            $rolefactor->get_summary_condition()
         );
 
         // Enable all roles.

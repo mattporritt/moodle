@@ -31,4 +31,4 @@ $plugin->requires     = 2023042400.00;   // Supports from 4.2.
 $plugin->component    = 'factor_cohort';
 $plugin->release      = 'v0.2';
 $plugin->maturity     = MATURITY_STABLE;
-$plugin->dependencies = ['tool_mfa' => 2022090600];
+$plugin->dependencies = ['tool_mfa' => 2023080300];

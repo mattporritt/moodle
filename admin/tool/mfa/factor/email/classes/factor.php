@@ -247,16 +247,6 @@ class factor extends object_factor_base {
     }
 
     /**
-     * Access the check_verification_code()
-     *
-     * @param string $code
-     * @return bool
-     */
-    public function unittest_verification_code($code) : bool {
-        return $this->check_verification_code($code);
-    }
-
-    /**
      * Cleans up email records once MFA passed.
      *
      * {@inheritDoc}

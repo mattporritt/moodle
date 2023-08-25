@@ -73,7 +73,6 @@ if ($hassiteconfig) {
         $plugin->load_settings($ADMIN, 'toolmfafolder', $hassiteconfig);
     }
 
-    // Moodle navigation.
     $ADMIN->add('reports', new admin_category('toolmfareports', get_string('mfareports', 'tool_mfa')));
 
     $ADMIN->add('toolmfareports',

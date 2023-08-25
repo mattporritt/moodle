@@ -138,8 +138,6 @@ class factor extends object_factor_base {
      * {@inheritDoc}
      */
     public function get_summary_condition() {
-        global $DB;
-
         $selectedroles = get_config('factor_role', 'roles');
         if (empty($selectedroles)) {
             return get_string('summarycondition', 'factor_role', get_string('none'));
@@ -158,16 +156,18 @@ class factor extends object_factor_base {
         global $DB;
 
         $roles = [];
-        foreach (explode(',', $selectedroles) as $role) {
-            if ($role === 'admin') {
+        $selectedroles = explode(',', $selectedroles);
+        $records = $DB->get_records('role');
+        foreach ($records as $roleid => $roleobject) {
+            if (in_array('admin', $selectedroles)) {
                 $roles[] = get_string('administrator');
-            } else {
-                $record = $DB->get_record('role', ['id' => $role]);
-                if (!empty($record)) {
-                    $roles[] = role_get_name($record);
-                }
+            }
+
+            if (in_array($roleid, $selectedroles)) {
+                $roles[] = role_get_name($roleobject);
             }
         }
+
         return implode(', ', $roles);
     }
 }

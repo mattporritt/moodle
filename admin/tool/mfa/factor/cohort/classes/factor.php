@@ -121,7 +121,6 @@ class factor extends object_factor_base {
      * {@inheritDoc}
      */
     public function get_summary_condition() {
-        global $DB;
         $selectedcohorts = get_config('factor_cohort', 'cohorts');
         if (empty($selectedcohorts)) {
             return get_string('summarycondition', 'factor_cohort', get_string('none'));
@@ -139,15 +138,11 @@ class factor extends object_factor_base {
     public function get_cohorts(string $selectedcohorts) : string {
         global $DB;
 
-        $cohorts = [];
-        foreach (explode(',', $selectedcohorts) as $cohort) {
-            if ($cohort === 'admin') {
-                $cohorts[] = get_string('administrator');
-            } else {
-                $record = $DB->get_record('cohort', ['id' => $cohort]);
-                $cohorts[] = $record->name;
-            }
-        }
+        $cohortids = explode(',', $selectedcohorts);
+        [$insql, $inparams] = $DB->get_in_or_equal($cohortids);
+        $sql = "SELECT id, name FROM {cohort} WHERE id $insql";
+        $cohorts = $DB->get_records_sql_menu($sql, $inparams);
+
         return implode(', ', $cohorts);
     }
 }

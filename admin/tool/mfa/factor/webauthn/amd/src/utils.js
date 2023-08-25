@@ -40,7 +40,7 @@ define([], function() {
                          str.substring(str.length - suffix.length) === suffix) {
                         str = str.substring(prefix.length, str.length - suffix.length);
 
-                        let binaryString = window.atob(str);
+                        const binaryString = window.atob(str);
                         let len = binaryString.length;
                         let bytes = new Uint8Array(len);
                         for (let i = 0; i < len; i++) {

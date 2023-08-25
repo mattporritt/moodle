@@ -33,42 +33,22 @@ class factor_test extends \advanced_testcase {
      * @covers ::get_cohorts
      */
     public function test_get_summary_condition() {
-        global $DB, $USER;
-        $this->resetAfterTest(true);
+        $this->resetAfterTest();
 
         set_config('enabled', 1, 'factor_cohort');
         $cohortfactor = \tool_mfa\plugininfo\factor::get_factor('cohort');
 
-        // Create a cohort.
-        $cohortid = $DB->insert_record('cohort', [
-            'idnumber' => null,
-            'name' => 'test',
-            'contextid' => \context_system::instance()->id,
-            'description' => '',
-            'descriptionformat' => FORMAT_HTML,
-            'visible' => 1,
-            'component' => '',
-            'theme' => '',
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ]);
-
-        // Add member to created cohort.
-        $DB->insert_record('cohort_members', [
-            'cohortid'  => $cohortid,
-            'userid'    => $USER->id,
-            'timeadded' => time()
-        ]);
+        $cohort = $this->getDataGenerator()->create_cohort();
+        $userassignover = $this->getDataGenerator()->create_user();
+        cohort_add_member($cohort->id, $userassignover->id);
 
         // Add the created cohortid into factor_cohort plugin.
-        set_config('cohorts', $cohortid, 'factor_cohort');
+        set_config('cohorts', $cohort->id, 'factor_cohort');
 
         $selectedcohorts = get_config('factor_cohort', 'cohorts');
-        $this->assertTrue(
-            strpos(
-                $cohortfactor->get_summary_condition(),
-                $cohortfactor->get_cohorts($selectedcohorts)
-            ) !== false
+        $this->assertStringContainsString(
+            $cohortfactor->get_cohorts($selectedcohorts),
+            $cohortfactor->get_summary_condition()
         );
     }
 }

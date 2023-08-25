@@ -31,4 +31,4 @@ $plugin->requires     = 2023042400.00;   // Supports from 4.2.
 $plugin->component    = 'factor_admin';
 $plugin->release      = 'v0.1';
 $plugin->maturity     = MATURITY_STABLE;
-$plugin->dependencies = ['tool_mfa' => 2019102400];
+$plugin->dependencies = ['tool_mfa' => 2023080300];
