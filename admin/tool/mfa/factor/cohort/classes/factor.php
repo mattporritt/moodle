@@ -19,6 +19,7 @@ namespace factor_cohort;
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../../../../../cohort/lib.php');
 
+use stdClass;
 use tool_mfa\local\factor\object_factor_base;
 
 /**
@@ -38,7 +39,7 @@ class factor extends object_factor_base {
      * @param stdClass $user the user to check against.
      * @return array
      */
-    public function get_all_user_factors($user) {
+    public function get_all_user_factors(stdClass $user): array {
         global $DB;
         $records = $DB->get_records('tool_mfa', ['userid' => $user->id, 'factor' => $this->name]);
         if (!empty($records)) {
@@ -64,7 +65,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function has_input() {
+    public function has_input(): bool {
         return false;
     }
 
@@ -74,7 +75,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function get_state() {
+    public function get_state(): string {
         global $USER;
         $cohortstring = get_config('factor_cohort', 'cohorts');
         // Nothing selected, everyone passes.
@@ -100,7 +101,7 @@ class factor extends object_factor_base {
      * @param mixed $state the state constant to set
      * @return bool
      */
-    public function set_state($state) {
+    public function set_state($state): bool {
         return true;
     }
 
@@ -108,9 +109,9 @@ class factor extends object_factor_base {
      * cohort implementation.
      * User can not influence. Result is whatever current state is.
      *
-     * @param \stdClass $user
+     * @param stdClass $user
      */
-    public function possible_states($user) {
+    public function possible_states(stdClass $user): array {
         return [$this->get_state()];
     }
 
@@ -120,7 +121,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function get_summary_condition() {
+    public function get_summary_condition(): string {
         $selectedcohorts = get_config('factor_cohort', 'cohorts');
         if (empty($selectedcohorts)) {
             return get_string('summarycondition', 'factor_cohort', get_string('none'));

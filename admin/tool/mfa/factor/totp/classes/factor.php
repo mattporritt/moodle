@@ -34,6 +34,7 @@ require_once(__DIR__.'/../extlib/ParagonIE/ConstantTime/Base32.php');
 
 use tool_mfa\local\factor\object_factor_base;
 use OTPHP\TOTP;
+use stdClass;
 
 /**
  * TOTP factor class.
@@ -100,7 +101,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function get_state() {
+    public function get_state(): string {
         global $USER;
         $userfactors = $this->get_active_user_factors($USER);
 
@@ -116,9 +117,9 @@ class factor extends object_factor_base {
      * TOTP Factor implementation.
      *
      * @param \MoodleQuickForm $mform
-     * @return object $mform
+     * @return \MoodleQuickForm $mform
      */
-    public function setup_factor_form_definition($mform) {
+    public function setup_factor_form_definition(\MoodleQuickForm $mform): \MoodleQuickForm {
         $secret = $this->generate_secret_code();
         $mform->addElement('hidden', 'secret', $secret);
         $mform->setType('secret', PARAM_ALPHANUM);
@@ -130,9 +131,9 @@ class factor extends object_factor_base {
      * TOTP Factor implementation.
      *
      * @param \MoodleQuickForm $mform
-     * @return object $mform
+     * @return \MoodleQuickForm $mform
      */
-    public function setup_factor_form_definition_after_data($mform) {
+    public function setup_factor_form_definition_after_data(\MoodleQuickForm $mform): \MoodleQuickForm {
         global $OUTPUT, $SITE, $USER;
 
         // Array of elements to allow XSS.
@@ -220,7 +221,7 @@ class factor extends object_factor_base {
      * @param array $data
      * @return array
      */
-    public function setup_factor_form_validation($data) {
+    public function setup_factor_form_validation(array $data): array {
         $errors = [];
 
         $totp = TOTP::create($data['secret']);
@@ -235,9 +236,9 @@ class factor extends object_factor_base {
      * TOTP Factor implementation.
      *
      * @param \MoodleQuickForm $mform
-     * @return object $mform
+     * @return \MoodleQuickForm $mform
      */
-    public function login_form_definition($mform) {
+    public function login_form_definition(\MoodleQuickForm $mform): \MoodleQuickForm {
 
         $mform->disable_form_change_checker();
         $mform->addElement(new \tool_mfa\local\form\verification_field());
@@ -253,7 +254,7 @@ class factor extends object_factor_base {
      * @param array $data
      * @return array
      */
-    public function login_form_validation($data) {
+    public function login_form_validation(array $data): array {
         global $USER;
         $factors = $this->get_active_user_factors($USER);
         $result = ['verificationcode' => get_string('error:wrongverification', 'factor_totp')];
@@ -339,11 +340,11 @@ class factor extends object_factor_base {
      * @param stdClass $data
      * @return stdClass the factor record, or null.
      */
-    public function setup_user_factor($data) {
+    public function setup_user_factor(stdClass $data): stdClass|null {
         global $DB, $USER;
 
         if (!empty($data->secret)) {
-            $row = new \stdClass();
+            $row = new stdClass();
             $row->userid = $USER->id;
             $row->factor = $this->name;
             $row->secret = $data->secret;
@@ -381,7 +382,7 @@ class factor extends object_factor_base {
      * @param stdClass $user the user to check against.
      * @return array
      */
-    public function get_all_user_factors($user) {
+    public function get_all_user_factors($user): array {
         global $DB;
         return $DB->get_records('tool_mfa', ['userid' => $user->id, 'factor' => $this->name]);
     }
@@ -391,7 +392,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function has_revoke() {
+    public function has_revoke(): bool {
         return true;
     }
 
@@ -400,7 +401,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function has_setup() {
+    public function has_setup(): bool {
         return true;
     }
 
@@ -409,7 +410,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function show_setup_buttons() {
+    public function show_setup_buttons(): bool {
         return true;
     }
 
@@ -419,7 +420,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function post_pass_state() {
+    public function post_pass_state(): void {
         return;
     }
 
@@ -427,9 +428,9 @@ class factor extends object_factor_base {
      * TOTP Factor implementation.
      * TOTP cannot return fail state.
      *
-     * @param \stdClass $user
+     * @param stdClass $user
      */
-    public function possible_states($user) {
+    public function possible_states(stdClass $user): array {
         return [
             \tool_mfa\plugininfo\factor::STATE_PASS,
             \tool_mfa\plugininfo\factor::STATE_NEUTRAL,
@@ -442,7 +443,7 @@ class factor extends object_factor_base {
      *
      * {@inheritDoc}
      */
-    public function get_setup_string() {
+    public function get_setup_string(): string {
         return get_string('factorsetup', 'factor_totp');
     }
 }

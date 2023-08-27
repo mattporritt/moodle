@@ -16,6 +16,8 @@
 
 namespace tool_mfa;
 
+use dml_exception;
+
 /**
  * MFA management class.
  *
@@ -40,8 +42,10 @@ class manager {
 
     /**
      * Displays a debug table with current factor information.
+     *
+     * @return void
      */
-    public static function display_debug_notification() {
+    public static function display_debug_notification(): void {
         global $OUTPUT, $PAGE;
 
         if (!get_config('tool_mfa', 'debugmode')) {
@@ -142,7 +146,7 @@ class manager {
      *
      * @return int
      */
-    public static function get_total_weight() {
+    public static function get_total_weight(): int {
         $totalweight = 0;
         $factors = \tool_mfa\plugininfo\factor::get_active_user_factor_types();
 
@@ -162,7 +166,7 @@ class manager {
      * @return bool
      * @throws \dml_exception
      */
-    public static function is_factorid_valid($factorid, $user) {
+    public static function is_factorid_valid($factorid, $user): bool {
         global $DB;
         return $DB->record_exists('tool_mfa', ['userid' => $user->id, 'id' => $factorid]);
     }
@@ -172,7 +176,7 @@ class manager {
      *
      * @return void
      */
-    public static function cannot_login() {
+    public static function cannot_login(): void {
         global $ME, $PAGE, $SESSION, $USER;
 
         // Determine page URL without triggering warnings from $PAGE.
@@ -205,7 +209,7 @@ class manager {
      *
      * @return void
      */
-    public static function mfa_logout() {
+    public static function mfa_logout(): void {
         $authsequence = get_enabled_auth_plugins();
         foreach ($authsequence as $authname) {
             $authplugin = get_auth_plugin($authname);
@@ -219,7 +223,7 @@ class manager {
      *
      * @return mixed a STATE variable from plugininfo
      */
-    public static function get_status() {
+    public static function get_status(): string {
         global $SESSION;
 
         // Check for any instant fail states.
@@ -264,7 +268,7 @@ class manager {
      * @param bool $shouldreload whether the function should reload (used for auth.php).
      * @return void
      */
-    public static function resolve_mfa_status($shouldreload = false) {
+    public static function resolve_mfa_status($shouldreload = false): void {
         global $SESSION;
 
         $state = self::get_status();
@@ -298,7 +302,7 @@ class manager {
      *
      * @return bool true if user has passed enough factors.
      */
-    public static function passed_enough_factors() {
+    public static function passed_enough_factors(): bool {
 
         // Check for any instant fail states.
         $factors = \tool_mfa\plugininfo\factor::get_active_user_factor_types();
@@ -321,7 +325,7 @@ class manager {
      *
      * @return void
      */
-    public static function set_pass_state() {
+    public static function set_pass_state(): void {
         global $DB, $SESSION, $USER;
         if (!isset($SESSION->tool_mfa_authenticated)) {
             $SESSION->tool_mfa_authenticated = true;
@@ -390,7 +394,7 @@ class manager {
      *
      * @return void
      */
-    private static function update_pass_time() {
+    private static function update_pass_time(): void {
         global $DB, $USER;
 
         $exists = $DB->record_exists('tool_mfa_auth', ['userid' => $USER->id]);
@@ -409,7 +413,7 @@ class manager {
      * @param bool $preventredirect
      * @return int
      */
-    public static function should_require_mfa($url, $preventredirect) {
+    public static function should_require_mfa($url, $preventredirect): int {
         global $CFG, $USER, $SESSION;
 
         // If no cookies then no session so cannot do MFA.
@@ -544,8 +548,9 @@ class manager {
     /**
      * Clears the redirect counter for infinite redirect loops. Called from auth.php when a valid load is resolved.
      *
+     * @return void
      */
-    public static function clear_redirect_counter() {
+    public static function clear_redirect_counter(): void {
         global $SESSION;
 
         unset($SESSION->mfa_redir_referer);
@@ -557,7 +562,7 @@ class manager {
      *
      * @return array
      */
-    public static function get_no_redirect_urls() {
+    public static function get_no_redirect_urls(): array {
         $factors = \tool_mfa\plugininfo\factor::get_factors();
         $urls = [
             new \moodle_url('/login/logout.php'),
@@ -579,8 +584,10 @@ class manager {
 
     /**
      * Sleeps for an increasing period of time.
+     *
+     * @return void
      */
-    public static function sleep_timer() {
+    public static function sleep_timer(): void {
         global $USER;
 
         $duration = get_user_preferences('mfa_sleep_duration', null, $USER);
@@ -608,7 +615,7 @@ class manager {
      * @return void
      */
     public static function require_auth($courseorid = null, $autologinguest = null, $cm = null,
-    $setwantsurltome = null, $preventredirect = null) {
+    $setwantsurltome = null, $preventredirect = null): void {
         global $PAGE, $SESSION, $FULLME;
 
         // Guest user should never interact with MFA,
@@ -675,7 +682,7 @@ class manager {
      * @return bool true or exception
      * @throws dml_exception
      */
-    public static function set_factor_config($data, $factor) {
+    public static function set_factor_config($data, $factor): bool|dml_exception {
         $factorconf = get_config($factor);
         foreach ($data as $key => $newvalue) {
             if (empty($factorconf->$key)) {
@@ -698,7 +705,7 @@ class manager {
      * @return bool
      * @throws \dml_exception
      */
-    public static function is_ready() {
+    public static function is_ready(): bool {
         global $CFG, $USER;
 
         if (!empty($CFG->upgraderunning)) {
@@ -734,7 +741,7 @@ class manager {
      * @return void
      * @throws dml_exception
      */
-    public static function do_factor_action($factorname, $action) {
+    public static function do_factor_action($factorname, $action): void {
         $order = explode(',', get_config('tool_mfa', 'factor_order'));
         $key = array_search($factorname, $order);
 
@@ -780,7 +787,7 @@ class manager {
      *
      * @return bool
      */
-    public static function possible_factor_setup() {
+    public static function possible_factor_setup(): bool {
         global $USER;
 
         // Get all active factors.
@@ -812,8 +819,10 @@ class manager {
 
     /**
      * Gets current user weight, up until first unknown factor.
+     *
+     * @return int
      */
-    public static function get_cumulative_weight() {
+    public static function get_cumulative_weight(): int {
         $factors = \tool_mfa\plugininfo\factor::get_active_user_factor_types();
         $totalweight = 0;
         foreach ($factors as $factor) {
@@ -836,7 +845,7 @@ class manager {
      * @param string $factorname the name of the factor.
      * @return bool true if factor is pending.
      */
-    public static function check_factor_pending($factorname) {
+    public static function check_factor_pending($factorname): bool {
         $factors = \tool_mfa\plugininfo\factor::get_active_user_factor_types();
         // Setup vars.
         $pending = [];
