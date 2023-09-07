@@ -149,7 +149,7 @@ abstract class object_factor_base implements object_factor {
      * Dummy implementation. Should be overridden in child class.
      *
      * @param \MoodleQuickForm $mform
-     * @return object $mform
+     * @return \MoodleQuickForm $mform
      */
     public function setup_factor_form_definition(\MoodleQuickForm $mform): \MoodleQuickForm {
         return $mform;
@@ -161,7 +161,7 @@ abstract class object_factor_base implements object_factor {
      * Dummy implementation. Should be overridden in child class.
      *
      * @param \MoodleQuickForm $mform
-     * @return object $mform
+     * @return \MoodleQuickForm $mform
      */
     public function setup_factor_form_definition_after_data(\MoodleQuickForm $mform): \MoodleQuickForm {
         return $mform;
@@ -229,7 +229,7 @@ abstract class object_factor_base implements object_factor {
      * Dummy implementation. Should be overridden in child class.
      *
      * @param \MoodleQuickForm $mform
-     * @return object $mform
+     * @return \MoodleQuickForm $mform
      */
     public function login_form_definition(\MoodleQuickForm $mform): \MoodleQuickForm {
         return $mform;
@@ -241,7 +241,7 @@ abstract class object_factor_base implements object_factor {
      * Dummy implementation. Should be overridden in child class.
      *
      * @param \MoodleQuickForm $mform
-     * @return object $mform
+     * @return \MoodleQuickForm $mform
      */
     public function login_form_definition_after_data(\MoodleQuickForm $mform): \MoodleQuickForm {
         return $mform;
