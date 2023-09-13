@@ -536,14 +536,14 @@ class renderer extends \plugin_renderer_base {
      *
      * In certain situations, includes a script element which adds autosubmission behaviour.
      *
-     * @param \HTML_QuickForm_element $element element
+     * @param \MoodleQuickForm_* $element element
      * @param bool $required if input is required field
      * @param bool $advanced if input is an advanced field
      * @param string|null $error error message to display
      * @param bool $ingroup True if this element is rendered as part of a group
      * @return mixed string|bool
      */
-    public function mform_element(HTML_QuickForm_element $element, bool $required,
+    public function mform_element($element, bool $required,
         bool $advanced, string|null $error, bool $ingroup): string|bool {
         $script = null;
         if ($element instanceof \tool_mfa\local\form\verification_field) {

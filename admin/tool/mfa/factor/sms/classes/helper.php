@@ -64,7 +64,8 @@ class helper {
         // Create partial num for display.
         $len = strlen($phonenumber);
         // Keep last 3 characters.
-        $redacted = str_repeat('x', $len - 3);
+        $middledot = "\u{00B7}";
+        $redacted = str_repeat($middledot, $len - 3);
         $redacted .= substr($phonenumber, -3);
         return $redacted;
     }

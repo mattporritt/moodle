@@ -822,7 +822,7 @@ class manager {
      *
      * @return int $totalweight Total weight of all factors.
      */
-    
+
     public static function get_cumulative_weight(): int {
         $factors = factor::get_active_user_factor_types();
         // Factor order is important here, so sort the factors by state.

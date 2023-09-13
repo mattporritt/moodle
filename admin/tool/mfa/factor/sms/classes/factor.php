@@ -31,6 +31,9 @@ use tool_mfa\local\factor\object_factor_base;
  */
 class factor extends object_factor_base {
 
+    /** @var string Factor icon */
+    protected $icon = 'fa-sms';
+
     /**
      * Defines login form definition page for SMS Factor.
      *
@@ -50,9 +53,7 @@ class factor extends object_factor_base {
      * @return \MoodleQuickForm $mform
      */
     public function login_form_definition_after_data(\MoodleQuickForm $mform): \MoodleQuickForm {
-        $instanceid = $this->generate_and_sms_code();
-        $mform = $this->add_redacted_sent_message($mform, $instanceid);
-        // Disable the form check prompt.
+        $this->generate_and_sms_code();
         $mform->disable_form_change_checker();
         return $mform;
     }
@@ -129,7 +130,7 @@ class factor extends object_factor_base {
         $mform->setType('verificationcode', PARAM_ALPHANUM);
 
         // Decide on number from session or profile.
-        $number = !empty($SESSION->tool_mfa_sms_number) ? $SESSION->tool_mfa_sms_number : $number = $USER->phone2;
+        $number = !empty($SESSION->tool_mfa_sms_number) ? $SESSION->tool_mfa_sms_number : $USER->phone2;
 
         $duration = get_config('factor_sms', 'duration');
         $code = $this->secretmanager->create_secret($duration, true);
@@ -398,5 +399,21 @@ class factor extends object_factor_base {
             \tool_mfa\plugininfo\factor::STATE_FAIL,
             \tool_mfa\plugininfo\factor::STATE_UNKNOWN,
         ];
+    }
+
+    /**
+     * Get the login description associated with this factor.
+     * Override for factors that have a user input.
+     *
+     * @return string The login option.
+     */
+    public function get_login_desc(): string {
+        global $DB, $USER;
+        // Get phone number, only available from DB at this stage.
+        $phonenumber = $DB->get_field('tool_mfa', 'label', ['factor' => $this->name, 'userid' => $USER->id, 'revoked' => 0]);
+        // Get redacted number.
+        $redacted = helper::redact_phonenumber($phonenumber);
+
+        return get_string('logindesc', 'factor_'.$this->name, $redacted);
     }
 }
