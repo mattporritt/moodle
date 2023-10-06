@@ -89,10 +89,13 @@
     {{/content}}
 {{/ core/popover_region }}
 {{#js}}
-require(['jquery', 'message_popup/notification_popover_controller'], function($, Controller) {
+require(['jquery', 'message_popup/notification_popover_controller', 'message_popup/notification_popover_push'],
+function($, Controller, Push) {
     var container = $('#nav-notification-popover-container');
     var controller = new Controller(container);
     controller.registerEventListeners();
     controller.registerListNavigationEventListeners();
+    Push.init();
 });
+
 {{/js}}
