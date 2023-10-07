@@ -13,32 +13,39 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-export const init = async() => {
+export const setupWorker = async() => {
     window.console.log('push lib loaded');
+    let registration;
 
     try {
-        // Register the service worker
+        // Register the service worker.
+        // As the service worker listens for push notifications,
+        // the user will be prompted to allow push notifications.
         const workeruri = '/message/output/popup/amd/build/notification_service_worker.min.js';
-        const registration = await navigator.serviceWorker.register(workeruri);
-
-        // Attempt to retrieve existing push subscription
-        let subscription = await registration.pushManager.getSubscription();
-
-        // If no existing subscription, subscribe
-        if (!subscription) {
-            subscription = await registration.pushManager.subscribe({userVisibleOnly: true});
-        }
-
+        registration = await navigator.serviceWorker.register(workeruri);
     } catch (error) {
         if (error.name === 'NotAllowedError') {
             // Handle the specific case where permission was denied.
             window.console.error('Permission for Push API has been denied');
-
             // TODO: Show a message to the user to explain why they need to enable Push.
             // Maybe save this as a preference so we don't show it again?
         } else {
-            // General error handling
-            window.console.error('Service Worker registration or push subscription failed:', error);
+            // We have a non permission error, re-throw.
+            throw error;
         }
+    }
+    return registration;
+};
+
+export const init = async() => {
+    // Set up the service worker.
+    const registration = await setupWorker();
+
+    // Attempt to retrieve existing push subscription.
+    let subscription = await registration.pushManager.getSubscription();
+
+    // If no existing subscription, subscribe
+    if (!subscription) {
+        await registration.pushManager.subscribe({userVisibleOnly: true});
     }
 };

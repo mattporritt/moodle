@@ -28,10 +28,15 @@
 function xmldb_message_popup_install() {
     global $DB;
 
-    $result = true;
-
+    // Add the processor to the list of available processors.
     $provider = new stdClass();
     $provider->name  = 'popup';
     $DB->insert_record('message_processors', $provider);
-    return $result;
+
+    // Generate and store in config the VAPID keys.
+    $keys = \message_popup\push::generate_vapid_keys();
+    set_config('vapidprivatekey', $keys['privatekey'], 'message_popup');
+    set_config('vapidpublickey', $keys['publickey'], 'message_popup');
+
+    return true;
 }
