@@ -47,5 +47,19 @@ function xmldb_message_popup_upgrade($oldversion) {
     // Automatically generated Moodle v4.3.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2023100900.01) {
+        // First check if we have VAPID keys stored.
+        $vapidprivatekey = get_config('message_popup', 'vapidprivatekey');
+
+        // If we don't have a VAPID private key stored, then we need to generate them.
+        if (empty($vapidprivatekey)) {
+            // Generate and store in config the VAPID keys.
+            $keys = \message_popup\push::generate_vapid_keys();
+            set_config('vapidprivatekey', $keys['privatekey'], 'message_popup');
+            set_config('vapidpublickey', $keys['publickey'], 'message_popup');
+        }
+
+        upgrade_plugin_savepoint(true, 2023100900.01, 'message', 'popup');
+    }
     return true;
 }
