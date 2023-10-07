@@ -43,4 +43,13 @@ $functions = array(
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
         'readonlysession' => true,
     ),
+    'message_popup_register_push_subscription' => [
+        'classname' => 'message_popup_external',
+        'methodname' => 'register_push_subscription',
+        'classpath' => 'message/output/popup/externallib.php',
+        'description' => 'Register the push subscription for a user',
+        'type' => 'read',
+        'ajax' => true,
+        'readonlysession' => true,
+    ],
 );

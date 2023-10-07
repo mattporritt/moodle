@@ -242,4 +242,6 @@ class message_popup_external extends external_api {
     public static function get_unread_popup_notification_count_returns() {
         return new external_value(PARAM_INT, 'The count of unread popup notifications');
     }
+
+    
 }

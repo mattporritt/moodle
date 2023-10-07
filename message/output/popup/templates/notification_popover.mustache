@@ -28,13 +28,15 @@
     Context variables required for this template:
     * userid the logged in user id
     * urls The URLs for the popover
+    * vapidpublickey The VAPID public key for push notifications.
 
     Example context (json):
     {
         "userid": 3,
         "urls": {
             "preferences": "http://www.moodle.com"
-        }
+        },
+        "vapidpublickey": "asdf2342adea234dfafea67fda"
     }
 
 }}
@@ -95,7 +97,7 @@ function($, Controller, Push) {
     var controller = new Controller(container);
     controller.registerEventListeners();
     controller.registerListNavigationEventListeners();
-    Push.init();
+    Push.init('{{{vapidpublickey}}}');
 });
 
 {{/js}}

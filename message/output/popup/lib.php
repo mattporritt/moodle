@@ -53,6 +53,7 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
                 'seeall' => (new moodle_url('/message/output/popup/notifications.php'))->out(),
                 'preferences' => $preferencesurl ? $preferencesurl->out() : null,
             ],
+            'vapidpublickey' => get_config('message_popup', 'vapidpublickey')
         ];
         $output .= $renderer->render_from_template('message_popup/notification_popover', $context);
     }

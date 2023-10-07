@@ -13,7 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-export const setupWorker = async() => {
+import Ajax from 'core/ajax';
+
+const setupWorker = async() => {
     window.console.log('push lib loaded');
     let registration;
 
@@ -37,15 +39,42 @@ export const setupWorker = async() => {
     return registration;
 };
 
-export const init = async() => {
+const registerPushSubscription = async(subscription) => {
+    const request = {
+        methodname: 'message_popup_register_push_subscription',
+        args: {
+            subscription: subscription
+        }
+    };
+
+    return Ajax.call([request])[0];
+};
+
+/**
+ * Initialise the push notification service.
+ *
+ * @param vapidpublickey The public key to use for push notifications.
+ */
+export const init = async(vapidpublickey) => {
     // Set up the service worker.
-    const registration = await setupWorker();
+    window.console.log(vapidpublickey);
+    const workerRegistration = await setupWorker();
 
     // Attempt to retrieve existing push subscription.
-    let subscription = await registration.pushManager.getSubscription();
+    let subscription = await workerRegistration.pushManager.getSubscription();
 
-    // If no existing subscription, subscribe
+    // If no existing subscription, subscribe.
     if (!subscription) {
-        await registration.pushManager.subscribe({userVisibleOnly: true});
+        const options = {
+            userVisibleOnly: true, //
+            applicationServerKey: vapidpublickey
+        };
+
+        // Get the push subscription object.
+        subscription = await workerRegistration.pushManager.subscribe(options);
+
+        // Register the subscription with the server.
+        await registerPushSubscription(subscription);
+
     }
 };
