@@ -243,5 +243,45 @@ class message_popup_external extends external_api {
         return new external_value(PARAM_INT, 'The count of unread popup notifications');
     }
 
-    
+    /**
+     * Register push subscription parameters description.
+     *
+     * @return external_function_parameters
+     * @since 4.3
+     */
+    public static function register_push_subscription_parameters() {
+        return new external_function_parameters(array(
+                'subscription' => new external_value(PARAM_RAW, 'The subscription data encoded as JSON')
+        ));
+    }
+
+    public static function register_push_subscription($subscription) {
+        // Parameter validation.
+        $params = self::validate_parameters(
+                self::register_push_subscription_parameters(),
+                ['subscription' => $subscription]
+        );
+
+        // Context validation and permission check.
+        $context = context_system::instance();
+        self::validate_context($context);
+        // TODO: Check capability.
+
+        $subscription = $params['subscription'];
+        $subscription = json_decode($subscription, true);
+
+        $result = \message_popup\push::register_push_subscription($subscription);
+
+        return json_encode('{}');
+    }
+
+    /**
+     * Returns the subscription response from the server as JSON.
+     *
+     * @return external_value
+     * @since 4.3
+     */
+    public static function register_push_subscription_returns() {
+        return new external_value(PARAM_RAW, 'Server response as JSON');
+    }
 }

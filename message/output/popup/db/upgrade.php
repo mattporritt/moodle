@@ -44,10 +44,14 @@ function xmldb_message_popup_upgrade($oldversion) {
     // Automatically generated Moodle v4.2.0 release upgrade line.
     // Put any upgrade step following this.
 
+
     // Automatically generated Moodle v4.3.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2023100900.01) {
+    if ($oldversion < 2023100900.03) {
+        global $DB;
+        $dbman = $DB->get_manager();
+
         // First check if we have VAPID keys stored.
         $vapidprivatekey = get_config('message_popup', 'vapidprivatekey');
 
@@ -59,7 +63,27 @@ function xmldb_message_popup_upgrade($oldversion) {
             set_config('vapidpublickey', $keys['publickey'], 'message_popup');
         }
 
-        upgrade_plugin_savepoint(true, 2023100900.01, 'message', 'popup');
+        // Define table message_popup_subscriptions to be created.
+        $table = new xmldb_table('message_popup_subscriptions');
+
+        // Adding fields to table message_popup_subscriptions.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('endpoint', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('p256dh', XMLDB_TYPE_CHAR, '90', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('auth', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table message_popup_subscriptions.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('useridkey', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+
+        // Conditionally launch create table for message_popup_subscriptions.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2023100900.03, 'message', 'popup');
     }
     return true;
 }
