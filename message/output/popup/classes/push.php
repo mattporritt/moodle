@@ -25,61 +25,110 @@ namespace message_popup;
  */
 class push {
 
-    public static function base64url_encode(string $data): string {
+    /**
+     * Encodes a string to URL-safe Base64.
+     *
+     * @param string $data The data to encode.
+     * @return string The URL-safe Base64 encoded string.
+     */
+    private static function base64url_encode(string $data): string {
+        // Convert to Base64 and then replace '+' with '-' and '/' with '_'.
         $encoded = strtr(base64_encode($data), '+/', '-_');
+
+        // Trim any padding characters and return.
         return rtrim($encoded, '=');
     }
 
-    public static function base64url_decode(string $data): string {
+    /**
+     * Decodes a URL-safe Base64 string.
+     *
+     * @param string $data The data to decode.
+     * @return string The decoded string.
+     */
+    private static function base64url_decode(string $data): string {
+        // Replace '-' with '+' and '_' with '/' then decode from Base64.
         return base64_decode(strtr($data, '-_', '+/'), true);
     }
 
-    private static function createECKeyUsingOpenSSL(): array {
-        $key = openssl_pkey_new([
+    /**
+     * Pads, encodes, and ensures the length of a string.
+     *
+     * @param string $data The data to process.
+     * @param int $length The desired length of the string.
+     * @return string The processed string.
+     */
+    private static function process_key_data(string $data, int $length): string {
+        return self::base64url_encode(
+                str_pad($data, $length, "\0", STR_PAD_LEFT)
+        );
+    }
+
+    /**
+     * Creates an elliptic curve key pair using OpenSSL.
+     *
+     *  The public key is exported as x and y coordinates because in
+     *  elliptic curve cryptography (ECC), a public key is a point
+     *  on an elliptic curve, which is specified by these coordinates.
+     *
+     * @return array An array containing the private and public keys.
+     * @throws \coding_exception
+     */
+    private static function create_ec_key_pair(): array {
+        $config = [
                 'curve_name' => 'prime256v1',
                 'private_key_type' => OPENSSL_KEYTYPE_EC,
-        ]);
+        ];
+        $key = openssl_pkey_new($config);
+        if (!$key) {
+            throw new \coding_exception('Failed to create key pair');
+        }
 
-        openssl_pkey_export($key, $out);
-        $res = openssl_pkey_get_private($out);
-        $details = openssl_pkey_get_details($res);
+        openssl_pkey_export($key, $out);  // Export the key into a string.
+        $resource = openssl_pkey_get_private($out);  // Get the private key resource.
+        $details = openssl_pkey_get_details($resource);  // Get the key details.
 
+        // Return the private and public keys, ensuring they are padded correctly.
         return [
-                'd' => self::base64url_encode(
-                        str_pad((string) $details['ec']['d'], 32, "\0", STR_PAD_LEFT)
-                ),
-                'x' => self::base64url_encode(
-                        str_pad((string) $details['ec']['x'], 32, "\0", STR_PAD_LEFT)
-                ),
-                'y' => self::base64url_encode(
-                        str_pad((string) $details['ec']['y'], 32, "\0", STR_PAD_LEFT)
-                ),
+                'd' => self::process_key_data((string) $details['ec']['d'], 32),
+                'x' => self::process_key_data((string) $details['ec']['x'], 32),
+                'y' => self::process_key_data((string) $details['ec']['y'], 32),
         ];
     }
 
-    public static function serializePublicKeyFromJWK(array $jwk): string
+    /**
+     * Serializes a public key provided as elliptic curve coordinates
+     * into a serialized hexadecimal string.
+     *
+     * @param array $coords The array containing the coordinates.
+     * @return string The serialized public key.
+     */
+    public static function serialize_public_key(array $coords): string
     {
-        $hexString = '04';
-        $hexString .= str_pad(bin2hex(self::base64url_decode($jwk['x'])), 64, '0', STR_PAD_LEFT);
-        $hexString .= str_pad(bin2hex(self::base64url_decode($jwk['y'])), 64, '0', STR_PAD_LEFT);
+        $hexString = '04';  // The prefix indicating uncompressed form.
+        // Append the x and y coordinates, padded and decoded from URL-safe Base64.
+        $hexString .= str_pad(bin2hex(self::base64url_decode($coords['x'])), 64, '0', STR_PAD_LEFT);
+        $hexString .= str_pad(bin2hex(self::base64url_decode($coords['y'])), 64, '0', STR_PAD_LEFT);
 
         return $hexString;
     }
 
     /**
-     * Generate the VAPID keys for push notifications.
+     * Generates VAPID keys for push notifications.
      *
-     * @return array
+     * @return array An array containing the URL-safe Base64 encoded private and public keys.
      */
     public static function generate_vapid_keys(): array {
-        $keyarray = self::createECKeyUsingOpenSSL();
+        $keyarray = self::create_ec_key_pair();  // Create a key pair.
 
-        $binaryPublicKey = hex2bin(self::serializePublicKeyFromJWK($keyarray));
+        // Serialize, decode, and encode the public key.
+        $binaryPublicKey = hex2bin(self::serialize_public_key($keyarray));
         $publickeybase64 = self::base64url_encode($binaryPublicKey);
 
+        // Decode and encode the private key.
         $binaryPrivateKey = hex2bin(str_pad(bin2hex(self::base64url_decode($keyarray['d'])), 64, '0', STR_PAD_LEFT));
         $privatekeybase64 = self::base64url_encode($binaryPrivateKey);
 
+        // Return the keys.
         return [
                 'privatekey' => $privatekeybase64,
                 'publickey' => $publickeybase64
