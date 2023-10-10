@@ -16,9 +16,6 @@
 
 namespace message_popup;
 
-use Base64Url\Base64Url;
-use Minishlink\WebPush\WebPush;
-
 /**
  * Class used to return information to display for the message popup.
  *
@@ -28,37 +25,34 @@ use Minishlink\WebPush\WebPush;
  */
 class push {
 
-    // Helper function to perform Base64URL encoding
-    public static function base64url_encode($data) {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    public static function base64url_encode(string $data): string {
+        $encoded = strtr(base64_encode($data), '+/', '-_');
+        return rtrim($encoded, '=');
+    }
+
+    public static function base64url_decode(string $data): string {
+        return base64_decode(strtr($data, '-_', '+/'), true);
     }
 
     private static function createECKeyUsingOpenSSL(): array {
-        $curve = "prime256v1";
-        $nistCurveSize = 256;
-
         $key = openssl_pkey_new([
-                'curve_name' => $curve,
+                'curve_name' => 'prime256v1',
                 'private_key_type' => OPENSSL_KEYTYPE_EC,
         ]);
 
         openssl_pkey_export($key, $out);
-
         $res = openssl_pkey_get_private($out);
-
         $details = openssl_pkey_get_details($res);
 
         return [
-                'kty' => 'EC',
-                'crv' => $curve,
                 'd' => self::base64url_encode(
-                        str_pad((string) $details['ec']['d'], (int) ceil($nistCurveSize / 8), "\0", STR_PAD_LEFT)
+                        str_pad((string) $details['ec']['d'], 32, "\0", STR_PAD_LEFT)
                 ),
                 'x' => self::base64url_encode(
-                        str_pad((string) $details['ec']['x'], (int) ceil($nistCurveSize / 8), "\0", STR_PAD_LEFT)
+                        str_pad((string) $details['ec']['x'], 32, "\0", STR_PAD_LEFT)
                 ),
                 'y' => self::base64url_encode(
-                        str_pad((string) $details['ec']['y'], (int) ceil($nistCurveSize / 8), "\0", STR_PAD_LEFT)
+                        str_pad((string) $details['ec']['y'], 32, "\0", STR_PAD_LEFT)
                 ),
         ];
     }
@@ -66,8 +60,8 @@ class push {
     public static function serializePublicKeyFromJWK(array $jwk): string
     {
         $hexString = '04';
-        $hexString .= str_pad(bin2hex(Base64Url::decode($jwk['x'])), 64, '0', STR_PAD_LEFT);
-        $hexString .= str_pad(bin2hex(Base64Url::decode($jwk['y'])), 64, '0', STR_PAD_LEFT);
+        $hexString .= str_pad(bin2hex(self::base64url_decode($jwk['x'])), 64, '0', STR_PAD_LEFT);
+        $hexString .= str_pad(bin2hex(self::base64url_decode($jwk['y'])), 64, '0', STR_PAD_LEFT);
 
         return $hexString;
     }
@@ -78,35 +72,13 @@ class push {
      * @return array
      */
     public static function generate_vapid_keys(): array {
-        $config = [
-                "curve_name" => "prime256v1",
-                "private_key_type" => OPENSSL_KEYTYPE_EC,
-        ];
-
-        $privatekeyresource = openssl_pkey_new($config);
-        openssl_pkey_export($privatekeyresource, $out);
-
-
-        $details = openssl_pkey_get_details($privatekeyresource);
-        $privatekeyraw = $details['ec']['d'];
-        $publickeyraw = $details['ec']['x'] . $details['ec']['y'];
-
-        // URL-safe Base64 encode
-        $publickeybase64 = "04" . self::base64url_encode($publickeyraw);
-        $privatekeybase64 = self::base64url_encode($privatekeyraw);
-
-        //error_log("privatekeybase64: " . $privatekeybase64);
-        //error_log("publickeybase64: " . $publickeybase64);
-
         $keyarray = self::createECKeyUsingOpenSSL();
 
         $binaryPublicKey = hex2bin(self::serializePublicKeyFromJWK($keyarray));
-        $publickeybase64 = Base64Url::encode($binaryPublicKey);
+        $publickeybase64 = self::base64url_encode($binaryPublicKey);
 
-        $binaryPrivateKey = hex2bin(str_pad(bin2hex(Base64Url::decode($keyarray['d'])), 2 * 32, '0', STR_PAD_LEFT));
-        $privatekeybase64 = Base64Url::encode($binaryPrivateKey);
-
-        error_log(print_r(\Minishlink\WebPush\VAPID::createVapidKeys(), true));
+        $binaryPrivateKey = hex2bin(str_pad(bin2hex(self::base64url_decode($keyarray['d'])), 64, '0', STR_PAD_LEFT));
+        $privatekeybase64 = self::base64url_encode($binaryPrivateKey);
 
         return [
                 'privatekey' => $privatekeybase64,
