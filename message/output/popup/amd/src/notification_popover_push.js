@@ -43,17 +43,30 @@ const registerPushSubscription = async(subscription) => {
     const request = {
         methodname: 'message_popup_register_push_subscription',
         args: {
-            subscription: subscription
+            subscription: JSON.stringify(subscription)
         }
     };
 
     return Ajax.call([request])[0];
 };
 
+const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+};
+
 /**
  * Initialise the push notification service.
  *
- * @param vapidpublickey The public key to use for push notifications.
+ * @param {string} vapidpublickey The public key to use for push notifications.
  */
 export const init = async(vapidpublickey) => {
     // Set up the service worker.
@@ -65,13 +78,16 @@ export const init = async(vapidpublickey) => {
 
     // If no existing subscription, subscribe.
     if (!subscription) {
+        const convertedVapidKey = urlBase64ToUint8Array(vapidpublickey);
         const options = {
             userVisibleOnly: true, //
-            applicationServerKey: vapidpublickey
+            applicationServerKey: convertedVapidKey
         };
-
+        window.console.log(options);
         // Get the push subscription object.
         subscription = await workerRegistration.pushManager.subscribe(options);
+        window.console.log(subscription);
+        window.console.log(JSON.stringify(subscription));
 
         // Register the subscription with the server.
         await registerPushSubscription(subscription);

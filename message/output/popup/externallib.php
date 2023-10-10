@@ -256,6 +256,7 @@ class message_popup_external extends external_api {
     }
 
     public static function register_push_subscription($subscription) {
+        global $USER;
         // Parameter validation.
         $params = self::validate_parameters(
                 self::register_push_subscription_parameters(),
@@ -270,9 +271,9 @@ class message_popup_external extends external_api {
         $subscription = $params['subscription'];
         $subscription = json_decode($subscription, true);
 
-        $result = \message_popup\push::register_push_subscription($subscription);
+        $result = \message_popup\push::register_push_subscription(userid: $USER->id, subscription: $subscription);
 
-        return json_encode('{}');
+        return json_encode($result);
     }
 
     /**
