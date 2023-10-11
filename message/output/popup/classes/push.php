@@ -54,7 +54,7 @@ class push {
      * Pads, encodes, and ensures the length of a string.
      *
      * @param string $data The data to process.
-     * @param int $length The desired length of the string.
+     * @param int $length The desired length of the string before base64 encoding.
      * @return string The processed string.
      */
     private static function process_key_data(string $data, int $length): string {
@@ -102,8 +102,7 @@ class push {
      * @param array $coords The array containing the coordinates.
      * @return string The serialized public key.
      */
-    public static function serialize_public_key(array $coords): string
-    {
+    private static function serialize_public_key(array $coords): string {
         $hexString = '04';  // The prefix indicating uncompressed form.
         // Append the x and y coordinates, padded and decoded from URL-safe Base64.
         $hexString .= str_pad(bin2hex(self::base64url_decode($coords['x'])), 64, '0', STR_PAD_LEFT);
@@ -125,7 +124,9 @@ class push {
         $publickeybase64 = self::base64url_encode($binaryPublicKey);
 
         // Decode and encode the private key.
-        $binaryPrivateKey = hex2bin(str_pad(bin2hex(self::base64url_decode($keyarray['d'])), 64, '0', STR_PAD_LEFT));
+        $binaryPrivateKey = hex2bin(
+                str_pad(bin2hex(self::base64url_decode($keyarray['d'])), 64, '0', STR_PAD_LEFT)
+        );
         $privatekeybase64 = self::base64url_encode($binaryPrivateKey);
 
         // Return the keys.
