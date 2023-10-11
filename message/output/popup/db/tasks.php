@@ -15,14 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'message_popup', language 'en'
+ * This file defines tasks performed by the plugin.
  *
- * @package   message_popup
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    message_popup
+ * @copyright  2023 Matt Porritt <matt.porritt@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Web';
-$string['privacy:metadata'] = 'The messaging Web plugin does not store any personal data.';
 
-$string['tasksendpush'] = 'Send push notifications';
+// List of tasks.
+$tasks = [
+    [
+        'classname' => 'message_popup\task\send_push_task',
+        'blocking' => '*',
+        'minute' => '*',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    ]
+];

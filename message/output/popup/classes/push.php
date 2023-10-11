@@ -16,6 +16,8 @@
 
 namespace message_popup;
 
+use core\http_client;
+
 /**
  * Class used to return information to display for the message popup.
  *
@@ -165,5 +167,67 @@ class push {
         $record->timecreated = time();
 
         return $DB->insert_record('message_popup_subscriptions', $record, false);
+    }
+
+    /**
+     * Send a push notification to a user.
+     *
+     * @param array $subscription The subscription data.
+     * @param string $payload The payload to send.
+     * @param string $vapidPrivateKey The VAPID private key.
+     * @param string $vapidPublicKey The VAPID public key.
+     * @param http_client|null $client The HTTP client to use.
+     * @return int The HTTP status code.
+     */
+    public static function send_push_notification($subscription, $payload, $vapidPrivateKey, $vapidPublicKey, ?http_client $client = null) {
+        // Allow for dependency injection of http client.
+        if (!$client) {
+           $client = new http_client();
+        }
+        // Decode subscription data
+        $endpoint = $subscription['endpoint'];
+        $keys = $subscription['keys'];
+
+        // Generate the JWT header
+        $header = [
+                'typ' => 'JWT',
+                'alg' => 'ES256'
+        ];
+
+        $header = str_replace('=', '', base64_encode(json_encode($header)));
+
+        // Generate the JWT payload
+        $payloadInfo = [
+                'aud' => 'https://' . parse_url($endpoint, PHP_URL_HOST),
+                'exp' => time() + (12 * 60 * 60),
+                'sub' => 'mailto:your-email@example.com'
+        ];
+
+        $payloadInfo = str_replace('=', '', base64_encode(json_encode($payloadInfo)));
+
+        // Create the signature input string
+        $signatureInput = $header . '.' . $payloadInfo;
+        // Sign the input string to create the signature
+        openssl_sign($signatureInput, $signature, $vapidPrivateKey, OPENSSL_ALGO_SHA256);
+
+        $signature = str_replace('=', '', base64_encode($signature));
+
+        // Generate the JWT
+        $jwt = $header . '.' . $payloadInfo . '.' . $signature;
+
+        // Prepare the request headers
+        $headers = [
+                'TTL' => '30',
+                'Content-Encoding' => 'aes128gcm',
+                'Authorization' => 'vapid t=' . $jwt . ', k=' . $vapidPublicKey,
+        ];
+
+        // Send the request
+        $response = $client->post($endpoint, [
+                'headers' => $headers,
+                'body' => $payload,
+        ]);
+
+        return $response->getStatusCode();
     }
 }
