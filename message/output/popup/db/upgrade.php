@@ -72,6 +72,7 @@ function xmldb_message_popup_upgrade($oldversion) {
         $table->add_field('endpoint', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('p256dh', XMLDB_TYPE_CHAR, '90', null, XMLDB_NOTNULL, null, null);
         $table->add_field('auth', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('expiration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
 
         // Adding keys to table message_popup_subscriptions.

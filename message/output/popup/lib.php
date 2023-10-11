@@ -43,10 +43,6 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
     // Add the notifications popover.
     $enabled = \core_message\api::is_processor_enabled("popup");
     if ($enabled) {
-        $keys = \message_popup\push::generate_vapid_keys();
-        set_config('vapidprivatekey', $keys['privatekey'], 'message_popup');
-        set_config('vapidpublickey', $keys['publickey'], 'message_popup');
-
         $unreadcount = \message_popup\api::count_unread_popup_notifications($USER->id);
         $caneditownmessageprofile = has_capability('moodle/user:editownmessageprofile', context_system::instance());
         $preferencesurl = $caneditownmessageprofile ? new moodle_url('/message/notificationpreferences.php') : null;

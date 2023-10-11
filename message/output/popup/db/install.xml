@@ -35,6 +35,7 @@
         <FIELD NAME="endpoint" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="A URL provided by the push service to which the server sends a POST request to trigger a push message."/>
         <FIELD NAME="p256dh" TYPE="char" LENGTH="90" NOTNULL="true" SEQUENCE="false" COMMENT="A base64-encoded string representing the client's public key; used to encrypt the push message data."/>
         <FIELD NAME="auth" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" COMMENT="A base64-encoded authentication secret for the subscription, also used in encrypting the message data."/>
+        <FIELD NAME="expiration" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time at which the subscription expires."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

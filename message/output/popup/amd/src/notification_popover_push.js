@@ -15,8 +15,27 @@
 
 import Ajax from 'core/ajax';
 
+/**
+ * Converts a JS ArrayBuffer to a Base64 encoded string.
+ *
+ * @param {ArrayBuffer} arrayBuffer The ArrayBuffer to convert.
+ * @return {string} The Base64 encoded string.
+ */
+const arrayBufferToBase64 = (arrayBuffer) => {
+    // Create a Uint8Array from the ArrayBuffer.
+    const uint8Array = new Uint8Array(arrayBuffer);
+
+    // Convert the Uint8Array to a character array.
+    const charArray = Array.from(uint8Array).map(byte => String.fromCharCode(byte));
+
+    // Join the character array to a string.
+    const stringArray = charArray.join('');
+
+    // Encode the string to Base64 and return.
+   return btoa(stringArray);
+};
+
 const setupWorker = async() => {
-    window.console.log('push lib loaded');
     let registration;
 
     try {
@@ -43,7 +62,10 @@ const registerPushSubscription = async(subscription) => {
     const request = {
         methodname: 'message_popup_register_push_subscription',
         args: {
-            subscription: JSON.stringify(subscription)
+            endpoint: subscription.endpoint,
+            expirationtime: subscription.expirationTime,
+            auth: arrayBufferToBase64(subscription.getKey('auth')),
+            p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
         }
     };
 
@@ -70,7 +92,6 @@ const urlBase64ToUint8Array = (base64String) => {
  */
 export const init = async(vapidpublickey) => {
     // Set up the service worker.
-    window.console.log(vapidpublickey);
     const workerRegistration = await setupWorker();
 
     // Attempt to retrieve existing push subscription.
@@ -83,14 +104,15 @@ export const init = async(vapidpublickey) => {
             userVisibleOnly: true, //
             applicationServerKey: convertedVapidKey
         };
-        window.console.log(options);
+
         // Get the push subscription object.
         subscription = await workerRegistration.pushManager.subscribe(options);
-        window.console.log(subscription);
-        window.console.log(JSON.stringify(subscription));
 
         // Register the subscription with the server.
-        await registerPushSubscription(subscription);
-
+        await registerPushSubscription(subscription).catch((error) => {
+            // If the registration fails, unsubscribe.
+            subscription.unsubscribe();
+            throw error;
+        });
     }
 };

@@ -140,17 +140,28 @@ class push {
      * Register a push subscription for a user.
      *
      * @param int $userid The user id.
-     * @param array $subscription The subscription details.
+     * @param string $endpoint Subscription endpoint URL.
+     * @param string $auth Subscription auth secret.
+     * @param string $p256dh Subscription public key.
+     * @param int|null $expirationtime Subscription expiration time.
      * @return bool True if successful, false otherwise.
+     * @throws \dml_exception
      */
-    public static function register_push_subscription(int $userid, array $subscription): bool {
+    public static function register_push_subscription(
+        int $userid,
+        #[\SensitiveParameter] string $endpoint,
+        #[\SensitiveParameter] string $auth,
+        string $p256dh,
+        ?int $expirationtime = 0
+    ): bool {
         global $DB;
 
         $record = new \stdClass();
         $record->userid = $userid;
-        $record->endpoint = $subscription['endpoint'];
-        $record->p256dh = $subscription['keys']['p256dh'];
-        $record->auth = $subscription['keys']['auth'];
+        $record->endpoint = $endpoint;
+        $record->p256dh = $p256dh;
+        $record->auth = $auth;
+        $record->expiration = $expirationtime > 0 ? floor($expirationtime / 1000) : 0;;
         $record->timecreated = time();
 
         return $DB->insert_record('message_popup_subscriptions', $record, false);

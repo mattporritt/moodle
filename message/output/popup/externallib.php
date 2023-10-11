@@ -250,17 +250,24 @@ class message_popup_external extends external_api {
      * @since 4.3
      */
     public static function register_push_subscription_parameters() {
-        return new external_function_parameters(array(
-                'subscription' => new external_value(PARAM_RAW, 'The subscription data encoded as JSON')
-        ));
+        return new external_function_parameters([
+            'endpoint' => new external_value(PARAM_URL, 'Subscription endpoint URL.', VALUE_REQUIRED),
+            'expirationtime' => new external_value(PARAM_INT, 'Subscription expiration time.', VALUE_OPTIONAL),
+            'auth' => new external_value(PARAM_RAW, 'Subscription auth secret.', VALUE_REQUIRED),
+            'p256dh' => new external_value(PARAM_RAW, 'Subscription public key.', VALUE_REQUIRED),
+        ]);
     }
 
-    public static function register_push_subscription($subscription) {
+    public static function register_push_subscription($endpoint, $expirationtime, $auth, $p256dh) {
         global $USER;
         // Parameter validation.
         $params = self::validate_parameters(
-                self::register_push_subscription_parameters(),
-                ['subscription' => $subscription]
+            self::register_push_subscription_parameters(),
+            ['endpoint' => $endpoint,
+             'expirationtime' => $expirationtime,
+             'auth' => $auth,
+             'p256dh' => $p256dh
+            ]
         );
 
         // Context validation and permission check.
@@ -271,7 +278,13 @@ class message_popup_external extends external_api {
         $subscription = $params['subscription'];
         $subscription = json_decode($subscription, true);
 
-        $result = \message_popup\push::register_push_subscription(userid: $USER->id, subscription: $subscription);
+        $result = \message_popup\push::register_push_subscription(
+            userid: $USER->id,
+            endpoint: $endpoint,
+            auth: $auth,
+            p256dh: $p256dh,
+            expirationtime: $expirationtime
+        );
 
         return json_encode($result);
     }
