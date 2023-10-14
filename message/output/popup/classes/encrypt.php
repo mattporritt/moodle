@@ -24,14 +24,13 @@ namespace message_popup;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class encrypt {
-
     /**
      * Encodes a string to URL-safe Base64.
      *
      * @param string $data The data to encode.
      * @return string The URL-safe Base64 encoded string.
      */
-    private function base64url_encode(string $data): string {
+    public function base64url_encode(string $data): string {
         // Convert to Base64 and then replace '+' with '-' and '/' with '_'.
         $encoded = strtr(base64_encode($data), '+/', '-_');
 
@@ -45,7 +44,7 @@ class encrypt {
      * @param string $data The data to decode.
      * @return string The decoded string.
      */
-    private function base64url_decode(string $data): string {
+    public function base64url_decode(string $data): string {
         // Replace '-' with '+' and '_' with '/' then decode from Base64.
         return base64_decode(strtr($data, '-_', '+/'), true);
     }
@@ -57,23 +56,24 @@ class encrypt {
      * @param int $length The desired length of the string before base64 encoding.
      * @return string The processed string.
      */
-    private static function process_key_data(string $data, int $length): string {
-        return self::base64url_encode(
+    private function process_key_data(string $data, int $length): string {
+        return $this->base64url_encode(
                 str_pad($data, $length, "\0", STR_PAD_LEFT)
         );
     }
 
     /**
      * Creates an elliptic curve key pair using OpenSSL.
+     * Keys are made available in both the original format and PEM format.
      *
-     *  The public key is exported as x and y coordinates because in
-     *  elliptic curve cryptography (ECC), a public key is a point
-     *  on an elliptic curve, which is specified by these coordinates.
+     * The public key is exported as x and y coordinates because in
+     * elliptic curve cryptography (ECC), a public key is a point
+     * on an elliptic curve, which is specified by these coordinates.
      *
      * @return array An array containing the private and public keys.
      * @throws \coding_exception
      */
-    private static function create_ec_key_pair(): array {
+    private function create_ec_key_pair(): array {
         $config = [
                 'curve_name' => 'prime256v1',
                 'private_key_type' => OPENSSL_KEYTYPE_EC,
@@ -83,17 +83,23 @@ class encrypt {
             throw new \coding_exception('Failed to create key pair');
         }
 
-        openssl_pkey_export($key, $out);  // Export the key into a string.
-        $resource = openssl_pkey_get_private($out);  // Get the private key resource.
+        openssl_pkey_export($key, $privatekeypem);  // Export the private key into a PEM-formatted string.
+        $resource = openssl_pkey_get_private($privatekeypem);  // Get the private key resource.
         $details = openssl_pkey_get_details($resource);  // Get the key details.
 
-        // Return the private and public keys, ensuring they are padded correctly.
+        // Extract the public key in PEM format
+        $publickeypem = $details['key'];
+
+        // Return the keys in both the original format and PEM format
         return [
-                'd' => self::process_key_data((string) $details['ec']['d'], 32),
-                'x' => self::process_key_data((string) $details['ec']['x'], 32),
-                'y' => self::process_key_data((string) $details['ec']['y'], 32),
+                'd' => $this->process_key_data((string) $details['ec']['d'], 32),
+                'x' => $this->process_key_data((string) $details['ec']['x'], 32),
+                'y' => $this->process_key_data((string) $details['ec']['y'], 32),
+                'privatekeypem' => $privatekeypem,
+                'publickeypem' => $publickeypem
         ];
     }
+
 
     /**
      * Serializes a public key provided as elliptic curve coordinates
@@ -102,11 +108,11 @@ class encrypt {
      * @param array $coords The array containing the coordinates.
      * @return string The serialized public key.
      */
-    private static function serialize_public_key(array $coords): string {
+    private function serialize_public_key(array $coords): string {
         $hexString = '04';  // The prefix indicating uncompressed form.
         // Append the x and y coordinates, padded and decoded from URL-safe Base64.
-        $hexString .= str_pad(bin2hex(self::base64url_decode($coords['x'])), 64, '0', STR_PAD_LEFT);
-        $hexString .= str_pad(bin2hex(self::base64url_decode($coords['y'])), 64, '0', STR_PAD_LEFT);
+        $hexString .= str_pad(bin2hex($this->base64url_decode($coords['x'])), 64, '0', STR_PAD_LEFT);
+        $hexString .= str_pad(bin2hex($this->base64url_decode($coords['y'])), 64, '0', STR_PAD_LEFT);
 
         return $hexString;
     }
@@ -116,23 +122,89 @@ class encrypt {
      *
      * @return array An array containing the URL-safe Base64 encoded private and public keys.
      */
-    public static function generate_vapid_keys(): array {
-        $keyarray = self::create_ec_key_pair();  // Create a key pair.
+    public function generate_vapid_keys(): array {
+        $keyarray = $this->create_ec_key_pair();  // Create a key pair.
 
         // Serialize, decode, and encode the public key.
-        $binaryPublicKey = hex2bin(self::serialize_public_key($keyarray));
-        $publickeybase64 = self::base64url_encode($binaryPublicKey);
+        $binaryPublicKey = hex2bin($this->serialize_public_key($keyarray));
+        $publickeybase64 = $this->base64url_encode($binaryPublicKey);
 
         // Decode and encode the private key.
         $binaryPrivateKey = hex2bin(
-                str_pad(bin2hex(self::base64url_decode($keyarray['d'])), 64, '0', STR_PAD_LEFT)
+                str_pad(bin2hex($this->base64url_decode($keyarray['d'])), 64, '0', STR_PAD_LEFT)
         );
-        $privatekeybase64 = self::base64url_encode($binaryPrivateKey);
+        $privatekeybase64 = $this->base64url_encode($binaryPrivateKey);
 
         // Return the keys.
         return [
                 'privatekey' => $privatekeybase64,
                 'publickey' => $publickeybase64
+        ];
+    }
+
+    /**
+     * Encrypts a payload using the Elliptic Curve Diffie-Hellman (ECDH) scheme.
+     *
+     * This function generates a local private/public key pair and derives a shared
+     * secret using the client's public key. It then uses this secret to encrypt
+     * a payload using AES-128-GCM.
+     *
+     * @param string $payload The plaintext message to encrypt.
+     * @param string $publickey The client's public key in base64 format.
+     * @param string $authtoken The client's authentication token in base64 format.
+     *
+     * @return array An associative array containing the encrypted payload and the
+     *               server's local public key, both in base64 format.
+     *
+     * @throws \coding_exception If the provided client public key length is invalid.
+     */
+    public function encrypt_payload(string $payload, string $publickey, string $authtoken): array {
+        // Generate a local private key for the server.
+        $localprivatekey = random_bytes(32);
+
+        // Compute the corresponding public key
+        $localpublickeyey = sodium_crypto_scalarmult_base($localprivatekey);
+
+        // Decode client's public key and authToken.
+        $clientpublickey = base64_decode($publickey);
+        $clientauthtoken = base64_decode($authtoken);
+
+        // Remove the first byte (0x04) from the public key and then extract the 'x' coordinate.
+        $clientpublickey = substr($clientpublickey, 1, 32);
+
+        // Check if the key now has 64 bytes.
+        if (strlen($clientpublickey) !== 32) {
+            throw new \coding_exception('Invalid public key length');
+        }
+
+        // Derive a shared secret.
+        $sharedSecret = sodium_crypto_scalarmult($localpublickeyey, $clientpublickey);
+
+        // Generate a random salt.
+        $salt = random_bytes(16);
+
+        // Use HKDF to derive the encryption key.
+        $encryptionKey = hash_hkdf('sha256', $sharedSecret, 16, $salt . $clientauthtoken);
+
+        // Create a nonce for the encryption.
+        $nonce = random_bytes(12);
+
+        // Encrypt the payload.
+        $cipher = openssl_encrypt(
+                $payload,
+                'aes-128-gcm',
+                $encryptionKey,
+                OPENSSL_RAW_DATA,
+                $nonce,
+                $tag
+        );
+
+        // Assemble the final payload (nonce + auth tag + cipher text).
+        $encryptedPayload = $nonce . $tag . $cipher;
+
+        return [
+                'payload' => base64_encode($encryptedPayload),
+                'localpublickey' => base64_encode($localpublickeyey)
         ];
     }
 }

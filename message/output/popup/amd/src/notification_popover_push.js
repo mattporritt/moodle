@@ -18,21 +18,17 @@ import Ajax from 'core/ajax';
 /**
  * Converts a JS ArrayBuffer to a Base64 encoded string.
  *
- * @param {ArrayBuffer} arrayBuffer The ArrayBuffer to convert.
+ * @param {ArrayBuffer} buffer The ArrayBuffer to convert.
  * @return {string} The Base64 encoded string.
  */
-const arrayBufferToBase64 = (arrayBuffer) => {
-    // Create a Uint8Array from the ArrayBuffer.
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    // Convert the Uint8Array to a character array.
-    const charArray = Array.from(uint8Array).map(byte => String.fromCharCode(byte));
-
-    // Join the character array to a string.
-    const stringArray = charArray.join('');
-
-    // Encode the string to Base64 and return.
-   return btoa(stringArray);
+const arrayBufferToBase64 = (buffer) => {
+    window.console.log(buffer);
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
 };
 
 const setupWorker = async() => {

@@ -17,11 +17,11 @@
 use message_popup\encrypt;
 
 /**
- * Test message popup API.
+ * Test message popup encryption class API.
  *
  * @package message_popup
  * @category test
- * @copyright 2016 Ryan Wyllie <ryan@moodle.com>
+ * @copyright 2023 Matt Porritt <matt.porritt@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class encrypt_test extends \advanced_testcase {
@@ -47,14 +47,12 @@ class encrypt_test extends \advanced_testcase {
      * @dataProvider provide_base64_test_data
      * @param string $decoded The data encoded.
      * @param string $encoded The data decoded.
-     * @covers \message_popup\push::base64url_encode
+     * @covers \message_popup\encrypt::base64url_encode
      */
     public function test_base64url_encode(string $decoded, string $encoded): void {
         $pushEncrypt = new encrypt();
-        $method = new \ReflectionMethod($pushEncrypt, 'base64url_encode');
-        $method->setAccessible(true);
 
-        $result = $method->invoke($pushEncrypt, $decoded);
+        $result = $pushEncrypt->base64url_encode($decoded);
         $this->assertEquals($encoded, $result);
     }
 
@@ -64,26 +62,26 @@ class encrypt_test extends \advanced_testcase {
      * @dataProvider provide_base64_test_data
      * @param string $decoded The data encoded.
      * @param string $encoded The data decoded.
-     * @covers \message_popup\push::base64url_encode
+     * @covers \message_popup\encrypt::base64url_encode
      */
     public function test_base64url_decode(string $decoded, string $encoded): void {
-        $method = new \ReflectionMethod(push::class, 'base64url_decode');
-        $method->setAccessible(true);
+        $pushEncrypt = new encrypt();
 
-        $result = $method->invoke(null, $encoded);
+        $result = $pushEncrypt->base64url_decode($encoded);
         $this->assertEquals($decoded, $result);
     }
 
     /**
         * Test process_key_data.
         *
-        * @covers \message_popup\push::process_key_data
+        * @covers \message_popup\encrypt::process_key_data
         */
     public function test_process_key_data(): void {
-        $method = new \ReflectionMethod(push::class, 'process_key_data');
+        $pushEncrypt = new encrypt();
+        $method = new \ReflectionMethod($pushEncrypt, 'process_key_data');
         $method->setAccessible(true);
 
-        $result = $method->invoke(null, 'someData', 32);
+        $result = $method->invoke($pushEncrypt, 'someData', 32);
 
         $this->assertIsString($result);
         $this->assertEquals(43, strlen($result)); // Longer than 32 cause of Base64 encoding.
@@ -93,19 +91,33 @@ class encrypt_test extends \advanced_testcase {
     /**
      * Test create_ec_key_pair.
      *
-     * @covers \message_popup\push::create_ec_key_pair
+     * @covers \message_popup\encrypt::create_ec_key_pair
      */
     public function test_create_ec_key_pair() {
-        $method = new \ReflectionMethod(push::class, 'create_ec_key_pair');
+        $pushEncrypt = new encrypt();
+        $method = new \ReflectionMethod($pushEncrypt, 'create_ec_key_pair');
         $method->setAccessible(true);
 
-        $result = $method->invoke(null);
+        $result = $method->invoke($pushEncrypt);
 
-        // Because the keys change every generation, we can't assert much apart from existence.
+        // Assert basic existence of vapid components.
         $this->assertIsArray($result);
         $this->assertArrayHasKey('d', $result);
         $this->assertArrayHasKey('x', $result);
         $this->assertArrayHasKey('y', $result);
+
+        // Validate VAPID components.
+        $d = $pushEncrypt->base64url_decode($result['d']);
+        $x = $pushEncrypt->base64url_decode($result['x']);
+        $y = $pushEncrypt->base64url_decode($result['y']);
+
+        $this->assertEquals(32, strlen($d));
+        $this->assertEquals(32, strlen($x));
+        $this->assertEquals(32, strlen($y));
+
+        // Check PEM keys.
+        $this->assertNotFalse(openssl_pkey_get_private($result['privatekeypem']));
+        $this->assertNotFalse(openssl_pkey_get_public($result['publickeypem']));
     }
 
     /**
@@ -135,14 +147,14 @@ class encrypt_test extends \advanced_testcase {
      * Test serialize_public_key.
      *
      * @dataProvider serialize_public_key_provider
-     * @covers \message_popup\push::serialize_public_key
+     * @covers \message_popup\encrypt::serialize_public_key
      */
     public function test_serialize_public_key($coords, $expected) {
-        $pushReflection = new \ReflectionClass(push::class);
-        $method = $pushReflection->getMethod('serialize_public_key');
+        $pushEncrypt = new encrypt();
+        $method = new \ReflectionMethod($pushEncrypt, 'serialize_public_key');
         $method->setAccessible(true);
 
-        $actual = $method->invoke(null, $coords);
+        $actual = $method->invoke($pushEncrypt, $coords);
 
         $this->assertStringStartsWith('04', $actual);
         $this->assertEquals(130, strlen($actual));
@@ -152,10 +164,11 @@ class encrypt_test extends \advanced_testcase {
     /**
      * Test generating VAPID keys.
      *
-     * @covers \message_popup\push::generate_vapid_keys
+     * @covers \message_popup\encrypt::generate_vapid_keys
      */
     public function test_generate_vapid_keys() {
-        $keys = push::generate_vapid_keys();
+        $pushEncrypt = new encrypt();
+        $keys = $pushEncrypt->generate_vapid_keys();
 
         // Do some basic checks on the keys.
         $this->assertIsArray($keys);
@@ -167,50 +180,18 @@ class encrypt_test extends \advanced_testcase {
         $this->assertIsString($keys['publickey']);
     }
 
-    public function test_convert_to_pem() {
-        $vapidprivatekey = 'W1K-DjPLMN1DJp6UxVn1ohXE688lHu914YWVJAsqElIGLlg';
-        $vapidpublickey = 'BGXBh0viHQuQjO0LcIJxHh90kZxP7Gq03MfmyUJ5t3lsth7NFrHa3oeR7RZiiR89ptrpe0Ts3l6V0XlYEsoGvWI';
+    /**
+     * Test encrypt_payload.
+     *
+     * @covers \message_popup\encrypt::encrypt_payload
+     */
+    public function test_encrypt_payload() {
+        $pushEncrypt = new encrypt();
+        $payload = 'test data';
+        $publicKey = 'BO/i04xnGunSB8JYf0CXZBYaFORQLQP0vYeakt8uc8i8EopQS751ADQDqaQpMDEbdLyc5DxCyd99rEuGeIU5Lxk=';
+        $authtoken = 'FT1EyTLqMDslk1amm61utA==';
 
-        //$pemkeys = push::convert_to_pem($vapidprivatekey, $vapidpublickey);
-        //error_log(print_r($pemkeys, true));
-        //$res = openssl_pkey_get_private($pemkeys['pemprivatekey']);
-        //if ($res === false) {
-        //    while ($msg = openssl_error_string()) {
-        //        error_log( "OpenSSL Error: " . $msg . "\n");
-        //    }
-        //}
-        //$this->assertNotFalse(openssl_pkey_get_private($pemkeys['pemprivatekey']));
-        //$this->assertNotFalse(openssl_pkey_get_public($pemkeys['pempublickey']));
-
-
-    }
-
-    public function test_convert_private_key_to_pem() {
-        $method = new \ReflectionMethod(push::class, 'create_ec_key_pair');
-        $method->setAccessible(true);
-
-        $result = $method->invoke(null);
-
-        $vapidprivatekey = $result['d'];
-
-        $pushReflection = new \ReflectionClass(push::class);
-        $method = $pushReflection->getMethod('serialize_public_key');
-        $method->setAccessible(true);
-
-        $vapidpublickey = $method->invoke(null, $result);
-        //$vapidpublickey = 'BGXBh0viHQuQjO0LcIJxHh90kZxP7Gq03MfmyUJ5t3lsth7NFrHa3oeR7RZiiR89ptrpe0Ts3l6V0XlYEsoGvWI';
-
-        $pemprivatekey = push::convert_private_key_to_pem($vapidprivatekey, $vapidpublickey);
-        error_log(print_r($pemprivatekey, true));
-        $res = openssl_pkey_get_private($pemprivatekey);
-        if ($res === false) {
-            while ($msg = openssl_error_string()) {
-                error_log( "OpenSSL Error: " . $msg . "\n");
-            }
-        }
-        $this->assertNotFalse(openssl_pkey_get_private($pemprivatekey));
-        //$this->assertNotFalse(openssl_pkey_get_public($pemkeys['pempublickey']));
-
-
+        $result = $pushEncrypt->encrypt_payload($payload, $publicKey, $authtoken);
+        $this->assertEquals(32, strlen(base64_decode($result['localpublickey'])));
     }
 }
