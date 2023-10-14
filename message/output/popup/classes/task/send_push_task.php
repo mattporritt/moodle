@@ -42,8 +42,25 @@ class send_push_task extends scheduled_task {
      */
     public function execute() {
         mtrace('Started: Sending push notifications.');
+        $payload = [
+                "title" => "Your Custom Title",
+                "message" => "Your Custom Message",
+            // Add any custom data here
+        ];
+        $vapidpublickey = get_config('message_popup', 'vapidpublickey');
+        $vapidprivatekey = get_config('message_popup', 'vapidprivatekey');
 
-        // Do some work.
+        // Get all the active push notification subscriptions.
+        // While we are still in the R&D phase the message will be hardcoded,
+        // so all push notifications will always get the same hardcoded message
+        // every run.
+        // Eventually we should do a check, so we only send push notifications
+        // to users who have a push subscription and pending messages.
+        $subscriptions = \message_popup\push::get_push_subscriptions();
+        foreach ($subscriptions as $subscription) {
+            \message_popup\push::send_push_notification($subscription, $payload, $vapidprivatekey, $vapidpublickey);
+        }
+        $subscriptions->close();
 
         mtrace('Completed: Sending push notifications.');
     }

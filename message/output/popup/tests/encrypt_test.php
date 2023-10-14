@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-use message_popup\push;
+use message_popup\encrypt;
 
 /**
  * Test message popup API.
@@ -24,7 +24,7 @@ use message_popup\push;
  * @copyright 2016 Ryan Wyllie <ryan@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class push_test extends \advanced_testcase {
+class encrypt_test extends \advanced_testcase {
 
     /**
      * Test data for encode and decode method unit tests.
@@ -50,10 +50,11 @@ class push_test extends \advanced_testcase {
      * @covers \message_popup\push::base64url_encode
      */
     public function test_base64url_encode(string $decoded, string $encoded): void {
-        $method = new \ReflectionMethod(push::class, 'base64url_encode');
+        $pushEncrypt = new encrypt();
+        $method = new \ReflectionMethod($pushEncrypt, 'base64url_encode');
         $method->setAccessible(true);
 
-        $result = $method->invoke(null, $decoded);
+        $result = $method->invoke($pushEncrypt, $decoded);
         $this->assertEquals($encoded, $result);
     }
 

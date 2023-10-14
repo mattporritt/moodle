@@ -17,6 +17,7 @@
 namespace message_popup;
 
 use core\http_client;
+use Jose\Component\Core\Util\ECKey;
 
 /**
  * Class used to return information to display for the message popup.
@@ -138,6 +139,48 @@ class push {
         ];
     }
 
+    public static function convert_private_key_to_pem(string $privatekey, $publickey): string {
+        $d = $privatekey;
+        $d = unpack('H*', str_pad(self::base64url_decode($d), 32, "\0", STR_PAD_LEFT));
+
+        $der = pack(
+                'H*',
+                '3077' // SEQUENCE, length 87+length($d)=32
+                . '020101' // INTEGER, 1
+                . '0420'   // OCTET STRING, length($d) = 32
+                . $d[1]
+                . 'a00a' // TAGGED OBJECT #0, length 10
+                . '0608' // OID, length 8
+                . '2a8648ce3d030107' // 1.3.132.0.34 = P-256 Curve
+                . 'a144' //  TAGGED OBJECT #1, length 68
+                . '0342' // BIT STRING, length 66
+                . '00' // prepend with NUL - pubkey will follow
+        );
+
+        $der .= self::base64url_decode($publickey);
+        $pem = '-----BEGIN EC PRIVATE KEY-----' . PHP_EOL;
+        $pem .= chunk_split(base64_encode($der), 64, PHP_EOL);
+
+        return $pem . ('-----END EC PRIVATE KEY-----' . PHP_EOL);
+    }
+
+    public static function convert_to_pem($privatekey, $publickey): array
+    {
+        // Decode the base64url-encoded private and public keys to binary
+        $privateKeyBinary = self::base64url_decode($privatekey);
+        $publicKeyBinary = self::base64url_decode($publickey);
+
+        //$publicKeyPEM = ECKey::convertPublicKeyToPEM($publickey);
+        //$privateKeyPEM = ECKey::convertPrivateKeyToPEM($privatekey);
+
+
+        return [
+                'pemprivatekey' => $privateKeyPEM,
+                'pempublickey' => $publicKeyPEM
+        ];
+    }
+
+
     /**
      * Register a push subscription for a user.
      *
@@ -169,11 +212,73 @@ class push {
         return $DB->insert_record('message_popup_subscriptions', $record, false);
     }
 
+    public static function encryptPayload($payload, $publicKey, $authToken) {
+        // Generate a local private key for the server
+        $localPrivateKey = random_bytes(32);
+
+        // Compute the corresponding public key
+        $localPublicKey = sodium_crypto_scalarmult_base($localPrivateKey);
+
+        // Derive a shared secret from the client's public key and the server's private key
+        error_log(SODIUM_CRYPTO_SCALARMULT_SCALARBYTES);
+        error_log(strlen(base64_decode($publicKey)));
+        $sharedSecret = sodium_crypto_scalarmult($localPrivateKey, $publicKey);
+
+        // Generate a random salt
+        $salt = random_bytes(16);
+
+        // Compute the server's public key from the shared secret - Though this isn't used, included for completeness
+        $serverPublicKey = sodium_crypto_scalarmult_base($sharedSecret);
+
+
+        // Create a nonce for the encryption
+        $nonce = hash('sha256', $salt . $sharedSecret, true);
+        $nonce = substr($nonce, 0, 12); // Truncate to first 12 bytes for AES GCM
+
+        // Encrypt the payload using AES-128-GCM
+        $cipher = openssl_encrypt(
+                $payload,
+                'aes-128-gcm',
+                $sharedSecret,
+                OPENSSL_RAW_DATA,
+                $nonce,
+                $tag // This will be filled with the authentication tag by openssl_encrypt
+        );
+
+        // Assemble the final payload (nonce + auth tag + cipher text)
+        $encryptedPayload = $nonce . $tag . $cipher;
+
+        // Return the encrypted payload and the local public key
+        return [
+                'payload' => base64_encode($encryptedPayload),
+                'localPublicKey' => base64_encode($localPublicKey)
+        ];
+    }
+
+    // $encryptedData['payload'] contains the encrypted payload
+    // $encryptedData['localPublicKey'] contains the server's public key
+
+
+    /**
+     * Get all valid push subscriptions.
+     * Users can have multiple active subscriptions.
+     * There could be a lot of records in this table, so we return a recordset.
+     *
+     * @return \moodle_recordset
+     */
+    public static function get_push_subscriptions(): \moodle_recordset {
+        global $DB;
+
+        // For now lets just return all subscriptions.
+        // Later we'll handle expired subscriptions.
+        return $DB->get_recordset('message_popup_subscriptions');
+    }
+
     /**
      * Send a push notification to a user.
      *
-     * @param array $subscription The subscription data.
-     * @param string $payload The payload to send.
+     * @param \stdClass $subscription The subscription data.
+     * @param array $payload The payload to send.
      * @param string $vapidPrivateKey The VAPID private key.
      * @param string $vapidPublicKey The VAPID public key.
      * @param http_client|null $client The HTTP client to use.
@@ -182,11 +287,16 @@ class push {
     public static function send_push_notification($subscription, $payload, $vapidPrivateKey, $vapidPublicKey, ?http_client $client = null) {
         // Allow for dependency injection of http client.
         if (!$client) {
-           $client = new http_client();
+            $client = new http_client();
         }
+
         // Decode subscription data
-        $endpoint = $subscription['endpoint'];
-        $keys = $subscription['keys'];
+        $endpoint = $subscription->endpoint;
+        $clientPublicKey = $subscription->p256dh;
+        $clientAuthToken = $subscription->auth;
+
+        // Encrypt the payload using client's public key and auth token
+        $encryptedData = self::encryptPayload($payload, $clientPublicKey, $clientAuthToken);
 
         // Generate the JWT header
         $header = [
@@ -194,7 +304,8 @@ class push {
                 'alg' => 'ES256'
         ];
 
-        $header = str_replace('=', '', base64_encode(json_encode($header)));
+        $header = base64_encode(json_encode($header));
+        $header = rtrim($header, '=');
 
         // Generate the JWT payload
         $payloadInfo = [
@@ -203,14 +314,17 @@ class push {
                 'sub' => 'mailto:your-email@example.com'
         ];
 
-        $payloadInfo = str_replace('=', '', base64_encode(json_encode($payloadInfo)));
+        $payloadInfo = base64_encode(json_encode($payloadInfo));
+        $payloadInfo = rtrim($payloadInfo, '=');
 
         // Create the signature input string
         $signatureInput = $header . '.' . $payloadInfo;
-        // Sign the input string to create the signature
-        openssl_sign($signatureInput, $signature, $vapidPrivateKey, OPENSSL_ALGO_SHA256);
 
-        $signature = str_replace('=', '', base64_encode($signature));
+        // Sign the input string using libsodium.
+        $signature = sodium_crypto_sign_detached($signatureInput, sodium_hex2bin($vapidPrivateKey));
+
+        $signature = base64_encode($signature);
+        $signature = rtrim($signature, '=');
 
         // Generate the JWT
         $jwt = $header . '.' . $payloadInfo . '.' . $signature;
@@ -220,14 +334,16 @@ class push {
                 'TTL' => '30',
                 'Content-Encoding' => 'aes128gcm',
                 'Authorization' => 'vapid t=' . $jwt . ', k=' . $vapidPublicKey,
+                'Crypto-Key' => 'dh=' . $encryptedData['localPublicKey']
         ];
 
-        // Send the request
+        // Send the request using Guzzle
         $response = $client->post($endpoint, [
                 'headers' => $headers,
-                'body' => $payload,
+                'body' => $encryptedData['payload'],
         ]);
 
         return $response->getStatusCode();
     }
+
 }
