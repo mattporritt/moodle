@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="message/output/popup/db" VERSION="20231008" COMMENT="XMLDB file for Moodle message/output/popup"
+<XMLDB PATH="message/output/popup/db" VERSION="20231014" COMMENT="XMLDB file for Moodle message/output/popup"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
@@ -41,6 +41,17 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="useridkey" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" COMMENT="key to the user table"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="message_pop_keys" COMMENT="Key storage for message popup">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="keyname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the key"/>
+        <FIELD NAME="keyvalue" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The value of the key"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time the key was created"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>

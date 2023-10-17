@@ -25,4 +25,5 @@
 $string['pluginname'] = 'Web';
 $string['privacy:metadata'] = 'The messaging Web plugin does not store any personal data.';
 
+$string['encryption_keys'] = 'Message popup encryption key cache.';
 $string['tasksendpush'] = 'Send push notifications';

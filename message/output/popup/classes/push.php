@@ -122,7 +122,12 @@ class push {
         $signatureInput = $header . '.' . $payloadInfo;
 
         // Sign the input string using libsodium.
-        $signature = sodium_crypto_sign_detached($signatureInput, sodium_hex2bin($vapidPrivateKey));
+        error_log(strlen($vapidPrivateKey));
+        error_log($vapidPrivateKey);
+        $encrypt = new encrypt();
+        $binaryPrivateKey = $encrypt->base64url_decode($vapidPrivateKey);
+        error_log(strlen($binaryPrivateKey));
+        $signature = sodium_crypto_sign_detached($signatureInput, $binaryPrivateKey);
 
         $signature = base64_encode($signature);
         $signature = rtrim($signature, '=');

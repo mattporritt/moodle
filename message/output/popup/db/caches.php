@@ -15,25 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Installation code for the popup message processor
+ * Cache definitions for the message popup plugin.
  *
- * @package   message_popup
- * @copyright 2009 Dongsheng Cai <dongsheng@moodle.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    message_popup
+ * @copyright  2023 Matt Porritt <matt.porritt@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
- * Install the popup message processor
- */
-function xmldb_message_popup_install() {
-    global $DB;
-
-    // Add the processor to the list of available processors.
-    $provider = new stdClass();
-    $provider->name  = 'popup';
-    $DB->insert_record('message_processors', $provider);
-
-    // Generate and store in config the VAPID keys.
-
-    return true;
-}
+$definitions = [
+        'encryption_keys' => [
+            'mode' => cache_store::MODE_APPLICATION,
+            'simplekeys' => true,
+            'simpledata' => true,
+            'canuselocalstore' => true,
+            'staticacceleration' => true
+        ]
+];

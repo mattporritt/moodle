@@ -118,28 +118,132 @@ class encrypt {
     }
 
     /**
-     * Generates VAPID keys for push notifications.
+     * Creates VAPID keys for push notifications.
      *
+     * @param array $eckeys The elliptic curve key pair.
      * @return array An array containing the URL-safe Base64 encoded private and public keys.
      */
-    public function generate_vapid_keys(): array {
-        $keyarray = $this->create_ec_key_pair();  // Create a key pair.
-
+    private function create_vapid_keys(array $eckeys): array {
         // Serialize, decode, and encode the public key.
-        $binaryPublicKey = hex2bin($this->serialize_public_key($keyarray));
+        $binaryPublicKey = hex2bin($this->serialize_public_key($eckeys));
         $publickeybase64 = $this->base64url_encode($binaryPublicKey);
 
         // Decode and encode the private key.
         $binaryPrivateKey = hex2bin(
-                str_pad(bin2hex($this->base64url_decode($keyarray['d'])), 64, '0', STR_PAD_LEFT)
+                str_pad(bin2hex($this->base64url_decode($eckeys['d'])), 64, '0', STR_PAD_LEFT)
         );
         $privatekeybase64 = $this->base64url_encode($binaryPrivateKey);
 
         // Return the keys.
         return [
-                'privatekey' => $privatekeybase64,
-                'publickey' => $publickeybase64
+            'privatekey' => $privatekeybase64,
+            'publickey' => $publickeybase64,
         ];
+    }
+
+    /**
+     * Get the EC and VAPID Keys.
+     * First try to get the values from cache, if not then get from database.
+     *
+     * Cache is updated if empty.
+     *
+     * @return array $keys An array containing the EC and VAPID keys.
+     */
+    public function get_encryption_keys():array {
+        global $DB;
+
+        // First try to get keys from cache.
+        $keys = [
+            'pemprivatekey' => '',
+            'pempublickey' => '',
+            'vapidprivatekey' => '',
+            'vapidpublickey' => ''
+        ];
+        $dbfetch = false;
+
+        $cache = \cache::make('message_popup', 'encryption_keys');
+
+        foreach ($keys as $key) {
+            $value = $cache->get($key);
+            if ($value) {
+                $keys[$key] = $value;
+            } else {
+                $dbfetch = true;
+                break;
+            }
+        }
+
+        // If cache is empty, then get keys from database and update cache.
+        if ($dbfetch) {
+            $records = $DB->get_records('message_pop_keys');
+            if (empty($records)) {
+                throw new \moodle_exception(
+                     'No encryption keys found set keys before getting',
+                     'message_popup'
+                );
+            }
+
+            foreach ($records as $record) {
+                $keys[$record->keyname] = $record->keyvalue;
+                $cache->set($record->keyname, $record->keyvalue);
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Generate the EC and VAPID keys and store them in the database.
+     * Keys are returned for reference.
+     *
+     * @return array An array containing the EC and VAPID keys.
+     */
+    public function set_encryption_keys():array {
+        global $DB;
+
+        // First create the EC keypair.
+        $eckeys = $this->create_ec_key_pair();
+
+        // Next create the VAPID keys.
+        $vapidkeys = $this->create_vapid_keys($eckeys);
+
+        // Store the keys in the database.
+        $now = time();
+
+        $pemprivatekeyrecord = new \stdClass();
+        $pemprivatekeyrecord->keyname = 'pemprivatekey';
+        $pemprivatekeyrecord->keyvalue = $eckeys['privatekeypem'];
+        $pemprivatekeyrecord->timecreated = $now;
+
+        $pempublickeyrecord = new \stdClass();
+        $pempublickeyrecord->keyname = 'pempublickey';
+        $pempublickeyrecord->keyvalue = $eckeys['publickeypem'];
+        $pempublickeyrecord->timecreated = $now;
+
+        $vapidprivatekeyrecord = new \stdClass();
+        $vapidprivatekeyrecord->keyname = 'vapidprivatekey';
+        $vapidprivatekeyrecord->keyvalue = $vapidkeys['privatekey'];
+        $vapidprivatekeyrecord->timecreated = $now;
+
+        $vapidpublickeyrecord = new \stdClass();
+        $vapidpublickeyrecord->keyname = 'vapidpublickey';
+        $vapidpublickeyrecord->keyvalue = $vapidkeys['publickey'];
+        $vapidpublickeyrecord->timecreated = $now;
+
+        $keytransaction = $DB->start_delegated_transaction();
+        $DB->delete_records('message_pop_keys');
+        $DB->insert_records('message_pop_keys',
+                [$pemprivatekeyrecord, $pempublickeyrecord, $vapidprivatekeyrecord, $vapidpublickeyrecord]
+        );
+        $DB->commit_delegated_transaction($keytransaction);
+
+        return [
+            'pemprivatekey' => $eckeys['privatekeypem'],
+            'pempublickey' => $eckeys['publickeypem'],
+            'vapidprivatekey' => $vapidkeys['privatekey'],
+            'vapidpublickey' => $vapidkeys['publickey']
+        ];
+
     }
 
     /**

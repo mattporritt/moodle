@@ -44,11 +44,10 @@ function xmldb_message_popup_upgrade($oldversion) {
     // Automatically generated Moodle v4.2.0 release upgrade line.
     // Put any upgrade step following this.
 
-
     // Automatically generated Moodle v4.3.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2023100900.03) {
+    if ($oldversion < 2023100900.05) {
         global $DB;
         $dbman = $DB->get_manager();
 
@@ -84,7 +83,24 @@ function xmldb_message_popup_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        upgrade_plugin_savepoint(true, 2023100900.03, 'message', 'popup');
+        // Define table message_pop_keys to be created.
+        $table = new xmldb_table('message_pop_keys');
+
+        // Adding fields to table message_pop_keys.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('keyname', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('keyvalue', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table message_pop_keys.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for message_pop_keys.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2023100900.05, 'message', 'popup');
     }
     return true;
 }

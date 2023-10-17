@@ -164,11 +164,20 @@ class encrypt_test extends \advanced_testcase {
     /**
      * Test generating VAPID keys.
      *
-     * @covers \message_popup\encrypt::generate_vapid_keys
+     * @covers \message_popup\encrypt::create_vapid_keys
      */
-    public function test_generate_vapid_keys() {
+    public function test_create_vapid_keys() {
         $pushEncrypt = new encrypt();
-        $keys = $pushEncrypt->generate_vapid_keys();
+        $method = new \ReflectionMethod($pushEncrypt, 'create_vapid_keys');
+        $method->setAccessible(true);
+
+        $eckeys = [
+            'd' => '-VLCH8Z_Am1MxH4mrtrrJtEt8Xdzzyk1fNcayp1XEs4',
+            'x' => 'nalTmdmox6zBL3G-I-3ezay2dzf-LRc0ldGG1mTJx_8',
+            'y' => 'JeBsJp__zdSltNj4yHjCob9e-ebON7ZLJLA5nWceXkM'
+        ];
+
+        $keys = $method->invoke($pushEncrypt, $eckeys);
 
         // Do some basic checks on the keys.
         $this->assertIsArray($keys);
@@ -193,5 +202,62 @@ class encrypt_test extends \advanced_testcase {
 
         $result = $pushEncrypt->encrypt_payload($payload, $publicKey, $authtoken);
         $this->assertEquals(32, strlen(base64_decode($result['localpublickey'])));
+    }
+
+    public function test_set_encryption_keys() {
+        $this->resetAfterTest();
+        global $DB;
+
+        $encrypt = new encrypt();
+        $keys = $encrypt->set_encryption_keys();
+
+        $this->assertIsArray($keys);
+        $this->assertArrayHasKey('pemprivatekey', $keys);
+        $this->assertArrayHasKey('pempublickey', $keys);
+        $this->assertArrayHasKey('vapidprivatekey', $keys);
+        $this->assertArrayHasKey('vapidpublickey', $keys);
+
+        // Check the database for the keys.
+        $dbkeys = $DB->get_records('message_pop_keys');
+        $this->assertIsArray($dbkeys);
+        $this->assertCount(4, $dbkeys);
+    }
+
+    public function test_get_encryption_keys() {
+        $this->resetAfterTest();
+        global $DB;
+
+        $encrypt = new encrypt();
+
+        // Generate keys to make sure we have them.
+        $setkeys = $encrypt->set_encryption_keys();
+
+        // Check the cache to confirm it is empty.
+        $cache = \cache::make('message_popup', 'encryption_keys');
+        foreach ($setkeys as $key => $value) {
+            $this->assertFalse($cache->get($key));
+        }
+
+        // Get the keys and check they are as expected.
+        $getkeys = $encrypt->get_encryption_keys();
+        $this->assertEquals($setkeys, $getkeys);
+
+        // Check the cache to confirm it is populated.
+        foreach ($setkeys as $key => $value) {
+            $this->assertEquals($value, $cache->get($key));
+        }
+    }
+
+    public function test_get_encryption_keys_no_keys() {
+        $this->resetAfterTest();
+        global $DB;
+
+        // Delete any existing keys.
+        $DB->delete_records('message_pop_keys');
+
+        $this->expectException(\moodle_exception::class);
+
+        $encrypt = new encrypt();
+        $encrypt->get_encryption_keys();
     }
 }
