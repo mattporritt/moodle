@@ -260,4 +260,12 @@ class encrypt_test extends \advanced_testcase {
         $encrypt = new encrypt();
         $encrypt->get_encryption_keys();
     }
+
+    public function test_generate_signature() {
+        $header = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9';
+        $payload = 'eyJhdWQiOiJodHRwczpcL1wvdXBkYXRlcy5wd' .
+                'XNoLnNlcnZpY2VzLm1vemlsbGEuY29tIiwiZXhwIj' .
+                'oxNjk3NzUyNDgyLCJzdWIiOiJtYWlsdG86eW91ci1lbWFpbEBleGFtcGxlLmNvbSJ9';
+        
+    }
 }

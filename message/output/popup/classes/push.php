@@ -119,18 +119,7 @@ class push {
         $payloadInfo = rtrim($payloadInfo, '=');
 
         // Create the signature input string
-        $signatureInput = $header . '.' . $payloadInfo;
-
-        // Sign the input string using libsodium.
-        error_log(strlen($vapidPrivateKey));
-        error_log($vapidPrivateKey);
-        $encrypt = new encrypt();
-        $binaryPrivateKey = $encrypt->base64url_decode($vapidPrivateKey);
-        error_log(strlen($binaryPrivateKey));
-        $signature = sodium_crypto_sign_detached($signatureInput, $binaryPrivateKey);
-
-        $signature = base64_encode($signature);
-        $signature = rtrim($signature, '=');
+        $signature = $encrypt->generate_signature($header, $payloadInfo);
 
         // Generate the JWT.
         $jwt = $header . '.' . $payloadInfo . '.' . $signature;

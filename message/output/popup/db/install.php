@@ -34,6 +34,8 @@ function xmldb_message_popup_install() {
     $DB->insert_record('message_processors', $provider);
 
     // Generate and store in config the VAPID keys.
+    $encrypt = new message_popup\encrypt();
+    $encrypt->set_encryption_keys();
 
     return true;
 }

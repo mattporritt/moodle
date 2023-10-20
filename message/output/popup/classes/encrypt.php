@@ -311,4 +311,20 @@ class encrypt {
                 'localpublickey' => base64_encode($localpublickeyey)
         ];
     }
+
+    public function generate_signature(string $header, string $payloadinfo): string {
+        error_log(print_r($header, true));
+        error_log(print_r($payloadinfo, true));
+        // Create the signature input string
+        $signatureInput = $header . '.' . $payloadinfo;
+
+        // Generate the signature with OpenSSL.
+        $signature = '';
+        $privatekeypem = $this->get_encryption_keys()['pemprivatekey'];
+        openssl_sign($signatureInput, $signature, $privatekeypem, OPENSSL_ALGO_SHA256);
+
+        // Base64 encode the signature and remove padding
+        $signature = base64_encode($signature);
+        return rtrim($signature, '=');
+    }
 }
