@@ -30,12 +30,16 @@ class encrypt {
      * @param string $data The data to encode.
      * @return string The URL-safe Base64 encoded string.
      */
-    public function base64url_encode(string $data): string {
+    public function base64url_encode(string $data, bool $trimpadding = true): string {
         // Convert to Base64 and then replace '+' with '-' and '/' with '_'.
         $encoded = strtr(base64_encode($data), '+/', '-_');
 
         // Trim any padding characters and return.
-        return rtrim($encoded, '=');
+        if ($trimpadding) {
+            return rtrim($encoded, '=');
+        } else {
+            return $encoded;
+        }
     }
 
     /**
@@ -307,24 +311,63 @@ class encrypt {
         $encryptedPayload = $nonce . $tag . $cipher;
 
         return [
-                'payload' => base64_encode($encryptedPayload),
-                'localpublickey' => base64_encode($localpublickeyey)
+                'payload' => $this->base64url_encode($encryptedPayload),
+                'localpublickey' => $this->base64url_encode($localpublickeyey)
         ];
     }
 
+    /**
+     * Generate the signature for the JWT.
+     *
+     * @param string $header The JWT header.
+     * @param string $payloadinfo The JWT payload.
+     * @return string The signature.
+     */
     public function generate_signature(string $header, string $payloadinfo): string {
-        error_log(print_r($header, true));
-        error_log(print_r($payloadinfo, true));
         // Create the signature input string
         $signatureInput = $header . '.' . $payloadinfo;
 
         // Generate the signature with OpenSSL.
         $signature = '';
         $privatekeypem = $this->get_encryption_keys()['pemprivatekey'];
+        error_log($privatekeypem);
+        error_log($this->get_encryption_keys()['pempublickey']);
         openssl_sign($signatureInput, $signature, $privatekeypem, OPENSSL_ALGO_SHA256);
 
-        // Base64 encode the signature and remove padding
-        $signature = base64_encode($signature);
-        return rtrim($signature, '=');
+        // Base64 encode the signature and remove padding.
+        return $this->base64url_encode($signature);
+    }
+
+    /**
+     * Generate the JWT.
+     *
+     * @param string $endpoint The endpoint.
+     * @return string The JWT.
+     */
+    public function generate_jwt(string $endpoint): string {
+        // The JWT header.
+        $header = [
+                'typ' => 'JWT',
+                'alg' => 'ES256'
+        ];
+
+        $header = base64_encode(json_encode($header));
+        $header = rtrim($header, '=');
+
+        // Generate the JWT payload.
+        $payloadinfo = [
+                'aud' => 'https://' . parse_url($endpoint, PHP_URL_HOST),
+                'exp' => time() + (12 * 60 * 60),
+                'sub' => 'mailto:your-email@example.com'
+        ];
+
+        $payloadinfo = base64_encode(json_encode($payloadinfo));
+        $payloadinfo = rtrim($payloadinfo, '=');
+
+        // Create the signature input string.
+        $signature = $this->generate_signature($header, $payloadinfo);
+
+        // Generate the JWT.
+        return $header . '.' . $payloadinfo . '.' . $signature;
     }
 }

@@ -51,14 +51,6 @@ function xmldb_message_popup_upgrade($oldversion) {
         global $DB;
         $dbman = $DB->get_manager();
 
-        // First check if we have VAPID keys stored.
-        $keys = $DB->get_records('message_pop_keys');
-        if (empty($keys)) {
-            // Generate and store in config the VAPID keys.
-            $encrypt = new message_popup\encrypt();
-            $encrypt->set_encryption_keys();
-        }
-
         // Define table message_popup_subscriptions to be created.
         $table = new xmldb_table('message_popup_subscriptions');
 
@@ -95,6 +87,14 @@ function xmldb_message_popup_upgrade($oldversion) {
         // Conditionally launch create table for message_pop_keys.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
+        }
+
+        // Check if we have VAPID keys stored.
+        $keys = $DB->get_records('message_pop_keys');
+        if (empty($keys)) {
+            // Generate and store in config the VAPID keys.
+            $encrypt = new message_popup\encrypt();
+            $encrypt->set_encryption_keys();
         }
 
         upgrade_plugin_savepoint(true, 2023100900.06, 'message', 'popup');

@@ -78,59 +78,39 @@ class push {
      *
      * @param \stdClass $subscription The subscription data.
      * @param array $payload The payload to send.
-     * @param string $vapidPrivateKey The VAPID private key.
-     * @param string $vapidPublicKey The VAPID public key.
      * @param http_client|null $client The HTTP client to use.
      * @return int The HTTP status code.
      */
-    public static function send_push_notification($subscription, $payload, $vapidPrivateKey, $vapidPublicKey, ?http_client $client = null) {
+    public static function send_push_notification($subscription, $payload, ?http_client $client = null) {
         // Allow for dependency injection of http client.
         if (!$client) {
             $client = new http_client();
         }
 
-        // Decode subscription data
         $endpoint = $subscription->endpoint;
         $clientPublicKey = $subscription->p256dh;
         $clientAuthToken = $subscription->auth;
 
-        // Encrypt the payload using client's public key and auth token
-        $jsonpayload = json_encode($payload);
+        // Encryption object used for encrypting the payload and generating the JWT.
         $encrypt = new encrypt();
+
+        // Encrypt the payload using client's public key and auth token.
+        $jsonpayload = json_encode($payload);
         $encryptedData = $encrypt->encrypt_payload($jsonpayload, $clientPublicKey, $clientAuthToken);
 
-        // Generate the JWT header
-        $header = [
-                'typ' => 'JWT',
-                'alg' => 'ES256'
-        ];
-
-        $header = base64_encode(json_encode($header));
-        $header = rtrim($header, '=');
-
-        // Generate the JWT payload
-        $payloadInfo = [
-                'aud' => 'https://' . parse_url($endpoint, PHP_URL_HOST),
-                'exp' => time() + (12 * 60 * 60),
-                'sub' => 'mailto:your-email@example.com'
-        ];
-
-        $payloadInfo = base64_encode(json_encode($payloadInfo));
-        $payloadInfo = rtrim($payloadInfo, '=');
-
-        // Create the signature input string
-        $signature = $encrypt->generate_signature($header, $payloadInfo);
-
         // Generate the JWT.
-        $jwt = $header . '.' . $payloadInfo . '.' . $signature;
+        $jwt = $encrypt->generate_jwt($endpoint);
 
-        // Prepare the request headers
+        // Prepare the request headers.
+        $vapidPublicKey = $encrypt->get_encryption_keys()['vapidpublickey'];
         $headers = [
                 'TTL' => '30',
                 'Content-Encoding' => 'aes128gcm',
                 'Authorization' => 'vapid t=' . $jwt . ', k=' . $vapidPublicKey,
-                'Crypto-Key' => 'dh=' . $encryptedData['localPublicKey']
+                'Crypto-Key' => 'dh=' . $encryptedData['localpublickey']
         ];
+        error_log(print_r($headers, true));
+        error_log(print_r($encryptedData['payload'], true));
 
         // Send the request using Guzzle
         $response = $client->post($endpoint, [

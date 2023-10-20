@@ -46,6 +46,7 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
         $unreadcount = \message_popup\api::count_unread_popup_notifications($USER->id);
         $caneditownmessageprofile = has_capability('moodle/user:editownmessageprofile', context_system::instance());
         $preferencesurl = $caneditownmessageprofile ? new moodle_url('/message/notificationpreferences.php') : null;
+        $encrypt = new \message_popup\encrypt();
         $context = [
             'userid' => $USER->id,
             'unreadcount' => $unreadcount,
@@ -53,7 +54,7 @@ function message_popup_render_navbar_output(\renderer_base $renderer) {
                 'seeall' => (new moodle_url('/message/output/popup/notifications.php'))->out(),
                 'preferences' => $preferencesurl ? $preferencesurl->out() : null,
             ],
-            'vapidpublickey' => get_config('message_popup', 'vapidpublickey')
+            'vapidpublickey' => $encrypt->get_encryption_keys()['vapidpublickey']
         ];
         $output .= $renderer->render_from_template('message_popup/notification_popover', $context);
     }

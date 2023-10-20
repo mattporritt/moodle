@@ -204,6 +204,11 @@ class encrypt_test extends \advanced_testcase {
         $this->assertEquals(32, strlen(base64_decode($result['localpublickey'])));
     }
 
+    /**
+     * Test decrypt_payload.
+     *
+     * @covers \message_popup\encrypt::decrypt_payload
+     */
     public function test_set_encryption_keys() {
         $this->resetAfterTest();
         global $DB;
@@ -223,9 +228,13 @@ class encrypt_test extends \advanced_testcase {
         $this->assertCount(4, $dbkeys);
     }
 
+    /**
+     * Test get_encryption_keys.
+     *
+     * @covers \message_popup\encrypt::get_encryption_keys
+     */
     public function test_get_encryption_keys() {
         $this->resetAfterTest();
-        global $DB;
 
         $encrypt = new encrypt();
 
@@ -248,6 +257,11 @@ class encrypt_test extends \advanced_testcase {
         }
     }
 
+    /**
+     * Test get_encryption_keys when no keys are available.
+     *
+     * @covers \message_popup\encrypt::get_encryption_keys
+     */
     public function test_get_encryption_keys_no_keys() {
         $this->resetAfterTest();
         global $DB;
@@ -261,11 +275,75 @@ class encrypt_test extends \advanced_testcase {
         $encrypt->get_encryption_keys();
     }
 
+    /**
+     * Test generate_signature.
+     *
+     * @covers \message_popup\encrypt::generate_signature
+     */
     public function test_generate_signature() {
+        $this->resetAfterTest();
+
+        // Mock the dependencies.
+        $encryptMock = $this->getMockBuilder(encrypt::class)
+                ->onlyMethods(['get_encryption_keys'])
+                ->getMock();
+
+        // Assume the method get_encryption_keys returns a dummy pem private key
+        $encryptMock->method('get_encryption_keys')
+                ->willReturn(['pemprivatekey' => '<<<EOD  -----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgz31N4ApJ1NdoJotz
+Z+kYkE/E4dL4gOFQVZCd7MM4zkChRANCAASzjZya4yzvIHsNNL7PFb4Wbw4RQEJI
+xhYZtHo0BNlsL212ZGVLPv89H7yLqg5rxXZmdHduI/kLmKU1CBo9wTWs
+-----END PRIVATE KEY-----
+EOD']);
+
         $header = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9';
         $payload = 'eyJhdWQiOiJodHRwczpcL1wvdXBkYXRlcy5wd' .
                 'XNoLnNlcnZpY2VzLm1vemlsbGEuY29tIiwiZXhwIj' .
                 'oxNjk3NzUyNDgyLCJzdWIiOiJtYWlsdG86eW91ci1lbWFpbEBleGFtcGxlLmNvbSJ9';
-        
+
+        $encrypt = new encrypt();
+        $signature = $encrypt->generate_signature($header, $payload);
+
+        $this->assertIsString($signature);
+        $this->assertGreaterThan(0, strlen($signature));
+    }
+
+    public function test_generate_jwt() {
+        // Mock the dependencies.
+        $encryptMock = $this->getMockBuilder(encrypt::class)
+                ->onlyMethods(['generate_signature', 'get_encryption_keys'])
+                ->getMock();
+
+        // Assume the method generate_signature returns a dummy signature
+        $encryptMock->method('generate_signature')
+                ->willReturn('MEYCIQCP+rC45qb662zaUIomAfFPhniDgzTlWouUR4QBeolQOAIhAPAo1muWIx2+ClyVhHiyReD14Ok6Q/hV+WnrlEZk12zM');
+
+        // Assume the method get_encryption_keys returns a dummy pem private key
+        $encryptMock->method('get_encryption_keys')
+                ->willReturn(['pemprivatekey' => '<<<EOD  -----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgz31N4ApJ1NdoJotz
+Z+kYkE/E4dL4gOFQVZCd7MM4zkChRANCAASzjZya4yzvIHsNNL7PFb4Wbw4RQEJI
+xhYZtHo0BNlsL212ZGVLPv89H7yLqg5rxXZmdHduI/kLmKU1CBo9wTWs
+-----END PRIVATE KEY-----
+EOD']);
+
+        // Call the method.
+        $jwt = $encryptMock->generate_jwt('https://example.com/endpoint');
+
+        // Split the JWT into its parts.
+        $jwtParts = explode('.', $jwt);
+
+        // Assert that the JWT has three parts.
+        $this->assertCount(3, $jwtParts);
+
+        // Decode the header and payload
+        $header = json_decode(base64_decode($jwtParts[0]), true);
+        $payload = json_decode(base64_decode($jwtParts[1]), true);
+
+        // Assert the header and payload contain what you expect
+        $this->assertEquals('JWT', $header['typ']);
+        $this->assertEquals('ES256', $header['alg']);
+        $this->assertEquals('https://example.com', $payload['aud']);
     }
 }
