@@ -16,7 +16,12 @@
 
 namespace message_popup;
 
+require $CFG->dirroot . '/vendor/autoload.php';
+
 use core\http_client;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
+
 
 /**
  * Class used to return information to display for the message popup.
@@ -93,6 +98,7 @@ class push {
 
         // Encryption object used for encrypting the payload and generating the JWT.
         $encrypt = new encrypt();
+        error_log(print_r($encrypt->get_encryption_keys(), true));
 
         // Encrypt the payload using client's public key and auth token.
         $jsonpayload = json_encode($payload);
@@ -104,10 +110,11 @@ class push {
         // Prepare the request headers.
         $vapidPublicKey = $encrypt->get_encryption_keys()['vapidpublickey'];
         $headers = [
-                'TTL' => '30',
+                'TTL' => '2419200',
+                'Content-Type' => 'application/octet-stream',
                 'Content-Encoding' => 'aes128gcm',
                 'Authorization' => 'vapid t=' . $jwt . ', k=' . $vapidPublicKey,
-                'Crypto-Key' => 'dh=' . $encryptedData['localpublickey']
+                //'Crypto-Key' => 'dh=' . $encryptedData['localpublickey']
         ];
         error_log(print_r($headers, true));
         error_log(print_r($encryptedData['payload'], true));
@@ -119,6 +126,60 @@ class push {
         ]);
 
         return $response->getStatusCode();
+    }
+
+    public static function send_push_notification_simple($subscription, $payload) {
+        // array of notifications
+        $notifications = [
+                [
+                        'subscription' => Subscription::create([ // this is the structure for the working draft from october 2018 (https://www.w3.org/TR/2018/WD-push-api-20181026/)
+                                "endpoint" => $subscription->endpoint,
+                                "keys" => [
+                                        'p256dh' => $subscription->p256dh,
+                                        'auth' => $subscription->auth
+                                ],
+                                'contentEncoding' => 'aes128gcm',
+                        ]),
+                        'payload' => '{"msg":"Hello World!"}',
+                ],
+        ];
+
+        $encrypt = new encrypt();
+        $keys = $encrypt->get_encryption_keys();
+
+        $auth = [
+                'VAPID' => [
+                        'subject' => 'mailto:me@website.com', // can be a mailto: or your website address
+                        'publicKey' => $keys['vapidpublickey'], // (recommended) uncompressed public key P-256 encoded in Base64-URL
+                        'privateKey' => $keys['vapidprivatekey'] // (recommended) in fact the secret multiplier of the private key encoded in Base64-URL],
+                    ]
+        ];
+
+        $webPush = new WebPush($auth);
+        $webPush->setReuseVAPIDHeaders(true);
+
+        // send multiple notifications with payload
+        foreach ($notifications as $notification) {
+            $webPush->queueNotification(
+                    $notification['subscription'],
+                    $notification['payload'] // optional (defaults null)
+            );
+        }
+
+        /**
+         * Check sent results
+         *
+         * @var MessageSentReport $report
+         */
+        foreach ($webPush->flush() as $report) {
+            $endpoint = $report->getRequest()->getUri()->__toString();
+
+            if ($report->isSuccess()) {
+                echo "[v] Message sent successfully for subscription {$endpoint}.";
+            } else {
+                echo "[x] Message failed to sent for subscription {$endpoint}: {$report->getReason()}";
+            }
+        }
     }
 
 }
