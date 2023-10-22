@@ -197,12 +197,11 @@ class push {
         }
     }
 
-    public static function prepare(Notification $notification, Subscription $subscription, array $auth): array {
-        $endpoint = $subscription->getEndpoint();
-        $userPublicKey = $subscription->getPublicKey();
-        $userAuthToken = $subscription->getAuthToken();
-        $contentEncoding = $subscription->getContentEncoding();
-        $payload = $notification->getPayload();
+    public static function prepare($payload, array $subscription, array $auth): array {
+        $endpoint = $subscription['endpoint'];
+        $userPublicKey = $subscription['keys']['p256dh'];
+        $userAuthToken = $subscription['keys']['auth'];
+        $contentEncoding = 'aes128gcm';
 
         $encrypted = Encryption::encrypt($payload, $userPublicKey, $userAuthToken, $contentEncoding);
         $cipherText = $encrypted['cipherText'];
@@ -229,14 +228,14 @@ class push {
         // array of notifications
         $notifications = [
                 [
-                        'subscription' => Subscription::create([ // this is the structure for the working draft from october 2018 (https://www.w3.org/TR/2018/WD-push-api-20181026/)
+                        'subscription' => [ // this is the structure for the working draft from october 2018 (https://www.w3.org/TR/2018/WD-push-api-20181026/)
                                 "endpoint" => $subscription->endpoint,
                                 "keys" => [
                                         'p256dh' => $subscription->p256dh,
                                         'auth' => $subscription->auth
                                 ],
                                 'contentEncoding' => 'aes128gcm',
-                        ]),
+                        ],
                         'payload' => '{"msg":"Hello World!"}',
                 ],
         ];
@@ -255,8 +254,7 @@ class push {
         // TODO: Add payload max length check.
         $payload = Encryption::padPayload($notifications[0]['payload'], Encryption::MAX_COMPATIBILITY_PAYLOAD_LENGTH, 'aes128gcm');
         $auth['VAPID'] = VAPID::validate($auth['VAPID']);
-        $notification = new Notification($notifications[0]['subscription'], $payload, [], $auth);
-        list($endpoint, $headers, $content) = self::prepare($notification, $notifications[0]['subscription'], $auth);
+        list($endpoint, $headers, $content) = self::prepare($payload, $notifications[0]['subscription'], $auth);
 
         $client = new http_client();
         $response = $client->post($endpoint, [
