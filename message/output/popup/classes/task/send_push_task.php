@@ -56,7 +56,7 @@ class send_push_task extends scheduled_task {
         // to users who have a push subscription and pending messages.
         $subscriptions = \message_popup\push::get_push_subscriptions();
         foreach ($subscriptions as $subscription) {
-            \message_popup\push::send_push_notification_simple($subscription, $payload);
+            \message_popup\push::send_push_notification_raw($subscription, $payload);
         }
         $subscriptions->close();
 
