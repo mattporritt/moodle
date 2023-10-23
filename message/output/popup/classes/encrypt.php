@@ -53,6 +53,13 @@ class encrypt {
         return base64_decode(strtr($data, '-_', '+/'), true);
     }
 
+    public static function payload_pad(string $payload, int $maxpadlength): string {
+        $payloadlength = mb_strlen($payload, '8bit');
+        $padlength = $maxpadlength ? $maxpadlength - $payloadlength : 0;
+
+        return str_pad($payload.chr(2), $padlength + $payloadlength, chr(0), STR_PAD_RIGHT);
+    }
+
     /**
      * Pads, encodes, and ensures the length of a string.
      *

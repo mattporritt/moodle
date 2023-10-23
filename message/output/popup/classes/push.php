@@ -38,6 +38,8 @@ use Minishlink\WebPush\Subscription;
  */
 class push {
 
+    public const MAX_PAYLOAD_LENGTH = 3052;
+
     /**
      * Register a push subscription for a user.
      *
@@ -252,9 +254,33 @@ class push {
         ];
 
         // TODO: Add payload max length check.
-        $payload = Encryption::padPayload($notifications[0]['payload'], Encryption::MAX_COMPATIBILITY_PAYLOAD_LENGTH, 'aes128gcm');
+        $payload = $encrypt->payload_pad($notifications[0]['payload'], self::MAX_PAYLOAD_LENGTH);
         $auth['VAPID'] = VAPID::validate($auth['VAPID']);
-        list($endpoint, $headers, $content) = self::prepare($payload, $notifications[0]['subscription'], $auth);
+
+        $subscription = $notifications[0]['subscription'];
+        $endpoint = $subscription['endpoint'];
+        $userPublicKey = $subscription['keys']['p256dh'];
+        $userAuthToken = $subscription['keys']['auth'];
+        $contentEncoding = 'aes128gcm';
+
+        $encrypted = Encryption::encrypt($payload, $userPublicKey, $userAuthToken, $contentEncoding);
+        $cipherText = $encrypted['cipherText'];
+        $salt = $encrypted['salt'];
+        $localPublicKey = $encrypted['localPublicKey'];
+        $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, $contentEncoding);
+        $content = $encryptionContentCodingHeader.$cipherText;
+
+            $headers = [
+                    'Content-Type' => 'application/octet-stream',
+                    'Content-Encoding' => $contentEncoding,
+                    'TTL' => 2419200,
+                    'Content-Length' => (string) mb_strlen($content, '8bit'),
+            ];
+
+            $audience = parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST);
+            $vapidHeaders = VAPID::getVapidHeaders($audience,  $auth['VAPID']['subject'],  $auth['VAPID']['publicKey'],  $auth['VAPID']['privateKey'], $contentEncoding);
+            $headers['Authorization'] = $vapidHeaders['Authorization'];
+
 
         $client = new http_client();
         $response = $client->post($endpoint, [
