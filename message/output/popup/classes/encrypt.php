@@ -16,6 +16,14 @@
 
 namespace message_popup;
 
+use Base64Url\Base64Url;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Core\JWK;
+use Jose\Component\Signature\Algorithm\ES256;
+use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\Serializer\CompactSerializer;
+use Minishlink\WebPush\Utils;
+
 /**
  * Class used to perform encryption related tasks for push notifications.
  *
@@ -24,6 +32,9 @@ namespace message_popup;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class encrypt {
+
+    public const CONTENT_ENCODING = 'aes128gcm';
+
     /**
      * Encodes a string to URL-safe Base64.
      *
@@ -376,5 +387,51 @@ class encrypt {
 
         // Generate the JWT.
         return $header . '.' . $payloadinfo . '.' . $signature;
+    }
+
+    public function get_vapid_header(string $audience, string $subject, string $publicKey, string $privateKey)
+    {
+        $expiration = time() + 43200; // equal margin of error between 0 and 24h
+        $header = [
+                'typ' => 'JWT',
+                'alg' => 'ES256',
+        ];
+
+        $jwtPayload = json_encode([
+                'aud' => $audience,
+                'exp' => $expiration,
+                'sub' => $subject,
+        ], JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+
+        [$x, $y] = Utils::unserializePublicKey($publicKey);
+        $jwk = new JWK([
+                'kty' => 'EC',
+                'crv' => 'P-256',
+                'x' => $this->base64url_encode($x),
+                'y' => $this->base64url_encode($y),
+                'd' => $this->base64url_encode($privateKey),
+        ]);
+
+        $jwsCompactSerializer = new CompactSerializer();
+        $jwsBuilder = new JWSBuilder(new AlgorithmManager([new ES256()]));
+        $jws = $jwsBuilder
+                ->create()
+                ->withPayload($jwtPayload)
+                ->addSignature($jwk, $header)
+                ->build();
+
+        $signature = $jws->getSignature(0);
+
+        $jwt =  sprintf(
+                '%s.%s.%s',
+                $signature->getEncodedProtectedHeader(),
+                $jws->getEncodedPayload(),
+                $this->base64url_encode($signature->getSignature())
+        );
+
+        $encodedPublicKey = $this->base64url_encode($publicKey);
+
+        return ['Authorization' => 'vapid t='.$jwt.', k='.$encodedPublicKey];
+
     }
 }

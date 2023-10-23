@@ -18,16 +18,8 @@ namespace message_popup;
 
 require $CFG->dirroot . '/vendor/autoload.php';
 
-use Base64Url\Base64Url;
 use core\http_client;
-use GuzzleHttp\Psr7\Request;
 use Minishlink\WebPush\Encryption;
-use Minishlink\WebPush\Notification;
-use Minishlink\WebPush\Utils;
-use Minishlink\WebPush\VAPID;
-use Minishlink\WebPush\WebPush;
-use Minishlink\WebPush\Subscription;
-
 
 /**
  * Class used to return information to display for the message popup.
@@ -94,200 +86,44 @@ class push {
      * @param http_client|null $client The HTTP client to use.
      * @return int The HTTP status code.
      */
-    public static function send_push_notification($subscription, $payload, ?http_client $client = null) {
-        // Allow for dependency injection of http client.
-        if (!$client) {
-            $client = new http_client();
-        }
+
+
+    public static function send_push_notification($subscription, $payload) {
+        $encrypt = new encrypt();
+        $keys = $encrypt->get_encryption_keys();
+        $vapidprivatekey = $encrypt->base64url_decode($keys['vapidprivatekey']);
+        $vapidpublickey = $encrypt->base64url_decode($keys['vapidpublickey']);
+        $vapidsubject = 'mailto:me@website.com'; // Mailto link or url.
+
+        // TODO: Add payload max length check after json encoding.
+        $payloadjson = json_encode($payload);
+        $paddedpayload = $encrypt->payload_pad($payloadjson, self::MAX_PAYLOAD_LENGTH);
+
+        $contentEncoding = 'aes128gcm';
+        $encrypted = Encryption::encrypt($paddedpayload, $subscription->p256dh, $subscription->auth, $contentEncoding);
+        $cipherText = $encrypted['cipherText'];
+        $salt = $encrypted['salt'];
+        $localPublicKey = $encrypted['localPublicKey'];
+        $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, $contentEncoding);
+        $content = $encryptionContentCodingHeader.$cipherText;
 
         $endpoint = $subscription->endpoint;
-        $clientPublicKey = $subscription->p256dh;
-        $clientAuthToken = $subscription->auth;
-
-        // Encryption object used for encrypting the payload and generating the JWT.
-        $encrypt = new encrypt();
-
-        // Encrypt the payload using client's public key and auth token.
-        $jsonpayload = json_encode($payload);
-        $encryptedData = $encrypt->encrypt_payload($jsonpayload, $clientPublicKey, $clientAuthToken);
-
-        $encrypted = Encryption::encrypt($jsonpayload, $clientPublicKey, $clientAuthToken, 'aes128gcm');
-        $cipherText = $encrypted['cipherText'];
-        $salt = $encrypted['salt'];
-        $localPublicKey = $encrypted['localPublicKey'];
-        $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, 'aes128gcm');
-        $content = $encryptionContentCodingHeader.$cipherText;
-
-
-        // Generate the JWT.
-        $jwt = $encrypt->generate_jwt($endpoint);
-
-        // Prepare the request headers.
-        $vapidkeys = $encrypt->get_encryption_keys();
-        $vapidPublicKey = $vapidkeys['vapidpublickey'];
-        $audience = 'https://' . parse_url($endpoint, PHP_URL_HOST);
-        $vapidHeaders = VAPID::getVapidHeaders(
-                $audience,
-                'mailto:your-email@example.com',
-                $encrypt->base64url_decode($vapidPublicKey),
-                $encrypt->base64url_decode($vapidkeys['vapidprivatekey']),
-                'aes128gcm');
-        $contentlength = (string) mb_strlen($encryptedData['payload'], '8bit');
-        $headers = [
-                'TTL' => '2419200',
-                'Content-Type' => 'application/octet-stream',
-                'Content-Encoding' => 'aes128gcm',
-                'Authorization' => $vapidHeaders['Authorization'],
-                'Content-Length' => $contentlength
-                //'Crypto-Key' => 'dh=' . $encryptedData['localpublickey']
-        ];
-        error_log(print_r($headers, true));
-        error_log(print_r($encryptedData['payload'], true));
-
-        // Send the request using Guzzle
-        $response = $client->post($endpoint, [
-                'headers' => $headers,
-                'body' => $content,
-        ]);
-
-
-        return $response->getStatusCode();
-    }
-
-    public static function send_push_notification_simple($subscription, $payload) {
-        // array of notifications
-        $notifications = [
-                [
-                        'subscription' => Subscription::create([ // this is the structure for the working draft from october 2018 (https://www.w3.org/TR/2018/WD-push-api-20181026/)
-                                "endpoint" => $subscription->endpoint,
-                                "keys" => [
-                                        'p256dh' => $subscription->p256dh,
-                                        'auth' => $subscription->auth
-                                ],
-                                'contentEncoding' => 'aes128gcm',
-                        ]),
-                        'payload' => '{"msg":"Hello World!"}',
-                ],
-        ];
-
-        $encrypt = new encrypt();
-        $keys = $encrypt->get_encryption_keys();
-
-        $auth = [
-                'VAPID' => [
-                        'subject' => 'mailto:me@website.com', // can be a mailto: or your website address
-                        'publicKey' => $keys['vapidpublickey'], // (recommended) uncompressed public key P-256 encoded in Base64-URL
-                        'privateKey' => $keys['vapidprivatekey']
-                    // (recommended) in fact the secret multiplier of the private key encoded in Base64-URL],
-                ]
-        ];
-
-        $webPush = new WebPush($auth);
-        $webPush->setReuseVAPIDHeaders(true);
-
-        $report = $webPush->sendOneNotification(
-                $notifications[0]['subscription'],
-                $notifications[0]['payload'] // optional (defaults null)
-        );
-
-        $endpoint = $report->getRequest()->getUri()->__toString();
-
-        if ($report->isSuccess()) {
-            echo "[v] Message sent successfully for subscription {$endpoint}.";
-        } else {
-            echo "[x] Message failed to sent for subscription {$endpoint}: {$report->getReason()}";
-        }
-    }
-
-    public static function prepare($payload, array $subscription, array $auth): array {
-        $endpoint = $subscription['endpoint'];
-        $userPublicKey = $subscription['keys']['p256dh'];
-        $userAuthToken = $subscription['keys']['auth'];
-        $contentEncoding = 'aes128gcm';
-
-        $encrypted = Encryption::encrypt($payload, $userPublicKey, $userAuthToken, $contentEncoding);
-        $cipherText = $encrypted['cipherText'];
-        $salt = $encrypted['salt'];
-        $localPublicKey = $encrypted['localPublicKey'];
-        $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, $contentEncoding);
-        $content = $encryptionContentCodingHeader.$cipherText;
-
-        $headers = [
-                'Content-Type' => 'application/octet-stream',
-                'Content-Encoding' => $contentEncoding,
-                'TTL' => 2419200,
-                'Content-Length' => (string) mb_strlen($content, '8bit'),
-        ];
-
         $audience = parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST);
-        $vapidHeaders = VAPID::getVapidHeaders($audience,  $auth['VAPID']['subject'],  $auth['VAPID']['publicKey'],  $auth['VAPID']['privateKey'], $contentEncoding);
-        $headers['Authorization'] = $vapidHeaders['Authorization'];
+        $vapidHeaders = $encrypt->get_vapid_header($audience,  $vapidsubject,  $vapidpublickey,  $vapidprivatekey);
 
-        return [$endpoint, $headers, $content];
-    }
-
-    public static function send_push_notification_raw($subscription, $payload) {
-        // array of notifications
-        $notifications = [
-                [
-                        'subscription' => [ // this is the structure for the working draft from october 2018 (https://www.w3.org/TR/2018/WD-push-api-20181026/)
-                                "endpoint" => $subscription->endpoint,
-                                "keys" => [
-                                        'p256dh' => $subscription->p256dh,
-                                        'auth' => $subscription->auth
-                                ],
-                                'contentEncoding' => 'aes128gcm',
-                        ],
-                        'payload' => '{"msg":"Hello World!"}',
-                ],
+        $headers = [
+            'Content-Type' => 'application/octet-stream',
+            'Content-Encoding' => $contentEncoding,
+            'TTL' => 2419200,
+            'Content-Length' => (string) mb_strlen($content, '8bit'),
+            'Authorization' => $vapidHeaders['Authorization'],
         ];
-
-        $encrypt = new encrypt();
-        $keys = $encrypt->get_encryption_keys();
-
-        $auth = [
-                'VAPID' => [
-                        'subject' => 'mailto:me@website.com', // can be a mailto: or your website address
-                        'publicKey' => $keys['vapidpublickey'],
-                        'privateKey' => $keys['vapidprivatekey']
-                ]
-        ];
-
-        // TODO: Add payload max length check.
-        $payload = $encrypt->payload_pad($notifications[0]['payload'], self::MAX_PAYLOAD_LENGTH);
-        $auth['VAPID'] = VAPID::validate($auth['VAPID']);
-
-        $subscription = $notifications[0]['subscription'];
-        $endpoint = $subscription['endpoint'];
-        $userPublicKey = $subscription['keys']['p256dh'];
-        $userAuthToken = $subscription['keys']['auth'];
-        $contentEncoding = 'aes128gcm';
-
-        $encrypted = Encryption::encrypt($payload, $userPublicKey, $userAuthToken, $contentEncoding);
-        $cipherText = $encrypted['cipherText'];
-        $salt = $encrypted['salt'];
-        $localPublicKey = $encrypted['localPublicKey'];
-        $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, $contentEncoding);
-        $content = $encryptionContentCodingHeader.$cipherText;
-
-            $headers = [
-                    'Content-Type' => 'application/octet-stream',
-                    'Content-Encoding' => $contentEncoding,
-                    'TTL' => 2419200,
-                    'Content-Length' => (string) mb_strlen($content, '8bit'),
-            ];
-
-            $audience = parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST);
-            $vapidHeaders = VAPID::getVapidHeaders($audience,  $auth['VAPID']['subject'],  $auth['VAPID']['publicKey'],  $auth['VAPID']['privateKey'], $contentEncoding);
-            $headers['Authorization'] = $vapidHeaders['Authorization'];
-
 
         $client = new http_client();
         $response = $client->post($endpoint, [
                 'headers' => $headers,
                 'body' => $content,
         ]);
-
 
         return $response->getStatusCode();
     }
