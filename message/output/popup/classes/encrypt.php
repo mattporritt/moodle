@@ -16,8 +16,6 @@
 
 namespace message_popup;
 
-use Jose\Component\Core\Util\ECSignature;
-
 /**
  * Class used to perform encryption related tasks for push notifications.
  *
@@ -28,6 +26,14 @@ use Jose\Component\Core\Util\ECSignature;
 class encrypt {
 
     public const CONTENT_ENCODING = 'aes128gcm';
+
+    private const ASN1_LENGTH_2BYTES = '81';
+    private const ASN1_SEQUENCE = '30';
+    private const ASN1_INTEGER = '02';
+    private const ASN1_MAX_SINGLE_BYTE = 128;
+    private const ASN1_BIG_INTEGER_LIMIT = '7f';
+    private const ASN1_NEGATIVE_INTEGER = '00';
+    private const BYTE_SIZE = 2;
 
     /**
      * Encodes a string to URL-safe Base64.
@@ -368,7 +374,46 @@ class encrypt {
         return $encodedheader . '.' . $encodedpayload . '.' . $signature;
     }
 
+    public static function fromAsn1(string $signature, int $length): string
+    {
+        $message = bin2hex($signature);
+        $position = 4;
 
+        $pointR = self::retrievePositiveInteger(self::readAsn1Integer($message, $position));
+        $pointS = self::retrievePositiveInteger(self::readAsn1Integer($message, $position));
+
+        $bin = hex2bin(str_pad($pointR, $length, '0', STR_PAD_LEFT).str_pad($pointS, $length, '0', STR_PAD_LEFT));
+
+        return $bin;
+    }
+
+    public static function readAsn1Content(string $message, int &$position, int $length): string
+    {
+        $content = mb_substr($message, $position, $length, '8bit');
+        $position += $length;
+
+        return $content;
+    }
+
+
+    public static function readAsn1Integer(string $message, int &$position): string
+    {
+        $position += 2;
+
+        $length = (int) hexdec(self::readAsn1Content($message, $position, 2));
+
+        return self::readAsn1Content($message, $position, $length * 2);
+    }
+
+    public static function retrievePositiveInteger(string $data): string
+    {
+        while (0 === mb_strpos($data, '00', 0, '8bit')
+                && mb_substr($data, 2, 2, '8bit') > '7f') {
+            $data = mb_substr($data, 2, null, '8bit');
+        }
+
+        return $data;
+    }
 
     public function get_vapid_header(string $audience, string $subject, array $keys) {
         $expiration = time() + 43200; // equal margin of error between 0 and 24h
@@ -399,7 +444,7 @@ class encrypt {
             throw new \RuntimeException('Failed to create the signature.');
         }
 
-        $rawsignature = ECSignature::fromAsn1($signature, 64);
+        $rawsignature = self::fromAsn1($signature, 64);
         $encodedsignature = $this->base64url_encode($rawsignature);
         $jwt =  $encodedheader . '.' . $encodedpayload . '.' . $encodedsignature;
 
