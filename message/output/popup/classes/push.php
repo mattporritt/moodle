@@ -91,8 +91,6 @@ class push {
     public static function send_push_notification($subscription, $payload) {
         $encrypt = new encrypt();
         $keys = $encrypt->get_encryption_keys();
-        $vapidprivatekey = $encrypt->base64url_decode($keys['vapidprivatekey']);
-        $vapidpublickey = $encrypt->base64url_decode($keys['vapidpublickey']);
         $vapidsubject = 'mailto:me@website.com'; // Mailto link or url.
 
         // TODO: Add payload max length check after json encoding.
@@ -109,7 +107,7 @@ class push {
 
         $endpoint = $subscription->endpoint;
         $audience = parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST);
-        $vapidHeaders = $encrypt->get_vapid_header($audience,  $vapidsubject,  $vapidpublickey,  $vapidprivatekey);
+        $vapidHeaders = $encrypt->get_vapid_header($audience,  $vapidsubject,  $keys);
 
         $headers = [
             'Content-Type' => 'application/octet-stream',

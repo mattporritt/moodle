@@ -17,7 +17,7 @@
 namespace message_popup\task;
 
 use core\task\scheduled_task;
-
+use message_popup\encrypt;
 
 /**
  * Contains the class responsible for sending push notifications to users.

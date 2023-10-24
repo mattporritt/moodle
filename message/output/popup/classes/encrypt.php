@@ -16,13 +16,7 @@
 
 namespace message_popup;
 
-use Base64Url\Base64Url;
-use Jose\Component\Core\AlgorithmManager;
-use Jose\Component\Core\JWK;
-use Jose\Component\Signature\Algorithm\ES256;
-use Jose\Component\Signature\JWSBuilder;
-use Jose\Component\Signature\Serializer\CompactSerializer;
-use Minishlink\WebPush\Utils;
+use Jose\Component\Core\Util\ECSignature;
 
 /**
  * Class used to perform encryption related tasks for push notifications.
@@ -348,8 +342,6 @@ class encrypt {
         // Generate the signature with OpenSSL.
         $signature = '';
         $privatekeypem = $this->get_encryption_keys()['pemprivatekey'];
-        error_log($privatekeypem);
-        error_log($this->get_encryption_keys()['pempublickey']);
         openssl_sign($signatureInput, $signature, $privatekeypem, OPENSSL_ALGO_SHA256);
 
         // Base64 encode the signature and remove padding.
@@ -362,76 +354,56 @@ class encrypt {
      * @param string $endpoint The endpoint.
      * @return string The JWT.
      */
-    public function generate_jwt(string $endpoint): string {
-        // The JWT header.
-        $header = [
-                'typ' => 'JWT',
-                'alg' => 'ES256'
-        ];
-
-        $header = base64_encode(json_encode($header));
-        $header = rtrim($header, '=');
+    public function generate_jwt(array $header, array $payload): string {
+        // Generate the JWT header.
+        $encodedheader = $this->base64url_encode(json_encode($header, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK));
 
         // Generate the JWT payload.
-        $payloadinfo = [
-                'aud' => 'https://' . parse_url($endpoint, PHP_URL_HOST),
-                'exp' => time() + (12 * 60 * 60),
-                'sub' => 'mailto:your-email@example.com'
-        ];
-
-        $payloadinfo = base64_encode(json_encode($payloadinfo));
-        $payloadinfo = rtrim($payloadinfo, '=');
+        $encodedpayload = $this->base64url_encode(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK));
 
         // Create the signature input string.
-        $signature = $this->generate_signature($header, $payloadinfo);
+        $signature = $this->generate_signature($encodedheader, $encodedpayload);
 
         // Generate the JWT.
-        return $header . '.' . $payloadinfo . '.' . $signature;
+        return $encodedheader . '.' . $encodedpayload . '.' . $signature;
     }
 
-    public function get_vapid_header(string $audience, string $subject, string $publicKey, string $privateKey)
-    {
+
+
+    public function get_vapid_header(string $audience, string $subject, array $keys) {
         $expiration = time() + 43200; // equal margin of error between 0 and 24h
         $header = [
                 'typ' => 'JWT',
                 'alg' => 'ES256',
         ];
+        $encodedheader = $this->base64url_encode(json_encode($header, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK));
 
-        $jwtPayload = json_encode([
+        $payload = [
                 'aud' => $audience,
                 'exp' => $expiration,
                 'sub' => $subject,
-        ], JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+        ];
 
-        [$x, $y] = Utils::unserializePublicKey($publicKey);
-        $jwk = new JWK([
-                'kty' => 'EC',
-                'crv' => 'P-256',
-                'x' => $this->base64url_encode($x),
-                'y' => $this->base64url_encode($y),
-                'd' => $this->base64url_encode($privateKey),
-        ]);
+        $jwtPayload = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+        $encodedpayload = $this->base64url_encode($jwtPayload);
 
-        $jwsCompactSerializer = new CompactSerializer();
-        $jwsBuilder = new JWSBuilder(new AlgorithmManager([new ES256()]));
-        $jws = $jwsBuilder
-                ->create()
-                ->withPayload($jwtPayload)
-                ->addSignature($jwk, $header)
-                ->build();
+        // Get the private key resource from the PEM string
+        $private_key_res = openssl_pkey_get_private($keys['pemprivatekey']);
+        if ($private_key_res === false) {
+            throw new \RuntimeException('Failed to load the private key.');
+        }
 
-        $signature = $jws->getSignature(0);
+        // Generate the signature
+        $to_sign = $encodedheader . '.' . $encodedpayload;
+        if (!openssl_sign($to_sign, $signature, $private_key_res, OPENSSL_ALGO_SHA256)) {
+            throw new \RuntimeException('Failed to create the signature.');
+        }
 
-        $jwt =  sprintf(
-                '%s.%s.%s',
-                $signature->getEncodedProtectedHeader(),
-                $jws->getEncodedPayload(),
-                $this->base64url_encode($signature->getSignature())
-        );
+        $rawsignature = ECSignature::fromAsn1($signature, 64);
+        $encodedsignature = $this->base64url_encode($rawsignature);
+        $jwt =  $encodedheader . '.' . $encodedpayload . '.' . $encodedsignature;
 
-        $encodedPublicKey = $this->base64url_encode($publicKey);
-
-        return ['Authorization' => 'vapid t='.$jwt.', k='.$encodedPublicKey];
+        return ['Authorization' => 'vapid t='.$jwt.', k='.$keys['vapidpublickey']];
 
     }
 }
