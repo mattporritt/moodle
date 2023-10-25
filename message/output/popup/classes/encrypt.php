@@ -16,6 +16,10 @@
 
 namespace message_popup;
 
+use Jose\Component\Core\JWK;
+use Jose\Component\Core\Util\ECKey;
+use Minishlink\WebPush\Utils;
+
 /**
  * Class used to perform encryption related tasks for push notifications.
  *
@@ -26,14 +30,6 @@ namespace message_popup;
 class encrypt {
 
     public const CONTENT_ENCODING = 'aes128gcm';
-
-    private const ASN1_LENGTH_2BYTES = '81';
-    private const ASN1_SEQUENCE = '30';
-    private const ASN1_INTEGER = '02';
-    private const ASN1_MAX_SINGLE_BYTE = 128;
-    private const ASN1_BIG_INTEGER_LIMIT = '7f';
-    private const ASN1_NEGATIVE_INTEGER = '00';
-    private const BYTE_SIZE = 2;
 
     /**
      * Encodes a string to URL-safe Base64.
@@ -450,5 +446,95 @@ class encrypt {
 
         return ['Authorization' => 'vapid t='.$jwt.', k='.$keys['vapidpublickey']];
 
+    }
+
+    public function createLocalKeyObjectUsingOpenSSL()
+    {
+        $keyResource = openssl_pkey_new([
+                'curve_name'       => 'prime256v1',
+                'private_key_type' => OPENSSL_KEYTYPE_EC,
+        ]);
+
+        $details = openssl_pkey_get_details($keyResource);
+
+        return new JWK([
+                        'kty' => 'EC',
+                        'crv' => 'P-256',
+                        'x' => $this->base64url_encode(str_pad($details['ec']['x'], 32, chr(0), STR_PAD_LEFT)),
+                        'y' => $this->base64url_encode(str_pad($details['ec']['y'], 32, chr(0), STR_PAD_LEFT)),
+                        'd' => $this->base64url_encode(str_pad($details['ec']['d'], 32, chr(0), STR_PAD_LEFT)),
+                ]);
+    }
+
+    /**
+     * HMAC-based Extract-and-Expand Key Derivation Function (HKDF).
+     *
+     * This is used to derive a secure encryption key from a mostly-secure shared
+     * secret.
+     *
+     * This is a partial implementation of HKDF tailored to our specific purposes.
+     * In particular, for us the value of N will always be 1, and thus T always
+     * equals HMAC-Hash(PRK, info | 0x01).
+     *
+     * See {@link https://www.rfc-editor.org/rfc/rfc5869.txt}
+     * From {@link https://github.com/GoogleChrome/push-encryption-node/blob/master/src/encrypt.js}
+     *
+     * @param string $salt   A non-secret random value
+     * @param string $ikm    Input keying material
+     * @param string $info   Application-specific context
+     * @param int    $length The length (in bytes) of the required output key
+     */
+    private function hkdf(string $salt, string $ikm, string $info, int $length): string
+    {
+        // extract
+        $prk = hash_hmac('sha256', $ikm, $salt, true);
+
+        // expand
+        return mb_substr(hash_hmac('sha256', $info.chr(1), $prk, true), 0, $length, '8bit');
+    }
+
+    public function deterministicEncrypt(string $payload, string $userPublicKey, string $userAuthToken, string $contentEncoding, $localJwk, string $salt): array
+    {
+        $userPublicKey = $this->base64url_decode($userPublicKey);
+        $userAuthToken = $this->base64url_decode($userAuthToken);
+
+        $localPublicKey = hex2bin(Utils::serializePublicKeyFromJWK($localJwk));
+
+        // get user public key object
+        [$userPublicKeyObjectX, $userPublicKeyObjectY] = Utils::unserializePublicKey($userPublicKey);
+        $userJwk = new JWK([
+                'kty' => 'EC',
+                'crv' => 'P-256',
+                'x' => $this->base64url_encode($userPublicKeyObjectX),
+                'y' => $this->base64url_encode($userPublicKeyObjectY),
+        ]);
+
+        // get shared secret from user public key and local private key
+        $publicPem = ECKey::convertPublicKeyToPEM($userJwk);
+        $privatePem = ECKey::convertPrivateKeyToPEM($localJwk);
+
+        $sharedSecret = openssl_pkey_derive($publicPem, $privatePem, 256); // @phpstan-ignore-line
+        $sharedSecret = str_pad($sharedSecret, 32, chr(0), STR_PAD_LEFT);
+
+        // section 4.3
+        $info = "WebPush: info".chr(0).$userPublicKey.$localPublicKey;
+        $ikm = $this->hkdf($userAuthToken, $sharedSecret, $info, 32);
+
+        // Derive the Content Encryption Key.
+        $contentEncryptionKeyInfo = 'Content-Encoding: '.'aes128gcm'.chr(0);
+        $contentEncryptionKey = $this->hkdf($salt, $ikm, $contentEncryptionKeyInfo, 16);
+
+        // Derive the nonce.
+        $nonceInfo = 'Content-Encoding: '.'nonce'.chr(0);
+        $nonce = $this->hkdf($salt, $ikm, $nonceInfo, 12);
+
+        $tag = '';
+        $encryptedText = openssl_encrypt($payload, 'aes-128-gcm', $contentEncryptionKey, OPENSSL_RAW_DATA, $nonce, $tag);
+
+        // return values in url safe base64
+        return [
+                'localPublicKey' => $localPublicKey,
+                'cipherText' => $encryptedText.$tag,
+        ];
     }
 }

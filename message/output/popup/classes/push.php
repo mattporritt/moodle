@@ -98,9 +98,16 @@ class push {
         $paddedpayload = $encrypt->payload_pad($payloadjson, self::MAX_PAYLOAD_LENGTH);
 
         $contentEncoding = 'aes128gcm';
-        $encrypted = Encryption::encrypt($paddedpayload, $subscription->p256dh, $subscription->auth, $contentEncoding);
+        $salt = random_bytes(16);
+        $encrypted = $encrypt->deterministicEncrypt(
+                $paddedpayload,
+                $subscription->p256dh,
+                $subscription->auth,
+                $contentEncoding,
+                $encrypt->createLocalKeyObjectUsingOpenSSL(),
+                $salt
+        );
         $cipherText = $encrypted['cipherText'];
-        $salt = $encrypted['salt'];
         $localPublicKey = $encrypted['localPublicKey'];
         $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, $contentEncoding);
         $content = $encryptionContentCodingHeader.$cipherText;
