@@ -103,7 +103,6 @@ class push {
                 $paddedpayload,
                 $subscription->p256dh,
                 $subscription->auth,
-                $contentEncoding,
                 $encrypt->createLocalKeyObjectUsingOpenSSL(),
                 $salt
         );

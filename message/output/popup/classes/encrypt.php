@@ -16,6 +16,7 @@
 
 namespace message_popup;
 
+use Base64Url\Base64Url;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\Util\ECKey;
 use Minishlink\WebPush\Utils;
@@ -493,7 +494,7 @@ class encrypt {
         return mb_substr(hash_hmac('sha256', $info.chr(1), $prk, true), 0, $length, '8bit');
     }
 
-    public function deterministicEncrypt(string $payload, string $userPublicKey, string $userAuthToken, string $contentEncoding, $localJwk, string $salt): array
+    public function deterministicEncrypt(string $payload, string $userPublicKey, string $userAuthToken, $localJwk, string $salt): array
     {
         $userPublicKey = $this->base64url_decode($userPublicKey);
         $userAuthToken = $this->base64url_decode($userAuthToken);
@@ -502,15 +503,27 @@ class encrypt {
 
         // get user public key object
         [$userPublicKeyObjectX, $userPublicKeyObjectY] = Utils::unserializePublicKey($userPublicKey);
-        $userJwk = new JWK([
-                'kty' => 'EC',
-                'crv' => 'P-256',
-                'x' => $this->base64url_encode($userPublicKeyObjectX),
-                'y' => $this->base64url_encode($userPublicKeyObjectY),
-        ]);
+
+        $publickeyder = pack(
+                'H*',
+                '3059' // SEQUENCE, length 89
+                .'3013' // SEQUENCE, length 19
+                .'0607' // OID, length 7
+                .'2a8648ce3d0201' // 1.2.840.10045.2.1 = EC Public Key
+                .'0608' // OID, length 8
+                .'2a8648ce3d030107' // 1.2.840.10045.3.1.7 = P-256 Curve
+                .'0342' // BIT STRING, length 66
+                .'00' // prepend with NUL - pubkey will follow
+        );
+        $publickeyder .= "\04"
+                .str_pad(Base64Url::decode($this->base64url_encode($userPublicKeyObjectX)), 32, "\0", STR_PAD_LEFT)
+                .str_pad(Base64Url::decode($this->base64url_encode($userPublicKeyObjectY)), 32, "\0", STR_PAD_LEFT);
+
+        $publicPem = '-----BEGIN PUBLIC KEY-----'.PHP_EOL;
+        $publicPem .= chunk_split(base64_encode($publickeyder), 64, PHP_EOL);
+        $publicPem .= '-----END PUBLIC KEY-----'.PHP_EOL;
 
         // get shared secret from user public key and local private key
-        $publicPem = ECKey::convertPublicKeyToPEM($userJwk);
         $privatePem = ECKey::convertPrivateKeyToPEM($localJwk);
 
         $sharedSecret = openssl_pkey_derive($publicPem, $privatePem, 256); // @phpstan-ignore-line
