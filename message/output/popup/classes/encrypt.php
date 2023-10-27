@@ -16,9 +16,6 @@
 
 namespace message_popup;
 
-use Jose\Component\Core\JWK;
-use Minishlink\WebPush\Utils;
-
 /**
  * Class used to perform encryption related tasks for push notifications.
  *
@@ -456,13 +453,13 @@ class encrypt {
 
         $details = openssl_pkey_get_details($keyResource);
 
-        return new JWK([
+        return [
                         'kty' => 'EC',
                         'crv' => 'P-256',
                         'x' => $this->base64url_encode(str_pad($details['ec']['x'], 32, chr(0), STR_PAD_LEFT)),
                         'y' => $this->base64url_encode(str_pad($details['ec']['y'], 32, chr(0), STR_PAD_LEFT)),
                         'd' => $this->base64url_encode(str_pad($details['ec']['d'], 32, chr(0), STR_PAD_LEFT)),
-                ]);
+                ];
     }
 
     /**
@@ -492,6 +489,16 @@ class encrypt {
         return mb_substr(hash_hmac('sha256', $info.chr(1), $prk, true), 0, $length, '8bit');
     }
 
+    public function getContentCodingHeader(string $salt, string $localPublicKey): string
+    {
+
+            return $salt
+                    .pack('N*', 4096)
+                    .pack('C*', mb_strlen($localPublicKey, '8bit'))
+                    .$localPublicKey;
+
+    }
+
     public function deterministicEncrypt(string $payload, string $userPublicKey, string $userAuthToken, $localJwk, string $salt): array
     {
         $userPublicKey = $this->base64url_decode($userPublicKey);
@@ -499,20 +506,23 @@ class encrypt {
 
         // Call this serialise at some point.
         $serialisedkey = '04';
-        $serialisedkey .= str_pad(bin2hex($this->base64url_decode($localJwk->get('x'))), 64, '0', STR_PAD_LEFT);
-        $serialisedkey .= str_pad(bin2hex($this->base64url_decode($localJwk->get('y'))), 64, '0', STR_PAD_LEFT);
+        $serialisedkey .= str_pad(bin2hex($this->base64url_decode($localJwk['x'])), 64, '0', STR_PAD_LEFT);
+        $serialisedkey .= str_pad(bin2hex($this->base64url_decode($localJwk['y'])), 64, '0', STR_PAD_LEFT);
         $localPublicKey = hex2bin($serialisedkey);
 
         // get user public key object
+        $userPublicKeyhex = bin2hex($userPublicKey);
+        $userPublicKeyhex = mb_substr($userPublicKeyhex, 2, null, '8bit');
+        $dataLength = mb_strlen($userPublicKeyhex, '8bit');
 
-
-        [$userPublicKeyObjectX, $userPublicKeyObjectY] = Utils::unserializePublicKey($userPublicKey);
+        $userPublicKeyObjectX = hex2bin(mb_substr($userPublicKeyhex, 0, $dataLength / 2, '8bit'));
+        $userPublicKeyObjectY = hex2bin(mb_substr($userPublicKeyhex, $dataLength / 2, null, '8bit'));
 
         $publickeyder = pack(
                 'H*',
                 '3059' // SEQUENCE, length 89
                 .'3013' // SEQUENCE, length 19
-                .'0607' // OID, length 7$serialisedkey
+                .'0607' // OID, length 7
                 .'2a8648ce3d0201' // 1.2.840.10045.2.1 = EC Public Key
                 .'0608' // OID, length 8
                 .'2a8648ce3d030107' // 1.2.840.10045.3.1.7 = P-256 Curve
@@ -527,7 +537,7 @@ class encrypt {
         $publicPem .= chunk_split(base64_encode($publickeyder), 64, PHP_EOL);
         $publicPem .= '-----END PUBLIC KEY-----'.PHP_EOL;
 
-        $privatekeydata = unpack('H*', str_pad($this->base64url_decode($localJwk->get('d')), 32, "\0", STR_PAD_LEFT));
+        $privatekeydata = unpack('H*', str_pad($this->base64url_decode($localJwk['d']), 32, "\0", STR_PAD_LEFT));
 
         $privatekeyder = pack(
                 'H*',
@@ -544,8 +554,8 @@ class encrypt {
         );
 
         $privatekeyder .= "\04"
-            .str_pad($this->base64url_decode($localJwk->get('x')), 32, "\0", STR_PAD_LEFT)
-            .str_pad($this->base64url_decode($localJwk->get('y')), 32, "\0", STR_PAD_LEFT);
+            .str_pad($this->base64url_decode($localJwk['x']), 32, "\0", STR_PAD_LEFT)
+            .str_pad($this->base64url_decode($localJwk['y']), 32, "\0", STR_PAD_LEFT);
 
         $privatePem = '-----BEGIN EC PRIVATE KEY-----'.PHP_EOL;
         $privatePem .= chunk_split(base64_encode($privatekeyder), 64, PHP_EOL);

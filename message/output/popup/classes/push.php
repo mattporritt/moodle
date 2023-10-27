@@ -19,7 +19,6 @@ namespace message_popup;
 require $CFG->dirroot . '/vendor/autoload.php';
 
 use core\http_client;
-use Minishlink\WebPush\Encryption;
 
 /**
  * Class used to return information to display for the message popup.
@@ -108,7 +107,7 @@ class push {
         );
         $cipherText = $encrypted['cipherText'];
         $localPublicKey = $encrypted['localPublicKey'];
-        $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, $contentEncoding);
+        $encryptionContentCodingHeader = $encrypt->getContentCodingHeader($salt, $localPublicKey);
         $content = $encryptionContentCodingHeader.$cipherText;
 
         $endpoint = $subscription->endpoint;
