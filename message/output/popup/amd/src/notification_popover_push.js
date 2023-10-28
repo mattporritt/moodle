@@ -87,6 +87,13 @@ const urlBase64ToUint8Array = (base64String) => {
  * @param {string} vapidpublickey The public key to use for push notifications.
  */
 export const init = async(vapidpublickey) => {
+    // Request permission for notifications.
+    const permission = await window.Notification.requestPermission();
+    if (permission !== 'granted') {
+        window.console.error('Notification permission denied.');
+        return;
+    }
+
     // Set up the service worker.
     const workerRegistration = await setupWorker();
 

@@ -16,8 +16,24 @@
 // In notification_service_worker.min.js
 self.console.log('actual service worker script...');
 
-self.addEventListener('push', function(event) {
-    self.console.log('Received a push message', event);
-    self.console.log('Payload:', event.data ? event.data.text() : 'No payload');
-});
+self.addEventListener('push', (event) => {
 
+    let data = {}; // Default data object.
+    if (event.data) {
+        data = event.data.json(); // Assume the payload is JSON.
+        self.console.log('Payload:', event.data.text());
+    } else {
+        self.console.log('No payload');
+    }
+
+    const title = data.title || 'Default Title';
+    const body = data.body || 'Default Body';
+
+    const options = {
+        body: body
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
