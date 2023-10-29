@@ -87,6 +87,21 @@ const urlBase64ToUint8Array = (base64String) => {
  * @param {string} vapidpublickey The public key to use for push notifications.
  */
 export const init = async(vapidpublickey) => {
+    // Check if the user has already granted permission.
+    if (window.Notification.permission === 'denied') {
+        // TODO: Keep a record of this and periodically check if the user has changed their mind.
+        // For now, just log an error.
+        window.console.error('Notification permission denied.');
+        return;
+    } else if (window.Notification.permission === 'granted') {
+        // If the user has already granted permission, we can skip the prompt,
+        // and just continue with initialisation.
+        window.console.log('Notification permission granted.');
+    } else {
+        // Otherwise, we need to ask the user for permission.
+        window.console.log('Notification permission not granted. Requesting permission...');
+    }
+
     // Request permission for notifications.
     const permission = await window.Notification.requestPermission();
     if (permission !== 'granted') {
