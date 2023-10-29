@@ -14,6 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 import Ajax from 'core/ajax';
+import ModalCancel from 'core/modal_cancel';
+import ModalEvents from 'core/modal_events';
 
 /**
  * Converts a JS ArrayBuffer to a Base64 encoded string.
@@ -22,52 +24,20 @@ import Ajax from 'core/ajax';
  * @return {string} The Base64 encoded string.
  */
 const arrayBufferToBase64 = (buffer) => {
-    window.console.log(buffer);
-    let binary = '';
+    let base64String = '';
     const bytes = new Uint8Array(buffer);
     for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
+        base64String += String.fromCharCode(bytes[i]);
     }
-    return window.btoa(binary);
+    return window.btoa(base64String);
 };
 
-const setupWorker = async() => {
-    let registration;
-
-    try {
-        // Register the service worker.
-        // As the service worker listens for push notifications,
-        // the user will be prompted to allow push notifications.
-        const workeruri = '/message/output/popup/amd/build/notification_service_worker.min.js';
-        registration = await navigator.serviceWorker.register(workeruri);
-    } catch (error) {
-        if (error.name === 'NotAllowedError') {
-            // Handle the specific case where permission was denied.
-            window.console.error('Permission for Push API has been denied');
-            // TODO: Show a message to the user to explain why they need to enable Push.
-            // Maybe save this as a preference so we don't show it again?
-        } else {
-            // We have a non permission error, re-throw.
-            throw error;
-        }
-    }
-    return registration;
-};
-
-const registerPushSubscription = async(subscription) => {
-    const request = {
-        methodname: 'message_popup_register_push_subscription',
-        args: {
-            endpoint: subscription.endpoint,
-            expirationtime: subscription.expirationTime,
-            auth: arrayBufferToBase64(subscription.getKey('auth')),
-            p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
-        }
-    };
-
-    return Ajax.call([request])[0];
-};
-
+/**
+ * Converts a URL safe Base64 encoded string to a JS ArrayBuffer.
+ *
+ * @param {string} base64String The URL safe Base64 encoded string.
+ * @returns {Uint8Array} outputArray The ArrayBuffer.
+ */
 const urlBase64ToUint8Array = (base64String) => {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
@@ -82,33 +52,40 @@ const urlBase64ToUint8Array = (base64String) => {
 };
 
 /**
- * Initialise the push notification service.
+ * Set up the service worker.
+ *
+ * @returns {Promise<ServiceWorkerRegistration>} The service worker registration.
+ */
+const setupWorker = async() => {
+    let registration;
+
+    try {
+        // Register the service worker.
+        // As the service worker listens for push notifications,
+        // the user will be prompted to allow push notifications.
+        const workerUri = '/message/output/popup/amd/build/notification_service_worker.min.js';
+        registration = await navigator.serviceWorker.register(workerUri);
+    } catch (error) {
+        if (error.name === 'NotAllowedError') {
+            // Handle the specific case where permission was denied.
+            window.console.error('Permission for Push API has been denied');
+            // TODO: Show a message to the user to explain why they need to enable Push.
+            // Maybe save this as a preference so we don't show it again?
+        } else {
+            // We have a non permission error, re-throw.
+            throw error;
+        }
+    }
+    return registration;
+};
+
+/**
+ * Set up a push subscription.
  *
  * @param {string} vapidpublickey The public key to use for push notifications.
+ * @returns {Promise<void>} A promise that resolves when the subscription is set up.
  */
-export const init = async(vapidpublickey) => {
-    // Check if the user has already granted permission.
-    if (window.Notification.permission === 'denied') {
-        // TODO: Keep a record of this and periodically check if the user has changed their mind.
-        // For now, just log an error.
-        window.console.error('Notification permission denied.');
-        return;
-    } else if (window.Notification.permission === 'granted') {
-        // If the user has already granted permission, we can skip the prompt,
-        // and just continue with initialisation.
-        window.console.log('Notification permission granted.');
-    } else {
-        // Otherwise, we need to ask the user for permission.
-        window.console.log('Notification permission not granted. Requesting permission...');
-    }
-
-    // Request permission for notifications.
-    const permission = await window.Notification.requestPermission();
-    if (permission !== 'granted') {
-        window.console.error('Notification permission denied.');
-        return;
-    }
-
+const setupSubscription = async(vapidpublickey) => {
     // Set up the service worker.
     const workerRegistration = await setupWorker();
 
@@ -131,6 +108,68 @@ export const init = async(vapidpublickey) => {
             // If the registration fails, unsubscribe.
             subscription.unsubscribe();
             throw error;
+        });
+    }
+};
+
+/**
+ * Register a push subscription with the server.
+ *
+ * @param {PushSubscription} subscription The push subscription object.
+ * @returns {Promise<*>} The response from the server.
+ */
+const registerPushSubscription = async(subscription) => {
+    const request = {
+        methodname: 'message_popup_register_push_subscription',
+        args: {
+            endpoint: subscription.endpoint,
+            expirationtime: subscription.expirationTime,
+            auth: arrayBufferToBase64(subscription.getKey('auth')),
+            p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+        }
+    };
+
+    return Ajax.call([request])[0];
+};
+
+/**
+ * Initialise the push notification service.
+ *
+ * @param {string} vapidpublickey The public key to use for push notifications.
+ */
+export const init = async(vapidpublickey) => {
+    // Check if the user has already granted permission.
+    if (window.Notification.permission === 'denied') {
+        // TODO: Keep a record of this and periodically check if the user has changed their mind.
+        // For now, just log an error.
+        window.console.error('Notification permission denied.');
+        return;
+    } else if (window.Notification.permission === 'granted') {
+        // If the user has already granted permission, we can skip the prompt,
+        // and just continue with initialisation.
+        window.console.log('Notification permission granted.');
+        await setupSubscription(vapidpublickey);
+    } else {
+        // Otherwise, we need to ask the user for permission.
+        // And due to browser security, we need to do this in response to a user action.
+        window.console.log('Notification permission not granted. Requesting permission...');
+        const modal = await ModalCancel.create({
+            title: 'Enhanced Notifications',
+            body: '<p>Good copy goes here...</p>',
+            show: true,
+            removeOnClose: true,
+        });
+        modal.setButtonText('cancel', 'OK');
+        modal.getRoot().on(ModalEvents.cancel, async(e) => {
+            window.console.log(e);
+            // Request permission for notifications.
+            const permission = await window.Notification.requestPermission();
+            if (permission !== 'granted') {
+                window.console.error('Notification permission denied.');
+                return;
+            } else {
+                await setupSubscription(vapidpublickey);
+            }
         });
     }
 };
