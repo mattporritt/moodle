@@ -16,6 +16,8 @@
 import Ajax from 'core/ajax';
 import ModalCancel from 'core/modal_cancel';
 import ModalEvents from 'core/modal_events';
+import {getStrings} from 'core/str';
+
 
 /**
  * Converts a JS ArrayBuffer to a Base64 encoded string.
@@ -63,8 +65,17 @@ const setupWorker = async() => {
         // Register the service worker.
         // As the service worker listens for push notifications,
         // the user will be prompted to allow push notifications.
+        // We set the scope for the entire app, so we can receive notifications wherever we are.
         const workerUri = '/message/output/popup/amd/build/notification_service_worker.min.js';
-        registration = await navigator.serviceWorker.register(workerUri);
+        registration = await navigator.serviceWorker.register(workerUri, {scope: '/'});
+
+        // Next add a listener for messages from the service worker.
+        // We do this now, so if push notification setup fails, the service worker can fall back to polling.
+        navigator.serviceWorker.addEventListener('message', event => {
+            window.console.log('Received message from service worker:', event.data.message);
+            // Now we can use the message data to manipulate the DOM or perform other actions.
+        });
+
     } catch (error) {
         if (error.name === 'NotAllowedError') {
             // Handle the specific case where permission was denied.
@@ -133,6 +144,22 @@ const registerPushSubscription = async(subscription) => {
 };
 
 /**
+ * Handle the push modal close event.
+ * @param {string} vapidpublickey The public key to use for push notifications.
+ * @returns {Promise<void>} A promise that resolves when the modal is closed.
+ */
+const pushModalClose = async(vapidpublickey) => {
+    // Request permission for notifications.
+    const permission = await window.Notification.requestPermission();
+    if (permission !== 'granted') {
+        window.console.error('Notification permission denied.');
+        return;
+    } else {
+        await setupSubscription(vapidpublickey);
+    }
+};
+
+/**
  * Initialise the push notification service.
  *
  * @param {string} vapidpublickey The public key to use for push notifications.
@@ -153,23 +180,28 @@ export const init = async(vapidpublickey) => {
         // Otherwise, we need to ask the user for permission.
         // And due to browser security, we need to do this in response to a user action.
         window.console.log('Notification permission not granted. Requesting permission...');
+        // Get the strings that will be used in the modal.
+        const modalStrings = await getStrings([
+            {key: 'pushmodaltitle', component: 'message_popup'},
+            {key: 'pushmodalbody', component: 'message_popup'},
+            {key: 'ok', component: 'core'},
+        ]);
+
+        // Set up the modal.
         const modal = await ModalCancel.create({
-            title: 'Enhanced Notifications',
-            body: '<p>Good copy goes here...</p>',
+            title: modalStrings[0],
+            body: modalStrings[1],
             show: true,
             removeOnClose: true,
         });
+        // Override default button text.
         modal.setButtonText('cancel', 'OK');
-        modal.getRoot().on(ModalEvents.cancel, async(e) => {
-            window.console.log(e);
-            // Request permission for notifications.
-            const permission = await window.Notification.requestPermission();
-            if (permission !== 'granted') {
-                window.console.error('Notification permission denied.');
-                return;
-            } else {
-                await setupSubscription(vapidpublickey);
-            }
+        // Set up the modal event listeners.
+        modal.getRoot().on(ModalEvents.cancel, async() => {
+            pushModalClose(vapidpublickey);
+        });
+        modal.getRoot().on(ModalEvents.hidden, async() => {
+            pushModalClose(vapidpublickey);
         });
     }
 };

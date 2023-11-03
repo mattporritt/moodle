@@ -13,19 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// In notification_service_worker.min.js
-self.console.log('actual service worker script...');
-
-self.addEventListener('push', (event) => {
-
-    let data = {}; // Default data object.
-    if (event.data) {
-        data = event.data.json(); // Assume the payload is JSON.
-        self.console.log('Payload:', event.data.text());
-    } else {
-        self.console.log('No payload');
-    }
-
+/**
+ * Send a push notification to the users browser.
+ *
+ * @param {Event} event The push event.
+ * @param {object} data The data object.
+ */
+const sendPush = (event, data) => {
     const title = data.title || 'Default Title';
     const body = data.body || 'Default Body';
 
@@ -36,4 +30,37 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
         self.registration.showNotification(title, options)
     );
+};
+
+// Set up the event listener that will receive push events from the server.
+self.addEventListener('push', (event) => {
+
+    let data = {}; // Default data object.
+    if (event.data) {
+        data = event.data.json(); // Assume the payload is JSON.
+        self.console.log('Payload:', event.data.text());
+    } else {
+        self.console.log('No payload');
+    }
+
+    // Filter what we do with the event payload based on its type field.
+    switch (data.type) {
+        case 'notification':
+            // Regular notification.
+            // Display a push notification to the user.
+            sendPush(event, data);
+            // Update the notification count in the popover.
+            // TODO: Update the notification count in the popover.
+            break;
+        case 'broadcast':
+            // High priority notification.
+            // Display a push notification to the user.
+            // Update the notification count in the popover.
+            // Show a notification modal to the user.
+            self.console.log('broadcast payload');
+            break;
+        default:
+            self.console.error('Payload does not contain a type field.');
+            break;
+    }
 });

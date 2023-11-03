@@ -26,4 +26,6 @@ $string['pluginname'] = 'Web';
 $string['privacy:metadata'] = 'The messaging Web plugin does not store any personal data.';
 
 $string['encryption_keys'] = 'Message popup encryption key cache.';
+$string['pushmodaltitle'] = 'Allow enhanced notifications';
+$string['pushmodalbody'] = 'Do you want to allow enhanced notifications?<br/><br/>This will allow you to receive notifications and other content updates without the need to reload the page.</br>Once you close this information your browser will ask you to allow notifications, make sure you select "allow".';
 $string['tasksendpush'] = 'Send push notifications';
