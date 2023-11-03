@@ -65,9 +65,8 @@ const setupWorker = async() => {
         // Register the service worker.
         // As the service worker listens for push notifications,
         // the user will be prompted to allow push notifications.
-        // We set the scope for the entire app, so we can receive notifications wherever we are.
         const workerUri = '/message/output/popup/amd/build/notification_service_worker.min.js';
-        registration = await navigator.serviceWorker.register(workerUri, {scope: '/'});
+        registration = await navigator.serviceWorker.register(workerUri);
 
         // Next add a listener for messages from the service worker.
         // We do this now, so if push notification setup fails, the service worker can fall back to polling.

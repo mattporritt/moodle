@@ -43,8 +43,9 @@ class send_push_task extends scheduled_task {
     public function execute() {
         mtrace('Started: Sending push notifications.');
         $payload = [
-            "title" => "Your Custom Title",
-            "message" => "Your Custom Message",
+            'type' => 'notification',
+            'title' => 'Your Custom Title',
+            'message' => 'Your Custom Message',
             // Add any custom data here
         ];
 
