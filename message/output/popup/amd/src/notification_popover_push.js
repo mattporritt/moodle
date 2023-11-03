@@ -53,6 +53,19 @@ const urlBase64ToUint8Array = (base64String) => {
     return outputArray;
 };
 
+const processMessage = (data) => {
+    if (data.broadcast === true) {
+        // We have a broadcast message, so display it in a modal.
+        ModalCancel.create({
+            title: data.title,
+            body: data.message,
+            show: true,
+            removeOnClose: true,
+        });
+    }
+    // Then update the available notifications.
+};
+
 /**
  * Set up the service worker.
  *
@@ -71,8 +84,9 @@ const setupWorker = async() => {
         // Next add a listener for messages from the service worker.
         // We do this now, so if push notification setup fails, the service worker can fall back to polling.
         navigator.serviceWorker.addEventListener('message', event => {
-            window.console.log('Received message from service worker:', event.data.message);
-            // Now we can use the message data to manipulate the DOM or perform other actions.
+            window.console.log('Received message from service worker:', event.data);
+            processMessage(event.data);
+
         });
 
     } catch (error) {
@@ -194,7 +208,7 @@ export const init = async(vapidpublickey) => {
             removeOnClose: true,
         });
         // Override default button text.
-        modal.setButtonText('cancel', 'OK');
+        modal.setButtonText('cancel', modalStrings[3]);
         // Set up the modal event listeners.
         modal.getRoot().on(ModalEvents.cancel, async() => {
             pushModalClose(vapidpublickey);

@@ -43,10 +43,10 @@ class send_push_task extends scheduled_task {
     public function execute() {
         mtrace('Started: Sending push notifications.');
         $payload = [
-            'type' => 'notification',
-            'title' => 'Your Custom Title',
-            'message' => 'Your Custom Message',
-            // Add any custom data here
+            'title' => 'Your Custom Title', // Notification Title.
+            'message' => 'Your Custom Message', // Notification Message.
+            'push' => true, // If true raise a OS push notification.
+            'broadcast' => true, // If true raise a high priority modal notification.
         ];
 
         // Get all the active push notification subscriptions.

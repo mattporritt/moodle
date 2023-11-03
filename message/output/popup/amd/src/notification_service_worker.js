@@ -32,35 +32,31 @@ const sendPush = (event, data) => {
     );
 };
 
+/**
+ * Send a message to any page connected to this worker.
+ * The page decides what to do with the message.
+ *
+ * @param {object} data The data object.
+ */
+const sendMessage = (data) => {
+    // Get a list of all the client pages controlled by this service worker.
+    const clients = self.clients.matchAll();
+    // Iterate through them and send the message.
+    clients.forEach(client => {
+        client.postMessage(data);
+    });
+};
+
 // Set up the event listener that will receive push events from the server.
 self.addEventListener('push', (event) => {
-
-    let data = {}; // Default data object.
-    if (event.data) {
-        data = event.data.json(); // Assume the payload is JSON.
-        self.console.log('Payload:', event.data.text());
-    } else {
-        self.console.log('No payload');
-    }
+    const data = event.data.json(); // Assume the payload is JSON.
+    self.console.log('Payload:', event.data.text());
 
     // Filter what we do with the event payload based on its type field.
-    switch (data.type) {
-        case 'notification':
-            // Regular notification.
-            // Display a push notification to the user.
-            sendPush(event, data);
-            // Update the notification count in the popover.
-            // TODO: Update the notification count in the popover.
-            break;
-        case 'broadcast':
-            // High priority notification.
-            // Display a push notification to the user.
-            // Update the notification count in the popover.
-            // Show a notification modal to the user.
-            self.console.log('broadcast payload');
-            break;
-        default:
-            self.console.error('Payload does not contain a type field.');
-            break;
+    if (data.push === true) {
+        // Push notifications are handled exclusively by the service worker.
+        sendPush(event, data);
     }
+    // Everything else to do with the message is handled by the parent pages.
+    sendMessage(data);
 });
