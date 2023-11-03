@@ -19,6 +19,7 @@ namespace message_popup;
 require $CFG->dirroot . '/vendor/autoload.php';
 
 use core\http_client;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Class used to return information to display for the message popup.
@@ -54,12 +55,28 @@ class push {
         $record = new \stdClass();
         $record->userid = $userid;
         $record->endpoint = $endpoint;
+        $record->endpointhash = hash('sha512', $endpoint); // Makes matching and indexing on endpoint easier.
         $record->p256dh = $p256dh;
         $record->auth = $auth;
         $record->expiration = $expirationtime > 0 ? floor($expirationtime / 1000) : 0;;
         $record->timecreated = time();
 
         return $DB->insert_record('message_popup_subscriptions', $record, false);
+    }
+
+    /**
+     * Delete a subscription.
+     * Removes the subscription record from the database.
+     *
+     * @param string $endpoint The subscription endpoint.
+     * @return bool
+     * @throws \dml_exception
+     */
+    public static function delete_subscription(#[\SensitiveParameter] string $endpointhash): bool {
+        global $DB;
+
+        // Endpoints are unique, so we can use them to delete subscriptions.
+        return $DB->delete_records('message_popup_subscriptions', ['endpointhash' => $endpointhash]);
     }
 
     /**
@@ -78,16 +95,35 @@ class push {
     }
 
     /**
+     * The push relay server can return several error conditions.
+     * Handle them appropriately, based on error code. See: https://mozilla-services.github.io/autopush-rs/errors.html
+     *
+     * @param GuzzleException $error The error object returned from the Guzzle request.
+     * @param \stdClass $subscription The subscription data.
+     * @return void
+     */
+    public static function handle_push_error(GuzzleException $error, \stdClass $subscription): void {
+        error_log('Error sending push notification: '.$error->getMessage());
+        error_log($error->getCode());
+        if ($error->getCode() === 410) {
+            // The subscription is no longer valid, so delete it.
+                self::delete_subscription(endpointhash: $subscription->endpointhash);
+        } else {
+            // Unhandled error code, explode.
+            throw $error;
+        }
+    }
+
+    /**
      * Send a push notification to a user.
      *
      * @param \stdClass $subscription The subscription data.
      * @param array $payload The payload to send.
      * @param http_client|null $client The HTTP client to use.
-     * @return int The HTTP status code.
+     * @return void
+     * @throws GuzzleException
      */
-
-
-    public static function send_push_notification($subscription, $payload) {
+    public static function send_push_notification($subscription, $payload): void {
         $encrypt = new encrypt();
         $keys = $encrypt->get_encryption_keys();
         $vapidsubject = 'mailto:me@website.com'; // Mailto link or url.
@@ -123,11 +159,13 @@ class push {
         ];
 
         $client = new http_client();
-        $response = $client->post($endpoint, [
-                'headers' => $headers,
-                'body' => $content,
-        ]);
-
-        return $response->getStatusCode();
+        try {
+            $client->post($endpoint, [
+                    'headers' => $headers,
+                    'body' => $content,
+            ]);
+        } catch (GuzzleException $error) {
+            self::handle_push_error($error, $subscription);
+        }
     }
 }

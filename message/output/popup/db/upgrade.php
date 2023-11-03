@@ -58,6 +58,7 @@ function xmldb_message_popup_upgrade($oldversion) {
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('endpoint', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('endpointhash', XMLDB_TYPE_CHAR, '128', null, XMLDB_NOTNULL, null, null);
         $table->add_field('p256dh', XMLDB_TYPE_CHAR, '90', null, XMLDB_NOTNULL, null, null);
         $table->add_field('auth', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null);
         $table->add_field('expiration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
@@ -66,6 +67,9 @@ function xmldb_message_popup_upgrade($oldversion) {
         // Adding keys to table message_popup_subscriptions.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('useridkey', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+
+        // Adding indexes to table message_popup_subscriptions.
+        $table->add_index('endpointhash', XMLDB_INDEX_UNIQUE, ['endpointhash']);
 
         // Conditionally launch create table for message_popup_subscriptions.
         if (!$dbman->table_exists($table)) {
