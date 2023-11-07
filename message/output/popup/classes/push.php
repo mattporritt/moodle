@@ -106,8 +106,12 @@ class push {
         if ($error->getCode() === 410) {
             // The subscription is no longer valid, so delete it.
                 self::delete_subscription(endpointhash: $subscription->endpointhash);
+        } else if ($error->getCode() >= 500) {
+            // The push server is having issues, so we should retry later.
+            return;
         } else {
             // Unhandled error code, explode.
+            error_log('Unhandled push error: '.$error->getMessage());
             throw $error;
         }
     }

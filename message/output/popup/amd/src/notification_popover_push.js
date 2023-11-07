@@ -212,6 +212,8 @@ export const init = async(vapidpublickey) => {
 
     channel.addEventListener('message', (event) => {
         window.console.log('Received message from service worker:', event.data);
-        processMessage(event.data);
+        // Convert the json string back to an object.
+        const dataObj = JSON.parse(event.data);
+        processMessage(dataObj);
     });
 };

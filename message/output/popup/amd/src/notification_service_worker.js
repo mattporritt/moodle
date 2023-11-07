@@ -41,8 +41,9 @@ const sendPush = (event, data) => {
 const sendMessage = (data) => {
     self.console.log('Sending message to clients', data);
     const channel = new BroadcastChannel('my-channel');
-        // Send a message to all clients listening on 'my-channel'.
-        channel.postMessage('test message');
+        // Convert the data to a json string, required for broadcasting.
+        const json = JSON.stringify(data);
+        channel.postMessage(json);
 
 };
 
@@ -58,9 +59,4 @@ self.addEventListener('push', (event) => {
     }
     // Everything else to do with the message is handled by the parent pages.
     sendMessage(data);
-});
-
-// Set up the activate event listener to claim clients.
-self.addEventListener('activate', event => {
-    event.waitUntil(self.clients.claim());
 });
