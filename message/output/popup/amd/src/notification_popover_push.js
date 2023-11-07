@@ -58,7 +58,7 @@ const processMessage = (data) => {
         // We have a broadcast message, so display it in a modal.
         ModalCancel.create({
             title: data.title,
-            body: data.message,
+            body: data.body,
             show: true,
             removeOnClose: true,
         });
