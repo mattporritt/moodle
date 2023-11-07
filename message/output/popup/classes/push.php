@@ -103,8 +103,6 @@ class push {
      * @return void
      */
     public static function handle_push_error(GuzzleException $error, \stdClass $subscription): void {
-        error_log('Error sending push notification: '.$error->getMessage());
-        error_log($error->getCode());
         if ($error->getCode() === 410) {
             // The subscription is no longer valid, so delete it.
                 self::delete_subscription(endpointhash: $subscription->endpointhash);
@@ -132,7 +130,6 @@ class push {
         $payloadjson = json_encode($payload);
         $paddedpayload = $encrypt->payload_pad($payloadjson, self::MAX_PAYLOAD_LENGTH);
 
-        $contentEncoding = 'aes128gcm';
         $salt = random_bytes(16);
         $encrypted = $encrypt->deterministicEncrypt(
                 $paddedpayload,
@@ -141,18 +138,18 @@ class push {
                 $encrypt->createLocalKeyObjectUsingOpenSSL(),
                 $salt
         );
-        $cipherText = $encrypted['cipherText'];
-        $localPublicKey = $encrypted['localPublicKey'];
-        $encryptionContentCodingHeader = $encrypt->getContentCodingHeader($salt, $localPublicKey);
-        $content = $encryptionContentCodingHeader.$cipherText;
+
+        $encryptioncontentcodingheader = $encrypt->getContentCodingHeader($salt, $encrypted['localPublicKey']);
+        $content = $encryptioncontentcodingheader.$encrypted['cipherText'];
 
         $endpoint = $subscription->endpoint;
         $audience = parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST);
         $vapidHeaders = $encrypt->get_vapid_header($audience,  $vapidsubject,  $keys);
 
+        // Construct the headers for the request.
         $headers = [
             'Content-Type' => 'application/octet-stream',
-            'Content-Encoding' => $contentEncoding,
+            'Content-Encoding' => 'aes128gcm',
             'TTL' => 2419200,
             'Content-Length' => (string) mb_strlen($content, '8bit'),
             'Authorization' => $vapidHeaders['Authorization'],

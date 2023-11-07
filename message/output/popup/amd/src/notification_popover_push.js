@@ -80,15 +80,6 @@ const setupWorker = async() => {
         // the user will be prompted to allow push notifications.
         const workerUri = '/message/output/popup/amd/build/notification_service_worker.min.js';
         registration = await navigator.serviceWorker.register(workerUri);
-
-        // Next add a listener for messages from the service worker.
-        // We do this now, so if push notification setup fails, the service worker can fall back to polling.
-        navigator.serviceWorker.addEventListener('message', event => {
-            window.console.log('Received message from service worker:', event.data);
-            processMessage(event.data);
-
-        });
-
     } catch (error) {
         if (error.name === 'NotAllowedError') {
             // Handle the specific case where permission was denied.
@@ -197,7 +188,7 @@ export const init = async(vapidpublickey) => {
         const modalStrings = await getStrings([
             {key: 'pushmodaltitle', component: 'message_popup'},
             {key: 'pushmodalbody', component: 'message_popup'},
-            {key: 'ok', component: 'core'},
+            {key: 'ok', component: 'message_popup'},
         ]);
 
         // Set up the modal.
@@ -208,7 +199,7 @@ export const init = async(vapidpublickey) => {
             removeOnClose: true,
         });
         // Override default button text.
-        modal.setButtonText('cancel', modalStrings[3]);
+        modal.setButtonText('cancel', modalStrings[2]);
         // Set up the modal event listeners.
         modal.getRoot().on(ModalEvents.cancel, async() => {
             pushModalClose(vapidpublickey);
@@ -217,4 +208,10 @@ export const init = async(vapidpublickey) => {
             pushModalClose(vapidpublickey);
         });
     }
+    const channel = new BroadcastChannel('my-channel');
+
+    channel.addEventListener('message', (event) => {
+        window.console.log('Received message from service worker:', event.data);
+        processMessage(event.data);
+    });
 };

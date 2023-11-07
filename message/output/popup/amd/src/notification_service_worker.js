@@ -39,12 +39,11 @@ const sendPush = (event, data) => {
  * @param {object} data The data object.
  */
 const sendMessage = (data) => {
-    // Get a list of all the client pages controlled by this service worker.
-    const clients = self.clients.matchAll();
-    // Iterate through them and send the message.
-    clients.forEach(client => {
-        client.postMessage(data);
-    });
+    self.console.log('Sending message to clients', data);
+    const channel = new BroadcastChannel('my-channel');
+        // Send a message to all clients listening on 'my-channel'.
+        channel.postMessage('test message');
+
 };
 
 // Set up the event listener that will receive push events from the server.
@@ -59,4 +58,9 @@ self.addEventListener('push', (event) => {
     }
     // Everything else to do with the message is handled by the parent pages.
     sendMessage(data);
+});
+
+// Set up the activate event listener to claim clients.
+self.addEventListener('activate', event => {
+    event.waitUntil(self.clients.claim());
 });
