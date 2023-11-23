@@ -87,4 +87,15 @@ class unknown_service_api_called extends \core\event\base {
     public static function get_name() {
         return get_string('ltiunknownserviceapicall', 'mod_lti');
     }
+
+    /**
+     * This event has been deprecated by core_ltix/event/unknown_service_api_called
+     *
+     * Events cannot be deprecated in the normal fashion as they must remain to support historical data.
+     *
+     * @return boolean
+     */
+    public static function is_deprecated() {
+        return true;
+    }
 }
