@@ -652,6 +652,6 @@ $definitions = array(
     ],
 
     'ltix_keyset' => [
-        'mode' => cache_store::MODE_APPLICATION
+        'mode' => cache_store::MODE_APPLICATION,
     ],
 );
