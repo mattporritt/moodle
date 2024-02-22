@@ -428,6 +428,8 @@ $legacyclasses = [
     \admin_setting_configmulticheckbox2::class => ['core_admin', 'setting/setting/configmulticheckbox2.php'],
     \admin_setting_configselect::class => ['core_admin', 'setting/setting/configselect.php'],
     \admin_setting_configmultiselect::class => ['core_admin', 'setting/setting/configmultiselect.php'],
+    \admin_setting_configmultiselect_autocomplete::class =>
+        ['core_admin', 'setting/setting/configmultiselect_autocomplete.php'],
     \admin_setting_configtime::class => ['core_admin', 'setting/setting/configtime.php'],
     \admin_setting_configduration::class => ['core_admin', 'setting/setting/configduration.php'],
     \admin_setting_configduration_with_advanced::class => ['core_admin', 'setting/setting/configduration_with_advanced.php'],
@@ -451,6 +453,7 @@ $legacyclasses = [
     \admin_settings_country_select::class => ['core_admin', 'setting/setting/country_select.php'],
     \admin_settings_num_course_sections::class => ['core_admin', 'setting/setting/num_course_sections.php'],
     \admin_settings_coursecat_select::class => ['core_admin', 'setting/setting/coursecat_select.php'],
+    \admin_settings_coursecat_multiselect::class => ['core_admin', 'setting/setting/coursecat_multiselect.php'],
     \admin_setting_special_backupdays::class => ['core_admin', 'setting/setting/special_backupdays.php'],
     \admin_setting_special_backup_auto_destination::class => ['core_admin', 'setting/setting/special_backup_auto_destination.php'],
     \admin_setting_special_debug::class => ['core_admin', 'setting/setting/special_debug.php'],
