@@ -41,7 +41,7 @@ namespace core_ltix\local\ltiopenid;
  * @copyright  2023 Jake Dallimore <jrhdallimore@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(\core_ltix\ltiopenid\jwks_helper::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\core_ltix\local\ltiopenid\jwks_helper::class)]
 final class jwks_helper_test extends \advanced_testcase {
 
     /**
@@ -58,7 +58,7 @@ final class jwks_helper_test extends \advanced_testcase {
         if (isset($expected['exception'])) {
             $this->expectException($expected['exception']);
         }
-        $fixed = \core_ltix\local\ltiopenid\jwks_helper::fix_jwks_alg($jwks, $jwt);
+        $fixed = jwks_helper::fix_jwks_alg($jwks, $jwt);
         $this->assertEquals($expected['jwks'], $fixed);
     }
 
