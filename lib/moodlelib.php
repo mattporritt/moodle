@@ -2666,7 +2666,7 @@ function require_logout() {
         )
     );
     $session = \core\session\manager::get_session_by_sid($sid);
-    if ($session) {
+    if (isset($session->id)) {
         $event->add_record_snapshot('sessions', $session);
     }
 

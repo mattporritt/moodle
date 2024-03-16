@@ -26,8 +26,6 @@ namespace core\session;
 
 defined('MOODLE_INTERNAL') || die();
 
-use core\session\util\session_store_interface;
-
 /**
  * Session handler base.
  *

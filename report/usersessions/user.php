@@ -68,7 +68,7 @@ $data = array();
 $sessions = \core\session\manager::get_sessions_by_userid($USER->id);
 // Order records by timemodified DESC.
 usort($sessions, function($a, $b){
-    return $a->timemodified < $b->timemodified;
+    return $b->timemodified <=> $a->timemodified;
 });
 foreach ($sessions as $session) {
     if ($session->sid === session_id()) {

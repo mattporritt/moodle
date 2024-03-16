@@ -271,8 +271,8 @@ class manager {
         // Find out which handler to use.
         $class = self::get_handler_class();
         self::$handler = new $class();
-        if (!self::$handler instanceof \core\session\util\session_store_interface) {
-            throw new exception("$class must implement the \core\session\util\session_store_interface");
+        if (!self::$handler instanceof \core\session\session_store_interface) {
+            throw new exception("$class must implement the \core\session\session_store_interface");
         }
     }
 
@@ -420,7 +420,7 @@ class manager {
      * @param bool $newsid is this a new session in first http request?
      */
     protected static function initialise_user_session($newsid) {
-        global $CFG, $DB;
+        global $CFG;
 
         $sid = session_id();
         if (!$sid) {
@@ -429,8 +429,8 @@ class manager {
             self::init_empty_session($newsid);
             return;
         }
-
-        if (!$record = self::get_session_by_sid($sid)) {
+        $record = self::get_session_by_sid($sid);
+        if (!isset($record->sid)) {
             if (!$newsid) {
                 if (!empty($_SESSION['USER']->id)) {
                     // This should not happen, just log it, we MUST not produce any output here!
@@ -513,13 +513,11 @@ class manager {
 
                 return;
             }
-        } else {
-            if ($record) {
-                // This happens when people switch session handlers...
-                session_regenerate_id(true);
-                $_SESSION = array();
-                self::delete_session_by_sid($record->sid);
-            }
+        } else if (isset($record->sid)) {
+            // This happens when people switch session handlers...
+            session_regenerate_id(true);
+            $_SESSION = array();
+            self::delete_session_by_sid($record->sid);
         }
         unset($record);
 
@@ -568,7 +566,7 @@ class manager {
      * @param string $sid
      * @return \stdClass
      */
-    public static function get_session_by_sid($sid) {
+    public static function get_session_by_sid(string $sid): \stdClass {
         return self::$handler->get_session_by_sid($sid);
     }
 
@@ -578,7 +576,7 @@ class manager {
      * @param int $userid
      * @return array
      */
-    public static function get_sessions_by_userid($userid) {
+    public static function get_sessions_by_userid(int $userid): array {
         return self::$handler->get_sessions_by_userid($userid);
     }
 
@@ -588,7 +586,7 @@ class manager {
      * @param int $userid
      * @return \stdClass the new record
      */
-    public static function add_session($userid) {
+    public static function add_session(int $userid): \stdClass {
         return self::$handler->add_session($userid);
     }
 
@@ -598,7 +596,7 @@ class manager {
      * @param \stdClass $record
      * @return bool
      */
-    public static function update_session($record) {
+    public static function update_session(\stdClass $record): bool {
         return self::$handler->update_session($record);
     }
 
@@ -607,7 +605,7 @@ class manager {
      *
      * @return bool
      */
-    public static function delete_all_sessions() {
+    public static function delete_all_sessions(): bool {
         return self::$handler->delete_all_sessions();
     }
 
@@ -617,7 +615,7 @@ class manager {
      * @param string $sid
      * @return bool
      */
-    public static function delete_session_by_sid($sid) {
+    public static function delete_session_by_sid(string $sid): bool {
         return self::$handler->delete_session_by_sid($sid);
     }
 
@@ -853,7 +851,8 @@ class manager {
         }
 
         // Note: add sessions->state checking here if it gets implemented.
-        if (!$record = self::get_session_by_sid($sid)) {
+        $record = self::get_session_by_sid($sid);
+        if (!isset($record->sid)) {
             return false;
         }
 
@@ -1004,9 +1003,9 @@ class manager {
             }
         }
 
-        // Order records by timecreated DESC
+        // Order records by timecreated DESC.
         usort($sessions, function($a, $b){
-            return $a->timecreated < $b->timecreated;
+            return $b->timecreated <=> $a->timecreated;
         });
 
         foreach ($sessions as $session) {
@@ -1052,14 +1051,14 @@ class manager {
      * @param string $pluginname
      * @return void
      */
-    public static function kill_sessions_for_auth_plugin($pluginname) {
+    public static function kill_sessions_for_auth_plugin(string $pluginname): void {
         self::$handler->kill_sessions_for_auth_plugin($pluginname);
     }
 
     /**
      * Periodic timed-out session cleanup.
      */
-    public static function gc() {
+    public static function gc(): void {
         self::$handler->gc();
     }
 

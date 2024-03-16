@@ -24,9 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core\session\util;
-
-defined('MOODLE_INTERNAL') || die();
+namespace fixtures\session;
 
 interface handler_mocking_interface {
 
@@ -36,19 +34,19 @@ interface handler_mocking_interface {
      * @param \stdClass $record
      * @return int Inserted record id.
      */
-    public function add_test_session($record);
+    public function add_test_session(\stdClass $record): int;
 
     /**
      * Returns all sessions records.
      *
      * @return \Iterator
      */
-    public function get_all_sessions() : \Iterator;
+    public function get_all_sessions(): \Iterator;
 
     /**
      * Returns the number of all sessions stored.
      *
      * @return int
      */
-    public function count_sessions();
+    public function count_sessions(): int;
 }
