@@ -16,6 +16,7 @@
 
 namespace core;
 
+use fixtures\session\mock_handler_methods;
 use Redis;
 use RedisException;
 
@@ -48,6 +49,12 @@ class session_redis_test extends \advanced_testcase {
     /** @var int $lockexpire how long to wait in seconds before expiring the lock when testing Redis */
     protected $lockexpire = 70;
 
+    public static function setUpBeforeClass(): void {
+        parent::setUpBeforeClass();
+
+        require_once(__DIR__ . '/fixtures/session/handler_mocking_interface.php');
+        require_once(__DIR__ . '/fixtures/session/mock_handler_methods.php');
+    }
 
     public function setUp(): void {
         global $CFG;
@@ -304,12 +311,12 @@ class session_redis_test extends \advanced_testcase {
         $sess = new \core\session\redis();
         $sess->init();
 
-        $mockhandler = new \core\session\util\mock_handler_methods();
+        $mockhandler = new mock_handler_methods();
 
-        $this->assertTrue($sess->handler_open('Not used', 'Not used'));
-        $this->assertTrue($sess->handler_write('sess1', 'DATA'));
-        $this->assertTrue($sess->handler_write('sess2', 'DATA'));
-        $this->assertTrue($sess->handler_write('sess3', 'DATA'));
+        $this->assertTrue($sess->open('Not used', 'Not used'));
+        $this->assertTrue($sess->write('sess1', 'DATA'));
+        $this->assertTrue($sess->write('sess2', 'DATA'));
+        $this->assertTrue($sess->write('sess3', 'DATA'));
 
         $sessiondata = new \stdClass();
         $sessiondata->userid = 2;
@@ -331,7 +338,7 @@ class session_redis_test extends \advanced_testcase {
 
         $sess->kill_all_sessions();
 
-        $mockhandler = new \core\session\util\mock_handler_methods();
+        $mockhandler = new mock_handler_methods();
         $this->assertEquals(3, $mockhandler->count_sessions(),
             'Moodle handles session database, plugin must not change it.');
         $this->assertSessionNoLocks();
