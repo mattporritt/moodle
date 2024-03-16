@@ -24,9 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core\session\util;
-
-defined('MOODLE_INTERNAL') || die();
+namespace core\session;
 
 interface session_store_interface {
 
@@ -35,7 +33,7 @@ interface session_store_interface {
      *
      * @return \Iterator
      */
-    public function get_all_sessions() : \Iterator;
+    public function get_all_sessions(): \Iterator;
 
     /**
      * Returns a single session record for this session id.
@@ -43,7 +41,7 @@ interface session_store_interface {
      * @param string $sid
      * @return \stdClass
      */
-    public function get_session_by_sid($sid);
+    public function get_session_by_sid(string $sid): \stdClass;
 
     /**
      * Returns all the session records for this user id.
@@ -51,7 +49,7 @@ interface session_store_interface {
      * @param int $userid
      * @return array
      */
-    public function get_sessions_by_userid($userid);
+    public function get_sessions_by_userid(int $userid): array;
 
     /**
      * Insert new empty session record.
@@ -59,7 +57,7 @@ interface session_store_interface {
      * @param int $userid
      * @return \stdClass
      */
-    public function add_session($userid);
+    public function add_session(int $userid): \stdClass;
 
     /**
      * Update a session record.
@@ -67,7 +65,7 @@ interface session_store_interface {
      * @param \stdClass $record
      * @return bool
      */
-    public function update_session($record);
+    public function update_session(\stdClass $record): bool;
 
     /**
      * Delete all the session data.
@@ -82,7 +80,7 @@ interface session_store_interface {
      * @param string $sid
      * @return bool
      */
-    public function delete_session_by_sid($sid);
+    public function delete_session_by_sid(string $sid): bool;
 
     /**
      * Kill sessions of users with disabled plugins
@@ -90,10 +88,14 @@ interface session_store_interface {
      * @param string $pluginname
      * @return void
      */
-    public function kill_sessions_for_auth_plugin($pluginname);
+    public function kill_sessions_for_auth_plugin(string $pluginname): void;
 
     /**
      * Periodic timed-out session cleanup.
+     *
+     * @param int $max_lifetime Sessions that have not updated for the last max_lifetime seconds will be removed.
+     * @return int|false Number of deleted sessions or false if an error occurred.
      */
-    public function gc();
+    // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
+    public function gc(int $max_lifetime): int|false;
 }

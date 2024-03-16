@@ -1116,7 +1116,7 @@ EOF;
         }
         $session = \core\session\manager::get_session_by_sid($sid);
         if (empty($session->userid)) {
-            throw new coding_exception('failed to get user from seession id '.$sid);
+            throw new coding_exception('failed to get user from session id: '.$sid);
         }
         return $DB->get_record('user', ['id' => $session->userid]);
     }

@@ -24,9 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core\session\util;
-
-defined('MOODLE_INTERNAL') || die();
+namespace fixtures\session;
 
 class mock_handler_methods implements handler_mocking_interface {
 
@@ -36,7 +34,7 @@ class mock_handler_methods implements handler_mocking_interface {
      * @param \stdClass $record
      * @return int Inserted record id.
      */
-    public function add_test_session($record) {
+    public function add_test_session(\stdClass $record): int {
         global $DB, $USER;
 
         $data = new \stdClass();
@@ -57,7 +55,7 @@ class mock_handler_methods implements handler_mocking_interface {
      *
      * @return \Iterator
      */
-    public function get_all_sessions() : \Iterator {
+    public function get_all_sessions(): \Iterator {
         global $DB;
 
         $records = $DB->get_records('sessions');
@@ -69,7 +67,7 @@ class mock_handler_methods implements handler_mocking_interface {
      *
      * @return int
      */
-    public function count_sessions() {
+    public function count_sessions(): int {
         global $DB;
 
         return $DB->count_records('sessions');
