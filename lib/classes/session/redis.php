@@ -41,7 +41,7 @@ use SessionHandlerInterface;
  */
 
 class redis extends handler implements SessionHandlerInterface {
-    use \core\session\util\fallback_session_store;
+    use \core\session\base_session_store;
 
     /**
      * Compressor: none.
@@ -491,11 +491,11 @@ class redis extends handler implements SessionHandlerInterface {
      * Garbage collect sessions.  We don't we any as Redis does it for us.
      *
      * @param integer $max_lifetime All sessions older than this should be removed.
-     * @return bool true, as Redis handles expiry for us.
+     * @return int Redis handles expiry for us.
      */
     // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
     public function gc(int $max_lifetime): int|false {
-        return false;
+        return 0;
     }
 
     /**

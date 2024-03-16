@@ -24,9 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core\session\util;
-
-defined('MOODLE_INTERNAL') || die();
+namespace core\session;
 
 /**
  * This trait includes functions to implement generic handler methods.
@@ -36,14 +34,14 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2022 Monash University (http://www.monash.edu)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-trait fallback_session_store {
+trait base_session_store {
 
     /**
      * Returns all session records.
      *
      * @return \Iterator
      */
-    public function get_all_sessions() : \Iterator {
+    public function get_all_sessions(): \Iterator {
         global $DB;
 
         return $DB->get_recordset('sessions');
@@ -55,10 +53,15 @@ trait fallback_session_store {
      * @param string $sid
      * @return \stdClass
      */
-    public function get_session_by_sid($sid) {
+    public function get_session_by_sid(string $sid): \stdClass {
         global $DB;
 
-        return $DB->get_record('sessions', ['sid' => $sid]);
+        $record = $DB->get_record('sessions', ['sid' => $sid]);
+        if ($record === false) {
+            return new \stdClass();
+        }
+
+        return $record;
     }
 
     /**
@@ -67,7 +70,7 @@ trait fallback_session_store {
      * @param int $userid
      * @return array
      */
-    public function get_sessions_by_userid($userid) {
+    public function get_sessions_by_userid(int $userid): array {
         global $DB;
 
         return $DB->get_records('sessions', ['userid' => $userid]);
@@ -79,7 +82,7 @@ trait fallback_session_store {
      * @param int $userid
      * @return \stdClass the new record
      */
-    public function add_session($userid) {
+    public function add_session(int $userid): \stdClass {
         global $DB;
 
         $record = new \stdClass();
@@ -101,7 +104,7 @@ trait fallback_session_store {
      * @param \stdClass $record
      * @return bool
      */
-    public function update_session($record) {
+    public function update_session(\stdClass $record): bool {
         global $DB;
 
         if (!$record) {
@@ -120,7 +123,7 @@ trait fallback_session_store {
      *
      * @return bool
      */
-    public function delete_all_sessions() {
+    public function delete_all_sessions(): bool {
         global $DB;
 
         return $DB->delete_records('sessions');
@@ -132,10 +135,10 @@ trait fallback_session_store {
      * @param string $sid
      * @return bool
      */
-    public function delete_session_by_sid($sid) {
+    public function delete_session_by_sid(string $sid): bool {
         global $DB;
 
-        return $DB->delete_records('sessions', array('sid' => $sid));
+        return $DB->delete_records('sessions', ['sid' => $sid]);
     }
 
     /**
@@ -145,7 +148,7 @@ trait fallback_session_store {
      * @param int $userid
      * @return void
      */
-    protected function clean_up_expired_sessions($maxlifetime = null, $userid = null) {
+    protected function clean_up_expired_sessions(int $maxlifetime = null, int $userid = null): void {
         global $CFG;
 
         if (is_null($maxlifetime)) {
@@ -170,14 +173,14 @@ trait fallback_session_store {
      * @param int $purgebefore
      * @return void
      */
-    protected function clean_all_expired_sessions($purgebefore) {
+    protected function clean_all_expired_sessions(int $purgebefore): void {
         global $DB, $CFG;
 
         $authsequence = get_enabled_auth_plugins();
         $authsequence = array_flip($authsequence);
         unset($authsequence['nologin']); // No login means user cannot login.
         $authsequence = array_flip($authsequence);
-        $authplugins = array();
+        $authplugins = [];
         foreach ($authsequence as $authname) {
             $authplugins[$authname] = get_auth_plugin($authname);
         }
@@ -185,12 +188,11 @@ trait fallback_session_store {
                   FROM {user} u
                   JOIN {sessions} s ON s.userid = u.id
                  WHERE s.timemodified < :purgebefore AND u.id <> :guestid";
-        $params = array('purgebefore' => $purgebefore, 'guestid' => $CFG->siteguest);
+        $params = ['purgebefore' => $purgebefore, 'guestid' => $CFG->siteguest];
 
         $rs = $DB->get_recordset_sql($sql, $params);
         foreach ($rs as $user) {
             foreach ($authplugins as $authplugin) {
-                /** @var \auth_plugin_base $authplugin*/
                 if ($authplugin->ignore_timeout_hook($user, $user->sid, $user->s_timecreated, $user->s_timemodified)) {
                     continue 2;
                 }
@@ -206,7 +208,7 @@ trait fallback_session_store {
      * @param string $pluginname
      * @return void
      */
-    public function kill_sessions_for_auth_plugin($pluginname) {
+    public function kill_sessions_for_auth_plugin(string $pluginname): void {
         global $DB;
 
         $rs = $DB->get_recordset('user', ['auth' => $pluginname], 'id ASC', 'id');
@@ -221,28 +223,34 @@ trait fallback_session_store {
 
     /**
      * Periodic timed-out session cleanup.
+     *
+     * @param int $max_lifetime
+     * @return int|false
      */
-    public function gc() {
-        global $CFG, $DB;
+    // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
+    public function gc(int $max_lifetime = 0): int|false {
+        global $CFG;
 
-        // This may take a long time...
+        // This may take a long time.
         \core_php_time_limit::raise();
 
-        $maxlifetime = $CFG->sessiontimeout;
+        if ($max_lifetime === 0) {
+            $max_lifetime = $CFG->sessiontimeout;
+        }
 
         try {
             // Clean up expired sessions for real users only.
-            $this->clean_up_expired_sessions(time() - $maxlifetime);
+            $this->clean_up_expired_sessions(time() - $max_lifetime);
 
             // Delete expired sessions for guest user account, give them larger timeout, there is no security risk here.
-            $purgebefore = time() - ($maxlifetime * 5);
+            $purgebefore = time() - ($max_lifetime * 5);
             $this->clean_up_expired_sessions($purgebefore, $CFG->siteguest);
 
             // Delete expired sessions for userid = 0 (not logged in), better kill them asap to release memory.
-            $purgebefore = time() - $maxlifetime;
+            $purgebefore = time() - $max_lifetime;
             $this->clean_up_expired_sessions($purgebefore, 0);
 
-            // Cleanup letfovers from the first browser access because it may set multiple cookies and then use only one.
+            // Cleanup leftovers from the first browser access because it may set multiple cookies and then use only one.
             $purgebefore = time() - (60 * 3);
             $sessions = $this->get_sessions_by_userid(0);
             foreach ($sessions as $session) {
@@ -255,5 +263,7 @@ trait fallback_session_store {
         } catch (\Exception $ex) {
             debugging('Error gc-ing sessions: '.$ex->getMessage(), DEBUG_NORMAL, $ex->getTrace());
         }
+
+        return 0;
     }
 }
