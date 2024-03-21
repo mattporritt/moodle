@@ -193,10 +193,10 @@ class session_redis_test extends \advanced_testcase {
             $sessblocked->read('sess1');
             $this->fail('Session lock must fail to be obtained.');
         } catch (\core\session\exception $e) {
-            $this->assertStringContainsString("Unable to obtain lock for session id sess1", $e->getMessage());
+            $this->assertStringContainsString("Unable to obtain lock for session id s_sess1", $e->getMessage());
             $this->assertStringContainsString('within 1 sec.', $e->getMessage());
             $this->assertStringContainsString('session lock timeout (1 min 10 secs) ', $e->getMessage());
-            $this->assertStringContainsString('Cannot obtain session lock for sid: sess1', file_get_contents($errorlog));
+            $this->assertStringContainsString('Cannot obtain session lock for sid: s_sess1', file_get_contents($errorlog));
         }
 
         $this->assertTrue($sessblocked->close());
