@@ -69,10 +69,10 @@ class redis extends handler implements SessionHandlerInterface {
     protected $prefix = '';
 
     /** @var string $sessionkeyprefix the prefix for the session key */
-    protected $sessionkeyprefix = 's_';
+    protected $sessionkeyprefix = 'session_';
 
     /** @var string $userkeyprefix the prefix for the user key */
-    protected $userkeyprefix = 'u_';
+    protected $userkeyprefix = 'user_';
 
     /** @var int $acquiretimeout how long to wait for session lock in seconds */
     protected $acquiretimeout = 120;
@@ -192,7 +192,7 @@ class redis extends handler implements SessionHandlerInterface {
      *
      * @return bool success
      */
-    public function start() {
+    public function start(): bool {
         $result = parent::start();
 
         return $result;
@@ -200,8 +200,13 @@ class redis extends handler implements SessionHandlerInterface {
 
     /**
      * Init session handler.
+     *
+     * @return bool
+     * @throws RedisException
+     * @throws \dml_exception
+     * @throws exception
      */
-    public function init() {
+    public function init(): bool {
         if (!extension_loaded('redis')) {
             throw new exception('sessionhandlerproblem', 'error', '', null, 'redis extension is not loaded');
         }
@@ -297,6 +302,8 @@ class redis extends handler implements SessionHandlerInterface {
         if (isset($logstring)) {
             throw new RedisException($logstring);
         }
+
+        return false;
     }
 
     /**
@@ -336,7 +343,7 @@ class redis extends handler implements SessionHandlerInterface {
      * Read the session data from storage
      *
      * @param string $id The session id to read from storage.
-     * @return string The session data for PHP to process.
+     * @return string|false The session data for PHP to process or false.
      *
      * @throws RedisException when we are unable to talk to the Redis server.
      */
@@ -376,7 +383,7 @@ class redis extends handler implements SessionHandlerInterface {
      * @param mixed $value
      * @return string
      */
-    private function compress($value) {
+    private function compress($value): string {
         switch ($this->compressor) {
             case self::COMPRESSION_NONE:
                 return $value;
@@ -553,7 +560,13 @@ class redis extends handler implements SessionHandlerInterface {
         return $records;
     }
 
-    public function update_session(\stdClass $record): bool{
+    /**
+     * Update a session record.
+     *
+     * @param \stdClass $record
+     * @return bool
+     */
+    public function update_session(\stdClass $record): bool {
         if (!isset($record->sid) && isset($record->id)) {
             $record->sid = $record->id;
         }
@@ -808,7 +821,8 @@ class redis extends handler implements SessionHandlerInterface {
         }
 
         try {
-            return !empty($this->connection->exists($sid));
+            $sessionhashkey = $this->sessionkeyprefix . $sid;
+            return !empty($this->connection->exists($sessionhashkey));
         } catch (RedisException $e) {
             return false;
         }
