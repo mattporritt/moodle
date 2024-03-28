@@ -26,7 +26,31 @@
 
 namespace fixtures\session;
 
-class mock_handler_methods implements handler_mocking_interface {
+use core\session\database;
+
+class mock_handler extends database {
+
+    /**
+     * Init session handler.
+     *
+     * @return bool
+     */
+    public function init(): bool {
+        // Nothing special to do in the mock.
+        return true;
+    }
+
+    /**
+     * Check the backend contains data for this session id.
+     *
+     * @param string $sid
+     * @return bool true if session found.
+     */
+    public function session_exists($sid): bool {
+        global $DB;
+
+        return $DB->record_exists('sessions', ['sid' => $sid]);
+    }
 
     /**
      * Insert a new session record to be used in unit tests.

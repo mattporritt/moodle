@@ -252,7 +252,8 @@ class manager {
         global $CFG, $DB;
 
         if (PHPUNIT_TEST) {
-            return '\core\session\file';
+            require_once($CFG->libdir . '/tests/fixtures/session/mock_handler.php');
+            return 'fixtures\session\mock_handler';
         } else if (!empty($CFG->session_handler_class)) {
             return $CFG->session_handler_class;
         } else if (!empty($CFG->dbsessions) and $DB->session_lock_supported()) {
@@ -477,7 +478,7 @@ class manager {
                 }
                 session_regenerate_id(true);
                 $_SESSION = array();
-                self::delete_session_by_sid($record->sid);
+                self::destroy($record->sid);
             } else {
                 // Update session tracking record.
 
@@ -519,7 +520,7 @@ class manager {
             // This happens when people switch session handlers...
             session_regenerate_id(true);
             $_SESSION = array();
-            self::delete_session_by_sid($record->sid);
+            self::destroy($record->sid);
         }
         unset($record);
 
@@ -603,25 +604,6 @@ class manager {
     }
 
     /**
-     * Delete all the session data.
-     *
-     * @return bool
-     */
-    public static function delete_all_sessions(): bool {
-        return self::$handler->delete_all_sessions();
-    }
-
-    /**
-     * Delete a session record for this session id.
-     *
-     * @param string $sid
-     * @return bool
-     */
-    public static function delete_session_by_sid(string $sid): bool {
-        return self::$handler->delete_session_by_sid($sid);
-    }
-
-    /**
      * Do various session security checks.
      *
      * WARNING: $USER and $SESSION are set up later, do not use them yet!
@@ -658,7 +640,7 @@ class manager {
 
         $sid = session_id();
         session_regenerate_id(true);
-        self::delete_session_by_sid($sid);
+        self::destroy($sid);
         self::add_session($user->id);
 
         // Let enrol plugins deal with new enrolments if necessary.
@@ -718,7 +700,7 @@ class manager {
         // Write new empty session and make sure the old one is deleted.
         $sid = session_id();
         session_regenerate_id(true);
-        self::delete_session_by_sid($sid);
+        self::destroy($sid);
         self::init_empty_session();
         self::add_session($_SESSION['USER']->id); // Do not use $USER here because it may not be set up yet.
         self::write_close();
@@ -910,18 +892,8 @@ class manager {
      * Terminate all sessions unconditionally.
      */
     public static function kill_all_sessions() {
-        global $DB;
-
-        self::terminate_current();
-
-        self::load_handler();
-        self::$handler->kill_all_sessions();
-
-        try {
-            self::delete_all_sessions();
-        } catch (\moodle_exception $ignored) {
-            // Do not show any warnings - might be during upgrade/installation.
-        }
+        # TODO: emit debugging to use destroy_all() method
+        self::destroy_all();
     }
 
     /**
@@ -929,16 +901,64 @@ class manager {
      * @param string $sid
      */
     public static function kill_session($sid) {
-        global $DB;
 
+        # TODO: emit debugging to use destroy() method
+        self::destroy($sid);
+    }
+
+    /**
+     * Kill sessions of users with disabled plugins.
+     *
+     * @param string $pluginname
+     * @return void
+     */
+    public static function kill_sessions_for_auth_plugin(string $pluginname): void {
+        self::destroy_for_auth_plugin($pluginname);
+    }
+
+    /**
+     * Destroy sessions of users with disabled plugins.
+     *
+     * @param string $pluginname
+     * @return void
+     */
+    public static function destroy_for_auth_plugin(string $pluginname): void {
+        self::$handler->destroy_for_auth_plugin($pluginname);
+    }
+
+    /**
+     * Destroy all sessions, and delete all the session data.
+     *
+     * @return bool
+     */
+    public static function destroy_all(): bool {
+        self::terminate_current();
         self::load_handler();
 
-        if ($sid === session_id()) {
+        try {
+            $result = self::$handler->destroy_all();
+        } catch (\moodle_exception $ignored) {
+            // Do not show any warnings - might be during upgrade/installation.
+            $result = true;
+        }
+
+         return $result;
+    }
+
+    /**
+     * Destroy a specific session and delete this session record for this session id.
+     *
+     * @param string $id
+     * @return bool
+     */
+    public static function destroy(string $id): bool {
+        self::load_handler();
+
+        if ($id === session_id()) {
             self::write_close();
         }
 
-        self::$handler->kill_session($sid);
-        self::delete_session_by_sid($sid);
+        return self::$handler->destroy($id);
     }
 
     /**
@@ -954,10 +974,9 @@ class manager {
             if ($keepsid and $keepsid === $session->sid) {
                 continue;
             }
-            self::kill_session($session->sid);
+            self::destroy($session->sid);
         }
     }
-
     /**
      * Terminate other sessions of current user depending
      * on $CFG->limitconcurrentlogins restriction.
@@ -1015,7 +1034,7 @@ class manager {
             if ($i <= $CFG->limitconcurrentlogins) {
                 continue;
             }
-            self::kill_session($session->sid);
+            self::destroy($session->sid);
         }
     }
 
@@ -1048,20 +1067,19 @@ class manager {
     }
 
     /**
-     * Kill sessions of users with disabled plugins
+     * Periodic timed-out session cleanup.
      *
-     * @param string $pluginname
+     * @param int $maxlifetime Sessions that have not updated for the last max_lifetime seconds will be removed.
      * @return void
      */
-    public static function kill_sessions_for_auth_plugin(string $pluginname): void {
-        self::$handler->kill_sessions_for_auth_plugin($pluginname);
-    }
+    public static function gc(int $maxlifetime = 0): void {
+        global $CFG;
 
-    /**
-     * Periodic timed-out session cleanup.
-     */
-    public static function gc(): void {
-        self::$handler->gc();
+        // If max lifetime is not provided, use the default session timeout.
+        if ($maxlifetime == 0) {
+            $maxlifetime = $CFG->sessiontimeout;
+        }
+        self::$handler->gc($maxlifetime);
     }
 
     /**
