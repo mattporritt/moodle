@@ -16,7 +16,7 @@
 
 namespace core;
 
-use fixtures\session\mock_handler_methods;
+use fixtures\session\mock_handler;
 
 /**
  * Unit tests for session manager class.
@@ -32,14 +32,12 @@ class session_manager_test extends \advanced_testcase {
 
     public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
-
-        require_once(__DIR__ . '/fixtures/session/handler_mocking_interface.php');
-        require_once(__DIR__ . '/fixtures/session/mock_handler_methods.php');
+        require_once(__DIR__ . '/fixtures/session/mock_handler.php');
     }
 
     protected function setUp(): void {
         parent::setUp();
-        $this->mockhandler = new mock_handler_methods();
+        $this->mockhandler = new mock_handler();
     }
 
     public function test_start() {
@@ -250,7 +248,13 @@ class session_manager_test extends \advanced_testcase {
         $this->assertLessThanOrEqual(time(), $session->timemodified);
     }
 
-    public function test_kill_session(): void {
+    /**
+     * Test destroy method.
+     *
+     * @return void
+     * @throws \dml_exception
+     */
+    public function test_destroy() {
         global $DB, $USER;
         $this->resetAfterTest();
 
@@ -274,7 +278,7 @@ class session_manager_test extends \advanced_testcase {
 
         $this->assertEquals(2, $this->mockhandler->count_sessions());
 
-        \core\session\manager::kill_session($sid);
+        \core\session\manager::destroy($sid);
         $sessions = $this->mockhandler->get_all_sessions();
         $this->assertEquals(1, count($sessions));
         $this->assertFalse($this->contains_session(['sid' => $sid], $sessions));
@@ -487,7 +491,13 @@ class session_manager_test extends \advanced_testcase {
         return true;
     }
 
-    public function test_kill_all_sessions(): void {
+    /**
+     * Test destroy_all method.
+     *
+     * @return void
+     * @throws \dml_exception
+     */
+    public function test_destroy_all() {
         global $DB, $USER;
         $this->resetAfterTest();
 
@@ -514,14 +524,14 @@ class session_manager_test extends \advanced_testcase {
 
         $this->assertEquals(3, $DB->count_records('sessions'));
 
-        \core\session\manager::kill_all_sessions();
+        \core\session\manager::destroy_all();
 
         $this->assertEquals(0, $DB->count_records('sessions'));
         $this->assertSame(0, $USER->id);
     }
 
-    public function test_gc(): void {
-        global $CFG, $DB, $USER;
+    public function test_gc() {
+        global $CFG, $USER;
         $this->resetAfterTest();
 
         $this->setAdminUser();
@@ -530,6 +540,8 @@ class session_manager_test extends \advanced_testcase {
         $guestid = $USER->id;
         $this->setUser(0);
 
+        // Set sessions timeout to 600 (10 minutes) seconds.
+        // We will test if sessions not modified for 600 seconds are removed.
         $CFG->sessiontimeout = 60*10;
 
         $record = new \stdClass();
@@ -578,7 +590,7 @@ class session_manager_test extends \advanced_testcase {
         $record->timemodified = time() - 60*9;
         $r7 = $this->mockhandler->add_test_session($record);
 
-        \core\session\manager::gc();
+        \core\session\manager::gc($CFG->sessiontimeout);
         $sessions = $this->mockhandler->get_all_sessions();
         $this->assertTrue($this->contains_session(['id' => $r1], $sessions));
         $this->assertFalse($this->contains_session(['id' => $r2], $sessions));
@@ -966,5 +978,45 @@ class session_manager_test extends \advanced_testcase {
 
         $result = $method->invokeArgs(null, [$a, $b]);
         $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Test destroy for auth plugin method.
+     */
+    public function test_destroy_auth_plugin() {
+        $this->resetAfterTest();
+        global $DB;
+
+        // Create test users.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user(['auth' => 'db']);
+
+        // Create sessions for the users.
+        $user1sid = md5('hokus');
+        $record = new \stdClass();
+        $record->state        = 0;
+        $record->sid          = $user1sid;
+        $record->sessdata     = null;
+        $record->userid       = $user1->id;
+        $record->timecreated  = time() - 60*60;
+        $record->timemodified = time() - 30;
+        $record->firstip      = $record->lastip = '10.0.0.1';
+        $this->mockhandler->add_test_session($record);
+
+        $record->sid          = md5('pokus');
+        $record->userid       = $user2->id;
+        $this->mockhandler->add_test_session($record);
+
+        // Check sessions.
+        $sessions = $this->mockhandler->get_all_sessions();
+        $this->assertEquals(2, count($sessions));
+
+        // Destroy the session for the user with manual auth plugin.
+        \core\session\manager::destroy_for_auth_plugin('manual');
+
+        // Check that the session for the user with manual auth plugin is destroyed.
+        $sessions = $this->mockhandler->get_all_sessions();
+        $this->assertEquals(1, count($sessions));
+        $this->assertFalse($this->contains_session(['sid' => $user1sid], $sessions));
     }
 }
