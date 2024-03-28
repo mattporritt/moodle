@@ -212,13 +212,15 @@ class memcached extends handler {
     }
 
     /**
-     * Kill all active sessions, the core sessions table is
+     * Destroy all active sessions, the core sessions table is
      * purged afterwards.
+     *
+     * @return bool
      */
-    public function kill_all_sessions() {
+    public function destroy_all(): bool {
         global $DB;
         if (!$this->servers) {
-            return;
+            return false;
         }
 
         // Go through the list of all servers because
@@ -247,15 +249,19 @@ class memcached extends handler {
         foreach ($memcacheds as $memcached) {
             $memcached->quit();
         }
+
+        return true;
     }
 
     /**
      * Kill one session, the session record is removed afterwards.
-     * @param string $sid
+     * @param string $id
+     *
+     * @return bool
      */
-    public function kill_session($sid) {
+    public function destroy(string $id): bool {
         if (!$this->servers) {
-            return;
+            return false;
         }
 
         // Go through the list of all servers because
@@ -266,9 +272,11 @@ class memcached extends handler {
             list($host, $port) = $server;
             $memcached = new \Memcached();
             $memcached->addServer($host, $port);
-            $memcached->delete($this->prefix . $sid);
+            $memcached->delete($this->prefix . $id);
             $memcached->quit();
         }
+
+        return true;
     }
 
     /**

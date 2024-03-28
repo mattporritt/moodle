@@ -68,27 +68,27 @@ interface session_store_interface {
     public function update_session(\stdClass $record): bool;
 
     /**
-     * Delete all the session data.
+     * Destroy all sessions, and delete all the session data.
      *
      * @return bool
      */
-    public function delete_all_sessions();
+    public function destroy_all(): bool;
 
     /**
-     * Delete a session record for this session id.
+     * Destroy a specific session and delete this session record for this session id.
      *
-     * @param string $sid
+     * @param string $id
      * @return bool
      */
-    public function delete_session_by_sid(string $sid): bool;
+    public function destroy(string $id): bool;
 
     /**
-     * Kill sessions of users with disabled plugins
+     * Destroy sessions of users with disabled plugins
      *
      * @param string $pluginname
      * @return void
      */
-    public function kill_sessions_for_auth_plugin(string $pluginname): void;
+    public function destroy_for_auth_plugin(string $pluginname): void;
 
     /**
      * Periodic timed-out session cleanup.

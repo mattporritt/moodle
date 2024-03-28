@@ -95,29 +95,37 @@ class file extends handler {
     }
 
     /**
-     * Kill all active sessions, the core sessions table is
+     * Destroy all active sessions, the core sessions table is
      * purged afterwards.
+     *
+     * @return bool
      */
-    public function kill_all_sessions() {
+    public function destroy_all(): bool {
         if (is_dir($this->sessiondir)) {
             foreach (glob("$this->sessiondir/sess_*") as $filename) {
                 @unlink($filename);
             }
         }
+
+        return true;
     }
 
     /**
-     * Kill one session, the session record is removed afterwards.
-     * @param string $sid
+     * Destroy one session, the session record is removed afterwards.
+     *
+     * @param string $id
+     * @return bool
      */
-    public function kill_session($sid) {
-        $sid = clean_param($sid, PARAM_FILE);
+    public function destroy(string $id): bool {
+        $sid = clean_param($id, PARAM_FILE);
         if (!$sid) {
-            return;
+            return false;
         }
         $sessionfile = "$this->sessiondir/sess_$sid";
         if (file_exists($sessionfile)) {
             @unlink($sessionfile);
         }
+
+        return true;
     }
 }

@@ -18,7 +18,7 @@ namespace core_webservice;
 
 use core_external\external_api;
 use externallib_advanced_testcase;
-use fixtures\session\mock_handler_methods;
+use fixtures\session\mock_handler;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -40,8 +40,7 @@ class externallib_test extends externallib_advanced_testcase {
         parent::setUpBeforeClass();
         global $CFG;
 
-        require_once($CFG->dirroot . '/lib/tests/fixtures/session/handler_mocking_interface.php');
-        require_once($CFG->dirroot. '/lib/tests/fixtures/session/mock_handler_methods.php');
+        require_once($CFG->libdir. '/tests/fixtures/session/mock_handler.php');
     }
 
     public function setUp(): void {
@@ -200,7 +199,7 @@ class externallib_test extends externallib_advanced_testcase {
         $record->sid = md5('hokus1');
         $record->timecreated = time();
 
-        $mockhandler = new mock_handler_methods();
+        $mockhandler = new mock_handler();
         $mockhandler->add_test_session($record);
 
         $siteinfo = \core_webservice_external::get_site_info();

@@ -104,14 +104,17 @@ abstract class handler implements session_store_interface {
     abstract public function session_exists($sid);
 
     /**
-     * Kill all active sessions, the core sessions table is
-     * purged afterwards.
+     * Destroy all sessions, and delete all the session data.
+     *
+     * @return bool
      */
-    abstract public function kill_all_sessions();
+    abstract public function destroy_all(): bool;
 
     /**
-     * Kill one session, the session record is removed afterwards.
-     * @param string $sid
+     * Destroy a specific session and delete this session record for this session id.
+     *
+     * @param string $id
+     * @return bool
      */
-    abstract public function kill_session($sid);
+    abstract public function destroy(string $id): bool;
 }
