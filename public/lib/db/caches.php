@@ -650,4 +650,8 @@ $definitions = array(
         'staticacceleration' => true,
         'staticaccelerationsize' => 1,
     ],
+
+    'ltix_keyset' => [
+        'mode' => cache_store::MODE_APPLICATION
+    ],
 );
