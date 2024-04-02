@@ -2860,4 +2860,14 @@ $capabilities = array(
             'manager' => CAP_ALLOW,
         ],
     ],
+
+    // The ability to create or edit tool configurations for particular courses.
+    'moodle/ltix:addcoursetool' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 );
