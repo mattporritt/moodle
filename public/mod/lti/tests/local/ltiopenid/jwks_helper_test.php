@@ -41,8 +41,8 @@ namespace mod_lti\local\ltiopenid;
  * @copyright  2023 Jake Dallimore <jrhdallimore@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(\mod_lti\local\ltiopenid\jwks_helper::class)]
-final class jwks_helper_test extends \basic_testcase {
+#[\PHPUnit\Framework\Attributes\CoversClass(\core_ltix\ltiopenid\jwks_helper::class)]
+final class jwks_helper_test extends \advanced_testcase {
 
     /**
      * Test the fix_jwks_alg method with a range of inputs.
@@ -54,10 +54,11 @@ final class jwks_helper_test extends \basic_testcase {
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('jwks_alg_provider')]
     public function test_fix_jwks_alg(array $jwks, string $jwt, array $expected): void {
+        $this->resetDebugging();
         if (isset($expected['exception'])) {
             $this->expectException($expected['exception']);
         }
-        $fixed = jwks_helper::fix_jwks_alg($jwks, $jwt);
+        $fixed = \core_ltix\ltiopenid\jwks_helper::fix_jwks_alg($jwks, $jwt);
         $this->assertEquals($expected['jwks'], $fixed);
     }
 

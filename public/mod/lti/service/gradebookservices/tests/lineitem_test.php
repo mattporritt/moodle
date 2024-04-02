@@ -48,7 +48,7 @@ final class lineitem_test extends \advanced_testcase {
         // The 1st item in the array is the items count.
 
         $gbservice = new gradebookservices();
-        $gbservice->set_type(lti_get_type($typeid));
+        $gbservice->set_type(\core_ltix\types_helper::get_type($typeid));
         $this->create_graded_lti($typeid, $course, $resourceid, $tag);
         $gradeitems = $gbservice->get_lineitems($course->id, null, null, null, null, null, $typeid);
         $this->assertEquals(1, $gradeitems[0]);
@@ -92,7 +92,7 @@ final class lineitem_test extends \advanced_testcase {
         // The 1st item in the array is the items count.
 
         $gbservice = new gradebookservices();
-        $gbservice->set_type(lti_get_type($typeid));
+        $gbservice->set_type(\core_ltix\types_helper::get_type($typeid));
         $this->create_graded_lti($typeid, $course, $resourceid, $tag, $subreviewurl, $subreviewparams);
         $gradeitems = $gbservice->get_lineitems($course->id, null, null, null, null, null, $typeid);
         $this->assertEquals(1, $gradeitems[0]);
@@ -140,7 +140,7 @@ final class lineitem_test extends \advanced_testcase {
         // The 1st item in the array is the items count.
 
         $gbservice = new gradebookservices();
-        $gbservice->set_type(lti_get_type($typeid));
+        $gbservice->set_type(\core_ltix\types_helper::get_type($typeid));
         $this->create_graded_lti($typeid, $course, $resourceid, $tag);
         $gradeitems = $gbservice->get_lineitems($course->id, null, null, null, null, null, $typeid);
         $this->assertEquals(1, $gradeitems[0]);
@@ -301,7 +301,7 @@ final class lineitem_test extends \advanced_testcase {
 
         $config = new \stdClass();
         $config->ltiservice_gradesynchronization = 2;
-        return lti_add_type($type, $config);
+        return \core_ltix\types_helper::add_type($type, $config);
     }
 
     /**
@@ -316,7 +316,7 @@ final class lineitem_test extends \advanced_testcase {
         $_SERVER['REQUEST_METHOD'] = \mod_lti\local\ltiservice\resource_base::HTTP_PUT;
         $_SERVER['PATH_INFO'] = "/$course->id/lineitems$lineitem->id";
 
-        $token = lti_new_access_token($typeid, ['https://purl.imsglobal.org/spec/lti-ags/scope/lineitem']);
+        $token = \core_ltix\types_helper::new_access_token($typeid, ['https://purl.imsglobal.org/spec/lti-ags/scope/lineitem']);
         $_SERVER['HTTP_Authorization'] = 'Bearer '.$token->token;
         $_GET['type_id'] = (string)$typeid;
     }
