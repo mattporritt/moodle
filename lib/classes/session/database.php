@@ -36,7 +36,7 @@ use SessionHandlerInterface;
 class database extends handler implements SessionHandlerInterface {
     use \core\session\base_session_store;
 
-    /** @var \stdClass $record session record */
+    /** @var int $record session record */
     protected $recordid = null;
 
     /** @var \moodle_database $database session database */
@@ -92,21 +92,35 @@ class database extends handler implements SessionHandlerInterface {
     }
 
     /**
-     * Kill all active sessions, the core sessions table is
-     * purged afterwards.
+     * Destroy session handler.
+     *
+     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
+     *
+     * @param string $id
+     * @return bool success
      */
-    public function kill_all_sessions() {
-        // Nothing to do, the sessions table is cleared from core.
-        return;
-    }
+    public function destroy(string $id): bool {
+        if (!$session = $this->database->get_record('sessions', ['sid' => $id], 'id, sid')) {
+            if ($id == session_id()) {
+                $this->recordid = null;
+                $this->lasthash = null;
+            }
+            return true;
+        }
 
-    /**
-     * Kill one session, the session record is removed afterwards.
-     * @param string $sid
-     */
-    public function kill_session($sid) {
-        // Nothing to do, the sessions table is purged afterwards.
-        return;
+        if ($this->recordid && ($session->id == $this->recordid)) {
+            try {
+                $this->database->release_session_lock($this->recordid);
+            } catch (\Exception $ex) {
+                // Ignore problems.
+            }
+            $this->recordid = null;
+            $this->lasthash = null;
+        }
+
+        $this->database->delete_records('sessions', ['id' => $session->id]);
+
+        return true;
     }
 
     /**
@@ -250,38 +264,6 @@ class database extends handler implements SessionHandlerInterface {
                 "Unknown exception when writing database session data : {$id} - " . $ex->getMessage(),
             );
         }
-
-        return true;
-    }
-
-    /**
-     * Destroy session handler.
-     *
-     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
-     *
-     * @param string $id
-     * @return bool success
-     */
-    public function destroy(string $id): bool {
-        if (!$session = $this->database->get_record('sessions', ['sid' => $id], 'id, sid')) {
-            if ($id == session_id()) {
-                $this->recordid = null;
-                $this->lasthash = null;
-            }
-            return true;
-        }
-
-        if ($this->recordid && ($session->id == $this->recordid)) {
-            try {
-                $this->database->release_session_lock($this->recordid);
-            } catch (\Exception $ex) {
-                // Ignore problems.
-            }
-            $this->recordid = null;
-            $this->lasthash = null;
-        }
-
-        $this->database->delete_records('sessions', ['id' => $session->id]);
 
         return true;
     }

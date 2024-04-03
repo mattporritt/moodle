@@ -119,26 +119,26 @@ trait base_session_store {
     }
 
     /**
-     * Delete all the session data.
+     * Destroy all sessions, and delete all the session data.
      *
-     * @return bool
+     * @return void
      */
-    public function delete_all_sessions(): bool {
+    public function destroy_all(): bool {
         global $DB;
 
         return $DB->delete_records('sessions');
     }
 
     /**
-     * Delete a session record for this session id.
+     * Destroy a specific session and delete this session record for this session id.
      *
-     * @param string $sid
-     * @return bool
+     * @param string sid
+     * @return void
      */
-    public function delete_session_by_sid(string $sid): bool {
+    public function destroy(string $id): bool {
         global $DB;
 
-        return $DB->delete_records('sessions', ['sid' => $sid]);
+        return $DB->delete_records('sessions', ['sid' => $id]);
     }
 
     /**
@@ -203,12 +203,12 @@ trait base_session_store {
     }
 
     /**
-     * Kill sessions of users with disabled plugins
+     * Destroy all sessions, and delete all the session data.
      *
      * @param string $pluginname
      * @return void
      */
-    public function kill_sessions_for_auth_plugin(string $pluginname): void {
+    public function destroy_for_auth_plugin(string $pluginname): void {
         global $DB;
 
         $rs = $DB->get_recordset('user', ['auth' => $pluginname], 'id ASC', 'id');

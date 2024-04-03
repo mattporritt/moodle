@@ -469,24 +469,6 @@ class redis extends handler implements SessionHandlerInterface {
         return true;
     }
 
-    /**
-     * Handle destroying a session.
-     *
-     * @param string $id the session id to destroy.
-     * @return bool true if the session was deleted, false otherwise.
-     */
-    public function destroy(string $id): bool {
-        $this->lasthash = null;
-        try {
-            $this->delete_session_by_sid($id);
-            $this->unlock_session($id);
-        } catch (RedisException $e) {
-            error_log('Failed talking to redis: '.$e->getMessage());
-            return false;
-        }
-
-        return true;
-    }
 
     /**
      * Returns a single session record for this session id.
@@ -598,6 +580,13 @@ class redis extends handler implements SessionHandlerInterface {
         $this->connection->zadd("sessionmap", $expiretime, $userhashkey . "_" . $sessionhashkey);
     }
 
+    /**
+     * Returns all session records.
+     * This includes user and session prefixed records.
+     * The session id will also have any $prefix applied.
+     *
+     * @return \Iterator
+     */
     public function get_all_sessions(): \Iterator {
         $sessions = [];
         $iterator = null;
@@ -609,23 +598,49 @@ class redis extends handler implements SessionHandlerInterface {
         return new \ArrayIterator($sessions);
     }
 
-    public function delete_all_sessions(): bool {
+    /**
+     * Destroy all sessions, and delete all the session data.
+     * This includes user and session prefixed records.
+     *
+     * @return bool
+     */
+    public function destroy_all(): bool {
+        $this->init_redis_if_required();
+
         $sessions = $this->get_all_sessions();
         foreach ($sessions as $session) {
-            $this->connection->unlink($session);
+            // Remove the $prefix from the session id.
+            if (str_starts_with($session, $this->prefix)) {
+                $session = substr($session, strlen($this->prefix));
+            }
+
+            $this->destroy($session);
         }
         return true;
     }
 
-    public function delete_session_by_sid(string $sid): bool {
+    /**
+     * Handle destroying a session.
+     *
+     * @param string $id the session id to destroy.
+     * @return bool true if the session was deleted, false otherwise.
+     */
+    public function destroy(string $id): bool {
         $this->init_redis_if_required();
+        $this->lasthash = null;
+        try {
+            $sessionhashkey = $this->sessionkeyprefix . $id;
+            $userid = $this->connection->hget($sessionhashkey, "userid");
+            $userhashkey = $this->userkeyprefix . $userid;
+            $this->connection->hDel($userhashkey, $id);
+            $this->connection->zRem("sessionmap", $userhashkey . "_" . $sessionhashkey);
+            $this->unlock_session($id);
+        } catch (RedisException $e) {
+            error_log('Failed talking to redis: '.$e->getMessage());
+            return false;
+        }
 
-        $sessionhashkey = $this->sessionkeyprefix . $sid;
-        $userid = $this->connection->hget($sessionhashkey, "userid");
-        $userhashkey = $this->userkeyprefix . $userid;
-        $this->connection->hDel($userhashkey, $sid);
-        $this->connection->zRem("sessionmap", $userhashkey . "_" . $sessionhashkey);
-        return $this->connection->unlink($sessionhashkey);
+        return true;
     }
 
     /**
@@ -826,31 +841,5 @@ class redis extends handler implements SessionHandlerInterface {
         } catch (RedisException $e) {
             return false;
         }
-    }
-
-    /**
-     * Kill all active sessions.
-     * For Redis this is functionally the same as deleting them.
-     *
-     */
-    public function kill_all_sessions() {
-        $sessions = $this->get_all_sessions();
-        foreach ($sessions as $session) {
-            $this->destroy($session);
-        }
-    }
-
-    /**
-     * Kill one session.
-     * For Redis this is functionally the same as deleting it.
-     *
-     * @param string $sid
-     */
-    public function kill_session($sid) {
-        if (!$this->connection) {
-            return;
-        }
-
-        $this->destroy($sid);
     }
 }
