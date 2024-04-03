@@ -583,7 +583,7 @@ class redis extends handler implements SessionHandlerInterface {
     /**
      * Returns all session records.
      * This includes user and session prefixed records.
-     * The session id will also have any $prefix applied.
+     * The session id will also have any prefixes applied because of the way scan works.
      *
      * @return \Iterator
      */
@@ -609,9 +609,9 @@ class redis extends handler implements SessionHandlerInterface {
 
         $sessions = $this->get_all_sessions();
         foreach ($sessions as $session) {
-            // Remove the $prefix from the session id.
-            if (str_starts_with($session, $this->prefix)) {
-                $session = substr($session, strlen($this->prefix));
+            // Remove the prefixes from the session id, as destroy expects the raw session id.
+            if (str_starts_with($session, $this->prefix . $this->sessionkeyprefix)) {
+                $session = substr($session, strlen($this->prefix . $this->sessionkeyprefix));
             }
 
             $this->destroy($session);
@@ -634,6 +634,7 @@ class redis extends handler implements SessionHandlerInterface {
             $userhashkey = $this->userkeyprefix . $userid;
             $this->connection->hDel($userhashkey, $id);
             $this->connection->zRem("sessionmap", $userhashkey . "_" . $sessionhashkey);
+            $this->connection->unlink($sessionhashkey);
             $this->unlock_session($id);
         } catch (RedisException $e) {
             error_log('Failed talking to redis: '.$e->getMessage());

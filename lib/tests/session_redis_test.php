@@ -302,7 +302,7 @@ class session_redis_test extends \advanced_testcase {
         $this->assertFalse($sess->session_exists('sess1'), 'Session should be destroyed.');
     }
 
-    public function test_kill_sessions_removes_the_session_from_redis() {
+    public function test_destroy_removes_the_session_from_redis() {
         global $DB;
 
         $sess = new \core\session\redis();
@@ -328,12 +328,12 @@ class session_redis_test extends \advanced_testcase {
         $mockhandler->add_test_session($sessiondata);
 
         $this->assertNotEquals('', $sess->read('sess1'));
-        $sess->kill_session('sess1');
+        $sess->destroy('sess1');
         $this->assertEquals('', $sess->read('sess1'));
 
         $this->assertEmpty($this->redis->keys($this->keyprefix.'sess1.lock'));
 
-        $sess->kill_all_sessions();
+        $sess->destroy_all();
 
         $mockhandler = new mock_handler_methods();
         $this->assertEquals(3, $mockhandler->count_sessions(),
