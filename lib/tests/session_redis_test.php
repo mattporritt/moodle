@@ -381,4 +381,23 @@ class session_redis_test extends \advanced_testcase {
         $prop = new \ReflectionProperty(\core\session\redis::class, 'host');
         $this->assertEquals('tls://' . TEST_SESSION_REDIS_HOST, $prop->getValue($sess));
     }
+
+    /**
+     * Test the add session method.
+     */
+    public function test_add_session() {
+        // Generate test users.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+
+        // Create a new session.
+        $session = new \core\session\redis();
+        $session->init();
+
+        // Add the sessions.
+        session_id('id1');
+        $session->add_session($user1->id);
+        session_id('id2');
+        $session->add_session($user1->id);
+    }
 }
