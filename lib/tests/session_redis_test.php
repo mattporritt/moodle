@@ -16,7 +16,7 @@
 
 namespace core;
 
-use fixtures\session\mock_handler_methods;
+use fixtures\session\mock_handler;
 use Redis;
 use RedisException;
 
@@ -51,9 +51,7 @@ class session_redis_test extends \advanced_testcase {
 
     public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
-
-        require_once(__DIR__ . '/fixtures/session/handler_mocking_interface.php');
-        require_once(__DIR__ . '/fixtures/session/mock_handler_methods.php');
+        require_once(__DIR__ . '/fixtures/session/mock_handler.php');
     }
 
     public function setUp(): void {
@@ -308,7 +306,7 @@ class session_redis_test extends \advanced_testcase {
         $sess = new \core\session\redis();
         $sess->init();
 
-        $mockhandler = new mock_handler_methods();
+        $mockhandler = new mock_handler_();
 
         $this->assertTrue($sess->open('Not used', 'Not used'));
         $this->assertTrue($sess->write('sess1', 'DATA'));
@@ -335,7 +333,7 @@ class session_redis_test extends \advanced_testcase {
 
         $sess->destroy_all();
 
-        $mockhandler = new mock_handler_methods();
+        $mockhandler = new mock_handler_();
         $this->assertEquals(3, $mockhandler->count_sessions(),
             'Moodle handles session database, plugin must not change it.');
         $this->assertSessionNoLocks();
@@ -386,18 +384,28 @@ class session_redis_test extends \advanced_testcase {
      * Test the add session method.
      */
     public function test_add_session() {
-        // Generate test users.
-        $user1 = $this->getDataGenerator()->create_user();
-        $user2 = $this->getDataGenerator()->create_user();
+        // Generate a test user.
+        $user = $this->getDataGenerator()->create_user();
 
-        // Create a new session.
+        // Create a new redis session object.
         $session = new \core\session\redis();
         $session->init();
 
-        // Add the sessions.
+        // Create two sessions for the user.
         session_id('id1');
-        $session->add_session($user1->id);
+        $session1data = $session->add_session($user->id);
         session_id('id2');
-        $session->add_session($user1->id);
+        $session2data = $session->add_session($user->id);
+
+        $session1 = $session->get_session_by_sid('id1');
+        $session2 = $session->get_session_by_sid('id2');
+
+        // Assert that the sessions were created and have expected data.
+        $this->assertEqualsCanonicalizing((array)$session1data, (array)$session1);
+        $this->assertEqualsCanonicalizing((array)$session2data, (array)$session2);
+
+        // Check that the session hash has a ttl set.
+        $this->assertGreaterThan(-1, $this->redis->ttl($this->keyprefix . 'session_id1'));
+
     }
 }

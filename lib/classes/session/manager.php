@@ -250,7 +250,8 @@ class manager {
         global $CFG, $DB;
 
         if (PHPUNIT_TEST) {
-            return '\core\session\file';
+            require_once($CFG->libdir . '/tests/fixtures/session/mock_handler.php');
+            return 'fixtures\session\mock_handler';
         } else if (!empty($CFG->session_handler_class)) {
             return $CFG->session_handler_class;
         } else if (!empty($CFG->dbsessions) and $DB->session_lock_supported()) {
@@ -1065,9 +1066,11 @@ class manager {
 
     /**
      * Periodic timed-out session cleanup.
+     *
+     * @param int $maxlifetime
      */
-    public static function gc(): void {
-        self::$handler->gc();
+    public static function gc(int $maxlifetime): void {
+        self::$handler->gc($maxlifetime);
     }
 
     /**

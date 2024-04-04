@@ -16,7 +16,7 @@
 
 namespace core;
 
-use fixtures\session\mock_handler_methods;
+use fixtures\session\mock_handler;
 
 /**
  * Unit tests for session manager class.
@@ -32,14 +32,12 @@ class session_manager_test extends \advanced_testcase {
 
     public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
-
-        require_once(__DIR__ . '/fixtures/session/handler_mocking_interface.php');
-        require_once(__DIR__ . '/fixtures/session/mock_handler_methods.php');
+        require_once(__DIR__ . '/fixtures/session/mock_handler.php');
     }
 
     protected function setUp(): void {
         parent::setUp();
-        $this->mockhandler = new mock_handler_methods();
+        $this->mockhandler = new mock_handler();
     }
 
     public function test_start() {
@@ -250,7 +248,7 @@ class session_manager_test extends \advanced_testcase {
         $this->assertLessThanOrEqual(time(), $session->timemodified);
     }
 
-    public function test_kill_session() {
+    public function test_destroy() {
         global $DB, $USER;
         $this->resetAfterTest();
 
@@ -274,7 +272,7 @@ class session_manager_test extends \advanced_testcase {
 
         $this->assertEquals(2, $this->mockhandler->count_sessions());
 
-        \core\session\manager::kill_session($sid);
+        \core\session\manager::destroy($sid);
         $sessions = $this->mockhandler->get_all_sessions();
         $this->assertEquals(1, count($sessions));
         $this->assertFalse($this->contains_session(['sid' => $sid], $sessions));
@@ -578,7 +576,7 @@ class session_manager_test extends \advanced_testcase {
         $record->timemodified = time() - 60*9;
         $r7 = $this->mockhandler->add_test_session($record);
 
-        \core\session\manager::gc();
+        \core\session\manager::gc($CFG->sessiontimeout);
         $sessions = $this->mockhandler->get_all_sessions();
         $this->assertTrue($this->contains_session(['id' => $r1], $sessions));
         $this->assertFalse($this->contains_session(['id' => $r2], $sessions));

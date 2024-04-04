@@ -367,7 +367,7 @@ class redis extends handler implements SessionHandlerInterface {
             if ($userid != 0) {
                 $maxlifetime = $this->get_maxlifetime($userid);
                 $this->connection->expire($this->sessionkeyprefix . $id, $maxlifetime);
-                $this->update_sessionmap($id, time() + $maxlifetime);
+                // TODO: update user hash expiry.
             }
         } catch (RedisException $e) {
             error_log('Failed talking to redis: '.$e->getMessage());
@@ -460,7 +460,7 @@ class redis extends handler implements SessionHandlerInterface {
             if ($timecreated != $timemodified) {
                 $maxlifetime = $this->get_maxlifetime($userid);
                 $this->connection->expire($this->sessionkeyprefix . $id, $maxlifetime);
-                $this->update_sessionmap($id, time() + $maxlifetime);
+                // TODO: update user hash expiry.
             }
         } catch (RedisException $e) {
             error_log('Failed talking to redis: '.$e->getMessage());
@@ -494,6 +494,7 @@ class redis extends handler implements SessionHandlerInterface {
     public function add_session(int $userid): \stdClass {
         $timestamp = time();
         $sid = session_id();
+        $maxlifetime = $this->get_maxlifetime($userid, true);
         $sessiondata = [
                 'id' => $sid,
                 'state' => '0',
@@ -508,15 +509,11 @@ class redis extends handler implements SessionHandlerInterface {
 
         $userhashkey = $this->userkeyprefix . $userid;
         $this->connection->hSet($userhashkey, $sid, $timestamp);
+        $this->connection->expire($userhashkey, $maxlifetime);
 
         $sessionhashkey = $this->sessionkeyprefix . $sid;
-        foreach ($sessiondata as $key => $value) {
-            $this->connection->hSet($sessionhashkey, $key, $value);
-        }
-
-        $maxlifetime = $this->get_maxlifetime($userid, true);
+        $this->connection->hmSet($sessionhashkey, $sessiondata);
         $this->connection->expire($sessionhashkey, $maxlifetime);
-        $this->update_sessionmap($sid, time() + $maxlifetime);
 
         return (object)$sessiondata;
     }
@@ -562,23 +559,11 @@ class redis extends handler implements SessionHandlerInterface {
             $this->connection->hSet($sessionhashkey, $key, $value);
         }
 
-        // Update timemodified in sessionmap.
-        if (isset($record->timemodified)) {
-            $userid = $this->connection->hget($sessionhashkey, "userid");
-            $maxlifetime = $this->get_maxlifetime($userid, false);
-            $this->connection->expire($sessionhashkey, $maxlifetime);
-            $this->update_sessionmap($record->sid, time() + $maxlifetime);
-        }
+        // TODO: Update timemodified for user hash.
 
         return true;
     }
 
-    private function update_sessionmap($sid, $expiretime): void {
-        $sessionhashkey = $this->sessionkeyprefix . $sid;
-        $userid = $this->connection->hget($sessionhashkey, "userid");
-        $userhashkey = $this->userkeyprefix . $userid;
-        $this->connection->zadd("sessionmap", $expiretime, $userhashkey . "_" . $sessionhashkey);
-    }
 
     /**
      * Returns all session records.
@@ -645,32 +630,15 @@ class redis extends handler implements SessionHandlerInterface {
     }
 
     /**
-     * Garbage collect sessions.  Periodic timed-out session cleanup.
+     * Garbage collect sessions.
+     * Not required for Redis as all hashes have an expiry time.
      *
      * @param integer $max_lifetime All sessions older than this should be removed.
-     * @return int Redis handles expiry for us.
+     * @return 0 Redis handles expiry for us.
      */
     // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
     public function gc(int $max_lifetime): int|false {
-        $this->init_redis_if_required();
-        $expiredcount = 0;
-
-        $expiredsessions = $this->connection->zRangeByScore('sessionmap', 0, time(),
-                ['withscores' => true, 'limit' => [0, $this->gcbatchsize]]);
-        foreach ($expiredsessions as $usersessionkey => $modifiedtime) {
-            // Format example of $usersessionkey "user_0_session_d7e78666cbb4e131ef3d197eb803aaf2".
-            $parts = explode("_", $usersessionkey);
-            $uid = $parts[1];
-            $userhashkey = $this->userkeyprefix . $uid;
-            $sid = $parts[3];
-            if (!$this->connection->exists($this->sessionkeyprefix . $sid)) {
-                $this->connection->hDel($userhashkey, $sid);
-                $this->connection->zrem('sessionmap', $usersessionkey);
-                $expiredcount++;
-            }
-        }
-
-        return $expiredcount;
+        return 0;
     }
 
     /**
