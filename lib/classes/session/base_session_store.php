@@ -162,7 +162,7 @@ trait base_session_store {
         $sessions = $this->get_sessions_by_userid($userid);
         foreach ($sessions as $session) {
             if ($session->timemodified < $maxlifetime) {
-                $this->delete_session_by_sid($session->sid);
+                $this->destroy($session->sid);
             }
         }
     }
@@ -197,7 +197,7 @@ trait base_session_store {
                     continue 2;
                 }
             }
-            $this->delete_session_by_sid($user->sid);
+            $this->destroy($user->sid);
         }
         $rs->close();
     }
@@ -215,7 +215,7 @@ trait base_session_store {
         foreach ($rs as $user) {
             $sessions = $this->get_sessions_by_userid($user->id);
             foreach ($sessions as $session) {
-                $this->delete_session_by_sid($session->sid);
+                $this->destroy($session->sid);
             }
         }
         $rs->close();
@@ -256,7 +256,7 @@ trait base_session_store {
             foreach ($sessions as $session) {
                 if ($session->timemodified == $session->timecreated
                     && $session->timemodified < $purgebefore) {
-                    $this->delete_session_by_sid($session->sid);
+                    $this->destroy($session->sid);
                 }
             }
 

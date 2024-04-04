@@ -296,7 +296,7 @@ class provider implements
         // Delete sessions.
         $sessions = \core\session\manager::get_sessions_by_userid($userid);
         foreach ($sessions as $session) {
-            \core\session\manager::delete_session_by_sid($session->sid);
+            \core\session\manager::destroy($session->sid);
         }
         // Do I delete user preferences? Seems like the right place to do it.
         $DB->delete_records('user_preferences', ['userid' => $userid]);

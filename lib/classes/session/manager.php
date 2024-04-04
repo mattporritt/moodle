@@ -904,6 +904,26 @@ class manager {
     }
 
     /**
+     * Kill sessions of users with disabled plugins.
+     *
+     * @param string $pluginname
+     * @return void
+     */
+    public static function kill_sessions_for_auth_plugin(string $pluginname): void {
+        self::destroy_for_auth_plugin($pluginname);
+    }
+
+    /**
+     * Destroy sessions of users with disabled plugins.
+     *
+     * @param string $pluginname
+     * @return void
+     */
+    public static function destroy_for_auth_plugin(string $pluginname): void {
+        self::$handler->destroy_for_auth_plugin($pluginname);
+    }
+
+    /**
      * Destroy all sessions, and delete all the session data.
      *
      * @return bool
@@ -1041,16 +1061,6 @@ class manager {
 
         // Make sure the user is correct in web server access logs.
         set_access_log_user();
-    }
-
-    /**
-     * Kill sessions of users with disabled plugins
-     *
-     * @param string $pluginname
-     * @return void
-     */
-    public static function destroy_for_auth_plugin(string $pluginname): void {
-        self::$handler->destroy_for_auth_plugin($pluginname);
     }
 
     /**
