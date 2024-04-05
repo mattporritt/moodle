@@ -224,8 +224,8 @@ trait base_session_store {
     /**
      * Periodic timed-out session cleanup.
      *
-     * @param int $max_lifetime
-     * @return int|false
+     * @param int $max_lifetime Sessions that have not updated for the last max_lifetime seconds will be removed.
+     * @return int|false Number of deleted sessions or false if an error occurred.
      */
     // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
     public function gc(int $max_lifetime = 0): int|false {

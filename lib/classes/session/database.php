@@ -268,24 +268,4 @@ class database extends handler implements SessionHandlerInterface {
         return true;
     }
 
-    /**
-     * GC session handler.
-     *
-     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
-     *
-     * @param int $max_lifetime moodle uses special timeout rules
-     * @return bool success
-     */
-    // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
-    public function gc(int $max_lifetime): int|false {
-        // This should do something only if cron is not running properly...
-        if (!$stalelifetime = ini_get('session.gc_maxlifetime')) {
-            return false;
-        }
-        $params = ['purgebefore' => (time() - $stalelifetime)];
-        $count = $this->database->count_records_select('sessions', 'userid = 0 AND timemodified < :purgebefore', $params);
-        $this->database->delete_records_select('sessions', 'userid = 0 AND timemodified < :purgebefore', $params);
-
-        return $count;
-    }
 }

@@ -519,7 +519,7 @@ class session_manager_test extends \advanced_testcase {
     }
 
     public function test_gc() {
-        global $CFG, $DB, $USER;
+        global $CFG, $USER;
         $this->resetAfterTest();
 
         $this->setAdminUser();
@@ -528,6 +528,8 @@ class session_manager_test extends \advanced_testcase {
         $guestid = $USER->id;
         $this->setUser(0);
 
+        // Set sessions timeout to 600 (10 minutes) seconds.
+        // We will test if sessions not modified for 600 seconds are removed.
         $CFG->sessiontimeout = 60*10;
 
         $record = new \stdClass();

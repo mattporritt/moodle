@@ -1067,9 +1067,16 @@ class manager {
     /**
      * Periodic timed-out session cleanup.
      *
-     * @param int $maxlifetime
+     * @param int $maxlifetime Sessions that have not updated for the last max_lifetime seconds will be removed.
+     * @return void
      */
-    public static function gc(int $maxlifetime): void {
+    public static function gc(int $maxlifetime = 0): void {
+        global $CFG;
+
+        // If max lifetime is not provided, use the default session timeout.
+        if ($maxlifetime == 0) {
+            $maxlifetime = $CFG->sessiontimeout;
+        }
         self::$handler->gc($maxlifetime);
     }
 
