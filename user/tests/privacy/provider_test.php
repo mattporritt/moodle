@@ -30,7 +30,7 @@ use \core_privacy\tests\provider_testcase;
 use \core_user\privacy\provider;
 use \core_privacy\local\request\approved_userlist;
 use \core_privacy\local\request\transform;
-use fixtures\session\mock_handler_;
+use fixtures\session\mock_handler;
 
 require_once($CFG->dirroot . "/user/lib.php");
 
@@ -46,8 +46,7 @@ class provider_test extends provider_testcase {
         parent::setUpBeforeClass();
         global $CFG;
 
-        require_once($CFG->dirroot . '/lib/tests/fixtures/session/handler_mocking_interface.php');
-        require_once($CFG->dirroot. '/lib/tests/fixtures/session/mock_handler_.php');
+        require_once($CFG->libdir. '/tests/fixtures/session/mock_handler.php');
     }
 
     /**
@@ -484,7 +483,7 @@ class provider_test extends provider_testcase {
             'firstip' => '0.0.0.0',
             'lastip' => '0.0.0.0'
         ];
-        $mockhandler = new mock_handler_();
+        $mockhandler = new mock_handler();
         $mockhandler->add_test_session($usersessions);
     }
 

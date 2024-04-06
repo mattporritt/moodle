@@ -306,7 +306,7 @@ class session_redis_test extends \advanced_testcase {
         $sess = new \core\session\redis();
         $sess->init();
 
-        $mockhandler = new mock_handler_();
+        $mockhandler = new mock_handler();
 
         $this->assertTrue($sess->open('Not used', 'Not used'));
         $this->assertTrue($sess->write('sess1', 'DATA'));
@@ -333,7 +333,7 @@ class session_redis_test extends \advanced_testcase {
 
         $sess->destroy_all();
 
-        $mockhandler = new mock_handler_();
+        $mockhandler = new mock_handler();
         $this->assertEquals(3, $mockhandler->count_sessions(),
             'Moodle handles session database, plugin must not change it.');
         $this->assertSessionNoLocks();
