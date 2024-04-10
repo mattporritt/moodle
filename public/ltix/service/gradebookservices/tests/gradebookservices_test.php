@@ -27,6 +27,7 @@ use ltixservice_gradebookservices\local\service\gradebookservices;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(gradebookservices::class)]
+#[\PHPUnit\Framework\Attributes\CoversMethod(gradebookservices::class, 'find_ltixservice_gradebookservice_for_lti')]
 final class gradebookservices_test extends \advanced_testcase {
     /**
      * Load the necessary libs for the tests.
@@ -59,7 +60,7 @@ final class gradebookservices_test extends \advanced_testcase {
 
         $this->assertNotNull($ltiinstance);
 
-        $gbs = gradebookservices::find_ltiservice_gradebookservice_for_lti($ltiinstance->id);
+        $gbs = gradebookservices::find_ltixservice_gradebookservice_for_lti($ltiinstance->id);
 
         $this->assertNotNull($gbs);
         $this->assertEquals($resourceid, $gbs->resourceid);
@@ -90,7 +91,7 @@ final class gradebookservices_test extends \advanced_testcase {
 
         $this->assertNotNull($ltiinstance);
 
-        $gbs = gradebookservices::find_ltiservice_gradebookservice_for_lti($ltiinstance->id);
+        $gbs = gradebookservices::find_ltixservice_gradebookservice_for_lti($ltiinstance->id);
 
         $this->assertNotNull($gbs);
         $this->assertEquals('DEFAULT', $gbs->subreviewurl);

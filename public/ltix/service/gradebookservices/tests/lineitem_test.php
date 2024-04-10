@@ -29,7 +29,7 @@ use ltixservice_gradebookservices\local\service\gradebookservices;
  * @copyright  2022 Cengage Group <claude.vervoort@cengage.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(\core_ltix\service\gradebookservices\local\resources\lineitem::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(lineitem::class)]
 final class lineitem_test extends \advanced_testcase {
 
     /**
