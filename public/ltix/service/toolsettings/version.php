@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for the ltiservice_toolsettings service.
+ * Version information for the ltixservice_toolsettings service.
  *
- * @package    ltiservice_toolsettings
+ * @package    ltixservice_toolsettings
  * @copyright  2014 Vital Source Technologies http://vitalsource.com
  * @author     Stephen Vickers
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,9 +27,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 
-$plugin->version   = 2026100500;
+$plugin->version   = 2026100501;
 $plugin->requires  = 2026100200;
-$plugin->component = 'ltiservice_toolsettings';
+$plugin->component = 'ltixservice_toolsettings';
 $plugin->dependencies = [
     'ltixservice_profile' => 2026100200,
     'ltixservice_toolproxy' => 2026100200,
