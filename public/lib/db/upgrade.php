@@ -2427,7 +2427,7 @@ function xmldb_main_upgrade($oldversion) {
             set_config('privatekey', null, 'mod_lti');
         }
 
-        $servicetypes = ['basicoutcomes', 'memberships', 'profile', 'toolproxy'];
+        $servicetypes = ['basicoutcomes', 'memberships', 'profile', 'toolproxy', 'toolsettings'];
         foreach ($servicetypes as $type) {
             $versionfile = $CFG->dirroot . "mod/lti/service/{$type}/version.php";
 
