@@ -25,7 +25,6 @@
 namespace core\session;
 
 use RedisException;
-use RedisClusterException;
 use SessionHandlerInterface;
 
 /**
@@ -212,7 +211,7 @@ class redis extends handler implements SessionHandlerInterface {
      * @throws \dml_exception
      * @throws exception
      */
-    public function init() {
+    public function init(): bool {
         if (!extension_loaded('redis')) {
             throw new exception('sessionhandlerproblem', 'error', '', null, 'redis extension is not loaded');
         }
@@ -652,7 +651,7 @@ class redis extends handler implements SessionHandlerInterface {
             $this->connection->hDel($userhashkey, $id);
             $this->connection->unlink($sessionhashkey);
             $this->unlock_session($id);
-        } catch (RedisException $e) {
+        } catch (RedisException | RedisClusterException $e) {
             error_log('Failed talking to redis: '.$e->getMessage());
             return false;
         }
@@ -773,7 +772,7 @@ class redis extends handler implements SessionHandlerInterface {
                 $whohaslock = $this->connection->get($lockkey);
                 // phpcs:ignore
                 error_log("Warning: Cannot obtain session lock for sid: $id within $this->acquirewarn seconds but will keep trying. " .
-                    "It is likely another page ($whohaslock) has a long session lock, or the session lock was never released.");
+                        "It is likely another page ($whohaslock) has a long session lock, or the session lock was never released.");
                 $haswarned = true;
             }
 
