@@ -2854,6 +2854,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
                 $this->assertFalse($navoptions->communication);
                 $this->assertFalse($navoptions->overview);
                 $this->assertFalse($navoptions->learningoutcomes);
+                $this->assertFalse($navoptions->ltix);
             } else {
                 $this->assertTrue($navoptions->blogs);
                 $this->assertFalse($navoptions->notes);
@@ -2866,6 +2867,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
                 $this->assertFalse($navoptions->communication);
                 $this->assertTrue($navoptions->overview);
                 $this->assertFalse($navoptions->learningoutcomes);
+                $this->assertFalse($navoptions->ltix);
             }
         }
     }
