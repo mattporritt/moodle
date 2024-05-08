@@ -68,6 +68,7 @@ $ADMIN->add('root', new category('analytics', new lang_string('analytics', 'anal
 $ADMIN->add('root', new category('competencies', new lang_string('competencies', 'core_competency')));
 $ADMIN->add('root', new category('badges', new lang_string('badges'), empty($CFG->enablebadges)));
 $ADMIN->add('root', new category('h5p', new lang_string('h5p', 'core_h5p')));
+$ADMIN->add('root', new category('ltix', new lang_string('ltix', 'core_ltix')));
 $ADMIN->add('root', new category('license', new lang_string('license')));
 $ADMIN->add('root', new category('location', new lang_string('location', 'admin')));
 $ADMIN->add('root', new category('login', new lang_string('login', 'admin')));
