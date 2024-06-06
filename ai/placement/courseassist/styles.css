@@ -1,0 +1,46 @@
+.offcanvas {
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    right: -350px;
+    width: 350px;
+    background-color: #f8f9fa;
+    z-index: 2001;
+    transition: right 0.3s ease;
+    border: 1px solid #dee2e6;
+    border-bottom-left-radius: 1rem;
+    border-top-left-radius: 1rem;
+}
+.offcanvas.show {
+    right: 0;
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.ai-cta-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 5rem;
+    z-index: 1000;
+    transition: right 0.3s ease;
+}
+
+.ai-cta-container.slide {
+    right: calc(5rem + 350px);
+}
+
+.btn.ai-offcanvas-button {
+    font-size: 1.3rem;
+}
+
+.ai-action-button {
+    background-color: #fff;
+    border-color: #3584c9;
+    border-width: 1px;
+    width: 80%;
+    border-radius: .5rem;
+    margin-left: auto;
+    margin-right: auto;
+}

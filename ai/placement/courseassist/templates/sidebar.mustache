@@ -1,0 +1,71 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core_admin/table/namedesc
+
+    Admin setting template to display an name and description
+    in a single table cell.
+
+    Context variables required for this template:
+    * name - Name of the table setting
+    * description - Description of the
+
+
+    Example context (json):
+    {
+        "name": "Fancy Setting",
+        "description": "Text that describes this setting well"
+    }
+}}
+{{!
+    Name and description.
+}}
+<div class="ai-cta-container" id="ai-cta-container">
+  <button id="ai-offcanvas-toggle"
+          class="btn btn-primary btn-icon icon-no-margin"
+          aria-label="Show AI Tools">
+    <i class="icon fa fa-wand-magic-sparkles fa-fw " aria-hidden="true"></i>
+  </button>
+</div>
+
+<div class="offcanvas" id="ai-offcanvas-menu">
+  <div class="offcanvas-header d-flex justify-content-between align-items-center">
+    <button class="btn btn-link ai-offcanvas-button" id="ai-offcanvas-home">
+      <i class="fas fa-home"></i>
+    </button>
+    <h4 class="header-title mb-0">Moodle AI</h4>
+    <button class="btn btn-link ai-offcanvas-button" id="ai-offcanvas-close">
+      <i class="fas fa-close"></i>
+    </button>
+  </div>
+  <div class="offcanvas-body">
+    <p class="mt-2 ml-1 font-weight-bold">Choose AI Action:</p>
+    <button class="btn-link text-decoration-none ai-action-button d-flex align-items-center p-1 mb-2 " type="submit">
+            <span class="icon-no-margin icon-size-3 d-flex p-1 mr-2">
+                <i class="fa fa-diagram-next fa-fw fa-2x" title="Summarise text" role="img" aria-label="Verify it's you by email"></i>
+            </span>
+      <span class="tool-mfa-factor-choose-text mfa-login-option">Summarise text</span>
+    </button>
+    <button class="btn-link text-decoration-none ai-action-button d-flex align-items-center p-1 mb-2 " type="submit">
+            <span class="icon-no-margin icon-size-3 d-flex p-1 mr-2">
+                <i class="fa fa-language fa-fw fa-2x" title="Translate text" role="img" aria-label="Verify it's you by email"></i>
+            </span>
+      <span class="tool-mfa-factor-choose-text mfa-login-option">Translate text</span>
+    </button>
+  </div>
+</div>
+
