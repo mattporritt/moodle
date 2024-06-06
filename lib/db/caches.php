@@ -618,4 +618,12 @@ $definitions = array(
         'simpledata' => true,
         'staticacceleration' => true,
     ],
+    // Cache to store request rate limits related to the AI subsystem.
+    // Used by AI Provider plugins to limit the number of requests to external services.
+    'ai_ratelimit' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true, // Cache must use simple keys (a-zA-Z0-9_).
+        'simpledata' => true, // Cache stores integer values which are simple data.
+        'ttl' => 3600, // Time to live in seconds.
+    ],
 );
