@@ -14,25 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
-use core_privacy\local\metadata\null_provider;
-
 /**
- * Privacy Subsystem for OpenAI provider implementing null_provider.
+ * Strings for component aiplacement_courseassist, language 'en'.
  *
- * @package    aiprovider_openai
+ * @package    aiplacement_courseassist
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @codeCoverageIgnore
  */
-class provider implements null_provider {
-    /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
-     *
-     * @return  string
-     */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
-    }
-}
+
+$string['pluginname'] = 'Course Assistance Placement';
+$string['privacy:metadata'] = 'The Course Assistance placement plugin does not store any personal data.';
+
+

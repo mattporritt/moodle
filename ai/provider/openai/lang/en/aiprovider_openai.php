@@ -23,7 +23,7 @@
  */
 
 $string['pluginname'] = 'OpenAI API Provider';
-$string['privacy:metadata'] = 'TheOpenAI API provider plugin does not store any personal data.';
+$string['privacy:metadata'] = 'The OpenAI API provider plugin does not store any personal data.';
 
 $string['apikey'] = 'OpenAI API key';
 $string['apikey_desc'] = 'Enter your OpenAI API key. You can get one from https://platform.openai.com/account/api-keys';

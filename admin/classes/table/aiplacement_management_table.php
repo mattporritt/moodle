@@ -14,25 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace core_admin\table;
 
-use core_privacy\local\metadata\null_provider;
+use html_writer;
+use moodle_url;
+use stdClass;
 
 /**
- * Privacy Subsystem for OpenAI provider implementing null_provider.
+ * Table to manage AI Placement plugins.
  *
- * @package    aiprovider_openai
- * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @codeCoverageIgnore
+ * @package core_admin
+ * @copyright 2024 Matt Porritt <matt.porritt@moodle.com>
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements null_provider {
-    /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
-     *
-     * @return  string
-     */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
+
+class aiplacement_management_table extends \core_admin\table\plugin_management_table {
+
+    protected function get_plugintype(): string {
+        return 'aiplacement';
+    }
+
+
+    protected function get_action_url(array $params = []): moodle_url {
+        return new moodle_url('/admin/ai.php', $params);
     }
 }

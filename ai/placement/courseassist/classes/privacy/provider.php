@@ -18,9 +18,9 @@
 use core_privacy\local\metadata\null_provider;
 
 /**
- * Privacy Subsystem for OpenAI provider implementing null_provider.
+ * Privacy Subsystem for course assistance placement implementing null_provider.
  *
- * @package    aiprovider_openai
+ * @package    aiplacement_courseassist
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @codeCoverageIgnore

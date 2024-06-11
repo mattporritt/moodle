@@ -30,8 +30,24 @@ if ($hassiteconfig) {
             new admin_settingpage('aisettings', new lang_string('aisettings', 'ai')));
 
     // Add settings page for AI placement settings.
-    $ADMIN->add('ai',
-            new admin_settingpage('aisettingsplacement', new lang_string('aiplacementsettings', 'ai')));
+    $placements = new admin_settingpage('aisettingsplacement', new lang_string('aiplacementsettings', 'ai'));
+    $placements->add(new admin_setting_heading('availableplacements',
+            get_string('availableplacements', 'core_ai'),
+            get_string('availableplacements_desc', 'core_ai')));
+    $placements->add(new \core_admin\admin\admin_setting_plugin_manager(
+            'aiplacement',
+            \core_admin\table\aiplacement_management_table::class,
+            'manageaiplacements',
+            new lang_string('manageaiplacements', 'core_ai'),
+    ));
+    $ADMIN->add('ai',$placements);
+
+    // Load settings for all AI providers.
+    $plugins = core_plugin_manager::instance()->get_plugins_of_type('aiprovider');
+    foreach ($plugins as $plugin) {
+        /** @var \core\plugininfo\aiprovider $plugin */
+        $plugin->load_settings($ADMIN, 'ai', $hassiteconfig);
+    }
 
     // Add settings page for AI provider settings.
     $providers = new admin_settingpage('aisettingsprovider', new lang_string('aiprovidersettings', 'ai'));
