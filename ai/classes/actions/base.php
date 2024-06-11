@@ -34,8 +34,8 @@ abstract class base {
      * @return string
      * @throws coding_exception
      */
-    public function get_name(): string {
-        return get_string(get_class($this), 'core_ai');
+    public static function get_name(): string {
+        return get_string(static::class, 'core_ai');
     }
 
     /**
@@ -45,8 +45,8 @@ abstract class base {
      * @return string
      * @throws coding_exception
      */
-    public function get_description(): string {
-        return get_string(get_class($this), 'core_ai');
+    public static function get_description(): string {
+        return get_string(static::class, 'core_ai');
     }
 
 }
