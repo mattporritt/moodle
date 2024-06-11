@@ -16,6 +16,8 @@
 
 namespace core_ai\actions;
 
+use coding_exception;
+
 /**
  * Base Action class.
  *
@@ -24,5 +26,27 @@ namespace core_ai\actions;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class base {
+
+    /**
+     * Get the action name.
+     * Defaults to the action name string.
+     *
+     * @return string
+     * @throws coding_exception
+     */
+    public function get_name(): string {
+        return get_string(get_class($this), 'core_ai');
+    }
+
+    /**
+     * Get the action description.
+     * Defaults to the action description string.
+     *
+     * @return string
+     * @throws coding_exception
+     */
+    public function get_description(): string {
+        return get_string(get_class($this), 'core_ai');
+    }
 
 }

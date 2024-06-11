@@ -25,4 +25,11 @@ namespace core_ai;
  */
 abstract class placement {
 
+    /**
+     * Get the list of actions that this placement supports.
+     *
+     * @return array An array of action class names.
+     */
+    abstract public function get_supported_actions(): array;
+
 }

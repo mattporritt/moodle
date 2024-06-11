@@ -25,4 +25,22 @@ namespace core_ai;
  */
 abstract class provider {
 
+    /**
+     * Get the list of actions that this provider supports.
+     *
+     * @return array An array of action class names.
+     */
+    abstract public function get_supported_actions(): array;
+
+    /**
+     * Given an action class name, return an array of sub actions
+     * that this provider supports.
+     *
+     * @param string $classname The action class name.
+     * @return array An array of supported sub actions.
+     */
+    public function get_sub_actions(string $classname): array{
+        return [];
+    }
+
 }

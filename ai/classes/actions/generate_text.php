@@ -23,6 +23,6 @@ namespace core_ai\actions;
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class generate_text extends base{
+class generate_text extends base {
 
 }
