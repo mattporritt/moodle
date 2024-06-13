@@ -25,4 +25,37 @@ namespace core_ai;
  */
 class manager {
 
+    /**
+     * Get communication provider class name from the plugin name.
+     *
+     * @param string $plugin The component name.
+     * @throws \coding_exception If the plugin name does not start with 'aiprovider_' or 'aiplacement_'.
+     * @return string The class name of the provider.
+     */
+    private function get_ai_plugin_classname(string $plugin): string {
+        if (strpos($plugin, 'aiprovider_') === 0) {
+            return "{$plugin}\\provider";
+        } elseif (strpos($plugin, 'aiplacement_') === 0) {
+            return "{$plugin}\\placement";
+        } else {
+            // Explode if neither.
+            throw new \coding_exception("Plugin name does not start with 'aiprovider_' or 'aiplacement_': " . $plugin);
+        }
+    }
+
+    /**
+     * Get the list of actions that this provider or placement supports,
+     * given the name of the plugin.
+     *
+     * @param string $pluginname The name of the plugin to get the actions for.
+     * @throws \coding_exception
+     * @return array An array of action class names.
+     */
+    public static function get_supported_actions(string $pluginname): array {
+        $instance = new self();
+        $pluginclassname = $instance->get_ai_plugin_classname($pluginname);
+
+        return $pluginclassname::get_supported_actions();
+    }
+
 }

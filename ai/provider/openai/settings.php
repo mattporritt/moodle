@@ -25,11 +25,20 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    // Load the setting table of actions that this provider supports.
-
     // Provider specific settings.
     $settings = new admin_settingpage('aiprovider_openai',
             new lang_string('pluginname', 'aiprovider_openai'), 'moodle/site:config', true);
+
+    // Get the list of actions that this provider supports.
+    $actions = \core_ai\manager::get_supported_actions('aiprovider_openai');
+    // Load the setting table of actions that this provider supports.
+    $settings->add(new \core_ai\admin\admin_setting_action_manager(
+            $actions,
+            \core_admin\table\aiaction_management_table::class,
+            'manageaiproviders',
+            new lang_string('manageaiproviders', 'core_ai'),
+    ));
+
     // Setting to store OpenAI API key.
     $settings->add(new admin_setting_configpasswordunmask('aiprovider_openai/apikey',
             new lang_string('apikey', 'aiprovider_openai'),
@@ -42,4 +51,4 @@ if ($hassiteconfig) {
             new lang_string('orgid_desc', 'aiprovider_openai'),
             '',
             PARAM_TEXT));
-    }
+}

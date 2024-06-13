@@ -30,7 +30,7 @@ abstract class provider {
      *
      * @return array An array of action class names.
      */
-    abstract public function get_supported_actions(): array;
+    abstract public static function get_supported_actions(): array;
 
     /**
      * Given an action class name, return an array of sub actions

@@ -42,8 +42,8 @@ if ($hassiteconfig) {
     ));
     $ADMIN->add('ai',$placements);
 
-    // Load settings for all AI providers.
-    $plugins = core_plugin_manager::instance()->get_plugins_of_type('aiprovider');
+    // Load settings for all placements.
+    $plugins = core_plugin_manager::instance()->get_plugins_of_type('aiplacement');
     foreach ($plugins as $plugin) {
         /** @var \core\plugininfo\aiprovider $plugin */
         $plugin->load_settings($ADMIN, 'ai', $hassiteconfig);

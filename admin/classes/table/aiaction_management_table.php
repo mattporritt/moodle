@@ -14,27 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_openai;
+namespace core_admin\table;
+
+use html_writer;
+use moodle_url;
+use stdClass;
 
 /**
- * Class provider.
+ * Table to manage AI actions used in provider and placement plugins.
  *
- * @package    aiprovier_openai
- * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package core_admin
+ * @copyright 2024 Matt Porritt <matt.porritt@moodle.com>
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider extends \core_ai\provider {
 
-    /**
-     * Get the list of actions that this provider supports.
-     *
-     * @return array An array of action class names.
-     */
-    public static function get_supported_actions(): array {
-        return [
-            \core_ai\actions\generate_text::class,
-            \core_ai\actions\summarise_text::class
-        ];
+class aiaction_management_table extends \core_admin\table\plugin_management_table {
+
+    protected function get_plugintype(): string {
+        return 'aiprovider';
     }
 
+
+    protected function get_action_url(array $params = []): moodle_url {
+        return new moodle_url('/admin/ai.php', $params);
+    }
 }
