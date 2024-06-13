@@ -17,7 +17,7 @@
 namespace core_ai;
 
 /**
- * Test communication helper methods.
+ * Test ai subsystem manager methods.
  *
  * @package    core_ai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>

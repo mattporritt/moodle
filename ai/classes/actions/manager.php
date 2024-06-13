@@ -16,38 +16,22 @@
 
 namespace core_ai\actions;
 
-use coding_exception;
-
 /**
- * Base Action class.
+ * AI actions manager.
  *
  * @package    core_ai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class base {
+class manager {
 
     /**
-     * Get the action name.
-     * Defaults to the action name string.
+     * Given a class name, return an instance of the action.
      *
-     * @return string
-     * @throws coding_exception
+     * @param string $classname
+     * @return base
      */
-    public static function get_name(): string {
-        error_log (static::class);
-        return get_string(static::class, 'core_ai');
+    public static function get_action(string $classname): base {
+        return new $classname();
     }
-
-    /**
-     * Get the action description.
-     * Defaults to the action description string.
-     *
-     * @return string
-     * @throws coding_exception
-     */
-    public static function get_description(): string {
-        return get_string(static::class, 'core_ai');
-    }
-
 }

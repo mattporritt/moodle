@@ -14,40 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_ai\actions;
-
-use coding_exception;
+namespace core_ai;
 
 /**
- * Base Action class.
+ * Test action manager methods.
  *
  * @package    core_ai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \core_ai\actions\manager
  */
-abstract class base {
+class action_manager_test extends \advanced_testcase {
 
     /**
-     * Get the action name.
-     * Defaults to the action name string.
-     *
-     * @return string
-     * @throws coding_exception
+     * Test get_action.
      */
-    public static function get_name(): string {
-        error_log (static::class);
-        return get_string(static::class, 'core_ai');
-    }
+    public function test_get_supported_actions(): void {
 
-    /**
-     * Get the action description.
-     * Defaults to the action description string.
-     *
-     * @return string
-     * @throws coding_exception
-     */
-    public static function get_description(): string {
-        return get_string(static::class, 'core_ai');
+        $action = \core_ai\actions\manager::get_action('\core_ai\actions\generate_text');
+        error_log($action->get_name());
+        error_log($action->get_description());
+
     }
 
 }

@@ -27,13 +27,28 @@ use core_text;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_action_manager extends admin_setting {
+    /** @var string The name of the plugin these actions related too */
+    protected string $pluginname;
+
     /** @var array The list of action this manager covers */
     protected array $actions;
 
     /** @var string The class of the management table to use */
     protected string $tableclass;
 
+    /**
+     * Constructor.
+     *
+     * @param string $pluginname
+     * @param array $actions
+     * @param string $tableclass
+     * @param string $name
+     * @param string $visiblename
+     * @param string $description
+     * @param string $defaultsetting
+     */
     public function __construct(
+            string $pluginname,
             array $actions,
             string $tableclass,
             string $name,
@@ -42,6 +57,7 @@ class admin_setting_action_manager extends admin_setting {
             string $defaultsetting = '',
     ) {
         $this->nosave = true;
+        $this->pluginname = $pluginname;
         $this->actions = $actions;
         $this->tableclass = $tableclass;
 
@@ -77,8 +93,10 @@ class admin_setting_action_manager extends admin_setting {
      * @return string
      */
     public function output_html($data, $query = ''): string {
-        $table = new $this->tableclass();
-        if (!($table instanceof \core_admin\table\plugin_management_table)) {
+        $table = new $this->tableclass(
+                pluginanme: $this->pluginname,
+                actions: $this->actions);
+        if (!($table instanceof \core_admin\table\aiaction_management_table)) {
             throw new \coding_exception("{$this->tableclass} must be an instance of \\core_admin\\table\\plugin_management_table");
         }
         return highlight($query, $table->get_content());

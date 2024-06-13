@@ -33,6 +33,7 @@ if ($hassiteconfig) {
     $actions = \core_ai\manager::get_supported_actions('aiprovider_openai');
     // Load the setting table of actions that this provider supports.
     $settings->add(new \core_ai\admin\admin_setting_action_manager(
+            'aiprovider_openai',
             $actions,
             \core_admin\table\aiaction_management_table::class,
             'manageaiproviders',

@@ -16,7 +16,8 @@
 
 namespace core_admin\table;
 
-use html_writer;
+use core_table\dynamic as dynamic_table;
+use flexible_table;
 use moodle_url;
 use stdClass;
 
@@ -28,14 +29,190 @@ use stdClass;
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-class aiaction_management_table extends \core_admin\table\plugin_management_table {
+class aiaction_management_table extends flexible_table implements dynamic_table {
+    /** @var string The name of the plugin these actions related too */
+    protected string $pluginname;
 
-    protected function get_plugintype(): string {
-        return 'aiprovider';
+    /** @var array The list of action this manager covers */
+    protected array $actions;
+
+    public function __construct(string $pluginname, array $actions) {
+        parent::__construct($this->get_table_id());
+        $this->pluginname = $pluginname;
+        $this->actions = $actions;
+
+        $this->setup_column_configuration();
+        $this->set_filterset(new plugin_management_table_filterset());
+        $this->setup();
+    }
+
+    /**
+     * Set up the column configuration for this table.
+     */
+    protected function setup_column_configuration(): void {
+        $columnlist = $this->get_column_list();
+        $this->define_columns(array_keys($columnlist));
+        $this->define_headers(array_values($columnlist));
+    }
+
+    /**
+     * Get the ID of the table.
+     *
+     * @return string
+     */
+    protected function get_table_id(): string {
+        return 'aiaction_management_table-' . $this->pluginname;
+    }
+
+    /**
+     * Get the web service method used to toggle state.
+     *
+     * @return null|string
+     */
+    protected function get_toggle_service(): ?string {
+        return 'core_admin_set_plugin_state';
+    }
+
+    /**
+     * Get the JS module used to manage this table.
+     *
+     * This should be a class which extends 'core_admin/plugin_management_table'.
+     *
+     * @return string
+     */
+    protected function get_table_js_module(): string {
+        return 'core_admin/plugin_management_table';
+    }
+
+    /**
+     * Add JS specific to this implementation.
+     *
+     * @return string
+     */
+    protected function get_dynamic_table_html_end(): string {
+        global $PAGE;
+
+        $PAGE->requires->js_call_amd($this->get_table_js_module(), 'init');
+        return parent::get_dynamic_table_html_end();
+    }
+
+    /**
+     * Get a list of the column titles
+     * @return string[]
+     */
+    protected function get_column_list(): array {
+        return [
+            'name' => get_string('name', 'core'),
+            'enabled' => get_string('pluginenabled', 'core_plugin'),
+            'settings' => get_string('settings', 'core'),
+        ];
+    }
+
+    /**
+     * Show the name column content.
+     *
+     * @param stdClass $row
+     * @return string
+     */
+    protected function col_namedesc(stdClass $row): string {
+        return 'the action name and description goes here';
     }
 
 
-    protected function get_action_url(array $params = []): moodle_url {
-        return new moodle_url('/admin/ai.php', $params);
+
+    /**
+     * Show the enable/disable column content.
+     *
+     * @param stdClass $row
+     * @return string
+     */
+    protected function col_enabled(stdClass $row): string {
+        global $OUTPUT;
+
+        $enabled = $row->plugininfo->is_enabled();
+        if ($enabled) {
+            $labelstr = get_string('disableplugin', 'core_admin', $row->plugininfo->displayname);
+        } else {
+            $labelstr = get_string('enableplugin', 'core_admin', $row->plugininfo->displayname);
+        }
+
+        $params = [
+                'id' => 'admin-toggle-' . $row->plugininfo->name,
+                'checked' => $enabled,
+                'dataattributes' => [
+                        'name' => 'id',
+                        'value' => $row->plugininfo->name,
+                        'toggle-method' => $this->get_toggle_service(),
+                        'action' => 'togglestate',
+                        'plugin' => $row->plugin,
+                        'state' => $enabled ? 1 : 0,
+                ],
+                'title' => $labelstr,
+                'label' => $labelstr,
+                'labelclasses' => 'sr-only',
+        ];
+
+        return $OUTPUT->render_from_template('core_admin/setting_configtoggle', $params);
+    }
+
+    /**
+     * Show the settings column content.
+     *
+     * @param stdClass $row
+     * @return string
+     */
+    protected function col_settings(stdClass $row): string {
+        // TODO: add settings link.
+        return '';
+    }
+
+    /**
+     * Get any class to add to the row.
+     *
+     * @param mixed $row
+     * @return string
+     */
+    protected function get_row_class($row): string {
+        // TODO: dim when action is disabled.
+        return '';
+    }
+
+    /**
+     * Get the table content.
+     */
+    public function get_content(): string {
+        ob_start();
+        $this->out();
+        $content = ob_get_contents();
+        ob_end_clean();
+        return $content;
+    }
+
+    /**
+     * Print the table.
+     */
+    public function out(): void {
+        foreach ($this->actions as $classname) {
+            // Construct the row data.
+            $rowdata = (object) [
+                    'class' => $classname,
+            ];
+            $this->add_data_keyed(
+                    $this->format_row($rowdata),
+                    $this->get_row_class($rowdata)
+            );
+        }
+
+        $this->finish_output(false);
+    }
+
+    /**
+     * This table is not downloadable.
+     * @param bool $downloadable
+     * @return bool
+     */
+    // phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+    public function is_downloadable($downloadable = null): bool {
+        return false;
     }
 }
