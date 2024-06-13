@@ -28,15 +28,25 @@ use coding_exception;
 abstract class base {
 
     /**
+     * Get the basename of the class.
+     * This is used to generate the action name and description.
+     *
+     * @return string The basename of the class.
+     */
+    private function get_basename(): string {
+        return basename(str_replace('\\', '/', $this::class));
+    }
+
+    /**
      * Get the action name.
      * Defaults to the action name string.
      *
      * @return string
      * @throws coding_exception
      */
-    public static function get_name(): string {
-        error_log (static::class);
-        return get_string(static::class, 'core_ai');
+    public function get_name(): string {
+        $stringid = 'action_' . $this->get_basename();
+        return get_string($stringid, 'core_ai');
     }
 
     /**
@@ -46,8 +56,8 @@ abstract class base {
      * @return string
      * @throws coding_exception
      */
-    public static function get_description(): string {
-        return get_string(static::class, 'core_ai');
+    public function get_description(): string {
+        $stringid = 'action_' . $this->get_basename() . '_desc';
+        return get_string($stringid, 'core_ai');
     }
-
 }

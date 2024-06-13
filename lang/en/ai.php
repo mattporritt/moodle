@@ -26,6 +26,12 @@ $string['ai'] = 'AI';
 $string['aisettings'] = 'Manage site wide AI settings';
 $string['aiplacementsettings'] = 'Manage settings for AI placements';
 $string['aiprovidersettings'] = 'Manage settings for AI providers';
+$string['action_generate_image'] = 'Generate image';
+$string['action_generate_image_desc'] = 'Generates an image based on a text prompt.';
+$string['action_generate_text'] = 'Generate text';
+$string['action_generate_text_desc'] = 'Generates text based on a text prompt.';
+$string['action_summarise_text'] = 'Summarise text';
+$string['action_summarise_text_desc'] = 'Summarises text based on provided input text.';
 $string['availableproviders'] = 'Available AI providers';
 $string['availableproviders_desc'] = 'Select an AI provider to manage its settings.<br/>
 AI providers are responsible for providing the AI services used by the AI subsystem. <br/>

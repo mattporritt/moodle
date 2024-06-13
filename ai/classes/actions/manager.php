@@ -26,12 +26,14 @@ namespace core_ai\actions;
 class manager {
 
     /**
-     * Given a class name, return an instance of the action.
+     * Given an action name, return an instance of the action.
      *
-     * @param string $classname
+     * @param string $actionname
      * @return base
      */
-    public static function get_action(string $classname): base {
+    public static function get_action(string $actionname): base {
+        $classname = '\\core_ai\\actions\\' . $actionname;
+
         return new $classname();
     }
 }

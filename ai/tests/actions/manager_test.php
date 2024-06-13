@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_ai;
+namespace core_ai\actions;
 
 /**
  * Test action manager methods.
@@ -24,16 +24,16 @@ namespace core_ai;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \core_ai\actions\manager
  */
-class action_manager_test extends \advanced_testcase {
+class manager_test extends \advanced_testcase {
 
     /**
      * Test get_action.
      */
-    public function test_get_supported_actions(): void {
-
-        $action = \core_ai\actions\manager::get_action('\core_ai\actions\generate_text');
-        error_log($action->get_name());
-        error_log($action->get_description());
+    public function test_get_action(): void {
+        $action = \core_ai\actions\manager::get_action('generate_text');
+        error_log($action::class);
+        // Assert class is an instance of base.
+        $this->assertInstanceOf(base::class, $action);
 
     }
 
