@@ -116,7 +116,14 @@ class aiaction_management_table extends flexible_table implements dynamic_table 
      * @return string
      */
     protected function col_namedesc(stdClass $row): string {
-        return $row->action->get_name();
+        global $OUTPUT;
+
+        $params = [
+            'name' => $row->action->get_name(),
+            'description' => $row->action->get_description(),
+        ];
+
+        return $OUTPUT->render_from_template('core_admin/table/namedesc', $params);
     }
 
 
