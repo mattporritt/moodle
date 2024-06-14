@@ -15,16 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for aiplacement_courseassist.
+ * Hook callbacks for User tours
  *
- * @package    aiplacement_courseassist
+ * @package    tool_usertours
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'aiplacement_courseassist';
-$plugin->version = 2024061400;
-$plugin->requires = 2024041600;
-$plugin->maturity = MATURITY_ALPHA;
+$callbacks = [
+    [
+        'hook' => \core\hook\output\before_footer_html_generation::class,
+        'callback' => \aiplacement_courseassist\hook_callbacks::class . '::before_footer_html_generation',
+        'priority' => 0,
+    ],
+];

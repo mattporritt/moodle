@@ -14,17 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace aiplacement_courseassist\output;
+
 /**
- * Version information for aiplacement_courseassist.
+ * Output handler for the course assist AI Placement.
  *
  * @package    aiplacement_courseassist
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class assist_ui {
+    /**
+     * Bootstrap the course assist UI.
+     *
+     */
+    public static function load_assist_ui(): void {
+        global $PAGE;
 
-defined('MOODLE_INTERNAL') || die();
+        // Preflight checks.
+        if (during_initial_install()) {
+            return;
+        }
 
-$plugin->component = 'aiplacement_courseassist';
-$plugin->version = 2024061400;
-$plugin->requires = 2024041600;
-$plugin->maturity = MATURITY_ALPHA;
+        if (!get_config('aiplacement_courseassist', 'version')) {
+            return;
+        }
+
+        // Check we are in the right context, exit if not course or activity.
+        if ($PAGE->context->contextlevel < 50) {
+            return;
+        }
+
+        $PAGE->requires->js_call_amd('aiplacement_courseassist/placement', 'init', []);
+    }
+}

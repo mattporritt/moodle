@@ -14,17 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace aiplacement_courseassist;
+
+use core\hook\output\before_footer_html_generation;
+
 /**
- * Version information for aiplacement_courseassist.
+ * Hook callbacks for the course assist AI Placement.
  *
  * @package    aiplacement_courseassist
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'aiplacement_courseassist';
-$plugin->version = 2024061400;
-$plugin->requires = 2024041600;
-$plugin->maturity = MATURITY_ALPHA;
+class hook_callbacks {
+    /**
+     * Bootstrap the course assist UI.
+     *
+     * @param before_footer_html_generation $hook
+     */
+    public static function before_footer_html_generation(before_footer_html_generation $hook): void {
+        \aiplacement_courseassist\output\assist_ui::load_assist_ui();
+    }
+}

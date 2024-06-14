@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,16 +14,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for aiplacement_courseassist.
+ * Module to load and render the tools for the AI assist plugin.
  *
- * @package    aiplacement_courseassist
+ * @module     aiplacement_courseassist/placement
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'aiplacement_courseassist';
-$plugin->version = 2024061400;
-$plugin->requires = 2024041600;
-$plugin->maturity = MATURITY_ALPHA;
+export const init = () => {
+    window.console.log('COURSE ASSIST INITIALIZED');
+};
