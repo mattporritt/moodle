@@ -33,13 +33,14 @@ class aiaction_management_table extends flexible_table implements dynamic_table 
     /** @var string The name of the plugin these actions related too */
     protected string $pluginname;
 
-    /** @var array The list of action this manager covers */
+    /** @var array The list of actions this manager covers */
     protected array $actions;
 
     public function __construct(string $pluginname, array $actions) {
-        parent::__construct($this->get_table_id());
         $this->pluginname = $pluginname;
         $this->actions = $actions;
+
+        parent::__construct($this->get_table_id());
 
         $this->setup_column_configuration();
         $this->set_filterset(new plugin_management_table_filterset());
@@ -102,7 +103,7 @@ class aiaction_management_table extends flexible_table implements dynamic_table 
      */
     protected function get_column_list(): array {
         return [
-            'name' => get_string('name', 'core'),
+            'namedesc' => get_string('name', 'core'),
             'enabled' => get_string('pluginenabled', 'core_plugin'),
             'settings' => get_string('settings', 'core'),
         ];
@@ -115,7 +116,7 @@ class aiaction_management_table extends flexible_table implements dynamic_table 
      * @return string
      */
     protected function col_namedesc(stdClass $row): string {
-        return 'the action name and description goes here';
+        return $row->action->get_name();
     }
 
 
@@ -129,22 +130,22 @@ class aiaction_management_table extends flexible_table implements dynamic_table 
     protected function col_enabled(stdClass $row): string {
         global $OUTPUT;
 
-        $enabled = $row->plugininfo->is_enabled();
+        $enabled = true;
         if ($enabled) {
-            $labelstr = get_string('disableplugin', 'core_admin', $row->plugininfo->displayname);
+            $labelstr = get_string('disableplugin', 'core_admin', $row->action->get_name());
         } else {
-            $labelstr = get_string('enableplugin', 'core_admin', $row->plugininfo->displayname);
+            $labelstr = get_string('enableplugin', 'core_admin', $row->action->get_name());
         }
 
         $params = [
-                'id' => 'admin-toggle-' . $row->plugininfo->name,
+                'id' => 'admin-toggle-' . $row->id,
                 'checked' => $enabled,
                 'dataattributes' => [
                         'name' => 'id',
-                        'value' => $row->plugininfo->name,
+                        'value' => $row->id,
                         'toggle-method' => $this->get_toggle_service(),
                         'action' => 'togglestate',
-                        'plugin' => $row->plugin,
+                        'plugin' => $row->id,
                         'state' => $enabled ? 1 : 0,
                 ],
                 'title' => $labelstr,
@@ -192,10 +193,11 @@ class aiaction_management_table extends flexible_table implements dynamic_table 
      * Print the table.
      */
     public function out(): void {
-        foreach ($this->actions as $classname) {
+        foreach ($this->actions as $id => $action) {
             // Construct the row data.
             $rowdata = (object) [
-                    'class' => $classname,
+                    'id' => $id,
+                    'action' => $action,
             ];
             $this->add_data_keyed(
                     $this->format_row($rowdata),
@@ -214,5 +216,10 @@ class aiaction_management_table extends flexible_table implements dynamic_table 
     // phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
     public function is_downloadable($downloadable = null): bool {
         return false;
+    }
+
+    public function guess_base_url(): void {
+        $url = new moodle_url('/');
+        $this->define_baseurl($url);
     }
 }

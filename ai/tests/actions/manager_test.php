@@ -31,7 +31,6 @@ class manager_test extends \advanced_testcase {
      */
     public function test_get_action(): void {
         $action = \core_ai\actions\manager::get_action('generate_text');
-        error_log($action::class);
         // Assert class is an instance of base.
         $this->assertInstanceOf(base::class, $action);
 

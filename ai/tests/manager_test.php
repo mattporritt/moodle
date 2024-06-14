@@ -57,10 +57,15 @@ class manager_test extends \advanced_testcase {
         $manager = new manager();
         $actions = $manager->get_supported_actions('aiprovider_openai');
 
+        // Assert array keys match the expected actions.
         $this->assertEquals([
-            \core_ai\actions\generate_text::class,
-            \core_ai\actions\summarise_text::class
-        ], $actions);
+                'generate_text',
+                'summarise_text',
+        ], array_keys($actions));
+
+        // Assert array values are instances of the expected action classes.
+        $this->assertInstanceOf(\core_ai\actions\generate_text::class, $actions['generate_text']);
+        $this->assertInstanceOf(\core_ai\actions\summarise_text::class, $actions['summarise_text']);
     }
 
 }

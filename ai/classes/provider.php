@@ -16,6 +16,8 @@
 
 namespace core_ai;
 
+use \core_ai\actions\manager;
+
 /**
  * Class provider.
  *
@@ -25,12 +27,26 @@ namespace core_ai;
  */
 abstract class provider {
 
+    abstract protected function get_action_list(): array;
+
     /**
-     * Get the list of actions that this provider supports.
+     * Get the actions that this provider supports.
+     * Returns an array of instance objects indexed by action name.
      *
      * @return array An array of action class names.
      */
-    abstract public static function get_supported_actions(): array;
+    public function get_supported_actions(): array{
+        // Get the list of actions that this provider supports.
+        $actions = $this->get_action_list();
+
+        // Create an array of action instances.
+        $action_instances = [];
+        foreach($actions as $action){
+            $action_instances[$action] = manager::get_action($action);
+        }
+
+        return $action_instances;
+    }
 
     /**
      * Given an action class name, return an array of sub actions

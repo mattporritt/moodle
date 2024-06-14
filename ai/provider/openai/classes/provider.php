@@ -30,10 +30,10 @@ class provider extends \core_ai\provider {
      *
      * @return array An array of action class names.
      */
-    public static function get_supported_actions(): array {
+    public function get_action_list(): array {
         return [
-            \core_ai\actions\generate_text::class,
-            \core_ai\actions\summarise_text::class
+            'generate_text',
+            'summarise_text',
         ];
     }
 

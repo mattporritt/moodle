@@ -54,8 +54,8 @@ class manager {
     public static function get_supported_actions(string $pluginname): array {
         $instance = new self();
         $pluginclassname = $instance->get_ai_plugin_classname($pluginname);
-
-        return $pluginclassname::get_supported_actions();
+        $plugin = new $pluginclassname();
+        return $plugin->get_supported_actions();
     }
 
 }
