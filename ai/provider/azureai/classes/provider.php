@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_openai;
+namespace aiprovider_azureai;
 
 /**
  * Class provider.
  *
- * @package    aiprovier_openai
+ * @package    aiprovier_azureai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,7 +34,6 @@ class provider extends \core_ai\provider {
         return [
             'generate_text',
             'summarise_text',
-            'translate_text',
         ];
     }
 

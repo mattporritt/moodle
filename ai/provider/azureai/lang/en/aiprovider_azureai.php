@@ -14,28 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_openai;
-
 /**
- * Class provider.
+ * Strings for component aiprovider_azureai, language 'en'.
  *
- * @package    aiprovier_openai
+ * @package    aiprovider_azureai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider extends \core_ai\provider {
 
-    /**
-     * Get the list of actions that this provider supports.
-     *
-     * @return array An array of action class names.
-     */
-    public function get_action_list(): array {
-        return [
-            'generate_text',
-            'summarise_text',
-            'translate_text',
-        ];
-    }
+$string['pluginname'] = 'Azure OpenAI API Provider';
+$string['privacy:metadata'] = 'The Azure OpenAI API provider plugin does not store any personal data.';
 
-}
+$string['apikey'] = 'Azure OpenAI API key';
+$string['apikey_desc'] = 'Enter your Azure OpenAI API key. You can get one from https://platform.azureai.com/account/api-keys';
+$string['orgid'] = 'Azure OpenAI organization ID';
+$string['orgid_desc'] = 'Enter your Azure OpenAI organization ID. You can get one from https://platform.azureai.com/account/org-settings';
