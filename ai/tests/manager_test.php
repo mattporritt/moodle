@@ -30,7 +30,6 @@ class manager_test extends \advanced_testcase {
      * Test get_ai_plugin_classname.
      */
     public function test_get_ai_plugin_classname(): void {
-
         $manager = new manager();
 
         // We're working with a private method here, so we need to use reflection.
@@ -53,7 +52,6 @@ class manager_test extends \advanced_testcase {
      * Test get_supported_actions.
      */
     public function test_get_supported_actions(): void {
-
         $manager = new manager();
         $actions = $manager->get_supported_actions('aiprovider_openai');
 
@@ -61,6 +59,7 @@ class manager_test extends \advanced_testcase {
         $this->assertEquals([
                 'generate_text',
                 'summarise_text',
+                'translate_text',
         ], array_keys($actions));
 
         // Assert array values are instances of the expected action classes.
@@ -68,4 +67,20 @@ class manager_test extends \advanced_testcase {
         $this->assertInstanceOf(\core_ai\actions\summarise_text::class, $actions['summarise_text']);
     }
 
+    /**
+     * Test get_providers_for_actions.
+     */
+    public function test_get_providers_for_actions(): void {
+        $manager = new manager();
+        $actions = ['generate_text', 'summarise_text'];
+
+        // Get the providers for the actions.
+        $providers = $manager->get_providers_for_actions($actions);
+
+        // Assert that the providers array is indexed by action name.
+        $this->assertEquals([
+            'generate_text' => [],
+            'summarise_text' => [],
+        ], $providers);
+    }
 }

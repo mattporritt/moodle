@@ -58,4 +58,28 @@ class manager {
         return $plugin->get_supported_actions();
     }
 
+    /**
+     * Given a list of actions get the provider plugins that support them.
+     * Will return an array of arrays, indexed by action name.
+     *
+     * @param array $actions An array of action class names.
+     * @throws \coding_exception
+     * @return array An array of provider instances indexed by action name.
+     */
+    public static function get_providers_for_actions(array $actions): array {
+        $instance = new self();
+        $providers = [];
+        $plugins = \core_plugin_manager::instance()->get_plugins_of_type('aiprovider');
+        foreach ($actions as $action) {
+            $providers[$action] = [];
+            foreach ($plugins as $plugin) {
+                $pluginclassname = $instance->get_ai_plugin_classname($plugin->component);
+                $plugin = new $pluginclassname();
+                if (in_array($action, $plugin->get_action_list())) {
+                    $providers[$action][] = $plugin;
+                }
+            }
+        }
+        return $providers;
+    }
 }
