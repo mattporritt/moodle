@@ -32,6 +32,6 @@ class hook_callbacks {
      * @param before_footer_html_generation $hook
      */
     public static function before_footer_html_generation(before_footer_html_generation $hook): void {
-        \aiplacement_courseassist\output\assist_ui::load_assist_ui();
+        \aiplacement_courseassist\output\assist_ui::load_assist_ui($hook);
     }
 }

@@ -1,0 +1,23 @@
+.offcanvas {
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    right: -300px;
+    width: 300px;
+    background-color: #ffffff;
+    z-index: 2001;
+    transition: right 0.3s ease;
+    border: 1px solid #dee2e6;
+    border-bottom-left-radius: 1rem;
+    border-top-left-radius: 1rem;
+}
+.offcanvas.show {
+    right: 0;
+}
+
+.ai-cta-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 5rem;
+    z-index: 1000;
+}

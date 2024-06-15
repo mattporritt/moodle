@@ -23,4 +23,12 @@
 
 export const init = () => {
     window.console.log('COURSE ASSIST INITIALIZED');
+
+    // Add the event listener to the button.
+    const offCanvasToggle = document.getElementById('ai-offcanvas-toggle');
+    const offCanvasMenu = document.getElementById('ai-offcanvas-menu');
+
+    offCanvasToggle.addEventListener('click', () => {
+        offCanvasMenu.classList.toggle('show');
+    });
 };

@@ -16,6 +16,8 @@
 
 namespace aiplacement_courseassist\output;
 
+use core\hook\output\before_footer_html_generation;
+
 /**
  * Output handler for the course assist AI Placement.
  *
@@ -27,9 +29,10 @@ class assist_ui {
     /**
      * Bootstrap the course assist UI.
      *
+     * @param before_footer_html_generation $hook
      */
-    public static function load_assist_ui(): void {
-        global $PAGE;
+    public static function load_assist_ui(before_footer_html_generation $hook): void {
+        global $PAGE, $OUTPUT;
 
         // Preflight checks.
         if (during_initial_install()) {
@@ -40,11 +43,24 @@ class assist_ui {
             return;
         }
 
+        if (in_array($PAGE->pagelayout, ['maintenance', 'print', 'redirect'])) {
+            // Do not try to show user tours inside iframe, in maintenance mode,
+            // when printing, or during redirects.
+            return;
+        }
+
         // Check we are in the right context, exit if not course or activity.
         if ($PAGE->context->contextlevel < 50) {
             return;
         }
 
+        // Load the markup for the assist interface.
+        $params = [];
+        $html = $OUTPUT->render_from_template('aiplacement_courseassist/sidebar', $params);
+        $hook->add_html($html);
+
+        // Load the required JS.
         $PAGE->requires->js_call_amd('aiplacement_courseassist/placement', 'init', []);
+
     }
 }
