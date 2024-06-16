@@ -25,10 +25,20 @@ export const init = () => {
     window.console.log('COURSE ASSIST INITIALIZED');
 
     // Add the event listener to the button.
+    const offCanvasContainer = document.getElementById('ai-cta-container');
     const offCanvasToggle = document.getElementById('ai-offcanvas-toggle');
     const offCanvasMenu = document.getElementById('ai-offcanvas-menu');
+    const offCanvasClose = document.getElementById('ai-offcanvas-close');
 
+    // Add the event listener to the sparkle button.
     offCanvasToggle.addEventListener('click', () => {
         offCanvasMenu.classList.toggle('show');
+        offCanvasContainer.classList.toggle('slide');
+    });
+
+    // Add the event listener to the close button.
+    offCanvasClose.addEventListener('click', () => {
+        offCanvasMenu.classList.remove('show');
+        offCanvasContainer.classList.remove('slide');
     });
 };

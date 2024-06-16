@@ -34,7 +34,7 @@
 {{!
     Name and description.
 }}
-<div class="ai-cta-container">
+<div class="ai-cta-container" id="ai-cta-container">
   <button id="ai-offcanvas-toggle"
           class="btn btn-primary btn-icon icon-no-margin"
           aria-label="Show AI Tools">
@@ -43,15 +43,29 @@
 </div>
 
 <div class="offcanvas" id="ai-offcanvas-menu">
-  <div class="offcanvas-header">
-    <h4 class="text-white">Off-Canvas Header</h4>
+  <div class="offcanvas-header d-flex justify-content-between align-items-center">
+    <button class="btn btn-link ai-offcanvas-button" id="ai-offcanvas-home">
+      <i class="fas fa-home"></i>
+    </button>
+    <h4 class="header-title mb-0">Moodle AI</h4>
+    <button class="btn btn-link ai-offcanvas-button" id="ai-offcanvas-close">
+      <i class="fas fa-close"></i>
+    </button>
   </div>
   <div class="offcanvas-body">
-    <ul class="list-unstyled">
-      <li><a href="#" class="text-white">Link 1</a></li>
-      <li><a href="#" class="text-white">Link 2</a></li>
-      <li><a href="#" class="text-white">Link 3</a></li>
-    </ul>
+    <p class="mt-2 ml-1 font-weight-bold">Choose AI Action:</p>
+    <button class="btn-link text-decoration-none ai-action-button d-flex align-items-center p-1 mb-2 " type="submit">
+            <span class="icon-no-margin icon-size-3 d-flex p-1 mr-2">
+                <i class="fa fa-diagram-next fa-fw fa-2x" title="Summarise text" role="img" aria-label="Verify it's you by email"></i>
+            </span>
+      <span class="tool-mfa-factor-choose-text mfa-login-option">Summarise text</span>
+    </button>
+    <button class="btn-link text-decoration-none ai-action-button d-flex align-items-center p-1 mb-2 " type="submit">
+            <span class="icon-no-margin icon-size-3 d-flex p-1 mr-2">
+                <i class="fa fa-language fa-fw fa-2x" title="Translate text" role="img" aria-label="Verify it's you by email"></i>
+            </span>
+      <span class="tool-mfa-factor-choose-text mfa-login-option">Translate text</span>
+    </button>
   </div>
 </div>
 
