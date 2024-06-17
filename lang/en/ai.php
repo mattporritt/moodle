@@ -32,6 +32,8 @@ $string['action_generate_text'] = 'Generate text';
 $string['action_generate_text_desc'] = 'Generates text based on a text prompt.';
 $string['action_summarise_text'] = 'Summarise text';
 $string['action_summarise_text_desc'] = 'Summarises text based on provided input text.';
+$string['action_translate_text'] = 'Translate text';
+$string['action_translate_text_desc'] = 'Translate provided text from one language to another.';
 $string['availableproviders'] = 'Available AI providers';
 $string['availableproviders_desc'] = 'Select an AI provider to manage its settings.<br/>
 AI providers are responsible for providing the AI services used by the AI subsystem. <br/>
@@ -43,6 +45,16 @@ Each enabled placement uses one or more "AI Actions". The preferences for these 
 $string['cachedef_ai_ratelimit'] = 'Cache to store request rate limits related to the AI subsystem.';
 $string['manageaiproviders'] = 'Manage AI providers';
 $string['manageaiplacements'] = 'Manage AI placements';
-
+$string['placementactionsettings'] = 'Placement action settings';
+$string['placementactionsettings_desc'] = 'These settings the settings for actions that are supported by this AI placement.<br/>
+Each action has its own settings that can be configured here.';
+$string['placementsettings'] = 'Placement specific settings';
+$string['placementsettings_desc'] = 'These settings control various aspects of this AI placement.<br/>
+They control how the placement connects to the AI service, and related operations';
 $string['privacy:metadata'] = 'The AI subsystem currently does not store any user data.';
-
+$string['provideractionsettings'] = 'Provider action settings';
+$string['provideractionsettings_desc'] = 'These settings the settings for actions that are supported by this AI provider.<br/>
+Each action has its own settings that can be configured here.';
+$string['providersettings'] = 'Provider specific settings';
+$string['providersettings_desc'] = 'These settings control various aspects of this AI provider.<br/>
+They control how the provider connects to the AI service, and related operations';

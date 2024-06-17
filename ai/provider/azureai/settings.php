@@ -30,8 +30,8 @@ if ($hassiteconfig) {
             new lang_string('pluginname', 'aiprovider_azureai'), 'moodle/site:config', true);
 
     $settings->add(new admin_setting_heading('aiprovider_azureai/general',
-            'specific settigns',
-            'These are the settings for this provider'));
+            new lang_string('providersettings', 'core_ai'),
+            new lang_string('providersettings_desc', 'core_ai')));
 
     // Setting to store OpenAI API key.
     $settings->add(new admin_setting_configpasswordunmask('aiprovider_azureai/apikey',
@@ -47,8 +47,8 @@ if ($hassiteconfig) {
             PARAM_TEXT));
 
     $settings->add(new admin_setting_heading('aiprovider_azureai/generals',
-            'action settings',
-            'These are the settings for this provider'));
+            new lang_string('provideractionsettings', 'core_ai'),
+            new lang_string('provideractionsettings_desc', 'core_ai')));
 
     // Get the list of actions that this provider supports.
     $actions = \core_ai\manager::get_supported_actions('aiprovider_azureai');
