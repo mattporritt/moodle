@@ -32,15 +32,11 @@ class admin_setting_placement_action_manager extends admin_setting {
     /** @var array The list of action this manager covers */
     protected array $actions;
 
-    /** @var string The class of the management table to use */
-    protected string $tableclass;
-
     /**
      * Constructor.
      *
      * @param string $pluginname
      * @param array $actions
-     * @param string $tableclass
      * @param string $name
      * @param string $visiblename
      * @param string $description
@@ -49,7 +45,6 @@ class admin_setting_placement_action_manager extends admin_setting {
     public function __construct(
             string $pluginname,
             array $actions,
-            string $tableclass,
             string $name,
             string $visiblename,
             string $description = '',
@@ -58,7 +53,6 @@ class admin_setting_placement_action_manager extends admin_setting {
         $this->nosave = true;
         $this->pluginname = $pluginname;
         $this->actions = $actions;
-        $this->tableclass = $tableclass;
 
         parent::__construct($name, $visiblename, $description, $defaultsetting);
     }
@@ -84,6 +78,36 @@ class admin_setting_placement_action_manager extends admin_setting {
     }
 
     /**
+     * Generates the action table.
+     *
+     * @param \core_ai\actions\base $action
+     * @throws \coding_exception
+     * @return string
+     */
+    private function generate_action_table(\core_ai\actions\base $action): string {
+        $table = new \core_ai\admin\tables\aiplacement_action_table (
+                pluginname: $this->pluginname,
+                action: $action);
+
+        return $table->get_content();
+    }
+
+    /**
+     * Generates the provider table.
+     *
+     * @param array $providers
+     * @throws \coding_exception
+     * @return string
+     */
+    private function generate_provider_table(array $providers): string {
+        $table = new \core_ai\admin\tables\aiplacement_provider_table (
+                pluginname: $this->pluginname,
+                providers: $providers);
+
+        return $table->get_content();
+    }
+
+    /**
      * Builds the XHTML to display the control.
      *
      * @param string $data Unused
@@ -92,13 +116,20 @@ class admin_setting_placement_action_manager extends admin_setting {
      * @return string
      */
     public function output_html($data, $query = ''): string {
-        $table = new $this->tableclass(
-                pluginname: $this->pluginname,
-                actions: $this->actions);
-        if (!($table instanceof tables\aiaction_provider_management_table)) {
-            throw new \coding_exception("{$this->tableclass} must be an instance of \\core_admin\\table\\plugin_management_table");
+        // Get the list of providers that support the given actions.
+        $provideractions = \core_ai\manager::get_providers_for_actions(array_keys($this->actions));
+        $output = '';
+
+        foreach ($this->actions as $actionname => $action) {
+            $output .= \html_writer::start_tag('div', ['class' => 'border mb-2']);
+            // Generate table to enable and disable this action.
+            $output .= $this->generate_action_table($action);
+            // Generate the table to manage the providers for this action.
+            $output .= $this->generate_provider_table($provideractions[$actionname]);
+            $output .= \html_writer::end_tag('div');
         }
-        return highlight($query, $table->get_content());
+
+        return highlight($query, $output);
     }
 
 }

@@ -59,4 +59,15 @@ abstract class provider {
         return [];
     }
 
+    /**
+     * Get the name of the provider.
+     *
+     * @throws \coding_exception
+     * @return string The name of the provider.
+     */
+    public function get_name(): string {
+        $name = explode('\\', get_class($this))[0];
+        return get_string('pluginname', $name);
+    }
+
 }

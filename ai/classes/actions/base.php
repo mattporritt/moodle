@@ -33,7 +33,7 @@ abstract class base {
      *
      * @return string The basename of the class.
      */
-    private function get_basename(): string {
+    public function get_basename(): string {
         return basename(str_replace('\\', '/', $this::class));
     }
 

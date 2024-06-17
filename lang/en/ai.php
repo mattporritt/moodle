@@ -26,6 +26,7 @@ $string['ai'] = 'AI';
 $string['aisettings'] = 'Manage site wide AI settings';
 $string['aiplacementsettings'] = 'Manage settings for AI placements';
 $string['aiprovidersettings'] = 'Manage settings for AI providers';
+$string['action'] = 'Action';
 $string['action_generate_image'] = 'Generate image';
 $string['action_generate_image_desc'] = 'Generates an image based on a text prompt.';
 $string['action_generate_text'] = 'Generate text';
@@ -52,6 +53,7 @@ $string['placementsettings'] = 'Placement specific settings';
 $string['placementsettings_desc'] = 'These settings control various aspects of this AI placement.<br/>
 They control how the placement connects to the AI service, and related operations';
 $string['privacy:metadata'] = 'The AI subsystem currently does not store any user data.';
+$string['providers'] = 'Providers';
 $string['provideractionsettings'] = 'Provider action settings';
 $string['provideractionsettings_desc'] = 'These settings the settings for actions that are supported by this AI provider.<br/>
 Each action has its own settings that can be configured here.';
