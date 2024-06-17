@@ -30,7 +30,7 @@ use stdClass;
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-class aiaction_provider_management_table extends flexible_table implements dynamic_table {
+class aiprovider_action_management_table extends flexible_table implements dynamic_table {
     /** @var string The name of the plugin these actions related too */
     protected string $pluginname;
 
@@ -63,7 +63,7 @@ class aiaction_provider_management_table extends flexible_table implements dynam
      * @return string
      */
     protected function get_table_id(): string {
-        return 'aiaction_provider_management_table-' . $this->pluginname;
+        return 'aiprovideraction_management_table-' . $this->pluginname;
     }
 
     /**

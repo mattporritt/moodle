@@ -46,14 +46,10 @@ if ($hassiteconfig) {
     // Get the list of actions that this placement supports.
     $actions = \core_ai\manager::get_supported_actions('aiplacement_courseassist');
 
-    // Next get the list of providers that support these actions.
-    $provideractions = \core_ai\manager::get_providers_for_actions(array_keys($actions));
-
     // Load the setting table of actions that this provider supports.
-    $settings->add(new \core_ai\admin\admin_setting_action_manager(
-            'aiprovider_openai',
+    $settings->add(new \core_ai\admin\admin_setting_placement_action_manager(
+            'aiplacement_courseassist',
             $actions,
-            \core_ai\admin\tables\aiaction_provider_management_table::class,
             'manageaiproviders',
             new lang_string('manageaiproviders', 'core_ai'),
     ));
