@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_admin\table;
+namespace core_ai\admin\tables;
 
+use core_admin\table\plugin_management_table_filterset;
 use core_table\dynamic as dynamic_table;
 use flexible_table;
 use moodle_url;

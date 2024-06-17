@@ -56,7 +56,7 @@ if ($hassiteconfig) {
     $settings->add(new \core_ai\admin\admin_setting_action_manager(
             'aiprovider_azureai',
             $actions,
-            \core_admin\table\aiaction_management_table::class,
+            \core_ai\admin\tables\aiaction_management_table::class,
             'manageaiproviders',
             new lang_string('manageaiproviders', 'core_ai'),
     ));

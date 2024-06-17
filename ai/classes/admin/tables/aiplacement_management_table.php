@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_admin\table;
+namespace core_ai\admin\tables;
 
-use html_writer;
 use moodle_url;
-use stdClass;
 
 /**
  * Table to manage AI Placement plugins.

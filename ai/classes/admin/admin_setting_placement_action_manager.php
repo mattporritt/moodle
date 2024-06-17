@@ -25,7 +25,7 @@ use admin_setting;
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_setting_action_manager extends admin_setting {
+class admin_setting_placement_action_manager extends admin_setting {
     /** @var string The name of the plugin these actions related too */
     protected string $pluginname;
 

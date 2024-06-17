@@ -36,7 +36,7 @@ if ($hassiteconfig) {
             get_string('availableplacements_desc', 'core_ai')));
     $placements->add(new \core_admin\admin\admin_setting_plugin_manager(
             'aiplacement',
-            \core_admin\table\aiplacement_management_table::class,
+            \core_ai\admin\tables\aiplacement_management_table::class,
             'manageaiplacements',
             new lang_string('manageaiplacements', 'core_ai'),
     ));
@@ -56,7 +56,7 @@ if ($hassiteconfig) {
             get_string('availableproviders_desc', 'core_ai')));
     $providers->add(new \core_admin\admin\admin_setting_plugin_manager(
             'aiprovider',
-            \core_admin\table\aiprovider_management_table::class,
+            \core_ai\admin\tables\aiprovider_management_table::class,
             'manageaiproviders',
             new lang_string('manageaiproviders', 'core_ai'),
     ));
