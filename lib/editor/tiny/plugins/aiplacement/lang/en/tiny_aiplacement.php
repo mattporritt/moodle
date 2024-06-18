@@ -14,29 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_openai;
-
 /**
- * Class provider.
+ * Strings for component 'tiny_aiplacement', language 'en'.
  *
- * @package    aiprovier_openai
+ * @package    aiplacement_tinymce
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider extends \core_ai\provider {
 
-    /**
-     * Get the list of actions that this provider supports.
-     *
-     * @return array An array of action class names.
-     */
-    public function get_action_list(): array {
-        return [
-            'generate_text',
-            'generate_image',
-            'summarise_text',
-            'translate_text',
-        ];
-    }
-
-}
+$string['pluginname'] = 'RecordRTC';
+$string['privacy:metadata'] = 'The RecordRTC plugin does not store any personal data.';
