@@ -23,9 +23,12 @@
  */
 
 $string['pluginname'] = 'TinyMCE Editor Placement';
-$string['generateimagesetting'] = 'Generate Images';
+$string['generatecontent'] = 'Generate AI Content';
+$string['generateimage'] = 'AI Generate Images';
+$string['generateimagesetting'] = 'Enable generate Images';
 $string['generateimagesetting_desc'] = 'Enable or disable the generation of images from a text prompt.';
-$string['generatetextsetting'] = 'Generate Text';
+$string['generatetext'] = 'AI Generate Text';
+$string['generatetextsetting'] = 'Enable generate Text';
 $string['generatetextsetting_desc'] = 'Enable or disable the generation of text from a text prompt.';
 
 $string['privacy:metadata'] = 'The TinyMCE editor placement plugin does not store any personal data.';

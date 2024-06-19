@@ -22,5 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'RecordRTC';
-$string['privacy:metadata'] = 'The RecordRTC plugin does not store any personal data.';
+$string['pluginname'] = 'AI Placement';
+$string['privacy:metadata'] = 'The AI Placement plugin does not store any personal data.';
+$string['buttontitle'] = 'tester';
