@@ -23,5 +23,9 @@
  */
 
 $string['pluginname'] = 'AI Placement';
-$string['privacy:metadata'] = 'The AI Placement plugin does not store any personal data.';
 $string['buttontitle'] = 'tester';
+$string['loading_almostdone'] = 'Almost done...';
+$string['loading_applying'] = 'Applying the finishing touches...';
+$string['loading_generating'] = 'Generating the text...';
+$string['loading_processing'] = 'Processing your request...';
+$string['privacy:metadata'] = 'The AI Placement plugin does not store any personal data.';
