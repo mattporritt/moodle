@@ -54,25 +54,41 @@
         </div>
         <div id="{{elementid}}_tiny_aiplacement_blur" class="">
             <div id="{{elementid}}_tiny_aiplacement_overlay" class="tiny-ai-overlay hidden"></div>
-            <div class="">
+
                 <div class="row">
+                  <div class="col-md-8">
+                    <div class="generate-image text-center">
+                      <div>
+                        <i class="fas fa-image"></i>
+                      </div>
+                      <div class="text-center">Generate Image</div>
+                    </div>
+
+                  </div>
                     <div class="col-md-4">
                         <div class="image-options">
-                            <p>Image options</p>
-                            <div class="">
-                                Preference
-                                <div class="toggle-container">
+
+                          <span class="font-weight-bold">Image quality</span>
+                                <div class="toggle-container mt-1 mb-1">
                                     <input type="checkbox" id="toggle-switch" class="toggle-switch">
                                     <label for="toggle-switch" class="toggle-slider">
-                                        <span class="speed">Speed</span>
-                                        <span class="quality">Quality</span>
+                                        <span class="speed">Standard</span>
+                                        <span class="quality">High Definitiion</span>
                                     </label>
                                 </div>
+
+
+                            <span class="font-weight-bold">Image Style</span>
+                            <div class="toggle-container mt-1 mb-1">
+                              <input type="checkbox" id="toggle-switch" class="toggle-switch">
+                              <label for="toggle-switch" class="toggle-slider">
+                                <span class="speed">Natural</span>
+                                <span class="quality">Vivid</span>
+                              </label>
                             </div>
 
-                            <div class="">
-                                Aspect Ratio
-                                <div class="aspect-ratio-container">
+                              <span class="font-weight-bold">Aspect Ratio</span>
+                                <div class="aspect-ratio-container mt-1 mb-1">
                                     <label class="aspect-ratio-btn">
                                         <input type="radio" name="aspect-ratio" value="square" checked>
                                         <div class="aspect-ratio-label">
@@ -95,17 +111,11 @@
                                         </div>
                                     </label>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="generate-image text-center">
-                            <i class="fas fa-image"></i>
-                            <p>Generate Image</p>
+
                         </div>
                     </div>
                 </div>
-            </div>
+
             <form class="mform" id="{{uniqid}}">
                 <div class="form-group">
                     <label for="{{elementid}}_tiny_aiplacement_responsetext">

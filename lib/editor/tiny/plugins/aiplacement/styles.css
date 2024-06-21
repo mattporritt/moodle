@@ -19,10 +19,11 @@
 
 .toggle-container {
     position: relative;
-    width: 150px;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-bottom: 1px solid #8f959e;
 }
 .toggle-switch {
     display: none;
@@ -61,7 +62,6 @@
     width: 100px;
     height: 75px;
     background-color: #f8f9fa;
-    border: 2px solid #ddd;
     border-radius: 15px;
     text-align: center;
     cursor: pointer;
