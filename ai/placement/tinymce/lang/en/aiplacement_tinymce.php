@@ -23,6 +23,8 @@
  */
 
 $string['pluginname'] = 'TinyMCE Editor Placement';
+$string['tinymce:generate_image'] = 'Generate AI Images in TinyMCE';
+$string['tinymce:generate_text'] = 'Generate AI Text in TinyMCE';
 $string['generatecontent'] = 'Generate AI Content';
 $string['generateimage'] = 'AI Generate Images';
 $string['generateimagesetting'] = 'Enable generate Images';

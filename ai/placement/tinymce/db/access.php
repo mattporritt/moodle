@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for aiplacement_tinymce.
+ * Capabilities for the aiplacement_tinymce plugin.
  *
  * @package    aiplacement_tinymce
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
@@ -24,7 +24,23 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'aiplacement_tinymce';
-$plugin->version = 2024062200;
-$plugin->requires = 2024041600;
-$plugin->maturity = MATURITY_ALPHA;
+$capabilities = [
+    'aiplacement/tinymce:generate_image' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'student' => CAP_ALLOW,
+        ],
+    ],
+    'aiplacement/tinymce:generate_text' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'student' => CAP_ALLOW,
+        ],
+    ]
+];

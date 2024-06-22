@@ -32,6 +32,7 @@ $string['definitionhigh'] = 'High definition';
 $string['definitionstandard'] = 'Standard';
 $string['generate'] = 'Generate';
 $string['generateimage'] = 'Generate Image';
+$string['imagemodaltitle'] = 'Generate an image using AI';
 $string['imageprompt_label'] = 'Describe the image you would like to generate';
 $string['imageprompt_placeholder'] = 'Enter a description of the image you would like to generate';
 $string['imagequality'] = 'Image quality';

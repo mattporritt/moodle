@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for aiplacement_tinymce.
+ * TinyMCE AI Placement webservice definitions.
  *
  * @package    aiplacement_tinymce
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
@@ -24,7 +24,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'aiplacement_tinymce';
-$plugin->version = 2024062200;
-$plugin->requires = 2024041600;
-$plugin->maturity = MATURITY_ALPHA;
+$functions = [
+    'aiplacement_tinymce_generate_image' => [
+        'classname'   => 'aiplacement_tinymce\external\generate_image',
+        'methodname'  => 'generate_image',
+        'description' => 'Generate image for the TinyMCE AI Placement',
+        'type'        => 'write',
+        'ajax'        => true,
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE]
+    ],
+    'aiplacement_tinymce_generate_text' => [
+        'classname'   => 'aiplacement_tinymce\external\generate_text',
+        'methodname'  => 'generate_text',
+        'description' => 'Generate text for the TinyMCE AI Placement',
+        'type'        => 'write',
+        'ajax'        => true,
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE]
+    ],
+];

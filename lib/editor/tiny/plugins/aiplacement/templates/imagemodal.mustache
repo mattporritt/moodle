@@ -38,7 +38,7 @@
 {{< core/modal }}
 
   {{$title}}
-    {{modaltitle}}
+    {{#str}} imagemodaltitle, tiny_aiplacement{{/str}}
   {{/title}}
 
   {{$body}}
@@ -136,8 +136,7 @@
               class="form-control"
               id="{{elementid}}_tiny_aiplacement_imageprompt"
               rows="3"
-              placeholder="{{#str}} imageprompt_placeholder, tiny_aiplacement {{/str}}"
-              disabled="disabled"></textarea>
+              placeholder="{{#str}} imageprompt_placeholder, tiny_aiplacement {{/str}}"></textarea>
         </div>
       </form>
     </div>
