@@ -25,4 +25,14 @@ namespace core_ai\actions;
  */
 class generate_text extends base {
 
+    /**
+     * Configure the action.
+     * It’s also responsible for performing any other setup tasks,
+     * such as getting additional data from the database etc.
+     *
+     * @return void.
+     */
+    public function configure(): void {
+        // Do some configuration here.
+    }
 }

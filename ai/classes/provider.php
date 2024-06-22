@@ -16,8 +16,6 @@
 
 namespace core_ai;
 
-use \core_ai\actions\manager;
-
 /**
  * Class provider.
  *

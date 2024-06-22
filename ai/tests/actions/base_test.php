@@ -30,7 +30,7 @@ class base_test extends \advanced_testcase {
      * Test get_basename.
      */
     public function test_get_basename(): void {
-        $action = \core_ai\actions\manager::get_action('generate_text');
+        $action = \core_ai\manager::get_action('generate_text');
         $basename = $action->get_basename($action);
         $this->assertEquals('generate_text', $basename);
     }
@@ -39,7 +39,7 @@ class base_test extends \advanced_testcase {
      * Test get_name.
      */
     public function test_get_name(): void {
-        $action = \core_ai\actions\manager::get_action('generate_text');
+        $action = \core_ai\manager::get_action('generate_text');
 
         $this->assertEquals(
                 get_string('action_generate_text', 'core_ai'),
@@ -51,7 +51,7 @@ class base_test extends \advanced_testcase {
      * Test get_description.
      */
     public function test_get_description(): void {
-        $action = \core_ai\actions\manager::get_action('generate_text');
+        $action = \core_ai\manager::get_action('generate_text');
 
         $this->assertEquals(
                 get_string('action_generate_text_desc', 'core_ai'),

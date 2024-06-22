@@ -28,6 +28,15 @@ use coding_exception;
 abstract class base {
 
     /**
+     * Class constructor.
+     *
+     * @throws coding_exception
+     */
+     public function __construct() {
+         $this->ensure_configure_method_exists();
+     }
+
+    /**
      * Get the basename of the class.
      * This is used to generate the action name and description.
      *
@@ -59,5 +68,32 @@ abstract class base {
     public function get_description(): string {
         $stringid = 'action_' . $this->get_basename() . '_desc';
         return get_string($stringid, 'core_ai');
+    }
+
+    /**
+     * Ensure the configuration method exists and is correctly defined.
+     * We do it this way instead of simply declaring the method as abstract,
+     * because each configuration method will have a different signature.
+     *
+     * @throws coding_exception
+     * @return void
+     */
+    private function ensure_configure_method_exists(): void{
+        try {
+            $reflection = new \ReflectionMethod($this, 'configure');
+
+            // Check if the method exists.
+            if (!$reflection->isPublic()) {
+                throw new \coding_exception('The configure method must be public in the subclass.');
+            }
+
+            // Check the return type.
+            $returnType = $reflection->getReturnType();
+            if ($returnType && $returnType->getName() !== 'void') {
+                throw new \coding_exception('The configure method must have a void return type in the subclass.');
+            }
+        } catch (\ReflectionException $e) {
+            throw new \coding_exception('The configure method must be implemented in the subclass.');
+        }
     }
 }

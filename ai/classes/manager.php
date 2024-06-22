@@ -16,6 +16,8 @@
 
 namespace core_ai;
 
+use core_ai\actions\base;
+
 /**
  * AI subsystem manager.
  *
@@ -81,5 +83,35 @@ class manager {
             }
         }
         return $providers;
+    }
+
+    /**
+     * Given an action name, return an instance of the action.
+     *
+     * @param string $actionname
+     * @return base
+     */
+    public static function get_action(string $actionname): base {
+        $classname = '\\core_ai\\actions\\' . $actionname;
+
+        return new $classname();
+    }
+
+    /**
+     * Process an action.
+     *
+     * @param base $action The action to process.
+     * @return \stdClass The result of the action.
+     */
+    public static function process_action(base $action): \stdClass {
+        // Get the action name.
+
+        // Get the providers that support the action.
+
+        // Loop through the providers and process the action.
+
+        // Return the result.
+
+        return new \stdClass();
     }
 }

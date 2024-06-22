@@ -24,5 +24,18 @@ namespace core_ai\actions;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class generate_image extends base{
+    /** @var string The URI of the Matrix web client */
+    protected string $webclienturl;
 
+
+    /**
+     * Configure the action.
+     * It’s also responsible for performing any other setup tasks,
+     * such as getting additional data from the database etc.
+     *
+     * @return void.
+     */
+    public function configure(): void {
+        // Do some configuration here.
+    }
 }

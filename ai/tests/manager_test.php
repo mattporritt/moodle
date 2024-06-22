@@ -16,6 +16,8 @@
 
 namespace core_ai;
 
+use core_ai\actions\base;
+
 /**
  * Test ai subsystem manager methods.
  *
@@ -58,6 +60,7 @@ class manager_test extends \advanced_testcase {
         // Assert array keys match the expected actions.
         $this->assertEquals([
                 'generate_text',
+                'generate_image',
                 'summarise_text',
                 'translate_text',
         ], array_keys($actions));
@@ -78,9 +81,15 @@ class manager_test extends \advanced_testcase {
         $providers = $manager->get_providers_for_actions($actions);
 
         // Assert that the providers array is indexed by action name.
-        $this->assertEquals([
-            'generate_text' => [],
-            'summarise_text' => [],
-        ], $providers);
+        $this->assertEquals($actions, array_keys($providers));
+    }
+
+    /**
+     * Test get_action.
+     */
+    public function test_get_action(): void {
+        $action = \core_ai\manager::get_action('generate_text');
+        // Assert class is an instance of base.
+        $this->assertInstanceOf(base::class, $action);
     }
 }
