@@ -71,6 +71,16 @@ abstract class base {
     }
 
     /**
+     * Get a configuration option.
+     *
+     * @param string $name The name of the configuration option to get.
+     * @return mixed The value of the configuration option.
+     */
+    public function get_configuration(string $name): mixed {
+        return $this->$name;
+    }
+
+    /**
      * Ensure the configuration method exists and is correctly defined.
      * We do it this way instead of simply declaring the method as abstract,
      * because each configuration method will have a different signature.

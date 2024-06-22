@@ -24,9 +24,17 @@ namespace core_ai\actions;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class generate_image extends base{
-    /** @var string The URI of the Matrix web client */
-    protected string $webclienturl;
+    /** @var string The prompt text used to generate the image */
+    protected string $prompttext;
 
+    /** @var string The aspect ratio of the generated image */
+    protected string $aspectratio;
+
+    /** @var string The quality of the generated image */
+    protected string $quality;
+
+    /** @var string The visual style of the generated image */
+    protected string $style;
 
     /**
      * Configure the action.
@@ -35,7 +43,15 @@ class generate_image extends base{
      *
      * @return void.
      */
-    public function configure(): void {
-        // Do some configuration here.
+    public function configure(
+        string $prompttext,
+        string $aspectratio,
+        string $quality,
+        string $style
+    ): void {
+        $this->prompttext = $prompttext;
+        $this->aspectratio = $aspectratio;
+        $this->quality = $quality;
+        $this->style = $style;
     }
 }

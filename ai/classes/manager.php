@@ -101,14 +101,24 @@ class manager {
      * Process an action.
      *
      * @param base $action The action to process.
+     * @throws \coding_exception
      * @return \stdClass The result of the action.
      */
     public static function process_action(base $action): \stdClass {
-        // Get the action name.
+        // Get the action base name.
+        $actionname = $action->get_basename();
+        $methodname = 'process_action_' . $actionname;
 
         // Get the providers that support the action.
+        $providers = self::get_providers_for_actions([$actionname]);
 
         // Loop through the providers and process the action.
+        foreach ($providers[$actionname] as $provider) {
+            $result = $provider->$methodname($action);
+            if ($result) {
+                return $result;
+            }
+        }
 
         // Return the result.
 
