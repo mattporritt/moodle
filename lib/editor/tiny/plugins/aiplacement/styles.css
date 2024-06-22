@@ -1,9 +1,9 @@
-.image-options {
+.tiny-aiplacement-image-options {
     background-color: #ced4da;
     border-radius: 15px;
     padding: 20px;
 }
-.generate-image {
+.tiny-aiplacement-generate-image {
     background-color: #ced4da;
     border-radius: 15px;
     padding: 20px;
@@ -13,12 +13,12 @@
     align-items: center;
     height: 100%;
 }
-.fa-image {
+.tiny-aiplacement-fa-image {
     font-size: 100px;
     color: #2c3e50;
 }
 
-.toggle-container {
+.tiny-aiplacement-toggle-container {
     position: relative;
     width: 100%;
     display: flex;
@@ -26,10 +26,10 @@
     align-items: center;
     border-bottom: 1px solid #8f959e;
 }
-.toggle-switch {
+.tiny-aiplacement-toggle-switch {
     display: none;
 }
-.toggle-slider {
+.tiny-aiplacement-toggle-slider {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -39,7 +39,7 @@
     padding: 2px;
     border: 1px solid #aaa;
 }
-.toggle-slider span {
+.tiny-aiplacement-toggle-slider span {
     width: 50%;
     text-align: center;
     padding: 5px 0;
@@ -47,21 +47,19 @@
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
 }
-.toggle-switch:checked + .toggle-slider .hidef,
-.toggle-switch:checked + .toggle-slider .vivid {
+.tiny-aiplacement-toggle-switch:checked + .tiny-aiplacement-toggle-slider .tiny-aiplacement-slider-right {
     background-color: #007bff;
     color: white;
 }
-.toggle-switch:not(:checked) + .toggle-slider .standard,
-.toggle-switch:not(:checked) + .toggle-slider .natural {
+.tiny-aiplacement-toggle-switch:not(:checked) + .tiny-aiplacement-toggle-slider .tiny-aiplacement-slider-left {
     background-color: #007bff;
     color: white;
 }
 
-.aspect-ratio-container {
+.tiny-aiplacement-aspect-ratio-container {
     display: flex;
 }
-.aspect-ratio-btn {
+.tiny-aiplacement-aspect-ratio-btn {
     position: relative;
     width: 100px;
     height: 75px;
@@ -75,22 +73,22 @@
     align-items: center;
     transition: background-color 0.3s, border-color 0.3s;
 }
-.aspect-ratio-btn i {
+.tiny-aiplacement-aspect-ratio-btn i {
     font-size: 30px;
     margin-bottom: 5px;
 }
-.aspect-ratio-btn span {
+.tiny-aiplacement-aspect-ratio-btn span {
     font-size: 14px;
 }
-.aspect-ratio-btn input[type="radio"] {
+.tiny-aiplacement-aspect-ratio-btn input[type="radio"] {
     display: none;
 }
-.aspect-ratio-btn input[type="radio"]:checked + .aspect-ratio-label {
+.tiny-aiplacement-aspect-ratio-btn input[type="radio"]:checked + .tiny-aiplacement-aspect-ratio-label {
     background-color: #007bff;
     color: white;
     border-color: #007bff;
 }
-.aspect-ratio-label {
+.tiny-aiplacement-aspect-ratio-label {
     width: 100%;
     height: 100%;
     display: flex;

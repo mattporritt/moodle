@@ -43,64 +43,64 @@
 
   {{$body}}
     <div id="{{elementid}}_tiny_aiplacement_spinner" class="hidden">
-      <div class="tiny-ai-loading-spinner d-flex justify-content-center align-items-center flex-column">
-        <div class="spinner-border tiny-ai-spinner-style" role="status">
+      <div class="tiny-aiplacement-loading-spinner d-flex justify-content-center align-items-center flex-column">
+        <div class="spinner-border tiny-aiplacement-spinner-style" role="status">
           <span class="sr-only">Loading...</span>
         </div>
-        <div id="{{elementid}}_tiny_aiplacement_loading_text" class="text-center tiny-ai-spinner-text-style">
+        <div id="{{elementid}}_tiny_aiplacement_loading_text" class="text-center tiny-aiplacement-spinner-text-style">
           Loading...
         </div>
       </div>
     </div>
     <div id="{{elementid}}_tiny_aiplacement_blur" class="">
       <form class="mform" id="{{uniqid}}">
-        <div id="{{elementid}}_tiny_aiplacement_overlay" class="tiny-ai-overlay hidden"></div>
+        <div id="{{elementid}}_tiny_aiplacement_overlay" class="tiny-aiplacement-overlay hidden"></div>
         <div class="row">
           <div class="col-md-8">
-            <div class="generate-image text-center">
+            <div class="tiny-aiplacement-generate-image text-center">
               <div>
-                <i class="fas fa-image"></i>
+                <i class="fas fa-image tiny-aiplacement-fa-image"></i>
               </div>
               <div class="text-center font-weight-bold">Generate Image</div>
             </div>
           </div>
           <div class="col-md-4">
-            <div class="image-options">
+            <div class="tiny-aiplacement-image-options">
               <span class="font-weight-bold">Image quality</span>
-              <div class="toggle-container mt-1 mb-1">
-                <input type="checkbox" id="toggle-switch" class="toggle-switch">
-                <label for="toggle-switch" class="toggle-slider">
-                  <span class="standard">Standard</span>
-                  <span class="hidef">High Definitiion</span>
+              <div class="tiny-aiplacement-toggle-container mt-1 mb-1">
+                <input type="checkbox" id="toggle-switch" class="tiny-aiplacement-toggle-switch">
+                <label for="toggle-switch" class="tiny-aiplacement-toggle-slider">
+                  <span class="tiny-aiplacement-slider-left">Standard</span>
+                  <span class="tiny-aiplacement-slider-right">High Definitiion</span>
                 </label>
               </div>
               <span class="font-weight-bold">Image Style</span>
-              <div class="toggle-container mt-1 mb-1">
-                <input type="checkbox" id="toggle-switch2" class="toggle-switch">
-                <label for="toggle-switch2" class="toggle-slider">
-                  <span class="natural">Natural</span>
-                  <span class="vivid">Vivid</span>
+              <div class="tiny-aiplacement-toggle-container mt-1 mb-1">
+                <input type="checkbox" id="toggle-switch2" class="tiny-aiplacement-toggle-switch">
+                <label for="toggle-switch2" class="tiny-aiplacement-toggle-slider">
+                  <span class="tiny-aiplacement-slider-left">Natural</span>
+                  <span class="tiny-aiplacement-slider-right">Vivid</span>
                 </label>
               </div>
               <span class="font-weight-bold">Aspect Ratio</span>
-              <div class="aspect-ratio-container mt-1 mb-1">
-                <label class="aspect-ratio-btn">
+              <div class="tiny-aiplacement-aspect-ratio-container mt-1 mb-1">
+                <label class="tiny-aiplacement-aspect-ratio-btn">
                   <input type="radio" name="aspect-ratio" value="square" checked>
-                  <div class="aspect-ratio-label">
+                  <div class="tiny-aiplacement-aspect-ratio-label">
                     <i class="fas fa-square"></i>
                     <span>Square</span>
                   </div>
                 </label>
-                <label class="aspect-ratio-btn ml-2 mr-2">
+                <label class="tiny-aiplacement-aspect-ratio-btn ml-2 mr-2">
                   <input type="radio" name="aspect-ratio" value="landscape">
-                  <div class="aspect-ratio-label">
+                  <div class="tiny-aiplacement-aspect-ratio-label">
                     <i class="fas fa-mobile fa-rotate-90"></i>
                     <span>Landscape</span>
                   </div>
                 </label>
-                <label class="aspect-ratio-btn">
+                <label class="tiny-aiplacement-aspect-ratio-btn">
                   <input type="radio" name="aspect-ratio" value="portrait">
-                  <div class="aspect-ratio-label">
+                  <div class="tiny-aiplacement-aspect-ratio-label">
                     <i class="fas fa-mobile"></i>
                     <span>Portrait</span>
                   </div>
