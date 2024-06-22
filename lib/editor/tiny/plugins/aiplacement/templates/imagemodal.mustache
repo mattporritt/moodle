@@ -37,120 +37,113 @@
 }}
 {{< core/modal }}
 
-    {{$title}}
-        {{modaltitle}}
-    {{/title}}
+  {{$title}}
+    {{modaltitle}}
+  {{/title}}
 
-    {{$body}}
-        <div id="{{elementid}}_tiny_aiplacement_spinner" class="hidden">
-            <div class="tiny-ai-loading-spinner d-flex justify-content-center align-items-center flex-column">
-                <div class="spinner-border tiny-ai-spinner-style" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-                <div id="{{elementid}}_tiny_aiplacement_loading_text" class="text-center tiny-ai-spinner-text-style">
-                    Loading...
-                </div>
+  {{$body}}
+    <div id="{{elementid}}_tiny_aiplacement_spinner" class="hidden">
+      <div class="tiny-ai-loading-spinner d-flex justify-content-center align-items-center flex-column">
+        <div class="spinner-border tiny-ai-spinner-style" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <div id="{{elementid}}_tiny_aiplacement_loading_text" class="text-center tiny-ai-spinner-text-style">
+          Loading...
+        </div>
+      </div>
+    </div>
+    <div id="{{elementid}}_tiny_aiplacement_blur" class="">
+      <form class="mform" id="{{uniqid}}">
+        <div id="{{elementid}}_tiny_aiplacement_overlay" class="tiny-ai-overlay hidden"></div>
+        <div class="row">
+          <div class="col-md-8">
+            <div class="generate-image text-center">
+              <div>
+                <i class="fas fa-image"></i>
+              </div>
+              <div class="text-center font-weight-bold">Generate Image</div>
             </div>
-        </div>
-        <div id="{{elementid}}_tiny_aiplacement_blur" class="">
-            <div id="{{elementid}}_tiny_aiplacement_overlay" class="tiny-ai-overlay hidden"></div>
-
-                <div class="row">
-                  <div class="col-md-8">
-                    <div class="generate-image text-center">
-                      <div>
-                        <i class="fas fa-image"></i>
-                      </div>
-                      <div class="text-center">Generate Image</div>
-                    </div>
-
+          </div>
+          <div class="col-md-4">
+            <div class="image-options">
+              <span class="font-weight-bold">Image quality</span>
+              <div class="toggle-container mt-1 mb-1">
+                <input type="checkbox" id="toggle-switch" class="toggle-switch">
+                <label for="toggle-switch" class="toggle-slider">
+                  <span class="standard">Standard</span>
+                  <span class="hidef">High Definitiion</span>
+                </label>
+              </div>
+              <span class="font-weight-bold">Image Style</span>
+              <div class="toggle-container mt-1 mb-1">
+                <input type="checkbox" id="toggle-switch2" class="toggle-switch">
+                <label for="toggle-switch2" class="toggle-slider">
+                  <span class="natural">Natural</span>
+                  <span class="vivid">Vivid</span>
+                </label>
+              </div>
+              <span class="font-weight-bold">Aspect Ratio</span>
+              <div class="aspect-ratio-container mt-1 mb-1">
+                <label class="aspect-ratio-btn">
+                  <input type="radio" name="aspect-ratio" value="square" checked>
+                  <div class="aspect-ratio-label">
+                    <i class="fas fa-square"></i>
+                    <span>Square</span>
                   </div>
-                    <div class="col-md-4">
-                        <div class="image-options">
+                </label>
+                <label class="aspect-ratio-btn ml-2 mr-2">
+                  <input type="radio" name="aspect-ratio" value="landscape">
+                  <div class="aspect-ratio-label">
+                    <i class="fas fa-mobile fa-rotate-90"></i>
+                    <span>Landscape</span>
+                  </div>
+                </label>
+                <label class="aspect-ratio-btn">
+                  <input type="radio" name="aspect-ratio" value="portrait">
+                  <div class="aspect-ratio-label">
+                    <i class="fas fa-mobile"></i>
+                    <span>Portrait</span>
+                  </div>
+                </label>
+              </div>
 
-                          <span class="font-weight-bold">Image quality</span>
-                                <div class="toggle-container mt-1 mb-1">
-                                    <input type="checkbox" id="toggle-switch" class="toggle-switch">
-                                    <label for="toggle-switch" class="toggle-slider">
-                                        <span class="speed">Standard</span>
-                                        <span class="quality">High Definitiion</span>
-                                    </label>
-                                </div>
-
-
-                            <span class="font-weight-bold">Image Style</span>
-                            <div class="toggle-container mt-1 mb-1">
-                              <input type="checkbox" id="toggle-switch" class="toggle-switch">
-                              <label for="toggle-switch" class="toggle-slider">
-                                <span class="speed">Natural</span>
-                                <span class="quality">Vivid</span>
-                              </label>
-                            </div>
-
-                              <span class="font-weight-bold">Aspect Ratio</span>
-                                <div class="aspect-ratio-container mt-1 mb-1">
-                                    <label class="aspect-ratio-btn">
-                                        <input type="radio" name="aspect-ratio" value="square" checked>
-                                        <div class="aspect-ratio-label">
-                                            <i class="fas fa-square"></i>
-                                            <span>Square</span>
-                                        </div>
-                                    </label>
-                                    <label class="aspect-ratio-btn ml-2 mr-2">
-                                        <input type="radio" name="aspect-ratio" value="landscape">
-                                        <div class="aspect-ratio-label">
-                                            <i class="fas fa-mobile fa-rotate-90"></i>
-                                            <span>Landscape</span>
-                                        </div>
-                                    </label>
-                                    <label class="aspect-ratio-btn">
-                                        <input type="radio" name="aspect-ratio" value="portrait">
-                                        <div class="aspect-ratio-label">
-                                            <i class="fas fa-mobile"></i>
-                                            <span>Portrait</span>
-                                        </div>
-                                    </label>
-                                </div>
-
-                        </div>
-                    </div>
-                </div>
-
-            <form class="mform" id="{{uniqid}}">
-                <div class="form-group">
-                    <label for="{{elementid}}_tiny_aiplacement_responsetext">
-                        {{#str}} responsetext_label, tiny_aiplacement {{/str}}
-                    </label>
-                    <textarea
-                            class="form-control"
-                            id="{{elementid}}_tiny_aiplacement_responsetext"
-                            rows="3"
-                            placeholder="{{#str}} responsetext_placeholder, tiny_aiplacement {{/str}}"
-                            disabled="disabled"></textarea>
-                </div>
-            </form>
+            </div>
+          </div>
         </div>
-    {{/body}}
+        <div class="form-group">
+          <label for="{{elementid}}_tiny_aiplacement_imageprompt">
+            {{#str}} imageprompt_label, tiny_aiplacement {{/str}}
+          </label>
+          <textarea
+              class="form-control"
+              id="{{elementid}}_tiny_aiplacement_imageprompt"
+              rows="3"
+              placeholder="{{#str}} imageprompt_placeholder, tiny_aiplacement {{/str}}"
+              disabled="disabled"></textarea>
+        </div>
+      </form>
+    </div>
+  {{/body}}
 
-    {{$footer}}
-        <button type="button"
-                class="btn btn-secondary"
-                data-action="cancel">
-            {{#str}} cancel, moodle {{/str}}
-        </button>
-        <button id="{{elementid}}_tiny_aiplacement_generatebutton"
-                type="button"
-                class="btn btn-primary"
-                data-action="generate"
-                disabled="disabled">
-            {{#str}} generate, tiny_aiplacement{{/str}}
-        </button>
-        <button id="{{elementid}}_tiny_aiplacement_insertbutton"
-                type="button"
-                class="btn btn-primary hidden"
-                data-action="inserter">
-            {{#str}} insert, tiny_aiplacement{{/str}}
-        </button>
-    {{/footer}}
+  {{$footer}}
+    <button type="button"
+            class="btn btn-secondary"
+            data-action="cancel">
+      {{#str}} cancel, moodle {{/str}}
+    </button>
+    <button id="{{elementid}}_tiny_aiplacement_generatebutton"
+            type="button"
+            class="btn btn-primary"
+            data-action="generate"
+            disabled="disabled">
+      {{#str}} generate, tiny_aiplacement{{/str}}
+    </button>
+    <button id="{{elementid}}_tiny_aiplacement_insertbutton"
+            type="button"
+            class="btn btn-primary hidden"
+            data-action="inserter">
+      {{#str}} insert, tiny_aiplacement{{/str}}
+    </button>
+  {{/footer}}
 
 {{/ core/modal }}

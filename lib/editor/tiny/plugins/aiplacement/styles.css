@@ -8,6 +8,7 @@
     border-radius: 15px;
     padding: 20px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
@@ -44,12 +45,15 @@
     padding: 5px 0;
     border-radius: 34px;
     cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
 }
-.toggle-switch:checked + .toggle-slider .quality {
+.toggle-switch:checked + .toggle-slider .hidef,
+.toggle-switch:checked + .toggle-slider .vivid {
     background-color: #007bff;
     color: white;
 }
-.toggle-switch:not(:checked) + .toggle-slider .speed {
+.toggle-switch:not(:checked) + .toggle-slider .standard,
+.toggle-switch:not(:checked) + .toggle-slider .natural {
     background-color: #007bff;
     color: white;
 }
