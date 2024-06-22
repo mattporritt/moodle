@@ -23,9 +23,25 @@
  */
 
 $string['pluginname'] = 'AI Placement';
+$string['aspectlandscape'] = 'Landscape';
+$string['aspectportrait'] = 'Portrait';
+$string['aspectratio'] = 'Aspect ratio';
+$string['aspectsquare'] = 'Square';
 $string['buttontitle'] = 'tester';
+$string['definitionhigh'] = 'High definition';
+$string['definitionstandard'] = 'Standard';
+$string['generate'] = 'Generate';
+$string['generateimage'] = 'Generate Image';
+$string['imageprompt_label'] = 'Describe the image you would like to generate';
+$string['imageprompt_placeholder'] = 'Enter a description of the image you would like to generate';
+$string['imagequality'] = 'Image quality';
+$string['imagestyle'] = 'Image style';
+$string['loading'] = 'Loading...';
 $string['loading_almostdone'] = 'Almost done...';
 $string['loading_applying'] = 'Applying the finishing touches...';
 $string['loading_generating'] = 'Generating the text...';
 $string['loading_processing'] = 'Processing your request...';
+$string['next'] = 'Next';
+$string['stylenatural'] = 'Natural';
+$string['stylevivid'] = 'Vivid';
 $string['privacy:metadata'] = 'The AI Placement plugin does not store any personal data.';
