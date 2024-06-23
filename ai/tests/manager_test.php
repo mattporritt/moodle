@@ -92,4 +92,23 @@ class manager_test extends \advanced_testcase {
         // Assert class is an instance of base.
         $this->assertInstanceOf(base::class, $action);
     }
+
+    public function test_process_action() {
+        // Create a partial mock for YourClass to mock the call_action_provider method.
+        $managermock = $this->getMockBuilder(manager::class)
+                ->onlyMethods(['call_action_provider'])
+                ->getMock();
+
+        $expectedResult = (object)['success' => true];
+
+        // Set up the expectation for call_action_provider to return the defined result.
+        $managermock->expects($this->any())
+                ->method('call_action_provider')
+                ->willReturn($expectedResult);
+
+        $action = $managermock::get_action('generate_image');
+
+        $result = $managermock->process_action($action);
+        error_log(print_r($result, true));
+    }
 }

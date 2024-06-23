@@ -39,4 +39,16 @@ class provider extends \core_ai\provider {
         ];
     }
 
+    /**
+     * Process the generate_text action.
+     * Handles communication with the OpenAI API and returning the result.
+     *
+     * @param \core_ai\actions\base $action The action to process.
+     * @return \stdClass The result of the action.
+     */
+    public function process_action_generate_image(\core_ai\actions\base $action): \stdClass {
+        // Do something with the action.
+        return new \stdClass();
+    }
+
 }

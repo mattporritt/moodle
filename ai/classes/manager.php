@@ -98,13 +98,30 @@ class manager {
     }
 
     /**
+     * Call the action provider.
+     * The named provider will process the action and return the result.
+     *
+     * @param provider $provider The provider to call.
+     * @param string $methodname The method to call on the provider for the action.
+     * @param base $action The action to process.
+     * @return \stdClass The result of the action.
+     */
+    protected function call_action_provider(
+            provider $provider,
+            string $methodname,
+            base $action
+    ): \stdClass {
+        return $provider->$methodname($action);
+    }
+
+    /**
      * Process an action.
      *
      * @param base $action The action to process.
      * @throws \coding_exception
      * @return \stdClass The result of the action.
      */
-    public static function process_action(base $action): \stdClass {
+    public function process_action(base $action): \stdClass {
         // Get the action base name.
         $actionname = $action->get_basename();
         $methodname = 'process_action_' . $actionname;
@@ -114,7 +131,7 @@ class manager {
 
         // Loop through the providers and process the action.
         foreach ($providers[$actionname] as $provider) {
-            $result = $provider->$methodname($action);
+            $result = $this->call_action_provider($provider, $methodname, $action);
             if ($result) {
                 return $result;
             }
