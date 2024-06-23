@@ -1,0 +1,135 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+use GuzzleHttp\Psr7\Response;
+
+/**
+ * Test base OpenAI provider methods.
+ *
+ * @package    aiprovier_openai
+ * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \core_ai\provider\openai
+ */
+class provider_test extends \advanced_testcase {
+    /**
+     * Test generate_userid.
+     */
+    public function test_generate_userid(): void {
+        $provider = new \aiprovider_openai\provider();
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($provider, 'generate_userid');
+
+        $userid = $method->invoke($provider);
+
+        //assert that the generated userid is a string of proper length.
+        $this->assertIsString($userid);
+        $this->assertEquals(64, strlen($userid));
+    }
+
+    /**
+     * Test calculate_size.
+     */
+    public function test_calculate_size(): void {
+        $provider = new \aiprovider_openai\provider();
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($provider, 'calculate_size');
+
+        $ratio = 'square';
+        $size = $method->invoke($provider, $ratio);
+        $this->assertEquals('1024x1024', $size);
+
+        $ratio = 'portrait';
+        $size = $method->invoke($provider, $ratio);
+        $this->assertEquals('1024x1792', $size);
+
+        $ratio = 'landscape';
+        $size = $method->invoke($provider, $ratio);
+        $this->assertEquals('1792x1024', $size);
+    }
+
+    /**
+     * Test create_http_client.
+     */
+    public function test_create_http_client(): void {
+        $provider = new \aiprovider_openai\provider();
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($provider, 'create_http_client');
+
+        $client = $method->invoke($provider);
+
+        $this->assertInstanceOf(\core\http_client::class, $client);
+    }
+
+    /**
+     * Test create_request_object
+     */
+    public function test_create_request_object(): void {
+        $action = new \core_ai\actions\generate_image();
+        $prompt = 'This is a test prompt';
+        $aspectratio = 'square';
+        $quality = 'hd';
+        $style = 'vivid';
+        $action->configure($prompt, $aspectratio, $quality, $style);
+
+        $provider = new \aiprovider_openai\provider();
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($provider, 'create_request_object');
+        $request = $method->invoke($provider, $action);
+
+        $this->assertEquals($prompt, $request->prompt);
+        $this->assertEquals('dall-e-3', $request->model);
+        $this->assertEquals('1', $request->n);
+        $this->assertEquals($quality, $request->quality);
+        $this->assertEquals('url', $request->response_format);
+        $this->assertEquals('1024x1024', $request->size);
+    }
+
+    /**
+     * Test the API error response handler method.
+     *
+     */
+    public function test_handle_api_error() {
+        $responses = [
+                500 => new Response(500, ['Content-Type' => 'application/json']),
+                503 => new Response(503, ['Content-Type' => 'application/json']),
+                401 => new Response(401, ['Content-Type' => 'application/json'],
+                        '{"error": {"message": "Invalid Authentication"}}'),
+                404 => new Response(404, ['Content-Type' => 'application/json'],
+                        '{"error": {"message": "You must be a member of an organization to use the API"}}'),
+                429 => new Response(429, ['Content-Type' => 'application/json'],
+                        '{"error": {"message": "Rate limit reached for requests"}}'),
+        ];
+
+        $provider = new \aiprovider_openai\provider();
+        $method = new ReflectionMethod($provider, 'handle_api_error');
+
+        foreach($responses as $status => $response) {
+            $result = $method->invoke($provider, $status, $response);
+            $this->assertEquals($status, $result['errorcode']);
+            if ($status == 500) {
+                $this->assertEquals('Internal server error.', $result['error']);
+            } else if ($status == 503) {
+                $this->assertEquals('Service unavailable.', $result['error']);
+            } else {
+                $this->assertStringContainsString($response->getBody()->getContents(), $result['error']);
+            }
+        }
+    }
+}
