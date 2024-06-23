@@ -53,9 +53,9 @@ class provider extends \core_ai\provider {
      */
     public function __construct() {
         // Get api key from config.
-        $this->apikey = get_config('tiny_ai', 'apikey');
+        $this->apikey = get_config('aiprovier_openai', 'apikey');
         // Get api org id from config.
-        $this->orgid = get_config('tiny_ai', 'orgid');
+        $this->orgid = get_config('aiprovier_openai', 'orgid');
         // Generate the user id.
         $this->userid = $this->generate_userid();
     }
@@ -235,8 +235,10 @@ class provider extends \core_ai\provider {
         $responsebody = $response->getBody();
         $bodyobj = json_decode($responsebody->getContents());
 
-        error_log(print_r($bodyobj, true));
-
-        return [];
+        return [
+            'created' => $bodyobj->created,
+            'revised_prompt' => $bodyobj->data[0]->revised_prompt,
+            'url' => $bodyobj->data[0]->url
+        ];
     }
 }

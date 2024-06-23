@@ -25,6 +25,17 @@ use GuzzleHttp\Psr7\Response;
  * @covers     \core_ai\provider\openai
  */
 class provider_test extends \advanced_testcase {
+    /** @var string A successful response in JSON format. */
+    protected string $responsebodyjson;
+
+    /**
+     * Set up the test.
+     */
+    protected function setUp(): void {
+        // Load a response body from a file.
+        $this->responsebodyjson = file_get_contents(__DIR__ . '/fixtures/request_success.json');
+    }
+
     /**
      * Test generate_userid.
      */
@@ -132,4 +143,81 @@ class provider_test extends \advanced_testcase {
             }
         }
     }
+
+    /**
+     * Test the API success response handler method.
+     *
+     */
+    public function test_handle_api_success() {
+        $response = new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                $this->responsebodyjson
+        );
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $provider = new \aiprovider_openai\provider();
+        $method = new ReflectionMethod($provider, 'handle_api_success');
+
+        $result = $method->invoke($provider, $response);
+
+        $this->assertEquals('1719140500', $result['created']);
+        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revised_prompt']);
+        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['url']);
+    }
+
+    /**
+     * Test query_ai_api for a successful call.
+     */
+    public function test_query_ai_api_success(): void {
+        // Mock the http client to return a successful response.
+        $response = new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                $this->responsebodyjson
+        );
+        $client = $this->createMock(\core\http_client::class);
+        $client->method('request')->willReturn($response);
+        
+        // Create a request object.
+
+
+        $provider = new \aiprovider_openai\provider();
+        $method = new ReflectionMethod($provider, 'query_ai_api');
+        $result = $method->invoke($provider, $client, $requestobj);
+
+        $this->assertEquals('1719140500', $result['created']);
+        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revised_prompt']);
+        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['url']);
+    }
+
+    /**
+     * Test process_action_generate_image for a successful call.
+     */
+    public function test_process_action_generate_image_success(): void {
+        // Set up the action.
+        $action = new \core_ai\actions\generate_image();
+        $prompt = 'This is a test prompt';
+        $aspectratio = 'square';
+        $quality = 'hd';
+        $style = 'vivid';
+        $action->configure($prompt, $aspectratio, $quality, $style);
+
+        // Configure the plugin (with fake credentials).
+        set_config('apikey', 'sk-proj-NKOSbdef97IR6OilminkT4BlbkFJsmClO8gwOw2hIC3sqeZNM', 'aiprovier_openai');
+        set_config('orgid', 'org-FdXlYm9JmBUBo2tZ3QeRdOvh', 'aiprovier_openai');
+
+        // Mock the http client to return a successful response.
+        $response = new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                $this->responsebodyjson
+        );
+        $client = $this->createMock(\core\http_client::class);
+        $client->method('request')->willReturn($response);
+
+        $provider = new \aiprovider_openai\provider();
+        $result = $provider->process_action_generate_image($action);
+    }
+
 }
