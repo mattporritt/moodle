@@ -178,9 +178,17 @@ class provider_test extends \advanced_testcase {
         );
         $client = $this->createMock(\core\http_client::class);
         $client->method('request')->willReturn($response);
-        
-        // Create a request object.
 
+        // Create a request object.
+        $requestobj = new \stdClass();
+        $requestobj->prompt = 'generate a test image';
+        $requestobj->model = 'awesome-ai-3';
+        $requestobj->n = '3';
+        $requestobj->quality = 'hd';
+        $requestobj->response_format = 'url;';
+        $requestobj->size = '1024x1024';
+        $requestobj->style = 'vivid';
+        $requestobj->user = 't3464h89dftjltestudfaser';
 
         $provider = new \aiprovider_openai\provider();
         $method = new ReflectionMethod($provider, 'query_ai_api');
@@ -195,6 +203,7 @@ class provider_test extends \advanced_testcase {
      * Test process_action_generate_image for a successful call.
      */
     public function test_process_action_generate_image_success(): void {
+        $this->resetAfterTest(true);
         // Set up the action.
         $action = new \core_ai\actions\generate_image();
         $prompt = 'This is a test prompt';
@@ -207,17 +216,17 @@ class provider_test extends \advanced_testcase {
         set_config('apikey', 'sk-proj-NKOSbdef97IR6OilminkT4BlbkFJsmClO8gwOw2hIC3sqeZNM', 'aiprovier_openai');
         set_config('orgid', 'org-FdXlYm9JmBUBo2tZ3QeRdOvh', 'aiprovier_openai');
 
-        // Mock the http client to return a successful response.
-        $response = new Response(
-                200,
-                ['Content-Type' => 'application/json'],
-                $this->responsebodyjson
-        );
-        $client = $this->createMock(\core\http_client::class);
-        $client->method('request')->willReturn($response);
+        // Mock query_ai_api to return a successful response.
+        $response =  [
+                'created' => 1719140500,
+                'revised_prompt' => 'revised prompt text',
+                'url' => 'https://oaidalleapiprodscus.blob.core.windows.net/aiimages/1719140500.jpg'
+        ];
+        $provider = $this->createMock(\aiprovider_openai\provider::class);
+        $provider->method('query_ai_api')->willReturn($response);
 
-        $provider = new \aiprovider_openai\provider();
         $result = $provider->process_action_generate_image($action);
+
     }
 
 }

@@ -177,7 +177,7 @@ class provider extends \core_ai\provider {
      * @param \stdClass $requestobj The request object.
      * @return array The response from the AI service.
      */
-    private function query_ai_api(http_client $client, \stdClass $requestobj): array {
+    public function query_ai_api(http_client $client, \stdClass $requestobj): array {
         $requestjson = json_encode($requestobj);
 
         // Call the external AI service.
