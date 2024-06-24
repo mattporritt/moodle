@@ -30,16 +30,16 @@ use stdClass;
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-class aiplacement_action_table extends flexible_table implements dynamic_table {
-    /** @var string The name of the plugin these actions related too. */
+class aiplacement_action_management_table extends flexible_table implements dynamic_table {
+    /** @var string The name of the plugin these actions related too */
     protected string $pluginname;
 
-    /** @var \core_ai\actions\base The action for this table. */
-    protected \core_ai\actions\base $action;
+    /** @var array The list of actions this manager covers */
+    protected array $actions;
 
-    public function __construct(string $pluginname, \core_ai\actions\base $action) {
+    public function __construct(string $pluginname, array $actions) {
         $this->pluginname = $pluginname;
-        $this->action = $action;
+        $this->actions = $actions;
 
         parent::__construct($this->get_table_id());
 
@@ -104,8 +104,8 @@ class aiplacement_action_table extends flexible_table implements dynamic_table {
      */
     protected function get_column_list(): array {
         return [
-                'namedesc' => get_string('action', 'core_ai'),
-                'enabled' => get_string('pluginenabled', 'core_plugin'),
+            'namedesc' => get_string('name', 'core'),
+            'enabled' => get_string('pluginenabled', 'core_plugin'),
         ];
     }
 
@@ -119,8 +119,8 @@ class aiplacement_action_table extends flexible_table implements dynamic_table {
         global $OUTPUT;
 
         $params = [
-                'name' => $row->action->get_name(),
-                'description' => $row->action->get_description(),
+            'name' => $row->action->get_name(),
+            'description' => $row->action->get_description(),
         ];
 
         return $OUTPUT->render_from_template('core_admin/table/namedesc', $params);
@@ -189,14 +189,17 @@ class aiplacement_action_table extends flexible_table implements dynamic_table {
      * Print the table.
      */
     public function out(): void {
-        $rowdata = (object) [
-            'id' => $this->action->get_basename(),
-            'action' => $this->action,
-        ];
-        $this->add_data_keyed(
-            $this->format_row($rowdata),
-            $this->get_row_class($rowdata)
-        );
+        foreach ($this->actions as $id => $action) {
+            // Construct the row data.
+            $rowdata = (object) [
+                    'id' => $id,
+                    'action' => $action,
+            ];
+            $this->add_data_keyed(
+                    $this->format_row($rowdata),
+                    $this->get_row_class($rowdata)
+            );
+        }
 
         $this->finish_output(false);
     }

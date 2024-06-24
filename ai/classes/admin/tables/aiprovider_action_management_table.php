@@ -23,7 +23,7 @@ use moodle_url;
 use stdClass;
 
 /**
- * Table to manage AI actions used in provider and placement plugins.
+ * Table to manage AI actions used in provider plugins.
  *
  * @package core_admin
  * @copyright 2024 Matt Porritt <matt.porritt@moodle.com>

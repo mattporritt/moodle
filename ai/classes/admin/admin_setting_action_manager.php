@@ -95,8 +95,10 @@ class admin_setting_action_manager extends admin_setting {
         $table = new $this->tableclass(
                 pluginname: $this->pluginname,
                 actions: $this->actions);
-        if (!($table instanceof tables\aiprovider_action_management_table)) {
-            throw new \coding_exception("{$this->tableclass} must be an instance of \\core_admin\\table\\plugin_management_table");
+        if (!($table instanceof tables\aiprovider_action_management_table)
+                && !($table instanceof tables\aiplacement_action_management_table)) {
+            throw new \coding_exception(
+                "{$this->tableclass} must be an instance aiprovider_action_management_table or aiplacement_action_management_table");
         }
         return highlight($query, $table->get_content());
     }

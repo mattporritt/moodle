@@ -47,10 +47,11 @@ if ($hassiteconfig) {
     $actions = \core_ai\manager::get_supported_actions('aiplacement_courseassist');
 
     // Load the setting table of actions that this provider supports.
-    $settings->add(new \core_ai\admin\admin_setting_placement_action_manager(
+    $settings->add(new \core_ai\admin\admin_setting_action_manager(
             'aiplacement_courseassist',
             $actions,
-            'manageaiproviders',
+            \core_ai\admin\tables\aiplacement_action_management_table::class,
+            'manageaiplacements',
             new lang_string('manageaiproviders', 'core_ai'),
     ));
 

@@ -46,17 +46,18 @@ Each enabled placement uses one or more "AI Actions". The preferences for these 
 $string['cachedef_ai_ratelimit'] = 'Cache to store request rate limits related to the AI subsystem.';
 $string['manageaiproviders'] = 'Manage AI providers';
 $string['manageaiplacements'] = 'Manage AI placements';
-$string['placementactionsettings'] = 'Placement action settings';
-$string['placementactionsettings_desc'] = 'These settings the settings for actions that are supported by this AI placement.<br/>
-Each action has its own settings that can be configured here.';
+$string['placementactionsettings'] = 'Placement actions';
+$string['placementactionsettings_desc'] = 'These are the actions that are supported by this AI placement.<br/>
+Each action can be enabled or disabled for this placement.';
 $string['placementsettings'] = 'Placement specific settings';
 $string['placementsettings_desc'] = 'These settings control various aspects of this AI placement.<br/>
 They control how the placement connects to the AI service, and related operations';
 $string['privacy:metadata'] = 'The AI subsystem currently does not store any user data.';
 $string['providers'] = 'Providers';
-$string['provideractionsettings'] = 'Provider action settings';
-$string['provideractionsettings_desc'] = 'These settings the settings for actions that are supported by this AI provider.<br/>
-Each action has its own settings that can be configured here.';
+$string['provideractionsettings'] = 'Provider actions';
+$string['provideractionsettings_desc'] = 'These settings are for the actions that are supported by this AI provider.<br/>
+Each action can be enabled or disabled for this provider.<br/>
+Each action can also have its own settings that can be configured here.';
 $string['providersettings'] = 'Provider specific settings';
 $string['providersettings_desc'] = 'These settings control various aspects of this AI provider.<br/>
 They control how the provider connects to the AI service, and related operations';
