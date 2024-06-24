@@ -26,7 +26,7 @@ use coding_exception;
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class action_response {
+class action_response {
     /** @var bool The success status of the action. */
     private bool $success;
 
@@ -45,13 +45,84 @@ abstract class action_response {
     /** @var array Body, which contains things specific to a successful response. Must exist in successful response. */
     private array $body;
 
-    public function __construct(bool $success, string $actionname, int $errorcode, string $errormessage, array $body) {
+    public function __construct(
+            bool $success,
+            string $actionname,
+            array $body = [],
+            int $errorcode = 0,
+            string $errormessage = '',
+
+    ) {
         $this->success = $success;
         $this->actionname = $actionname;
+        $this->timecreated = time();
+
+        if ($success) {
+            if (empty($body)) {
+                throw new coding_exception('Body must exist in a successful response.');
+            }
+        } else {
+            if (empty($errorcode) || empty($errormessage)) {
+                throw new coding_exception('Error code and message must exist in an error response.');
+            }
+        }
+
         $this->errorcode = $errorcode;
         $this->errormessage = $errormessage;
         $this->body = $body;
-        $this->timecreated = time();
     }
 
+    /**
+     * Get the success status of the action.
+     *
+     * @return bool
+     */
+    public function get_success(): bool {
+        return $this->success;
+    }
+
+    /**
+     * Get the timestamp of when the response was created.
+     *
+     * @return int
+     */
+    public function get_timecreated(): int {
+        return $this->timecreated;
+    }
+
+    /**
+     * Get the name of the action that was processed.
+     *
+     * @return string
+     */
+    public function get_actionname(): string {
+        return $this->actionname;
+    }
+
+    /**
+     * Get the error code.
+     *
+     * @return int
+     */
+    public function get_errorcode(): int {
+        return $this->errorcode;
+    }
+
+    /**
+     * Get the error message.
+     *
+     * @return string
+     */
+    public function get_errormessage(): string {
+        return $this->errormessage;
+    }
+
+    /**
+     * Get the body.
+     *
+     * @return array
+     */
+    public function get_body(): array {
+        return $this->body;
+    }
 }

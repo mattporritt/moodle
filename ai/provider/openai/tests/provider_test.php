@@ -226,7 +226,5 @@ class provider_test extends \advanced_testcase {
         $provider->method('query_ai_api')->willReturn($response);
 
         $result = $provider->process_action_generate_image($action);
-
     }
-
 }

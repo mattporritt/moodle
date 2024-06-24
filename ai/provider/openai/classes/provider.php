@@ -17,6 +17,7 @@
 namespace aiprovider_openai;
 
 use core\http_client;
+use \core_ai\actions;
 
 /**
  * Class provider.
@@ -91,10 +92,10 @@ class provider extends \core_ai\provider {
      * Process the generate_text action.
      * Handles communication with the OpenAI API and returning the result.
      *
-     * @param \core_ai\actions\base $action The action to process.
-     * @return \stdClass The result of the action.
+     * @param actions\base $action The action to process.
+     * @return actions\action_response The result of the action.
      */
-    public function process_action_generate_image(\core_ai\actions\base $action): \stdClass {
+    public function process_action_generate_image(actions\base $action): actions\action_response {
         // Create the HTTP client.
         $client = $this->create_http_client();
 
