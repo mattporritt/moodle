@@ -107,7 +107,10 @@ class provider extends \core_ai\provider {
 
         // If the request was successful, save the URL to a file.
         if ($response['success']) {
-            $this->url_to_file($response['body']['url']);
+            $this->url_to_file(
+                $action->get_configuration('contextid'),
+                $response['body']['url']
+            );
         }
 
         // Format the action response object.
@@ -279,10 +282,11 @@ class provider extends \core_ai\provider {
      * therefore we need to provide the image file in a format that can
      * be used by placements. So we use the file API.
      *
+     * @param int $contextid The context id.
      * @param string $url The URL to the image.
-     * @return string
+     * @return \stored_file The file object.
      */
-    private function url_to_file(string $url): string {
+    private function url_to_file(int $contextid, string $url): \stored_file {
         $options = [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apikey,
@@ -290,16 +294,18 @@ class provider extends \core_ai\provider {
             ]
         ];
 
-        $fileinfo = new \stdClass();
+        $parsedurl = parse_url($url, PHP_URL_PATH); // Parse the URL to get the path.
+        $filename = basename($parsedurl); // Get the basename of the path.
 
+        $fileinfo = new \stdClass();
+        $fileinfo->contextid = $contextid;
+        $fileinfo->filearea  = 'draft';
+        $fileinfo->component = 'user';
+        $fileinfo->itemid    = file_get_unused_draft_itemid();
+        $fileinfo->filepath  = '/';
+        $fileinfo->filename  = $filename;
 
         $fs = get_file_storage();
-        $itemid = file_get_unused_draft_itemid();
-
-        // Create a new file containing the text 'hello world'.
-        $fs->create_file_from_url($fileinfo, $url , $options);
-
-        // Return the URL to the image.
-        return '';
+        return $fs->create_file_from_url($fileinfo, $url, $options);
     }
 }

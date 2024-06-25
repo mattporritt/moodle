@@ -251,6 +251,25 @@ class provider_test extends \advanced_testcase {
     }
 
     /**
+     * Test url_to_file.
+     */
+    public function test_url_to_file(): void {
+        $this->resetAfterTest();
+        // Log in user.
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $provider = new \aiprovider_openai\provider();
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($provider, 'url_to_file');
+
+        $contextid = 1;
+        $url = $this->getExternalTestFileUrl('/test.html', false);
+        $filenobj = $method->invoke($provider, $contextid, $url);
+
+        $this->assertEquals('test.html', $filenobj->get_filename());
+    }
+
+    /**
      * test process_action_generate_image.
      */
     public function test_process_action_generate_image():void {
