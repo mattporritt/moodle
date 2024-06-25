@@ -54,9 +54,9 @@ class provider extends \core_ai\provider {
      */
     public function __construct() {
         // Get api key from config.
-        $this->apikey = get_config('aiprovier_openai', 'apikey');
+        $this->apikey = get_config('aiprovider_openai', 'apikey');
         // Get api org id from config.
-        $this->orgid = get_config('aiprovier_openai', 'orgid');
+        $this->orgid = get_config('aiprovider_openai', 'orgid');
         // Generate the user id.
         $this->userid = $this->generate_userid();
     }
@@ -104,6 +104,11 @@ class provider extends \core_ai\provider {
 
         // Make the request to the OpenAI API.
         $response = $this->query_ai_api($client, $requestobj);
+
+        // If the request was successful, save the URL to a file.
+        if ($response['success']) {
+            $this->url_to_file($response['body']['url']);
+        }
 
         // Format the action response object.
         return $this->prepare_response($response);
@@ -267,4 +272,33 @@ class provider extends \core_ai\provider {
         }
     }
 
+    /**
+     * Convert the url for the image  to a file.
+     *
+     * Placements can't interact with the provider AI directly,
+     * therefore we need to provide the image file in a format that can
+     * be used by placements. So we use the file API.
+     *
+     * @param string $url The URL to the image.
+     * @return string
+     */
+    private function url_to_file(string $url): string {
+        $options = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apikey,
+                'OpenAI-Organization' => $this->orgid,
+            ]
+        ];
+
+        $fileinfo = new \stdClass();
+
+
+        $fs = get_file_storage();
+
+        // Create a new file containing the text 'hello world'.
+        $fs->create_file_from_url($fileinfo, $url , $options);
+
+        // Return the URL to the image.
+        return '';
+    }
 }

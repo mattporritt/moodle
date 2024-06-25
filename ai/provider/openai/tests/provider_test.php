@@ -249,4 +249,24 @@ class provider_test extends \advanced_testcase {
         $this->assertEquals($response['errormessage'], $result->get_errormessage());
     }
 
+    /**
+     * test process_action_generate_image.
+     */
+    public function test_process_action_generate_image():void {
+        $this->resetAfterTest();
+        $action = new \core_ai\actions\generate_image();
+        $prompt = 'This is a test prompt';
+        $aspectratio = 'square';
+        $quality = 'hd';
+        $style = 'vivid';
+        $action->configure($prompt, $aspectratio, $quality, $style);
+
+        set_config('apikey', '', 'aiprovider_openai');
+        set_config('orgid', '', 'aiprovider_openai');
+
+        $provider = new \aiprovider_openai\provider();
+        //$result = $provider->process_action_generate_image($action);
+
+    }
+
 }

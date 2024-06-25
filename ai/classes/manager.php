@@ -17,6 +17,7 @@
 namespace core_ai;
 
 use core_ai\actions\base;
+use \core_ai\actions\action_response;
 
 /**
  * AI subsystem manager.
@@ -104,24 +105,25 @@ class manager {
      * @param provider $provider The provider to call.
      * @param string $methodname The method to call on the provider for the action.
      * @param base $action The action to process.
-     * @return \stdClass The result of the action.
+     * @return action_response The result of the action.
      */
     protected function call_action_provider(
             provider $provider,
             string $methodname,
             base $action
-    ): \stdClass {
+    ): action_response {
         return $provider->$methodname($action);
     }
 
     /**
      * Process an action.
+     * This is the entry point for processing an action.
      *
      * @param base $action The action to process.
      * @throws \coding_exception
-     * @return \stdClass The result of the action.
+     * @return action_response The result of the action.
      */
-    public function process_action(base $action): \stdClass {
+    public function process_action(base $action): action_response {
         // Get the action base name.
         $actionname = $action->get_basename();
         $methodname = 'process_action_' . $actionname;
@@ -132,13 +134,22 @@ class manager {
         // Loop through the providers and process the action.
         foreach ($providers[$actionname] as $provider) {
             $result = $this->call_action_provider($provider, $methodname, $action);
-            if ($result) {
+
+            // Store the result (success or failure).
+
+
+            // If the result is successful, return the result.
+            if ($result->get_success()) {
                 return $result;
             }
         }
 
-        // Return the result.
-
-        return new \stdClass();
+        // If we get here we've all available providers have failed,
+        // or there were no providers available.
+        return new action_response(
+            success: false,
+            actionname: $actionname,
+            errorcode: 0,
+            errormessage: 'No providers available to process the action.');
     }
 }
