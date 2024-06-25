@@ -106,10 +106,7 @@ class provider extends \core_ai\provider {
         $response = $this->query_ai_api($client, $requestobj);
 
         // Format the action response object.
-
-
-        // Do something with the action.
-        return new \stdClass();
+        return $this->prepare_response($response);
     }
 
     /**
@@ -207,19 +204,19 @@ class provider extends \core_ai\provider {
         if ($status == 500) {
             $responsearr = [
                     'errorcode' => $status,
-                    'error' => 'Internal server error.',
+                    'errormessage' => 'Internal server error.',
             ];
         } else if ($status == 503) {
             $responsearr = [
                     'errorcode' => $status,
-                    'error' => 'Service unavailable.',
+                    'errormessage' => 'Service unavailable.',
             ];
         } else {
             $responsebody = $response->getBody();
             $bodyobj = json_decode($responsebody->getContents());
             $responsearr =[
                     'errorcode' => $status,
-                    'error' => $bodyobj->error->message,
+                    'errormessage' => $bodyobj->error->message,
             ];
         }
 
@@ -237,9 +234,37 @@ class provider extends \core_ai\provider {
         $bodyobj = json_decode($responsebody->getContents());
 
         return [
-            'created' => $bodyobj->created,
-            'revised_prompt' => $bodyobj->data[0]->revised_prompt,
-            'url' => $bodyobj->data[0]->url
+            'success' => true,
+            'body' => [
+                'created' => $bodyobj->created,
+                'revised_prompt' => $bodyobj->data[0]->revised_prompt,
+                'url' => $bodyobj->data[0]->url
+            ],
         ];
     }
+
+    /**
+     * Prepare the response object.
+     *
+     * @param array $response The response object.
+     * @throws \coding_exception
+     * @return actions\action_response The action response object.
+     */
+    private function prepare_response(array $response): actions\action_response {
+        if ($response['success']) {
+            return new actions\action_response(
+                success: true,
+                actionname: 'generate_image',
+                body: $response['body']
+            );
+        } else {
+            return new actions\action_response(
+                success: false,
+                actionname: 'generate_image',
+                errorcode: $response['errorcode'],
+                errormessage: $response['errormessage']
+            );
+        }
+    }
+
 }

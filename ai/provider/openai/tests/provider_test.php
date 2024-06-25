@@ -135,11 +135,11 @@ class provider_test extends \advanced_testcase {
             $result = $method->invoke($provider, $status, $response);
             $this->assertEquals($status, $result['errorcode']);
             if ($status == 500) {
-                $this->assertEquals('Internal server error.', $result['error']);
+                $this->assertEquals('Internal server error.', $result['errormessage']);
             } else if ($status == 503) {
-                $this->assertEquals('Service unavailable.', $result['error']);
+                $this->assertEquals('Service unavailable.', $result['errormessage']);
             } else {
-                $this->assertStringContainsString($response->getBody()->getContents(), $result['error']);
+                $this->assertStringContainsString($response->getBody()->getContents(), $result['errormessage']);
             }
         }
     }
@@ -161,9 +161,9 @@ class provider_test extends \advanced_testcase {
 
         $result = $method->invoke($provider, $response);
 
-        $this->assertEquals('1719140500', $result['created']);
-        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revised_prompt']);
-        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['url']);
+        $this->assertEquals('1719140500', $result['body']['created']);
+        $this->stringContains('An image that represents the concept of a \'test\'.', $result['body']['revised_prompt']);
+        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['body']['url']);
     }
 
     /**
@@ -194,37 +194,59 @@ class provider_test extends \advanced_testcase {
         $method = new ReflectionMethod($provider, 'query_ai_api');
         $result = $method->invoke($provider, $client, $requestobj);
 
-        $this->assertEquals('1719140500', $result['created']);
-        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revised_prompt']);
-        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['url']);
+        $this->assertEquals('1719140500', $result['body']['created']);
+        $this->stringContains('An image that represents the concept of a \'test\'.', $result['body']['revised_prompt']);
+        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['body']['url']);
     }
 
     /**
-     * Test process_action_generate_image for a successful call.
+     * Test prepare_response success.
      */
-    public function test_process_action_generate_image_success(): void {
-        $this->resetAfterTest(true);
-        // Set up the action.
-        $action = new \core_ai\actions\generate_image();
-        $prompt = 'This is a test prompt';
-        $aspectratio = 'square';
-        $quality = 'hd';
-        $style = 'vivid';
-        $action->configure($prompt, $aspectratio, $quality, $style);
+    public function test_prepare_response_success(): void {
+        $provider = new \aiprovider_openai\provider();
 
-        // Configure the plugin (with fake credentials).
-        set_config('apikey', 'sk-proj-NKOSbdef97IR6OilminkT4BlbkFJsmClO8gwOw2hIC3sqeZNM', 'aiprovier_openai');
-        set_config('orgid', 'org-FdXlYm9JmBUBo2tZ3QeRdOvh', 'aiprovier_openai');
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($provider, 'prepare_response');
 
-        // Mock query_ai_api to return a successful response.
-        $response =  [
-                'created' => 1719140500,
-                'revised_prompt' => 'revised prompt text',
-                'url' => 'https://oaidalleapiprodscus.blob.core.windows.net/aiimages/1719140500.jpg'
-        ];
-        $provider = $this->createMock(\aiprovider_openai\provider::class);
-        $provider->method('query_ai_api')->willReturn($response);
+        $response = [
+                'success' => true,
+                'body' => [
+                        'created' => 1719140500,
+                        'revised_prompt' => 'An image that represents the concept of a \'test\'.',
+                        'url' => 'oaidalleapiprodscus.blob.core.windows.net',
+                    ]
+                ];
 
-        $result = $provider->process_action_generate_image($action);
+        $result = $method->invoke($provider, $response);
+
+        $this->assertInstanceOf(\core_ai\actions\action_response::class, $result);
+        $this->assertTrue($result->get_success());
+        $this->assertEquals('generate_image', $result->get_actionname());
+        $this->assertEquals($response['body'], $result->get_body());
     }
+
+    /**
+     * Test prepare_response error.
+     */
+    public function test_prepare_response_error(): void {
+        $provider = new \aiprovider_openai\provider();
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($provider, 'prepare_response');
+
+        $response = [
+                'success' => false,
+                'errorcode' => 500,
+                'errormessage' => 'Internal server error.'
+        ];
+
+        $result = $method->invoke($provider, $response);
+
+        $this->assertInstanceOf(\core_ai\actions\action_response::class, $result);
+        $this->assertFalse($result->get_success());
+        $this->assertEquals('generate_image', $result->get_actionname());
+        $this->assertEquals($response['errorcode'], $result->get_errorcode());
+        $this->assertEquals($response['errormessage'], $result->get_errormessage());
+    }
+
 }
