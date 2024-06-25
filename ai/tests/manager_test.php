@@ -94,12 +94,15 @@ class manager_test extends \advanced_testcase {
     }
 
     public function test_process_action() {
-        // Create a partial mock for YourClass to mock the call_action_provider method.
         $managermock = $this->getMockBuilder(manager::class)
                 ->onlyMethods(['call_action_provider'])
                 ->getMock();
 
-        $expectedResult = (object)['success' => true];
+        $expectedResult = new \core_ai\actions\action_response(
+                success: true,
+                actionname: 'generate_image',
+                body: ['image' => 'https://example.com/image.png']
+        );;
 
         // Set up the expectation for call_action_provider to return the defined result.
         $managermock->expects($this->any())
@@ -109,6 +112,8 @@ class manager_test extends \advanced_testcase {
         $action = $managermock::get_action('generate_image');
 
         $result = $managermock->process_action($action);
-        error_log(print_r($result, true));
+
+        $this->assertEquals($expectedResult, $result);
+
     }
 }

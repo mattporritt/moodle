@@ -294,6 +294,7 @@ class provider extends \core_ai\provider {
 
 
         $fs = get_file_storage();
+        $itemid = file_get_unused_draft_itemid();
 
         // Create a new file containing the text 'hello world'.
         $fs->create_file_from_url($fileinfo, $url , $options);

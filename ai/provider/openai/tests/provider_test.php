@@ -93,11 +93,12 @@ class provider_test extends \advanced_testcase {
      */
     public function test_create_request_object(): void {
         $action = new \core_ai\actions\generate_image();
+        $contextid = 1;
         $prompt = 'This is a test prompt';
         $aspectratio = 'square';
         $quality = 'hd';
         $style = 'vivid';
-        $action->configure($prompt, $aspectratio, $quality, $style);
+        $action->configure($contextid, $prompt, $aspectratio, $quality, $style);
 
         $provider = new \aiprovider_openai\provider();
         // We're working with a private method here, so we need to use reflection.
@@ -255,11 +256,12 @@ class provider_test extends \advanced_testcase {
     public function test_process_action_generate_image():void {
         $this->resetAfterTest();
         $action = new \core_ai\actions\generate_image();
+        $contextid = 1;
         $prompt = 'This is a test prompt';
         $aspectratio = 'square';
         $quality = 'hd';
         $style = 'vivid';
-        $action->configure($prompt, $aspectratio, $quality, $style);
+        $action->configure($contextid, $prompt, $aspectratio, $quality, $style);
 
         set_config('apikey', '', 'aiprovider_openai');
         set_config('orgid', '', 'aiprovider_openai');
