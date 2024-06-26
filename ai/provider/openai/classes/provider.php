@@ -62,19 +62,6 @@ class provider extends \core_ai\provider {
     }
 
     /**
-     * Generate a user id.
-     * This is a hash of the site id and user id,
-     * this means we can determine who made the request
-     * but don't pass any personal data to OpenAI.
-     *
-     * @return string The generated user id.
-     */
-    private function generate_userid(): string {
-        global $USER, $CFG;
-        return hash('sha256', $CFG->siteidentifier . $USER->id);
-    }
-
-    /**
      * Get the list of actions that this provider supports.
      *
      * @return array An array of action class names.
@@ -107,14 +94,29 @@ class provider extends \core_ai\provider {
 
         // If the request was successful, save the URL to a file.
         if ($response['success']) {
-            $this->url_to_file(
+            $fileobj = $this->url_to_file(
                 $action->get_configuration('contextid'),
                 $response['body']['url']
             );
+            // Add the file to the response, so the calling placement can do whatever they want with it.
+            $response['body']['file'] = $fileobj;
         }
 
         // Format the action response object.
         return $this->prepare_response($response);
+    }
+
+    /**
+     * Generate a user id.
+     * This is a hash of the site id and user id,
+     * this means we can determine who made the request
+     * but don't pass any personal data to OpenAI.
+     *
+     * @return string The generated user id.
+     */
+    private function generate_userid(): string {
+        global $USER, $CFG;
+        return hash('sha256', $CFG->siteidentifier . $USER->id);
     }
 
     /**
@@ -287,16 +289,11 @@ class provider extends \core_ai\provider {
      * @return \stored_file The file object.
      */
     private function url_to_file(int $contextid, string $url): \stored_file {
-        $options = [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->apikey,
-                'OpenAI-Organization' => $this->orgid,
-            ]
-        ];
-
         $parsedurl = parse_url($url, PHP_URL_PATH); // Parse the URL to get the path.
         $filename = basename($parsedurl); // Get the basename of the path.
 
+        // We put the file in the user draft area initially.
+        // Placements (on behalf of the user) can then move it to the correct location.
         $fileinfo = new \stdClass();
         $fileinfo->contextid = $contextid;
         $fileinfo->filearea  = 'draft';
@@ -306,6 +303,6 @@ class provider extends \core_ai\provider {
         $fileinfo->filename  = $filename;
 
         $fs = get_file_storage();
-        return $fs->create_file_from_url($fileinfo, $url, $options);
+        return $fs->create_file_from_url($fileinfo, $url);
     }
 }

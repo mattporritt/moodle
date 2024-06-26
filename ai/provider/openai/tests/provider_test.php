@@ -274,6 +274,9 @@ class provider_test extends \advanced_testcase {
      */
     public function test_process_action_generate_image():void {
         $this->resetAfterTest();
+        // Log in user.
+        $this->setUser($this->getDataGenerator()->create_user());
+
         $action = new \core_ai\actions\generate_image();
         $contextid = 1;
         $prompt = 'This is a test prompt';
@@ -287,7 +290,5 @@ class provider_test extends \advanced_testcase {
 
         $provider = new \aiprovider_openai\provider();
         //$result = $provider->process_action_generate_image($action);
-
     }
-
 }
