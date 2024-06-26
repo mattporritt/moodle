@@ -119,7 +119,7 @@ class manager {
      * Process an action.
      * This is the entry point for processing an action.
      *
-     * @param base $action The action to process.
+     * @param base $action The action to process. Action must be configured.
      * @throws \coding_exception
      * @return action_response The result of the action.
      */

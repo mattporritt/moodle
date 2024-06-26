@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="lib/db" VERSION="20240408" COMMENT="XMLDB file for core Moodle tables"
+<XMLDB PATH="lib/db" VERSION="20240626" COMMENT="XMLDB file for core Moodle tables"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
 >
@@ -4841,6 +4841,55 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+    </TABLE>
+    <TABLE NAME="ai_policy_register" COMMENT="Register of users who have accepted this sites AI usage policy">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the user that has accepted the policy"/>
+        <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The context id that the policy was accepted in"/>
+        <FIELD NAME="timeaccepted" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Timestamp of when the policy was accepted"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign-unique" FIELDS="userid" REFTABLE="user" REFFIELDS="id" COMMENT="Foreign key to user table"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="ai_action_generate_image" COMMENT="stores specific data about generate image actions">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="prompt" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The text from the user that was used to generate the image"/>
+        <FIELD NAME="numberimages" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The number of images requested to be generated"/>
+        <FIELD NAME="resolution" TYPE="char" LENGTH="21" NOTNULL="true" SEQUENCE="false" COMMENT="The pixel resolution of the generated in wxh format."/>
+        <FIELD NAME="quality" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The quality indicator of the generate image, e.g HD"/>
+        <FIELD NAME="style" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The style of the image, e.g. vivid"/>
+        <FIELD NAME="imageurl" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="URL of the generated response."/>
+        <FIELD NAME="revisedprompt" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The actual prompt the AI used to generate the image"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="ai_action_register" COMMENT="Stores information about processed ai actions.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="actionname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the action"/>
+        <FIELD NAME="actionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID in related action table with more details about the action"/>
+        <FIELD NAME="success" TYPE="binary" NOTNULL="true" SEQUENCE="false" COMMENT="Was the action successful when run"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The user who made the request to run the action"/>
+        <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the context the action request was made in"/>
+        <FIELD NAME="provider" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="The provider plugin name that processed the action"/>
+        <FIELD NAME="errorcode" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false" COMMENT="If there was an error this was the error code"/>
+        <FIELD NAME="errormessage" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="If there was an error this was the message"/>
+        <FIELD NAME="timeprocessed" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Timestamp of when the action was processed"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" COMMENT="Relationship to user table"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="action" UNIQUE="true" FIELDS="actionname, actionid" COMMENT="unique index of actionname and actionid"/>
+        <INDEX NAME="provider" UNIQUE="false" FIELDS="actionname, provider" COMMENT="Index of actionname and provider"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>
