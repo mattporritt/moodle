@@ -62,7 +62,7 @@ class action_response {
                 throw new coding_exception('Body must exist in a successful response.');
             }
         } else {
-            if (empty($errorcode) || empty($errormessage)) {
+            if ($errorcode == 0 || empty($errormessage)) {
                 throw new coding_exception('Error code and message must exist in an error response.');
             }
         }

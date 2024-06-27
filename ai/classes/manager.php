@@ -139,17 +139,23 @@ class manager {
 
 
             // If the result is successful, return the result.
+            // No need to keep looping.
             if ($result->get_success()) {
                 return $result;
             }
         }
 
-        // If we get here we've all available providers have failed,
-        // or there were no providers available.
+        // If we get here we've all available providers have failed.
+        // Return the result if we have one.
+        if (isset($result)) {
+            return $result;
+        }
+
+        // Response if there are no providers available.
         return new action_response(
             success: false,
             actionname: $actionname,
-            errorcode: 0,
+            errorcode: -1,
             errormessage: 'No providers available to process the action.');
     }
 }

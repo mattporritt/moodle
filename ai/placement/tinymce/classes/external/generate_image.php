@@ -130,7 +130,7 @@ class generate_image extends external_api {
         // Return the response.
         return [
             'success' => $response->get_success(),
-            'revisedprompt' => $response->get_body()['revised_prompt'],
+            'revisedprompt' => $response->get_body()['revised_prompt'] ?? '',
             'drafturl' => $drafturl,
             'errorcode' => $response->get_errorcode(),
             'error' => $response->get_errormessage()

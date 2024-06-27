@@ -188,18 +188,28 @@ class provider extends \core_ai\provider {
     public function query_ai_api(http_client $client, \stdClass $requestobj): array {
         $requestjson = json_encode($requestobj);
 
-        // Call the external AI service.
-        $response = $client->request('POST', '', [
-                'body' => $requestjson,
-        ]);
+        try {
+            // Call the external AI service.
+            $response = $client->request('POST', '', [
+                    'body' => $requestjson,
+            ]);
 
-        // Handle the various response codes.
-        $status = $response->getStatusCode();
-        if ($status == 200) {
-            return $this->handle_api_success($response);
-        } else {
-            return $this->handle_api_error($status, $response);
+            // Double-check the response codes, in case of a non 200 that didn't throw an error.
+            $status = $response->getStatusCode();
+            if ($status == 200) {
+                return $this->handle_api_success($response);
+            } else {
+                return $this->handle_api_error($status, $response);
+            }
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            // Handle any exceptions.
+            return [
+                'success' => false,
+                'errorcode' => $e->getCode(),
+                'errormessage' => $e->getMessage(),
+            ];
         }
+
     }
 
     /**
@@ -210,24 +220,19 @@ class provider extends \core_ai\provider {
      * @return array The error response.
      */
     protected function handle_api_error(int $status, \GuzzleHttp\Psr7\Response $response): array {
+        $responsearr = [
+            'success' => false,
+            'errorcode' => $status
+        ];
 
         if ($status == 500) {
-            $responsearr = [
-                    'errorcode' => $status,
-                    'errormessage' => 'Internal server error.',
-            ];
+            $responsearr['errormessage'] = 'Internal server error.';
         } else if ($status == 503) {
-            $responsearr = [
-                    'errorcode' => $status,
-                    'errormessage' => 'Service unavailable.',
-            ];
+            $responsearr['errormessage'] = 'Service unavailable.';
         } else {
             $responsebody = $response->getBody();
             $bodyobj = json_decode($responsebody->getContents());
-            $responsearr =[
-                    'errorcode' => $status,
-                    'errormessage' => $bodyobj->error->message,
-            ];
+            $responsearr['errormessage'] = $bodyobj->error->message;
         }
 
         return $responsearr;
