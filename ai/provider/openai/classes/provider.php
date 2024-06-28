@@ -57,8 +57,6 @@ class provider extends \core_ai\provider {
         $this->apikey = get_config('aiprovider_openai', 'apikey');
         // Get api org id from config.
         $this->orgid = get_config('aiprovider_openai', 'orgid');
-        // Generate the user id.
-        $this->userid = $this->generate_userid();
     }
 
     /**
@@ -86,6 +84,9 @@ class provider extends \core_ai\provider {
         // Create the HTTP client.
         $client = $this->create_http_client();
 
+        // Generate the user id.
+        $this->userid = $this->generate_userid($action->get_configuration('userid'));
+
         // Create the request object.
         $requestobj = $this->create_request_object($action);
 
@@ -95,7 +96,7 @@ class provider extends \core_ai\provider {
         // If the request was successful, save the URL to a file.
         if ($response['success']) {
             $fileobj = $this->url_to_file(
-                $action->get_configuration('contextid'),
+                $action->get_configuration('userid'),
                 $response['body']['url']
             );
             // Add the file to the response, so the calling placement can do whatever they want with it.
@@ -112,11 +113,12 @@ class provider extends \core_ai\provider {
      * this means we can determine who made the request
      * but don't pass any personal data to OpenAI.
      *
+     * @param string $userid The user id.
      * @return string The generated user id.
      */
-    private function generate_userid(): string {
-        global $USER, $CFG;
-        return hash('sha256', $CFG->siteidentifier . $USER->id);
+    private function generate_userid($userid): string {
+        global $CFG;
+        return hash('sha256', $CFG->siteidentifier . $userid);
     }
 
     /**
@@ -289,18 +291,18 @@ class provider extends \core_ai\provider {
      * therefore we need to provide the image file in a format that can
      * be used by placements. So we use the file API.
      *
-     * @param int $contextid The context id.
+     * @param int $userid The user id.
      * @param string $url The URL to the image.
      * @return \stored_file The file object.
      */
-    private function url_to_file(int $contextid, string $url): \stored_file {
+    private function url_to_file(int $userid, string $url): \stored_file {
         $parsedurl = parse_url($url, PHP_URL_PATH); // Parse the URL to get the path.
         $filename = basename($parsedurl); // Get the basename of the path.
 
         // We put the file in the user draft area initially.
         // Placements (on behalf of the user) can then move it to the correct location.
         $fileinfo = new \stdClass();
-        $fileinfo->contextid = $contextid;
+        $fileinfo->contextid = \context_user::instance($userid)->id;
         $fileinfo->filearea  = 'draft';
         $fileinfo->component = 'user';
         $fileinfo->itemid    = file_get_unused_draft_itemid();

@@ -24,8 +24,8 @@ namespace core_ai\actions;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class generate_image extends base{
-    /** @var int The context id action was created in. */
-    protected int $contextid;
+    /** @var int The user id requesting the action. */
+    protected int $userid;
 
     /** @var string The prompt text used to generate the image */
     protected string $prompttext;
@@ -44,7 +44,7 @@ class generate_image extends base{
      * It’s also responsible for performing any other setup tasks,
      * such as getting additional data from the database etc.
      *
-     * @param string $contextid The context id.
+     * @param string $userid The user id making the request.
      * @param string $prompttext The prompt text used to generate the image.
      * @param string $aspectratio The aspect ratio of the generated image.
      * @param string $quality The quality of the generated image.
@@ -52,13 +52,13 @@ class generate_image extends base{
      * @return void.
      */
     public function configure(
-        string $contextid,
+        string $userid,
         string $prompttext,
         string $aspectratio,
         string $quality,
         string $style
     ): void {
-        $this->contextid = $contextid;
+        $this->userid = $userid;
         $this->prompttext = $prompttext;
         $this->aspectratio = $aspectratio;
         $this->quality = $quality;

@@ -81,6 +81,7 @@ class generate_image extends external_api {
             string $quality,
             string $style = ''
         ): array {
+        global $USER;
         // Parameter validation.
         [
             'contextid' => $contextid,
@@ -105,7 +106,7 @@ class generate_image extends external_api {
 
         // Prepare the action.
         $action = new \core_ai\actions\generate_image();
-        $action->configure($contextid, $prompttext, $aspectratio, $quality, $style);
+        $action->configure($USER->id, $prompttext, $aspectratio, $quality, $style);
 
         // Send the action to the AI manager.
         $manager = new \core_ai\manager();
@@ -114,15 +115,13 @@ class generate_image extends external_api {
         // If we have a successful response, generate the URL for the draft file.
         if($response->get_success()) {
             $draftfile = $response->get_body()['file'];
-            $drafturl = \moodle_url::make_pluginfile_url(
-                $draftfile->get_contextid(),
-                $draftfile->get_component(),
-                $draftfile->get_filearea(),
+            $drafturl = \moodle_url::make_draftfile_url(
                 $draftfile->get_itemid(),
                 $draftfile->get_filepath(),
                 $draftfile->get_filename(),
                 false
             )->out(false);
+
         } else {
             $drafturl = '';
         }
