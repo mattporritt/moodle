@@ -19,6 +19,8 @@ namespace aiprovider_openai;
 use core\http_client;
 use \core_ai\actions;
 
+require_once($CFG->libdir . '/filelib.php');
+
 /**
  * Class provider.
  *

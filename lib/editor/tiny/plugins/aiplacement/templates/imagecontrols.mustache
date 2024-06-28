@@ -1,0 +1,97 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template tiny_aiplacement/imagemodal
+
+    Modal to manage AI generated image content within the Tiny Editor.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * elementid: The id of the element that will be used to create the modal.
+
+    Example context (json):
+    {
+        "elementid": "exampleId",
+    }
+}}
+<div class="tiny-aiplacement-image-options">
+  <span class="font-weight-bold">
+    {{#str}} imagequality, tiny_aiplacement{{/str}}
+  </span>
+  <div class="tiny-aiplacement-toggle-container mt-1 mb-1">
+    <input type="checkbox"
+           id="{{elementid}}_image_quality_switch"
+           class="tiny-aiplacement-toggle-switch">
+    <label for="{{elementid}}_image_quality_switch"
+           class="tiny-aiplacement-toggle-slider">
+      <span class="tiny-aiplacement-slider-left">
+        {{#str}} definitionstandard, tiny_aiplacement{{/str}}
+      </span>
+      <span class="tiny-aiplacement-slider-right">
+        {{#str}} definitionhigh, tiny_aiplacement{{/str}}
+      </span>
+    </label>
+  </div>
+  <span class="font-weight-bold">
+    {{#str}} imagestyle, tiny_aiplacement{{/str}}
+  </span>
+  <div class="tiny-aiplacement-toggle-container mt-1 mb-1">
+    <input type="checkbox"
+           id="{{elementid}}_image_style_switch"
+           class="tiny-aiplacement-toggle-switch">
+    <label for="{{elementid}}_image_style_switch"
+           class="tiny-aiplacement-toggle-slider">
+                  <span class="tiny-aiplacement-slider-left">
+                    {{#str}} stylenatural, tiny_aiplacement{{/str}}
+                  </span>
+      <span class="tiny-aiplacement-slider-right">
+        {{#str}} stylevivid, tiny_aiplacement{{/str}}
+      </span>
+    </label>
+  </div>
+  <span class="font-weight-bold">
+    {{#str}} aspectratio, tiny_aiplacement{{/str}}
+  </span>
+  <div class="tiny-aiplacement-aspect-ratio-container mt-1 mb-1">
+    <label class="tiny-aiplacement-aspect-ratio-btn">
+      <input type="radio" name="aspect-ratio" value="square" checked>
+      <div class="tiny-aiplacement-aspect-ratio-label">
+        <i class="fas fa-square"></i>
+        <span>{{#str}} aspectsquare, tiny_aiplacement{{/str}}</span>
+      </div>
+    </label>
+    <label class="tiny-aiplacement-aspect-ratio-btn ml-2 mr-2">
+      <input type="radio" name="aspect-ratio" value="landscape">
+      <div class="tiny-aiplacement-aspect-ratio-label">
+        <i class="fas fa-mobile fa-rotate-90"></i>
+        <span>{{#str}} aspectlandscape, tiny_aiplacement{{/str}}</span>
+      </div>
+    </label>
+    <label class="tiny-aiplacement-aspect-ratio-btn">
+      <input type="radio" name="aspect-ratio" value="portrait">
+      <div class="tiny-aiplacement-aspect-ratio-label">
+        <i class="fas fa-mobile"></i>
+        <span>{{#str}} aspectportrait, tiny_aiplacement{{/str}}</span>
+      </div>
+    </label>
+  </div>
+</div>
