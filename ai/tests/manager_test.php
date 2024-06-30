@@ -116,4 +116,43 @@ class manager_test extends \advanced_testcase {
         $this->assertEquals($expectedResult, $result);
 
     }
+
+    /**
+     * Test set_user_policy.
+     */
+    public function test_set_user_policy(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $result = manager::set_user_policy(1, 1);
+        $this->assertTrue($result);
+
+        // Check record exists.
+        $record = $DB->record_exists('ai_policy_register', ['userid' => 1, 'contextid' => 1]);
+        $this->assertTrue($record);
+    }
+
+    /**
+     * Test get_user_policy.
+     */
+    public function test_get_user_policy(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        // Should be false for user initially.
+        $result = manager::get_user_policy(1);
+        $this->assertFalse($result);
+
+        // Manually add record to the database.
+        $record = new \stdClass();
+        $record->userid = 1;
+        $record->contextid = 1;
+        $record->timeaccepted = time();
+
+        $DB->insert_record('ai_policy_register', $record);
+
+        // Should be true for user now.
+        $result = manager::get_user_policy(1);
+        $this->assertTrue($result);
+    }
 }

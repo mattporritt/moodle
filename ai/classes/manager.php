@@ -158,4 +158,40 @@ class manager {
             errorcode: -1,
             errormessage: 'No providers available to process the action.');
     }
+
+    /**
+     * Set the user policy.
+     *
+     * @param int $userid The user id.
+     * @param int $contextid The context id the policy was accepted in.
+     * @return bool True if the policy was set, false otherwise.
+     * @throws \dml_exception
+     */
+    public static function set_user_policy(int $userid, int $contextid): bool {
+        global $DB;
+
+        $record = new \stdClass();
+        $record->userid = $userid;
+        $record->contextid = $contextid;
+        $record->timeaccepted = time();
+
+        if ($DB->insert_record('ai_policy_register', $record)) {
+            $policycache = \cache::make('core', 'ai_policy');
+            return $policycache->set($userid, true);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Get the user policy.
+     *
+     * @param int $userid The user id.
+     * @return bool True if the policy was accepted, false otherwise.
+     * @throws \coding_exception
+     */
+    public static function get_user_policy(int $userid): bool {
+        $policycache = \cache::make('core', 'ai_policy');
+        return $policycache->get($userid);
+    }
 }

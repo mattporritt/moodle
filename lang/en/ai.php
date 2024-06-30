@@ -43,7 +43,7 @@ $string['availableplacements'] = 'Available AI placements';
 $string['availableplacements_desc'] = 'Select an AI placement to manage its settings.<br/>
 AI placements are responsible for determining where and how AI services are used within the Moodle interface. <br/>
 Each enabled placement uses one or more "AI Actions". The preferences for these actions can be managed on the settings page for each placement plugin.';
-$string['cachedef_ai_ratelimit'] = 'Cache to store request rate limits related to the AI subsystem.';
+$string['cachedef_ai_policy'] = 'Cache to store user AI policy acceptance.';
 $string['manageaiproviders'] = 'Manage AI providers';
 $string['manageaiplacements'] = 'Manage AI placements';
 $string['placementactionsettings'] = 'Placement actions';
