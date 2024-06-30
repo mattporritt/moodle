@@ -3196,6 +3196,22 @@ $functions = array(
         'type'        => 'read',
         'ajax'        => true,
     ],
+    'core_ai_set_policy' => [
+        'classname'   => 'core_ai\external\set_policy',
+        'methodname'  => 'set_policy',
+        'description' => 'Set a users AI policy acceptance',
+        'type'        => 'write',
+        'ajax'        => true,
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE]
+    ],
+    'core_ai_get_policy' => [
+        'classname'   => 'core_ai\external\get_policy',
+        'methodname'  => 'get_policy',
+        'description' => 'Get a users AI policy acceptance',
+        'type'        => 'read',
+        'ajax'        => true,
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE]
+    ],
 );
 
 $services = array(
