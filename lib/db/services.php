@@ -3196,17 +3196,17 @@ $functions = array(
         'type'        => 'read',
         'ajax'        => true,
     ],
-    'core_ai_set_policy' => [
-        'classname'   => 'core_ai\external\set_policy',
-        'methodname'  => 'set_policy',
+    'core_ai_set_policy_status' => [
+        'classname'   => 'core_ai\external\set_policy_status',
+        'methodname'  => 'set_policy_status',
         'description' => 'Set a users AI policy acceptance',
         'type'        => 'write',
         'ajax'        => true,
         'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE]
     ],
-    'core_ai_get_policy' => [
-        'classname'   => 'core_ai\external\get_policy',
-        'methodname'  => 'get_policy',
+    'core_ai_get_policy_status' => [
+        'classname'   => 'core_ai\external\get_policy_status',
+        'methodname'  => 'get_policy_status',
         'description' => 'Get a users AI policy acceptance',
         'type'        => 'read',
         'ajax'        => true,

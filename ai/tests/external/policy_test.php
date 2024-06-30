@@ -46,7 +46,7 @@ class policy_test extends \advanced_testcase {
         ];
 
         $result = \core_external\external_api::call_external_function(
-            'core_ai_get_policy',
+            'core_ai_get_policy_status',
             $params
         );
 
@@ -82,7 +82,7 @@ class policy_test extends \advanced_testcase {
         ];
 
         $result = \core_external\external_api::call_external_function(
-                'core_ai_get_policy',
+                'core_ai_get_policy_status',
                 $params
         );
 
@@ -109,7 +109,7 @@ class policy_test extends \advanced_testcase {
         ];
 
         $result = \core_external\external_api::call_external_function(
-            'core_ai_set_policy',
+            'core_ai_set_policy_status',
             $params
         );
 

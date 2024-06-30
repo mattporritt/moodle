@@ -23,33 +23,33 @@ use core_external\external_single_structure;
 use core_external\external_value;
 
 /**
- * External API to set a users AI policy acceptance.
+ * External API to get a users AI policy acceptance.
  *
  * @package    core_ai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class set_policy extends external_api {
+class get_policy_status extends external_api {
 
     /**
-     * Set policy parameters.
+     * Get policy parameters.
      *
      * @since  Moodle 4.5
      * @return external_function_parameters
      */
-    public static function set_policy_parameters(): external_function_parameters {
+    public static function get_policy_status_parameters(): external_function_parameters {
         return new external_function_parameters(
-            [
-                'userid' => new external_value(
-                    PARAM_INT,
-                    'The user ID',
-                    VALUE_REQUIRED),
-                'contextid' => new external_value(
-                    PARAM_INT,
-                    'The context ID',
-                    VALUE_REQUIRED),
+                [
+                        'userid' => new external_value(
+                                PARAM_INT,
+                                'The user ID',
+                                VALUE_REQUIRED),
+                        'contextid' => new external_value(
+                                PARAM_INT,
+                                'The context ID',
+                                VALUE_REQUIRED),
 
-            ]
+                ]
         );
     }
 
@@ -61,7 +61,7 @@ class set_policy extends external_api {
      * @param int $contextid The context ID.
      * @return array The generated content.
      */
-    public static function set_policy(
+    public static function get_policy_status(
             int $userid,
             int $contextid,
     ): array {
@@ -70,20 +70,26 @@ class set_policy extends external_api {
         [
                 'userid' => $userid,
                 'contextid' => $contextid,
-        ] = self::validate_parameters(self::set_policy_parameters(), [
+        ] = self::validate_parameters(self::get_policy_status_parameters(), [
                 'userid' => $userid,
                 'contextid' => $contextid,
         ]);
 
-        // No special permissions required to accept the policy.
-        // Just amke sure the user id is the user that is logged in.
-        // You can't accept a policy on behalf of someone else.
-        if ($userid !== (int)$USER->id) {
+        // Context validation and permission check.
+        // Get the context from the passed in ID.
+        $context = \context::instance_by_id($contextid);
+
+        // Check the user has permission to use the AI service.
+        self::validate_context($context);
+        require_capability('moodle/ai:getpolicy', $context);
+
+        // If the context level is that of a user, check the user is the same as the one passed in.
+        if ($context->contextlevel == CONTEXT_USER && ($USER->id !== $userid)) {
             throw new \moodle_exception('invaliduser');
         }
 
         return [
-            'success' => manager::set_user_policy($userid, $contextid)
+                'status' => manager::get_user_policy($userid)
         ];
     }
 
@@ -93,11 +99,11 @@ class set_policy extends external_api {
      * @since  Moodle 4.5
      * @return external_function_parameters
      */
-    public static function set_policy_returns(): external_function_parameters {
+    public static function get_policy_status_returns(): external_function_parameters {
         return new external_function_parameters([
-                'success' => new external_value(
+                'status' => new external_value(
                         PARAM_BOOL,
-                        'Was the request successful',
+                        'True if the policy was accepted, false otherwise.',
                         VALUE_REQUIRED)
         ]);
     }
