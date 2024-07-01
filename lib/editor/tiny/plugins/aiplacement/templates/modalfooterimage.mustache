@@ -26,12 +26,28 @@
     * none
 
     Context variables required for this template:
-    * none
+    * elementid: The id of the element that will be used to create the modal.
 
     Example context (json):
     {
+        "elementid": "exampleId",
     }
 }}
-<div class="ai-policy-display">
-    {{#str}} userpolicy, core_ai{{/str}}
-</div>
+<button type="button"
+        class="btn btn-secondary"
+        data-action="cancel">
+  {{#str}} cancel, moodle {{/str}}
+</button>
+<button id="{{elementid}}_tiny_aiplacement_generatebutton"
+        type="button"
+        class="btn btn-primary"
+        data-action="generate"
+        disabled="disabled">
+  {{#str}} generate, tiny_aiplacement{{/str}}
+</button>
+<button id="{{elementid}}_tiny_aiplacement_nextbutton"
+        type="button"
+        class="btn btn-primary hidden"
+        data-action="inserter">
+  {{#str}} next, tiny_aiplacement{{/str}}
+</button>
