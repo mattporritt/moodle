@@ -61,3 +61,12 @@ Each action can also have its own settings that can be configured here.';
 $string['providersettings'] = 'Provider specific settings';
 $string['providersettings_desc'] = 'These settings control various aspects of this AI provider.<br/>
 They control how the provider connects to the AI service, and related operations';
+$string['userpolicy'] = 'Welcome to the AI-enhanced features of the Moodle LMS. Before you start, we\'d like to inform you about a few important points.<br/>
+
+When you use the AI functionality, you\'re engaging with an advanced system designed to improve your experience. It\'s important to understand that while the AI strives to provide accurate and helpful responses, it may not always get everything right. Therefore, we encourage you to use your own judgment when interpreting the AI\'s suggestions. <br/>
+
+To make the AI work effectively, it processes the information you provide by communicating with an external system. This means that your queries and the AI\'s responses are shared with this system to generate the best possible outcomes for you. <br/>
+
+Additionally, a record of your interactions with the AI are kept within this LMS. <br/>
+
+By continuing, you acknowledge that you understand and agree to these terms. We hope you enjoy using the AI features and find them beneficial to your learning journey.';

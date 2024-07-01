@@ -30,5 +30,5 @@ $plugin->requires = 2024041600;
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->dependencies = [
     'aiplacement_tinymce' => 2024061801,
-    'tiny_media/imageinsert' => 2024042200,
+    'tiny_media' => 2024042200,
 ];

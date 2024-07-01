@@ -82,8 +82,10 @@ class plugininfo extends plugin implements plugin_with_buttons, plugin_with_menu
             array $fpoptions,
             ?editor $editor = null
     ): array {
+        global $USER;
         return [
-                'contextid' => $context->id,
+            'contextid' => $context->id,
+            'userid' => $USER->id,
         ];
     }
 }
