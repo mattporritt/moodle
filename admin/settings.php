@@ -115,6 +115,11 @@ if (empty($SITE->fullname)) {
 
     echo $OUTPUT->render_from_template('core_admin/settings', $context);
 
+    $contextfooter = [
+        'content' => $settingspage->output_html_footer(),
+    ];
+    echo $OUTPUT->render_from_template('core_admin/settings_footer', $contextfooter);
+
 } else {
     if ($PAGE->user_allowed_editing() && !$PAGE->theme->haseditswitch) {
         $url = clone($PAGE->url);
@@ -159,6 +164,11 @@ if (empty($SITE->fullname)) {
     ];
 
     echo $OUTPUT->render_from_template('core_admin/settings', $context);
+
+    $contextfooter = [
+        'content' => $settingspage->output_html_footer(),
+    ];
+    echo $OUTPUT->render_from_template('core_admin/settings_footer', $contextfooter);
 }
 
 // Add the form change checker.

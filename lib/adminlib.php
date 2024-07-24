@@ -1477,6 +1477,9 @@ class admin_settingpage implements part_of_admin_tree, linkable_settings_page {
     /** @var array list of visible names of page parents */
     public $visiblepath;
 
+    /** @var mixed An object of admin_setting footer objects that are part of this setting page. */
+    public $settings_footer;
+
     /**
      * see admin_settingpage for details of this function
      *
@@ -1489,6 +1492,7 @@ class admin_settingpage implements part_of_admin_tree, linkable_settings_page {
      */
     public function __construct($name, $visiblename, $req_capability='moodle/site:config', $hidden=false, $context=NULL) {
         $this->settings    = new stdClass();
+        $this->settings_footer = new stdClass();
         $this->name        = $name;
         $this->visiblename = $visiblename;
         if (is_array($req_capability)) {
@@ -1606,6 +1610,30 @@ class admin_settingpage implements part_of_admin_tree, linkable_settings_page {
     }
 
     /**
+     * Adds a setting to the footer settings.
+     *
+     * This method adds an instance of `admin_setting` to the footer settings.
+     * It checks if the provided setting is an instance of `admin_setting`,
+     * constructs the setting name, and then adds it to the settings footer.
+     *
+     * @param admin_setting $setting The setting instance to be added.
+     * @return bool Returns true if the setting was added successfully, false otherwise.
+     */
+    public function add_footer(admin_setting $setting): bool {
+        if (!($setting instanceof admin_setting)) {
+            debugging('error - not a setting instance');
+            return false;
+        }
+
+        $name = $setting->name;
+        if ($setting->plugin) {
+            $name = $setting->plugin . $name;
+        }
+        $this->settings_footer->{$name} = $setting;
+        return true;
+    }
+
+    /**
      * Hide the named setting if the specified condition is matched.
      *
      * @param string $settingname
@@ -1652,6 +1680,23 @@ class admin_settingpage implements part_of_admin_tree, linkable_settings_page {
         $adminroot = admin_get_root();
         $return = '<fieldset>'."\n".'<div class="clearer"><!-- --></div>'."\n";
         foreach($this->settings as $setting) {
+            $fullname = $setting->get_full_name();
+            if (array_key_exists($fullname, $adminroot->errors)) {
+                $data = $adminroot->errors[$fullname]->data;
+            } else {
+                $data = $setting->get_setting();
+                // do not use defaults if settings not available - upgrade settings handles the defaults!
+            }
+            $return .= $setting->output_html($data);
+        }
+        $return .= '</fieldset>';
+        return $return;
+    }
+
+    public function output_html_footer() {
+        $adminroot = admin_get_root();
+        $return = '<fieldset>'."\n".'<div class="clearer"><!-- --></div>'."\n";
+        foreach($this->settings_footer as $setting) {
             $fullname = $setting->get_full_name();
             if (array_key_exists($fullname, $adminroot->errors)) {
                 $data = $adminroot->errors[$fullname]->data;

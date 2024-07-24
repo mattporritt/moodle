@@ -33167,7 +33167,8 @@ input#id_externalurl {
   display: inline-block;
 }
 
-#adminsettings h3 {
+#adminsettings h3,
+.adminsettings_footer h3 {
   display: block;
   width: 100%;
   padding: 0;
