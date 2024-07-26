@@ -29,9 +29,6 @@ class admin_setting_action_manager extends admin_setting {
     /** @var string The name of the plugin these actions related too */
     protected string $pluginname;
 
-    /** @var array The list of action this manager covers */
-    protected array $actions;
-
     /** @var string The class of the management table to use */
     protected string $tableclass;
 
@@ -39,7 +36,6 @@ class admin_setting_action_manager extends admin_setting {
      * Constructor.
      *
      * @param string $pluginname
-     * @param array $actions
      * @param string $tableclass
      * @param string $name
      * @param string $visiblename
@@ -48,7 +44,6 @@ class admin_setting_action_manager extends admin_setting {
      */
     public function __construct(
             string $pluginname,
-            array $actions,
             string $tableclass,
             string $name,
             string $visiblename,
@@ -57,7 +52,6 @@ class admin_setting_action_manager extends admin_setting {
     ) {
         $this->nosave = true;
         $this->pluginname = $pluginname;
-        $this->actions = $actions;
         $this->tableclass = $tableclass;
 
         parent::__construct($name, $visiblename, $description, $defaultsetting);
@@ -92,9 +86,7 @@ class admin_setting_action_manager extends admin_setting {
      * @return string
      */
     public function output_html($data, $query = ''): string {
-        $table = new $this->tableclass(
-                pluginname: $this->pluginname,
-                actions: $this->actions);
+        $table = new $this->tableclass($this->pluginname);
         if (!($table instanceof \core_ai\table\aiprovider_action_management_table)
                 && !($table instanceof \core_ai\table\aiplacement_action_management_table)) {
             throw new \coding_exception(
