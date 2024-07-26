@@ -244,4 +244,40 @@ class manager {
         $policycache = \cache::make('core', 'ai_policy');
         return $policycache->get($userid);
     }
+
+    /**
+     * Set the action state for a given plugin.
+     *
+     * @param string $plugin The name of the plugin.
+     * @param string $action The action to be set.
+     * @param int $enabled The state to be set (e.g., enabled or disabled).
+     * @return bool Returns true if the configuration was successfully set, false otherwise.
+     */
+    public static function enable_action(string $plugin, string $action, int $enabled): bool {
+        $oldvalue = static::is_action_enabled($plugin, $action);
+        // Only set value if there is no config setting or if the value is different from the previous one.
+        if ($oldvalue !== $enabled) {
+            set_config($action, $enabled, $plugin);
+            add_to_config_log('disabled', !$oldvalue, !$enabled, $plugin);
+            \core_plugin_manager::reset_caches();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if an action is enabled for a given plugin.
+     *
+     * @param string $plugin The name of the plugin.
+     * @param string $action The action to be checked.
+     * @return mixed Returns the configuration value of the action for the given plugin.
+     */
+    public static function is_action_enabled(string $plugin, string $action): bool {
+        $value = get_config($plugin, $action);
+        // If not exist in DB, set it to true (enabled).
+        if ($value === false) {
+            return true;
+        }
+        return (bool) $value;
+    }
 }
