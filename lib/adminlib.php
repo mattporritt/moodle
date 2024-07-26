@@ -1620,11 +1620,6 @@ class admin_settingpage implements part_of_admin_tree, linkable_settings_page {
      * @return bool Returns true if the setting was added successfully, false otherwise.
      */
     public function add_footer(admin_setting $setting): bool {
-        if (!($setting instanceof admin_setting)) {
-            debugging('error - not a setting instance');
-            return false;
-        }
-
         $name = $setting->name;
         if ($setting->plugin) {
             $name = $setting->plugin . $name;
