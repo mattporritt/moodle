@@ -1170,7 +1170,7 @@ function xmldb_main_upgrade($oldversion) {
     // Automatically generated Moodle v4.4.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2024070500.01) {
+    if ($oldversion < 2024071900.01) {
         // Remove the site_contactable config of the hub plugin from config plugin table.
         unset_config('site_contactable', 'hub');
 
@@ -1285,7 +1285,7 @@ function xmldb_main_upgrade($oldversion) {
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2024070500.01);
+        upgrade_main_savepoint(true, 2024071900.01);
     }
 
     if ($oldversion < 2024071900.01) {
