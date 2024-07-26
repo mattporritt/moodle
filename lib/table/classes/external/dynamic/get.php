@@ -224,7 +224,7 @@ class get extends external_api {
             );
         }
 
-        $instance = new $tableclass($uniqueid);
+        $instance = static::create_new_instance($tableclass, $uniqueid);
         $instance->set_filterset($filterset);
         self::validate_context($instance->get_context());
 
@@ -279,5 +279,22 @@ class get extends external_api {
             'html' => new external_value(PARAM_RAW, 'The raw html of the requested table.'),
             'warnings' => new external_warnings()
         ]);
+    }
+
+    /**
+     * Creates a new instance of the specified table class.
+     *
+     * This method takes the class name of a table and a unique ID,
+     * and creates a new instance of the table class using the unique ID.
+     *
+     * Since this is a public method, it can be overridden by any class that extends this one,
+     * allowing customization of the instance creation process.
+     *
+     * @param string $tableclass The fully qualified class name of the table.
+     * @param string $uniqueid The unique identifier to be passed to the table class constructor.
+     * @return object An instance of the specified table class, initialized with the unique ID.
+     */
+    public static function create_new_instance(string $tableclass, string $uniqueid) {
+        return new $tableclass($uniqueid);
     }
 }

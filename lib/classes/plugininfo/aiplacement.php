@@ -83,11 +83,26 @@ class aiplacement extends base {
 
         $section = $this->get_settings_section_name();
 
-        $settings = null;
+        $settings = new \admin_settingpage($section, $this->displayname, 'moodle/site:config', $this->is_enabled() === false);
         if (file_exists($this->full_path('settings.php'))) {
-            $settings = new \admin_settingpage($section, $this->displayname, 'moodle/site:config', $this->is_enabled() === false);
             include($this->full_path('settings.php')); // This may also set $settings to null.
         }
+        // Load the placement actions.
+        if (file_exists($this->full_path('settings_footer.php'))) {
+            include($this->full_path('settings_footer.php')); // This may also set $settings to null.
+        } else {
+            $settings->add_footer(new \admin_setting_heading($section . '/generals',
+                new \lang_string('placementactionsettings', 'core_ai'),
+                new \lang_string('placementactionsettings_desc', 'core_ai')));
+            // Load the setting table of actions that this provider supports.
+            $settings->add_footer(new \core_ai\admin\admin_setting_action_manager(
+                $section,
+                \core_ai\table\aiplacement_action_management_table::class,
+                'manageaiplacements',
+                new \lang_string('manageaiproviders', 'core_ai'),
+            ));
+        }
+
         if ($settings) {
             $ADMIN->add($parentnodename, $settings);
         }
@@ -113,26 +128,23 @@ class aiplacement extends base {
      * @return bool Whether $pluginname has been updated or not.
      */
     public static function enable_plugin(string $pluginname, int $enabled): bool {
-        $haschanged = false;
-
         $plugin = 'aiplacement_' . $pluginname;
-        $oldvalue = get_config($plugin, 'disabled');
-        $disabled = !$enabled;
-        // Only set value if there is no config setting or if the value is different from the previous one.
-        if ($oldvalue == false && $disabled) {
-            set_config('disabled', $disabled, $plugin);
-            $haschanged = true;
-        } else if ($oldvalue != false && !$disabled) {
-            unset_config('disabled', $plugin);
-            $haschanged = true;
-        }
+        $oldvalue = self::is_plugin_enabled($pluginname);
+        $newvalue = (bool)$enabled;
 
-        if ($haschanged) {
-            add_to_config_log('disabled', $oldvalue, $disabled, $plugin);
+        if ($oldvalue !== $newvalue) {
+            if ($newvalue) {
+                set_config('enabled', $enabled, $plugin);
+            } else {
+                unset_config('enabled', $plugin);
+            }
+
+            add_to_config_log('enabled', $oldvalue, $newvalue, $plugin);
             core_plugin_manager::reset_caches();
+            return true;
         }
 
-        return $haschanged;
+        return false;
     }
 
     /**
@@ -153,11 +165,21 @@ class aiplacement extends base {
         // Filter to return only enabled plugins.
         $enabled = [];
         foreach ($plugins as $plugin) {
-            $disabled = get_config('aiplacement_' . $plugin, 'disabled');
-            if (empty($disabled)) {
+            if (self::is_plugin_enabled($plugin)) {
                 $enabled[$plugin] = $plugin;
             }
         }
         return $enabled;
+    }
+
+    /**
+     * Check if a provider plugin is enabled in config.
+     *
+     * @param string $plugin The plugin to check.
+     * @return bool Return true if enabled.
+     */
+    public static function is_plugin_enabled(string $plugin): bool {
+        $config = get_config('aiplacement_' . $plugin, 'enabled');
+        return ($config == 1);
     }
 }

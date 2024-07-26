@@ -3246,6 +3246,18 @@ $functions = array(
         'ajax'        => true,
         'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'core_ai_set_action' => [
+        'classname'   => 'core_ai\external\set_action',
+        'description' => 'Update action',
+        'type'        => 'write',
+        'ajax'        => true,
+    ],
+    'core_ai_get_action' => [
+        'classname' => 'core_ai\external\get_action',
+        'description' => 'Get the dynamic table content raw html',
+        'type' => 'read',
+        'ajax' => true,
+    ],
 );
 
 $services = array(
