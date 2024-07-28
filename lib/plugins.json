@@ -1,5 +1,8 @@
 {
     "standard": {
+        "aiplacement": [
+            "courseassist"
+        ],
         "antivirus": [
             "clamav"
         ],
