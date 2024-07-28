@@ -4,7 +4,8 @@
             "tinymce"
         ],
         "aiprovider": [
-            "openai"
+            "openai",
+            "azureai"
         ],
         "antivirus": [
             "clamav"

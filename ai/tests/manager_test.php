@@ -98,7 +98,6 @@ final class manager_test extends \advanced_testcase {
         // Assert that there is no provider for the generate text action.
         $this->assertCount(0, $providers[generate_text::class]);
         $this->assertCount(1, $providers[summarise_text::class]);
-
     }
 
     /**
