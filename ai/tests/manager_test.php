@@ -100,8 +100,16 @@ final class manager_test extends \advanced_testcase {
         // Assert that the AzureAI provider is not included in the list of providers for the actions when only selecting active.
         $providers = $manager->get_providers_for_actions($actions, true);
 
-        // Assert that there are two providers for each action.
+        // Assert that there is only one provider for each action.
         $this->assertCount(1, $providers['core_ai\\aiactions\\generate_text']);
+        $this->assertCount(1, $providers['core_ai\\aiactions\\summarise_text']);
+
+        // Disable the generate text action for the open ai provider.
+        set_config('core_ai\\aiactions\\generate_text', 0, 'aiprovider_openai');
+        $providers = $manager->get_providers_for_actions($actions, true);
+
+        // Assert that there is no provider for the generate text action.
+        $this->assertCount(0, $providers['core_ai\\aiactions\\generate_text']);
         $this->assertCount(1, $providers['core_ai\\aiactions\\summarise_text']);
 
     }
@@ -313,5 +321,45 @@ final class manager_test extends \advanced_testcase {
 
         // Assert the result was of the correct type.
         $this->assertInstanceOf(\core_ai\aiactions\responses\response_generate_image::class, $actionresult);
+    }
+
+    /**
+     * Test is_action enabled.
+     */
+    public function test_is_action_enabled(): void {
+        $this->resetAfterTest();
+        $plugin = 'aiprovider_openai';
+        $action = 'core_ai\\aiactions\\generate_image';
+
+        // Should be enabled by default.
+        $result = manager::is_action_enabled($plugin, $action);
+        $this->assertTrue($result);
+
+        // Disable the action.
+        set_config($action, 0, $plugin);
+
+        // Should now be disabled.
+        $result = manager::is_action_enabled($plugin, $action);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Test enable_action.
+     */
+    public function test_enable_action(): void {
+        $this->resetAfterTest();
+        $plugin = 'aiprovider_openai';
+        $action = 'core_ai\\aiactions\\generate_image';
+
+        // Disable the action.
+        set_config($action, 0, $plugin);
+
+        // Should now be disabled.
+        $result = manager::is_action_enabled($plugin, $action);
+        $this->assertFalse($result);
+
+        // Enable the action.
+        $result= manager::enable_action($plugin, $action, 1);
+        $this->assertTrue($result);
     }
 }
