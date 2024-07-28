@@ -77,7 +77,7 @@ class manager {
         foreach ($actions as $action) {
             $providers[$action] = [];
             foreach ($plugins as $plugin) {
-                if ($enabledonly && !$plugin->is_enabled()) {
+                if ($enabledonly && (!$plugin->is_enabled() || !static::is_action_enabled($plugin->component, $action))) {
                     continue;
                 }
                 $pluginclassname = $instance->get_ai_plugin_classname($plugin->component);
