@@ -63,13 +63,12 @@ class policy implements \cache_data_source {
      * @param array $keys An array of keys each of which will be string|int.
      * @return array An array of matching data items.
      */
-    public function load_many_for_cache(array $keys) {
-        $results = [];
-
-        foreach ($keys as $key) {
-            $results[] = $this->load_for_cache($key);
-        }
-
-        return $results;
+    public function load_many_for_cache(array $keys): array {
+        global $DB;
+        [$insql, $inparams] = $DB->get_in_or_equal($keys);
+        $sql = "SELECT id
+                  FROM {ai_policy_register}
+                 WHERE userid " . $insql;
+        return $DB->get_records_sql($sql, $inparams);
     }
 }

@@ -27,20 +27,8 @@ use coding_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class response_base {
-    /** @var bool The success status of the action. */
-    private bool $success;
-
     /** @var int The timestamp of when the response was created. */
     private int $timecreated;
-
-    /** @var string The name of the action that was processed. */
-    private string $actionname;
-
-    /** @var int  Error code. Must exist if status is error. */
-    private int $errorcode;
-
-    /** @var string Error message. Must exist if status is error */
-    private string $errormessage;
 
     /**
      * Constructor.
@@ -52,15 +40,19 @@ abstract class response_base {
      * @throws coding_exception
      */
     public function __construct(
-            bool $success,
-            string $actionname,
-            int $errorcode = 0,
-            string $errormessage = '',
+        /** @var bool The success status of the action. */
+        private bool $success,
+        /** @var string The name of the action that was processed. */
+        private string $actionname,
+        /** @var int  Error code. Must exist if status is error. */
+        private int $errorcode = 0,
+        /** @var string Error message. Must exist if status is error */
+        private string $errormessage = '',
 
     ) {
         $this->success = $success;
         $this->actionname = $actionname;
-        $this->timecreated = time();
+        $this->timecreated = \core\di::get(\core\clock::class)->time();
 
         if (!$success && ($errorcode == 0 || empty($errormessage))) {
             throw new coding_exception('Error code and message must exist in an error response.');

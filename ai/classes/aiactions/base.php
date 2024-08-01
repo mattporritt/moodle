@@ -39,7 +39,7 @@ abstract class base {
      * @throws coding_exception
      */
     public function __construct() {
-        $this->timecreated = time();
+        $this->timecreated = \core\di::get(\core\clock::class)->time();
         $this->ensure_configure_method_exists();
     }
 
@@ -126,13 +126,13 @@ abstract class base {
 
             // Check if the method exists.
             if (!$reflection->isPublic()) {
-                throw new \coding_exception('The configure method must be public in the subclass.');
+                throw new coding_exception('The configure method must be public in the subclass.');
             }
 
             // Check the return type.
             $returntype = $reflection->getReturnType();
             if ($returntype && $returntype->getName() !== 'void') {
-                throw new \coding_exception('The configure method must have a void return type in the subclass.');
+                throw new coding_exception('The configure method must have a void return type in the subclass.');
             }
 
             // Check if the method at least takes the contextid as a variable.
@@ -145,10 +145,19 @@ abstract class base {
                 }
             }
             if (!$parameterexists) {
-                throw new \coding_exception('The configure method must take a contextid parameter.');
+                throw new coding_exception('The configure method must take a contextid parameter.');
             }
         } catch (\ReflectionException $e) {
-            throw new \coding_exception('The configure method must be implemented in the subclass.');
+            throw new coding_exception('The configure method must be implemented in the subclass.');
         }
+    }
+
+    /**
+     * Constructs the table name for the action.
+     *
+     * @return string The constructed table name.
+     */
+    protected function get_tablename(): string {
+        return 'ai_action_' . $this->get_basename();
     }
 }

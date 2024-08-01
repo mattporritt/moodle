@@ -3252,12 +3252,6 @@ $functions = array(
         'type'        => 'write',
         'ajax'        => true,
     ],
-    'core_ai_get_action' => [
-        'classname' => 'core_ai\external\get_action',
-        'description' => 'Get the dynamic table content raw html',
-        'type' => 'read',
-        'ajax' => true,
-    ],
 );
 
 $services = array(

@@ -39,10 +39,15 @@ class aiplacement_action_management_table extends flexible_table implements dyna
     /**
      * Constructor.
      *
-     * @param string $pluginname The name of the plugin these actions related too
-     * @param array $actions The list of actions this manager covers
+     * @param string $uniqueid The table unique id.
      */
-    public function __construct(string $pluginname) {
+    public function __construct(string $uniqueid) {
+        // Check if the current user has the capability to access this table.
+        require_capability('moodle/site:config', $this->get_context());
+
+        // Parse the unique id and get the plugin name.
+        $parseuniqueid = explode('-', $uniqueid);
+        $pluginname = end($parseuniqueid);
         $this->pluginname = $pluginname;
 
         // Get the list of actions that this provider supports.
@@ -79,7 +84,7 @@ class aiplacement_action_management_table extends flexible_table implements dyna
      * @return string
      */
     protected function get_table_id(): string {
-        return 'aiplacementaction_management_table-' . $this->pluginname;
+        return "aiplacementaction_management_table-{$this->pluginname}";
     }
 
     /**
@@ -99,7 +104,7 @@ class aiplacement_action_management_table extends flexible_table implements dyna
      * @return string
      */
     protected function get_table_js_module(): string {
-        return 'core/ai/action';
+        return 'core_admin/plugin_management_table';
     }
 
     /**
@@ -134,7 +139,7 @@ class aiplacement_action_management_table extends flexible_table implements dyna
     protected function col_namedesc(stdClass $row): string {
         global $OUTPUT;
 
-        $providerurl = new moodle_url('/admin/settings.php', ['section' => 'aisettingsprovider']);
+        $providerurl = new moodle_url('/admin/settings.php', ['section' => 'aiprovider']);
         $params = [
             'name' => $row->action->get_name(),
             'description' => $row->action->get_description(),
@@ -159,19 +164,19 @@ class aiplacement_action_management_table extends flexible_table implements dyna
         $labelstr = get_string($identifier, 'core_admin', $row->action->get_name());
 
         $params = [
-                'id' => 'admin-toggle-' . $row->id,
-                'checked' => $enabled,
-                'dataattributes' => [
-                        'name' => 'id',
-                        'value' => $row->id,
-                        'toggle-method' => $this->get_toggle_service(),
-                        'action' => 'togglestate',
-                        'plugin' => $this->pluginname,
-                        'state' => $enabled ? 1 : 0,
-                ],
-                'title' => $labelstr,
-                'label' => $labelstr,
-                'labelclasses' => 'sr-only',
+            'id' => "admin-toggle-{$row->id}",
+            'checked' => $enabled,
+            'dataattributes' => [
+                'name' => 'id',
+                'value' => $row->id,
+                'toggle-method' => $this->get_toggle_service(),
+                'action' => 'togglestate',
+                'plugin' => $this->pluginname . '-' . \core_ai\manager::stored_action_name($row->id),
+                'state' => $enabled ? 1 : 0,
+            ],
+            'title' => $labelstr,
+            'label' => $labelstr,
+            'labelclasses' => 'sr-only',
         ];
 
         return $OUTPUT->render_from_template('core_admin/setting_configtoggle', $params);
@@ -206,13 +211,13 @@ class aiplacement_action_management_table extends flexible_table implements dyna
         foreach ($this->actions as $id => $action) {
             // Construct the row data.
             $rowdata = (object) [
-                    'id' => $id,
-                    'action' => $action,
-                    'enabled' => \core_ai\manager::is_action_enabled($this->pluginname, get_class($action)),
+                'id' => $id,
+                'action' => $action,
+                'enabled' => \core_ai\manager::is_action_enabled($this->pluginname, get_class($action)),
             ];
             $this->add_data_keyed(
-                    $this->format_row($rowdata),
-                    $this->get_row_class($rowdata)
+                $this->format_row($rowdata),
+                $this->get_row_class($rowdata)
             );
         }
 

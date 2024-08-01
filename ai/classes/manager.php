@@ -170,9 +170,9 @@ class manager {
      * @return int The id of the stored action result.
      */
     private function store_action_result(
-            provider $provider,
-            base $action,
-            responses\response_base $response
+        provider $provider,
+        base $action,
+        responses\response_base $response
     ): int {
         global $DB;
         try {
@@ -273,11 +273,26 @@ class manager {
      * @return mixed Returns the configuration value of the action for the given plugin.
      */
     public static function is_action_enabled(string $plugin, string $action): bool {
+        $action = static::stored_action_name($action);
         $value = get_config($plugin, $action);
         // If not exist in DB, set it to true (enabled).
         if ($value === false) {
             return true;
         }
         return (bool) $value;
+    }
+
+    /**
+     * The action name need to convert to accepted string.
+     *
+     * The class aiprovider_action_management_table uses core_admin/plugin_management_table for the js module,
+     * while the action name has backslashes and it will cause error on element update process after refreshing the table content.
+     * Replacing the backslashes to double underscrore to avois such error.
+     *
+     * @param string $action The input string to be transformed.
+     * @return string The transformed string with backslashes replaced by double underscores.
+     */
+    public static function stored_action_name(string $action): string {
+        return str_replace("\\", "__", $action);
     }
 }

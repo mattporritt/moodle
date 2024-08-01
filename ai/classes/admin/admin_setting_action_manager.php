@@ -26,29 +26,25 @@ use admin_setting;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_action_manager extends admin_setting {
-    /** @var string The name of the plugin these actions related too */
-    protected string $pluginname;
-
-    /** @var string The class of the management table to use */
-    protected string $tableclass;
-
     /**
      * Constructor.
      *
-     * @param string $pluginname
-     * @param string $tableclass
-     * @param string $name
-     * @param string $visiblename
-     * @param string $description
-     * @param string $defaultsetting
+     * @param string $pluginname The name of the plugin these actions related too.
+     * @param string $tableclass The class of the management table to use.
+     * @param string $name The unique name.
+     * @param string $visiblename The localised name.
+     * @param string $description The localised long description in Markdown format.
+     * @param string $defaultsetting The default setting.
      */
     public function __construct(
-            string $pluginname,
-            string $tableclass,
-            string $name,
-            string $visiblename,
-            string $description = '',
-            string $defaultsetting = '',
+        /** @var string The name of the plugin these actions related too */
+        protected string $pluginname,
+        /** @var string The class of the management table to use */
+        protected string $tableclass,
+        string $name,
+        string $visiblename,
+        string $description = '',
+        string $defaultsetting = '',
     ) {
         $this->nosave = true;
         $this->pluginname = $pluginname;
@@ -60,7 +56,7 @@ class admin_setting_action_manager extends admin_setting {
     /**
      * Always returns true, does nothing
      *
-     * @return true
+     * @return bool Always return true.
      */
     public function get_setting(): bool {
         return true;
@@ -69,9 +65,9 @@ class admin_setting_action_manager extends admin_setting {
     /**
      * Always returns '', does not write anything.
      *
-     * @return string Always returns ''
+     * @param mixed $data string or array, must not be NULL
+     * @return string Always returns ''.
      */
-    // phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
     public function write_setting($data): string {
         // Do not write any setting.
         return '';

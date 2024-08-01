@@ -43,9 +43,9 @@ class generate_text extends base {
      * @return void.
      */
     public function configure(
-            int $contextid,
-            int $userid,
-            string $prompttext
+        int $contextid,
+        int $userid,
+        string $prompttext,
     ): void {
         $this->contextid = $contextid;
         $this->userid = $userid;
@@ -64,7 +64,7 @@ class generate_text extends base {
 
         $responsearr = $response->get_response();
 
-        $tablename = 'ai_action_' . $this->get_basename(); // Table name should always be in this format.
+        $tablename = $this->get_tablename(); // Table name should always be in this format.
         $record = new \stdClass();
         $record->prompt = $this->prompttext;
         $record->responseid = $responsearr['id']; // Can be null.

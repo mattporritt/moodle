@@ -64,9 +64,9 @@ class aiplacement extends base {
      * @param bool $hassiteconfig whether the current user has moodle/site:config capability
      */
     public function load_settings(
-            \part_of_admin_tree $adminroot,
-            $parentnodename,
-            $hassiteconfig,
+        \part_of_admin_tree $adminroot,
+        $parentnodename,
+        $hassiteconfig,
     ): void {
         global $CFG, $USER, $DB, $OUTPUT, $PAGE; // In case settings.php wants to refer to them.
         /** @var \admin_root $ADMIN */
@@ -83,19 +83,29 @@ class aiplacement extends base {
 
         $section = $this->get_settings_section_name();
 
-        $settings = new \admin_settingpage($section, $this->displayname, 'moodle/site:config', $this->is_enabled() === false);
+        // Load the specific settings.
+        $settings = new \core_ai\admin\admin_settingspage_provider(
+            name: $section,
+            visiblename: $this->displayname,
+            req_capability: 'moodle/site:config',
+            hidden: $this->is_enabled() === false,
+        );
         if (file_exists($this->full_path('settings.php'))) {
             include($this->full_path('settings.php')); // This may also set $settings to null.
         }
-        // Load the placement actions.
-        if (file_exists($this->full_path('settings_footer.php'))) {
-            include($this->full_path('settings_footer.php')); // This may also set $settings to null.
+
+        // Show the save changes button between the specific settings and the actions table.
+        $settings->add(new \admin_setting_savebutton("{$section}/savebutton"));
+
+        // Load the actions table.
+        if (file_exists($this->full_path('setting_actions.php'))) {
+            include($this->full_path('setting_actions.php')); // This may also set $settings to null.
         } else {
-            $settings->add_footer(new \admin_setting_heading($section . '/generals',
+            $settings->add(new \admin_setting_heading("{$section}/generals",
                 new \lang_string('placementactionsettings', 'core_ai'),
                 new \lang_string('placementactionsettings_desc', 'core_ai')));
             // Load the setting table of actions that this provider supports.
-            $settings->add_footer(new \core_ai\admin\admin_setting_action_manager(
+            $settings->add(new \core_ai\admin\admin_setting_action_manager(
                 $section,
                 \core_ai\table\aiplacement_action_management_table::class,
                 'manageaiplacements',
@@ -113,8 +123,8 @@ class aiplacement extends base {
      * @return moodle_url
      */
     public static function get_manage_url(): moodle_url {
-        return new \moodle_url('/admin/settings.php', [
-                'section' => 'aiplacement',
+        return new moodle_url('/admin/settings.php', [
+            'section' => 'aiplacement',
         ]);
     }
 
@@ -128,7 +138,7 @@ class aiplacement extends base {
      * @return bool Whether $pluginname has been updated or not.
      */
     public static function enable_plugin(string $pluginname, int $enabled): bool {
-        $plugin = 'aiplacement_' . $pluginname;
+        $plugin = "aiplacement_$pluginname";
         $oldvalue = self::is_plugin_enabled($pluginname);
         $newvalue = (bool)$enabled;
 
@@ -179,7 +189,7 @@ class aiplacement extends base {
      * @return bool Return true if enabled.
      */
     public static function is_plugin_enabled(string $plugin): bool {
-        $config = get_config('aiplacement_' . $plugin, 'enabled');
-        return ($config == 1);
+        $config = get_config("aiplacement_$plugin", 'enabled');
+        return $config == 1;
     }
 }

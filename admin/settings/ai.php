@@ -32,7 +32,7 @@ if ($hassiteconfig) {
             new admin_settingpage('aisettings', new lang_string('aisettings', 'ai')));
 
     // Add settings page for AI provider settings.
-    $providers = new admin_settingpage('aisettingsprovider', new lang_string('aiprovidersettings', 'ai'));
+    $providers = new admin_settingpage('aiprovider', new lang_string('aiprovidersettings', 'ai'));
     $providers->add(new admin_setting_heading('availableproviders',
             get_string('availableproviders', 'core_ai'),
             get_string('availableproviders_desc', 'core_ai')));
@@ -52,7 +52,7 @@ if ($hassiteconfig) {
     }
 
     // Add settings page for AI placement settings.
-    $placements = new admin_settingpage('aisettingsplacement', new lang_string('aiplacementsettings', 'ai'));
+    $placements = new admin_settingpage('aiplacement', new lang_string('aiplacementsettings', 'ai'));
     $placements->add(new admin_setting_heading('availableplacements',
             get_string('availableplacements', 'core_ai'),
             get_string('availableplacements_desc', 'core_ai')));

@@ -19,7 +19,6 @@ namespace core_ai\external;
 use core_ai\manager;
 use core_external\external_api;
 use core_external\external_function_parameters;
-use core_external\external_single_structure;
 use core_external\external_value;
 
 /**
@@ -39,17 +38,16 @@ class get_policy_status extends external_api {
      */
     public static function get_policy_status_parameters(): external_function_parameters {
         return new external_function_parameters(
-                [
-                        'userid' => new external_value(
-                                PARAM_INT,
-                                'The user ID',
-                                VALUE_REQUIRED),
-                        'contextid' => new external_value(
-                                PARAM_INT,
-                                'The context ID',
-                                VALUE_REQUIRED),
-
-                ]
+            [
+                'userid' => new external_value(
+                    PARAM_INT,
+                    'The user ID',
+                    VALUE_REQUIRED),
+                'contextid' => new external_value(
+                    PARAM_INT,
+                    'The context ID',
+                    VALUE_REQUIRED),
+            ]
         );
     }
 
@@ -62,17 +60,17 @@ class get_policy_status extends external_api {
      * @return array The generated content.
      */
     public static function get_policy_status(
-            int $userid,
-            int $contextid,
+        int $userid,
+        int $contextid,
     ): array {
         global $USER;
         // Parameter validation.
         [
-                'userid' => $userid,
-                'contextid' => $contextid,
+            'userid' => $userid,
+            'contextid' => $contextid,
         ] = self::validate_parameters(self::get_policy_status_parameters(), [
-                'userid' => $userid,
-                'contextid' => $contextid,
+            'userid' => $userid,
+            'contextid' => $contextid,
         ]);
 
         // Context validation and permission check.
@@ -84,12 +82,12 @@ class get_policy_status extends external_api {
         require_capability('moodle/ai:getpolicy', $context);
 
         // If the context level is that of a user, check the user is the same as the one passed in.
-        if ($context->contextlevel == CONTEXT_USER && ($USER->id !== $userid)) {
-            throw new \moodle_exception('invaliduser');
+        if ($context->contextlevel == CONTEXT_USER && ((int) $USER->id !== $userid)) {
+            throw new \moodle_exception('invaliduser', 'error');
         }
 
         return [
-                'status' => manager::get_user_policy($userid),
+            'status' => manager::get_user_policy($userid),
         ];
     }
 
@@ -101,10 +99,10 @@ class get_policy_status extends external_api {
      */
     public static function get_policy_status_returns(): external_function_parameters {
         return new external_function_parameters([
-                'status' => new external_value(
-                        PARAM_BOOL,
-                        'True if the policy was accepted, false otherwise.',
-                        VALUE_REQUIRED),
+            'status' => new external_value(
+                PARAM_BOOL,
+                'True if the policy was accepted, false otherwise.',
+                VALUE_REQUIRED),
         ]);
     }
 }

@@ -54,7 +54,7 @@ class aiplacement_management_table extends \core_admin\table\plugin_management_t
      */
     protected function get_column_list(): array {
         $columns = [
-                'name' => get_string('name', 'core'),
+            'name' => get_string('name', 'core'),
         ];
 
         if ($this->supports_disabling()) {

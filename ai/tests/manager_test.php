@@ -144,13 +144,13 @@ final class manager_test extends \advanced_testcase {
 
         $action = $managermock::get_action('core_ai\\aiactions\\generate_image');
         $action->configure(
-                contextid: 1,
-                userid: 1,
-                prompttext: 'This is a test prompt',
-                quality: 'hd',
-                aspectratio: 'square',
-                numimages: 1,
-                style: 'vivid',
+            contextid: 1,
+            userid: 1,
+            prompttext: 'This is a test prompt',
+            quality: 'hd',
+            aspectratio: 'square',
+            numimages: 1,
+            style: 'vivid',
         );
 
         // Success should be false as there are no enabled providers.
@@ -169,28 +169,28 @@ final class manager_test extends \advanced_testcase {
         set_config('enabled', 1, 'aiprovider_azureai');
 
         $managermock = $this->getMockBuilder(manager::class)
-                ->onlyMethods(['call_action_provider'])
-                ->getMock();
+            ->onlyMethods(['call_action_provider'])
+            ->getMock();
 
         $expectedresult = new aiactions\responses\response_generate_image(
-                success: true,
-                actionname: 'generate_image',
+            success: true,
+            actionname: 'generate_image',
         );
 
         // Set up the expectation for call_action_provider to return the defined result.
         $managermock->expects($this->any())
-                ->method('call_action_provider')
-                ->willReturn($expectedresult);
+            ->method('call_action_provider')
+            ->willReturn($expectedresult);
 
         $action = $managermock::get_action('core_ai\\aiactions\\generate_image');
         $action->configure(
-                contextid: 1,
-                userid: 1,
-                prompttext: 'This is a test prompt',
-                quality: 'hd',
-                aspectratio: 'square',
-                numimages: 1,
-                style: 'vivid',
+            contextid: 1,
+            userid: 1,
+            prompttext: 'This is a test prompt',
+            quality: 'hd',
+            aspectratio: 'square',
+            numimages: 1,
+            style: 'vivid',
         );
 
         // Should now return the expected result.
@@ -253,13 +253,13 @@ final class manager_test extends \advanced_testcase {
         $numimages = 1;
         $style = 'vivid';
         $action->configure(
-                contextid: 1,
-                userid: $userid,
-                prompttext: $prompttext,
-                quality: $quality,
-                aspectratio: $aspectratio,
-                numimages: $numimages,
-                style: $style);
+            contextid: 1,
+            userid: $userid,
+            prompttext: $prompttext,
+            quality: $quality,
+            aspectratio: $aspectratio,
+            numimages: $numimages,
+            style: $style);
 
         $body = [
                 'revisedprompt' => 'This is a revised prompt',
@@ -303,13 +303,13 @@ final class manager_test extends \advanced_testcase {
         $numimages = 1;
         $style = 'vivid';
         $action->configure(
-                contextid: $contextid,
-                userid: $userid,
-                prompttext: $prompttext,
-                quality: $quality,
-                aspectratio: $aspectratio,
-                numimages: $numimages,
-                style: $style);
+            contextid: $contextid,
+            userid: $userid,
+            prompttext: $prompttext,
+            quality: $quality,
+            aspectratio: $aspectratio,
+            numimages: $numimages,
+            style: $style);
 
         $provider = new \aiprovider_openai\provider();
 
@@ -359,7 +359,7 @@ final class manager_test extends \advanced_testcase {
         $this->assertFalse($result);
 
         // Enable the action.
-        $result= manager::enable_action($plugin, $action, 1);
+        $result = manager::enable_action($plugin, $action, 1);
         $this->assertTrue($result);
     }
 }

@@ -16,7 +16,6 @@
 
 namespace core_ai;
 
-
 /**
  * Class placement.
  *

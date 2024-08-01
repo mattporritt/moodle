@@ -21,6 +21,8 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\userlist;
+use core_privacy\local\request\transform;
+use core_privacy\local\request\writer;
 
 /**
  * Privacy Subsystem for core_ai implementing null_provider.
@@ -35,8 +37,9 @@ class provider implements
     \core_privacy\local\request\subsystem\provider {
     public static function get_metadata(collection $collection): collection {
         $collection->add_database_table(
-            'ai_action_generate_image',
-            [
+            name: 'ai_action_generate_image',
+            privacyfields: [
+                'id' => 'privacy:metadata:ai_action_generate_image:id',
                 'prompt' => 'privacy:metadata:ai_action_generate_image:prompt',
                 'numberimages' => 'privacy:metadata:ai_action_generate_image:numberimages',
                 'quality' => 'privacy:metadata:ai_action_generate_image:quality',
@@ -45,12 +48,13 @@ class provider implements
                 'sourceurl' => 'privacy:metadata:ai_action_generate_image:sourceurl',
                 'revisedprompt' => 'privacy:metadata:ai_action_generate_image:revisedprompt',
             ],
-            'privacy:metadata:ai_action_generate_image'
+            summary: 'privacy:metadata:ai_action_generate_image'
         );
 
         $collection->add_database_table(
-            'ai_action_generate_text',
-            [
+            name: 'ai_action_generate_text',
+            privacyfields: [
+                'id' => 'privacy:metadata:ai_action_generate_text:id',
                 'prompt' => 'privacy:metadata:ai_action_generate_text:prompt',
                 'responseid' => 'privacy:metadata:ai_action_generate_text:responseid',
                 'fingerprint' => 'privacy:metadata:ai_action_generate_text:fingerprint',
@@ -59,12 +63,12 @@ class provider implements
                 'prompttokens' => 'privacy:metadata:ai_action_generate_text:prompttokens',
                 'completiontoken' => 'privacy:metadata:ai_action_generate_text:completiontoken',
             ],
-            'privacy:metadata:ai_action_generate_text'
+            summary: 'privacy:metadata:ai_action_generate_text'
         );
 
         $collection->add_database_table(
-            'ai_action_register',
-            [
+            name: 'ai_action_register',
+            privacyfields: [
                 'actionname' => 'privacy:metadata:ai_action_register:actionname',
                 'actionid' => 'privacy:metadata:ai_action_register:actionid',
                 'success' => 'privacy:metadata:ai_action_register:success',
@@ -76,12 +80,13 @@ class provider implements
                 'timecreated' => 'privacy:metadata:ai_action_register:timecreated',
                 'timecompleted' => 'privacy:metadata:ai_action_register:timecompleted',
             ],
-            'privacy:metadata:ai_action_register'
+            summary: 'privacy:metadata:ai_action_register'
         );
 
         $collection->add_database_table(
-            'ai_action_summarise_text',
-            [
+            name: 'ai_action_summarise_text',
+            privacyfields: [
+                'id' => 'privacy:metadata:ai_action_summarise_text:id',
                 'prompt' => 'privacy:metadata:ai_action_summarise_text:prompt',
                 'responseid' => 'privacy:metadata:ai_action_summarise_text:responseid',
                 'fingerprint' => 'privacy:metadata:ai_action_summarise_text:fingerprint',
@@ -90,17 +95,17 @@ class provider implements
                 'prompttokens' => 'privacy:metadata:ai_action_summarise_text:prompttokens',
                 'completiontoken' => 'privacy:metadata:ai_action_summarise_text:completiontoken',
             ],
-            'privacy:metadata:ai_action_summarise_text'
+            summary: 'privacy:metadata:ai_action_summarise_text'
         );
 
         $collection->add_database_table(
-            'ai_policy_register',
-            [
+            name: 'ai_policy_register',
+            privacyfields: [
                 'userid' => 'privacy:metadata:ai_policy_register:userid',
                 'contextid' => 'privacy:metadata:ai_policy_register:contextid',
                 'timeaccepted' => 'privacy:metadata:ai_policy_register:timeaccepted',
             ],
-            'privacy:metadata:ai_policy_register'
+            summary: 'privacy:metadata:ai_policy_register'
         );
 
         return $collection;
@@ -109,15 +114,9 @@ class provider implements
     public static function get_contexts_for_userid(int $userid): contextlist {
         $contextlist = new contextlist();
 
-        // Policies a user has accepted.
         $params = ['userid' => $userid];
-        $sql = "SELECT contextid
-                  FROM {ai_policy_register}
-                 WHERE userid = :userid";
-        $contextlist->add_from_sql($sql, $params);
 
         // Actions performed by a user.
-        $params = ['userid' => $userid];
         $sql = "SELECT contextid
                   FROM {ai_action_register}
                  WHERE userid = :userid";
@@ -127,7 +126,53 @@ class provider implements
     }
 
     public static function export_user_data(approved_contextlist $contextlist) {
-        // one of the data from these tables should be exported.
+        global $DB;
+        $userid = $contextlist->get_user()->id;
+        $context = \context_user::instance($contextlist->get_user()->id);
+
+        $params = ['userid1' => $userid, 'userid2' => $userid, 'userid3' => $userid];
+
+        $sql = "SELECT ar.actionname, ar.contextid, ar.provider, ar.timecreated, ar.timecompleted,
+                       agi.prompt, agi.sourceurl AS generatedcontent
+                  FROM {ai_action_register} ar
+            INNER JOIN {ai_action_generate_image} agi ON agi.id = ar.actionid
+                 WHERE ar.userid = :userid1 AND ar.actionname = 'generate_image'
+             UNION ALL
+                SELECT ar.actionname, ar.contextid, ar.provider, ar.timecreated, ar.timecompleted,
+                       agt.prompt, agt.generatedcontent
+                  FROM {ai_action_register} ar
+            INNER JOIN {ai_action_generate_text} agt ON agt.id = ar.actionid
+                 WHERE ar.userid = :userid2 AND ar.actionname = 'generate_text'
+             UNION ALL
+                SELECT ar.actionname, ar.contextid, ar.provider, ar.timecreated, ar.timecompleted,
+                       ast.prompt, ast.generatedcontent
+                  FROM {ai_action_register} ar
+                  JOIN {ai_action_summarise_text} ast ON ast.id = ar.actionid
+                 WHERE ar.userid = :userid3 AND ar.actionname = 'summarise_text'";
+
+        $actions = $DB->get_recordset_sql($sql, $params);
+        foreach ($actions as $action) {
+            $data[] = [
+                'provider' => $action->provider,
+                'actionname' => $action->actionname,
+                'prompt' => $action->prompt,
+                'generatedcontent' => $action->generatedcontent,
+                'timecreated' => transform::datetime($action->timecreated),
+                'timecompleted' => transform::datetime($action->timecompleted)
+            ];
+        }
+
+        $subcontext = [
+            get_string('ai', 'core_ai'),
+        ];
+        $finaldata = (object) $data;
+        $context = \context::instance_by_id($action->contextid);
+        writer::with_context($context)->export_data($subcontext, $finaldata);
+
+    }
+
+    public static function delete_data_for_users(approved_userlist $userlist) {
+        // None of the data from these tables should be deleted.
     }
 
     public static function delete_data_for_all_users_in_context(\context $context) {
@@ -135,7 +180,22 @@ class provider implements
     }
 
     public static function delete_data_for_user(approved_contextlist $contextlist) {
-        // None of the data from these tables should be deleted.
+        global $DB;
+
+        $userid = $contextlist->get_user()->id;
+        $params = ['userid' => $userid];
+
+        // Remove data from ai_action_generate_image.
+        $DB->delete_records_subquery('ai_action_generate_image', 'id', 'actionid',
+            'SELECT actionid from {ai_action_register} WHERE userid = :userid', $params);
+        // Remove data from ai_action_generate_text.
+        $DB->delete_records_subquery('ai_action_generate_text', 'id', 'actionid',
+            'SELECT actionid from {ai_action_register} WHERE userid = :userid', $params);
+        // Remove data from ai_action_summarise_text.
+        $DB->delete_records_subquery('ai_action_summarise_text', 'id', 'actionid',
+            'SELECT actionid from {ai_action_register} WHERE userid = :userid', $params);
+        // Remove data from ai_action_register.
+        $DB->delete_records_select('ai_action_register', 'userid = :userid', $params);
     }
 
     public static function get_users_in_context(userlist $userlist) {
@@ -145,24 +205,12 @@ class provider implements
             return;
         }
 
-        $params = [
-            'contextid' => $context->id
-        ];
-
-        // Policies a user has accepted.
-        $sql = "SELECT userid
-                  FROM {ai_policy_register}
-                 WHERE contextid = :contextid";
-        $userlist->add_from_sql('userid', $sql, $params);
+        $params = ['contextid' => $context->id];
 
         // Actions performed by a user.
         $sql = "SELECT userid
                   FROM {ai_action_register}
                  WHERE contextid = :contextid";
         $userlist->add_from_sql('userid', $sql, $params);
-    }
-
-    public static function delete_data_for_users(approved_userlist $userlist) {
-        // None of the data from these tables should be deleted.
     }
 }

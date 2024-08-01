@@ -14,30 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_ai\external;
+namespace core_ai\admin;
+
+use admin_settingpage;
 
 /**
- * External API to set a users AI policy acceptance.
+ * AI provider plugin admin settings pages manager.
+ *
+ * This class extends the admin_settingpage class and is used to manage admin settings pages.
+ * It includes a method to hide the "Save changes" button from the admin provider specific settings page.
  *
  * @package    core_ai
  * @copyright  Meirza <meirza.arson@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class get_action extends \core_table\external\dynamic\get {
-
+class admin_settingspage_provider extends admin_settingpage {
     /**
-     * Creates a new instance of the specified table class.
+     * Disable the "Save Changes" button on the admin provider settings page.
      *
-     * This method takes the class name of a table and a unique ID, extracts the plugin name
-     * from the unique ID, and creates a new instance of the table class using the plugin name.
-     *
-     * @param string $tableclass The fully qualified class name of the table.
-     * @param string $uniqueid The unique identifier string, from which the plugin name is extracted.
+     * @return bool
      */
-    public static function create_new_instance(string $tableclass, string $uniqueid) {
-        $pluginname = end(explode('-', $uniqueid));
-        $instance = new $tableclass($pluginname);
-        return $instance;
+    public function show_save(): bool {
+        return false;
     }
-
 }

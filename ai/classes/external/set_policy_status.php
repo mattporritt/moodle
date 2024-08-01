@@ -19,7 +19,6 @@ namespace core_ai\external;
 use core_ai\manager;
 use core_external\external_api;
 use core_external\external_function_parameters;
-use core_external\external_single_structure;
 use core_external\external_value;
 
 /**
@@ -62,17 +61,17 @@ class set_policy_status extends external_api {
      * @return array The generated content.
      */
     public static function set_policy_status(
-            int $userid,
-            int $contextid,
+        int $userid,
+        int $contextid,
     ): array {
         global $USER;
         // Parameter validation.
         [
-                'userid' => $userid,
-                'contextid' => $contextid,
+            'userid' => $userid,
+            'contextid' => $contextid,
         ] = self::validate_parameters(self::set_policy_status_parameters(), [
-                'userid' => $userid,
-                'contextid' => $contextid,
+            'userid' => $userid,
+            'contextid' => $contextid,
         ]);
 
         // No special permissions required to accept the policy.
@@ -95,10 +94,10 @@ class set_policy_status extends external_api {
      */
     public static function set_policy_status_returns(): external_function_parameters {
         return new external_function_parameters([
-                'success' => new external_value(
-                        PARAM_BOOL,
-                        'Was the request successful',
-                        VALUE_REQUIRED),
+            'success' => new external_value(
+                PARAM_BOOL,
+                'Was the request successful',
+                VALUE_REQUIRED),
         ]);
     }
 }

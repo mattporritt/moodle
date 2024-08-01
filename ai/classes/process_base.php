@@ -28,19 +28,18 @@ use core_ai\aiactions\responses;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class process_base {
-    /** @var provider The provider that will process the action. */
-    protected provider $provider;
-
-    /** @var base The action to process. */
-    protected base $action;
-
     /**
      * Class constructor.
      *
      * @param provider $provider The provider that will process the action.
      * @param base $action The action to process.
      */
-    public function __construct(provider $provider, base $action) {
+    public function __construct(
+        /** @var provider The provider that will process the action. */
+        protected provider $provider,
+        /** @var base The action to process. */
+        protected base $action
+    ) {
         $this->provider = $provider;
         $this->action = $action;
     }

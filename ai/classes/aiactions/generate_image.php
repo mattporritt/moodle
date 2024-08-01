@@ -65,7 +65,7 @@ class generate_image extends base {
         string $quality,
         string $aspectratio,
         int $numimages,
-        string $style
+        string $style,
     ): void {
         $this->contextid = $contextid;
         $this->userid = $userid;
@@ -88,7 +88,7 @@ class generate_image extends base {
 
         $responsearr = $response->get_response();
 
-        $tablename = 'ai_action_' . $this->get_basename(); // Table name should always be in this format.
+        $tablename = $this->get_tablename(); // Table name should always be in this format.
         $record = new \stdClass();
         $record->prompt = $this->prompttext;
         $record->numberimages = $this->numimages;

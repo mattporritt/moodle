@@ -29,53 +29,69 @@ use core_external\external_value;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class set_action extends external_api {
-
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
             [
-                'plugin' => new external_value(PARAM_PLUGIN, 'The name of the plugin', VALUE_REQUIRED),
-                'action' => new external_value(PARAM_NOTAGS, 'The name of the action', VALUE_REQUIRED),
+                'plugin' => new external_value(PARAM_TEXT, 'The name of the plugin', VALUE_REQUIRED),
                 'state' => new external_value(PARAM_INT, 'The target state', VALUE_REQUIRED),
             ]
         );
     }
 
+    /**
+     * Set the providers action state.
+     *
+     * @param string $plugin The name of the plugin
+     * @param int $state The target state
+     * @return null
+     */
     public static function execute(
         string $plugin,
-        string $action,
         int $state,
     ): array {
         // Parameter validation.
         [
             'plugin' => $plugin,
-            'action' => $action,
             'state' => $state,
         ] = self::validate_parameters(self::execute_parameters(), [
             'plugin' => $plugin,
-            'action' => $action,
             'state' => $state,
         ]);
 
-        // Init the current action class.
-        $actionclass = new $action;
+        $parseplugin = explode('-', $plugin);
+        $plugin = reset($parseplugin);
+
+        $actionclassname = end($parseplugin);
+        $actionclass = str_replace("__", "\\", $actionclassname);
+        $action = new $actionclass;
 
         if (!empty($state)) {
             \core\notification::add(
-                get_string('plugin_enabled', 'core_admin', $actionclass->get_name()),
+                get_string('plugin_enabled', 'core_admin', $action->get_name()),
                 \core\notification::SUCCESS
             );
         } else {
             \core\notification::add(
-                get_string('plugin_disabled', 'core_admin', $actionclass->get_name()),
+                get_string('plugin_disabled', 'core_admin', $action->get_name()),
                 \core\notification::SUCCESS
             );
         }
 
-        manager::enable_action($plugin, $action, $state);
+        manager::enable_action($plugin, $actionclassname, $state);
 
         return [];
     }
 
+    /**
+     * Describe the return structure of the external service.
+     *
+     * @return external_function_parameters
+     */
     public static function execute_returns(): external_function_parameters {
         return new external_function_parameters([]);
     }
