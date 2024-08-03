@@ -115,15 +115,15 @@ class generate_image extends external_api {
         require_capability('aiplacement/tinymce:generate_image', $context);
 
         // Prepare the action.
-        $action = new \core_ai\aiactions\generate_image();
-        $action->configure(
+        $action = new \core_ai\aiactions\generate_image(
                 contextid: $contextid,
                 userid: $USER->id,
                 prompttext: $prompttext,
                 quality: $quality,
                 aspectratio: $aspectratio,
                 numimages: $numimages,
-                style: $style);
+                style: $style
+        );
 
         // Send the action to the AI manager.
         $manager = new \core_ai\manager();

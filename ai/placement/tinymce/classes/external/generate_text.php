@@ -81,11 +81,11 @@ class generate_text extends external_api {
         require_capability('aiplacement/tinymce:generate_text', $context);
 
         // Prepare the action.
-        $action = new \core_ai\aiactions\generate_text();
-        $action->configure(
+        $action = new \core_ai\aiactions\generate_text(
                 contextid: $contextid,
                 userid: $USER->id,
-                prompttext: $prompttext);
+                prompttext: $prompttext
+        );
 
         // Send the action to the AI manager.
         $manager = new \core_ai\manager();
