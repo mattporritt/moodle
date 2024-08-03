@@ -33,8 +33,8 @@ class generate_text extends base {
     protected string $prompttext;
 
     /**
-     * Configure the action.
-     * It’s also responsible for performing any other setup tasks,
+     * Constructor for the class.
+     * It’s responsible for performing any setup tasks,
      * such as getting additional data from the database etc.
      *
      * @param int $contextid The context id the action was created in.
@@ -42,11 +42,12 @@ class generate_text extends base {
      * @param string $prompttext The prompt text used to generate the image.
      * @return void.
      */
-    public function configure(
+    public function __construct(
             int $contextid,
             int $userid,
             string $prompttext
-    ): void {
+    ) {
+        $this->timecreated = time();
         $this->contextid = $contextid;
         $this->userid = $userid;
         $this->prompttext = $prompttext;

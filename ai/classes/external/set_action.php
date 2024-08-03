@@ -56,17 +56,14 @@ class set_action extends external_api {
             'state' => $state,
         ]);
 
-        // Init the current action class.
-        $actionclass = new $action;
-
         if (!empty($state)) {
             \core\notification::add(
-                get_string('plugin_enabled', 'core_admin', $actionclass->get_name()),
+                get_string('plugin_enabled', 'core_admin', $action::get_name()),
                 \core\notification::SUCCESS
             );
         } else {
             \core\notification::add(
-                get_string('plugin_disabled', 'core_admin', $actionclass->get_name()),
+                get_string('plugin_disabled', 'core_admin', $action::get_name()),
                 \core\notification::SUCCESS
             );
         }

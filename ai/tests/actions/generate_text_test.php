@@ -25,7 +25,7 @@ use core_ai\aiactions\generate_text;
  * @package    core_ai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \core_ai\actions\base
+ * @covers     \core_ai\aiactions\base
  */
 final class generate_text_test extends \advanced_testcase {
 
@@ -33,15 +33,15 @@ final class generate_text_test extends \advanced_testcase {
      * Test configure method.
      */
     public function test_configure(): void {
-        $action = new generate_text();
         $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
 
-        $action->configure(
+        $action = new generate_text(
                 contextid: $contextid,
                 userid: $userid,
-                prompttext: $prompttext);
+                prompttext: $prompttext
+        );
         $this->assertEquals($userid, $action->get_configuration('userid'));
         $this->assertEquals($prompttext, $action->get_configuration('prompttext'));
     }
@@ -53,14 +53,15 @@ final class generate_text_test extends \advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
-        $action = new generate_text();
         $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
-        $action->configure(
+
+        $action = new generate_text(
                 contextid: $contextid,
                 userid: $userid,
-                prompttext: $prompttext);
+                prompttext: $prompttext
+        );
 
         $body = [
                 'id' => 'chatcmpl-123',

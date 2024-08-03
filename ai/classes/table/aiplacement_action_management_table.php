@@ -136,8 +136,8 @@ class aiplacement_action_management_table extends flexible_table implements dyna
 
         $providerurl = new moodle_url('/admin/settings.php', ['section' => 'aisettingsprovider']);
         $params = [
-            'name' => $row->action->get_name(),
-            'description' => $row->action->get_description(),
+            'name' => $row->action::get_name(),
+            'description' => $row->action::get_description(),
             'noproviders' => !$this->has_provider($row->action),
             'providerurl' => $providerurl->out(),
         ];
@@ -156,14 +156,14 @@ class aiplacement_action_management_table extends flexible_table implements dyna
 
         $enabled = $row->enabled;
         $identifier = $enabled ? 'disableplugin' : 'enableplugin';
-        $labelstr = get_string($identifier, 'core_admin', $row->action->get_name());
+        $labelstr = get_string($identifier, 'core_admin', $row->action::get_name());
 
         $params = [
-                'id' => 'admin-toggle-' . $row->id,
+                'id' => 'admin-toggle-' . $row->action::get_basename(),
                 'checked' => $enabled,
                 'dataattributes' => [
                         'name' => 'id',
-                        'value' => $row->id,
+                        'value' => $row->action,
                         'toggle-method' => $this->get_toggle_service(),
                         'action' => 'togglestate',
                         'plugin' => $this->pluginname,
@@ -184,7 +184,9 @@ class aiplacement_action_management_table extends flexible_table implements dyna
      * @return string
      */
     protected function get_row_class($row): string {
-        // TODO: dim when action is disabled.
+        if (!$row->enabled) {
+            return 'dimmed_text';
+        }
         return '';
     }
 
@@ -203,12 +205,11 @@ class aiplacement_action_management_table extends flexible_table implements dyna
      * Print the table.
      */
     public function out(): void {
-        foreach ($this->actions as $id => $action) {
+        foreach ($this->actions as $action) {
             // Construct the row data.
             $rowdata = (object) [
-                    'id' => $id,
                     'action' => $action,
-                    'enabled' => \core_ai\manager::is_action_enabled($this->pluginname, get_class($action)),
+                    'enabled' => \core_ai\manager::is_action_enabled($this->pluginname, $action),
             ];
             $this->add_data_keyed(
                     $this->format_row($rowdata),
@@ -243,11 +244,11 @@ class aiplacement_action_management_table extends flexible_table implements dyna
      * Check if the action has any enabled providers.
      * Returns True if the action has a provider.
      *
-     * @param base $action The action to check.
+     * @param string $action The action to check.
      * @return bool True if the action has a provider.
      */
-    private function has_provider($action): bool {
-        $providers = \core_ai\manager::get_providers_for_actions([$action::class], true);
-        return !empty($providers[$action::class]);
+    private function has_provider(string $action): bool {
+        $providers = \core_ai\manager::get_providers_for_actions([$action], true);
+        return !empty($providers[$action]);
     }
 }
