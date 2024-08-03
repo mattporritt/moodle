@@ -47,21 +47,22 @@ final class process_generate_text_test extends \advanced_testcase {
         // Load a response body from a file.
         $this->responsebodyjson = file_get_contents(__DIR__ . '/fixtures/text_request_success.json');
         $this->provider = new \aiprovider_openai\provider();
-        $this->action = new \core_ai\aiactions\generate_text();
+        $contextid = 1;
+        $userid = 1;
+        $prompttext = 'This is a test prompt';
+        $this->action = new \core_ai\aiactions\generate_text(
+                contextid: $contextid,
+                userid: $userid,
+                prompttext: $prompttext
+        );
     }
 
     /**
      * Test create_request_object
      */
     public function test_create_request_object(): void {
-        $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
-        $this->action->configure(
-                contextid: $contextid,
-                userid: $userid,
-                prompttext: $prompttext);
-
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.

@@ -46,7 +46,20 @@ final class process_generate_image_test extends \advanced_testcase {
         // Load a response body from a file.
         $this->responsebodyjson = file_get_contents(__DIR__ . '/fixtures/image_request_success.json');
         $this->provider = new \aiprovider_openai\provider();
-        $this->action = new \core_ai\aiactions\generate_image();
+        $contextid = 1;
+        $userid = 1;
+        $prompttext = 'This is a test prompt';
+        $aspectratio = 'square';
+        $quality = 'hd';
+        $numimages = 1;
+        $style = 'vivid';
+        $this->action = new \core_ai\aiactions\generate_image(contextid: $contextid,
+                userid: $userid,
+                prompttext: $prompttext,
+                quality: $quality,
+                aspectratio: $aspectratio,
+                numimages: $numimages,
+                style: $style);
     }
 
     /**
@@ -75,22 +88,9 @@ final class process_generate_image_test extends \advanced_testcase {
      * Test create_request_object
      */
     public function test_create_request_object(): void {
-        $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
-        $aspectratio = 'square';
         $quality = 'hd';
-        $numimages = 1;
-        $style = 'vivid';
-        $this->action->configure(
-                contextid: $contextid,
-                userid: $userid,
-                prompttext: $prompttext,
-                quality: $quality,
-                aspectratio: $aspectratio,
-                numimages: $numimages,
-                style: $style);
-
         $processor = new process_generate_image($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
@@ -293,25 +293,6 @@ final class process_generate_image_test extends \advanced_testcase {
             ->getMock();
 
         $mockprovider->method('create_http_client')->willReturn($mockhttpclient);
-
-        // Create a request object.
-        $contextid = 1;
-        $userid = 1;
-        $prompttext = 'This is a test prompt';
-        $aspectratio = 'square';
-        $quality = 'hd';
-        $numimages = 1;
-        $style = 'vivid';
-        $this->action->configure(
-                contextid: $contextid,
-                userid: $userid,
-                prompttext: $prompttext,
-                quality: $quality,
-                aspectratio: $aspectratio,
-                numimages: $numimages,
-                style: $style
-        );
-
         $processor = new process_generate_image($mockprovider, $this->action);
         $result = $processor->process();
 

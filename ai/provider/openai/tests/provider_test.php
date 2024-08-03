@@ -78,7 +78,6 @@ final class provider_test extends \advanced_testcase {
         set_config('enableuserratelimit', 1, 'aiprovider_openai');
         set_config('userratelimit', 3, 'aiprovider_openai');
 
-        $action = new \core_ai\aiactions\generate_image();
         $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
@@ -86,14 +85,16 @@ final class provider_test extends \advanced_testcase {
         $quality = 'hd';
         $numimages = 1;
         $style = 'vivid';
-        $action->configure(
+
+        $action = new \core_ai\aiactions\generate_image(
                 contextid: $contextid,
                 userid: $userid,
                 prompttext: $prompttext,
                 quality: $quality,
                 aspectratio: $aspectratio,
                 numimages: $numimages,
-                style: $style);
+                style: $style
+        );
         $provider = new \aiprovider_openai\provider();
 
         // Make 3 requests, all should be allowed.
@@ -107,14 +108,15 @@ final class provider_test extends \advanced_testcase {
         $this->assertEquals('User rate limit exceeded', $result['errormessage']);
 
         // Change user id to make a request for a different user, should pass (4 requests for global rate).
-        $action->configure(
+        $action = new \core_ai\aiactions\generate_image(
                 contextid: $contextid,
                 userid: 2,
                 prompttext: $prompttext,
                 quality: $quality,
                 aspectratio: $aspectratio,
                 numimages: $numimages,
-                style: $style);
+                style: $style
+        );
         $this->assertTrue($provider->is_request_allowed($action));
 
         // Make a 5th request for the global rate limit, it should be allowed.
