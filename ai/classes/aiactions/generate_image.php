@@ -45,8 +45,8 @@ class generate_image extends base {
     protected string $style;
 
     /**
-     * Configure the action.
-     * It’s also responsible for performing any other setup tasks,
+     * Constructor for the class.
+     * It’s responsible for performing any setup tasks,
      * such as getting additional data from the database etc.
      *
      * @param int $contextid The context id the action was created in.
@@ -58,15 +58,16 @@ class generate_image extends base {
      * @param string $style The visual style of the generated image.
      * @return void.
      */
-    public function configure(
+    public function __construct(
         int $contextid,
         int $userid,
         string $prompttext,
         string $quality,
         string $aspectratio,
         int $numimages,
-        string $style,
-    ): void {
+        string $style
+    ) {
+        $this->timecreated = time();
         $this->contextid = $contextid;
         $this->userid = $userid;
         $this->prompttext = $prompttext;
@@ -88,7 +89,7 @@ class generate_image extends base {
 
         $responsearr = $response->get_response();
 
-        $tablename = $this->get_tablename(); // Table name should always be in this format.
+        $tablename = $this->get_basename(); // Table name should always be in this format.
         $record = new \stdClass();
         $record->prompt = $this->prompttext;
         $record->numberimages = $this->numimages;

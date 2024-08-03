@@ -58,7 +58,7 @@ class manager {
         $instance = new self();
         $pluginclassname = $instance->get_ai_plugin_classname($pluginname);
         $plugin = new $pluginclassname();
-        return $plugin->get_supported_actions();
+        return $plugin->get_action_list();
     }
 
     /**
@@ -88,16 +88,6 @@ class manager {
             }
         }
         return $providers;
-    }
-
-    /**
-     * Given an action name, return an instance of the action.
-     *
-     * @param string $actionname
-     * @return base
-     */
-    public static function get_action(string $actionname): base {
-        return new $actionname();
     }
 
     /**

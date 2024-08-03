@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_ai\actions;
+use core_ai\aiactions\responses\response_base;
+use \core_ai\aiactions;
 
 /**
  * Test response_base action methods.
@@ -22,7 +23,7 @@ namespace core_ai\actions;
  * @package    core_ai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \core_ai\actions\base
+ * @covers     \core_ai\aiactions\base
  */
 final class base_test extends \advanced_testcase {
 
@@ -30,8 +31,7 @@ final class base_test extends \advanced_testcase {
      * Test get_basename.
      */
     public function test_get_basename(): void {
-        $action = \core_ai\manager::get_action('core_ai\\aiactions\\generate_text');
-        $basename = $action->get_basename($action);
+        $basename = aiactions\generate_text::get_basename();
         $this->assertEquals('generate_text', $basename);
     }
 
@@ -39,11 +39,9 @@ final class base_test extends \advanced_testcase {
      * Test get_name.
      */
     public function test_get_name(): void {
-        $action = \core_ai\manager::get_action('core_ai\\aiactions\\generate_text');
-
         $this->assertEquals(
                 get_string('action_generate_text', 'core_ai'),
-                $action->get_name()
+                aiactions\generate_text::get_name()
         );
     }
 
@@ -51,12 +49,42 @@ final class base_test extends \advanced_testcase {
      * Test get_description.
      */
     public function test_get_description(): void {
-        $action = \core_ai\manager::get_action('core_ai\\aiactions\\generate_text');
-
         $this->assertEquals(
                 get_string('action_generate_text_desc', 'core_ai'),
-                $action->get_description()
+                aiactions\generate_text::get_description()
         );
+    }
+    /**
+     * Test that every action class implements a constructor.
+     */
+    public function test_constructor(): void {
+        $classes = [];
+
+        // Create an anonymous class that extends the base class.
+        $base = new class extends \core_ai\aiactions\base {
+            public function store(response_base $response): int {
+                return 0;
+            }
+        };
+
+        $reflection = new ReflectionClass($base); // Create a ReflectionClass for the anonymous class.
+
+        // Use the location of the base class to get the AI action classes.
+        $filePath = $reflection->getParentClass()->getFileName();
+        $directory = dirname($filePath);
+        $files = scandir($directory);
+        foreach ($files as $file) {
+            if (str_ends_with($file, '.php') &! str_starts_with($file, 'base')) {
+                $classes[] = 'core_ai\\aiactions\\' . str_replace('.php', '', $file);
+            }
+        }
+
+        // For each action class, check that they have a constructor.
+        foreach ($classes as $class) {
+            $reflection = new \ReflectionClass($class);
+            $constructor = $reflection->getConstructor();
+            $this->assertNotNull($constructor, 'Class ' . $class . ' does not have a constructor.');
+        }
     }
 
 }

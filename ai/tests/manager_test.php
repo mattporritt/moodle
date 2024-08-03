@@ -65,11 +65,7 @@ final class manager_test extends \advanced_testcase {
                 \core_ai\aiactions\generate_text::class,
                 \core_ai\aiactions\generate_image::class,
                 \core_ai\aiactions\summarise_text::class,
-        ], array_keys($actions));
-
-        // Assert array values are instances of the expected action classes.
-        $this->assertInstanceOf(\core_ai\aiactions\generate_text::class, $actions['core_ai\\aiactions\\generate_text']);
-        $this->assertInstanceOf(\core_ai\aiactions\summarise_text::class, $actions['core_ai\\aiactions\\summarise_text']);
+        ], $actions);
     }
 
     /**
@@ -115,15 +111,6 @@ final class manager_test extends \advanced_testcase {
     }
 
     /**
-     * Test get_action.
-     */
-    public function test_get_action(): void {
-        $action = \core_ai\manager::get_action('core_ai\\aiactions\\generate_text');
-        // Assert class is an instance of response_base.
-        $this->assertInstanceOf(base::class, $action);
-    }
-
-    /**
      * Test process_action fail.
      */
     public function test_process_action_fail(): void {
@@ -142,15 +129,14 @@ final class manager_test extends \advanced_testcase {
             ->method('call_action_provider')
             ->willReturn($expectedresult);
 
-        $action = $managermock::get_action('core_ai\\aiactions\\generate_image');
-        $action->configure(
-            contextid: 1,
-            userid: 1,
-            prompttext: 'This is a test prompt',
-            quality: 'hd',
-            aspectratio: 'square',
-            numimages: 1,
-            style: 'vivid',
+        $action = new \core_ai\aiactions\generate_image(
+                contextid: 1,
+                userid: 1,
+                prompttext: 'This is a test prompt',
+                quality: 'hd',
+                aspectratio: 'square',
+                numimages: 1,
+                style: 'vivid',
         );
 
         // Success should be false as there are no enabled providers.
@@ -182,15 +168,14 @@ final class manager_test extends \advanced_testcase {
             ->method('call_action_provider')
             ->willReturn($expectedresult);
 
-        $action = $managermock::get_action('core_ai\\aiactions\\generate_image');
-        $action->configure(
-            contextid: 1,
-            userid: 1,
-            prompttext: 'This is a test prompt',
-            quality: 'hd',
-            aspectratio: 'square',
-            numimages: 1,
-            style: 'vivid',
+        $action = new \core_ai\aiactions\generate_image(
+                contextid: 1,
+                userid: 1,
+                prompttext: 'This is a test prompt',
+                quality: 'hd',
+                aspectratio: 'square',
+                numimages: 1,
+                style: 'vivid',
         );
 
         // Should now return the expected result.
@@ -244,7 +229,6 @@ final class manager_test extends \advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
-        $action = new generate_image();
         $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
@@ -252,14 +236,16 @@ final class manager_test extends \advanced_testcase {
         $quality = 'hd';
         $numimages = 1;
         $style = 'vivid';
-        $action->configure(
-            contextid: 1,
-            userid: $userid,
-            prompttext: $prompttext,
-            quality: $quality,
-            aspectratio: $aspectratio,
-            numimages: $numimages,
-            style: $style);
+
+        $action = new generate_image(
+                contextid: 1,
+                userid: $userid,
+                prompttext: $prompttext,
+                quality: $quality,
+                aspectratio: $aspectratio,
+                numimages: $numimages,
+                style: $style
+        );
 
         $body = [
                 'revisedprompt' => 'This is a revised prompt',
@@ -294,7 +280,6 @@ final class manager_test extends \advanced_testcase {
      * Test call_action_provider.
      */
     public function test_call_action_provider(): void {
-        $action = new generate_image();
         $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
@@ -302,14 +287,16 @@ final class manager_test extends \advanced_testcase {
         $quality = 'hd';
         $numimages = 1;
         $style = 'vivid';
-        $action->configure(
-            contextid: $contextid,
-            userid: $userid,
-            prompttext: $prompttext,
-            quality: $quality,
-            aspectratio: $aspectratio,
-            numimages: $numimages,
-            style: $style);
+
+        $action = new generate_image(
+                contextid: $contextid,
+                userid: $userid,
+                prompttext: $prompttext,
+                quality: $quality,
+                aspectratio: $aspectratio,
+                numimages: $numimages,
+                style: $style
+        );
 
         $provider = new \aiprovider_openai\provider();
 

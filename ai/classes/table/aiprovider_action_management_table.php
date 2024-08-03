@@ -139,8 +139,8 @@ class aiprovider_action_management_table extends flexible_table implements dynam
         global $OUTPUT;
 
         $params = [
-            'name' => $row->action->get_name(),
-            'description' => $row->action->get_description(),
+            'name' => $row->action::get_name(),
+            'description' => $row->action::get_description(),
         ];
 
         return $OUTPUT->render_from_template('core_admin/table/namedesc', $params);
@@ -157,22 +157,22 @@ class aiprovider_action_management_table extends flexible_table implements dynam
 
         $enabled = $row->enabled;
         $identifier = $enabled ? 'disableplugin' : 'enableplugin';
-        $labelstr = get_string($identifier, 'core_admin', $row->action->get_name());
+        $labelstr = get_string($identifier, 'core_admin', $row->action::get_name());
 
         $params = [
-            'id' => 'admin-toggle-' . $row->id,
-            'checked' => $enabled,
-            'dataattributes' => [
-                'name' => 'id',
-                'value' => $row->id,
-                'toggle-method' => $this->get_toggle_service(),
-                'action' => 'togglestate',
-                'plugin' => $this->pluginname . '-' . \core_ai\manager::stored_action_name($row->id),
-                'state' => $enabled ? 1 : 0,
-            ],
-            'title' => $labelstr,
-            'label' => $labelstr,
-            'labelclasses' => 'sr-only',
+                'id' => 'admin-toggle-' . $row->action::get_basename(),
+                'checked' => $enabled,
+                'dataattributes' => [
+                        'name' => 'id',
+                        'value' => $row->action,
+                        'toggle-method' => $this->get_toggle_service(),
+                        'action' => 'togglestate',
+                        'plugin' => $this->pluginname,
+                        'state' => $enabled ? 1 : 0,
+                ],
+                'title' => $labelstr,
+                'label' => $labelstr,
+                'labelclasses' => 'sr-only',
         ];
 
         return $OUTPUT->render_from_template('core_admin/setting_configtoggle', $params);
@@ -196,7 +196,9 @@ class aiprovider_action_management_table extends flexible_table implements dynam
      * @return string
      */
     protected function get_row_class($row): string {
-        // TODO: dim when action is disabled.
+        if (!$row->enabled) {
+            return 'dimmed_text';
+        }
         return '';
     }
 
@@ -215,12 +217,11 @@ class aiprovider_action_management_table extends flexible_table implements dynam
      * Print the table.
      */
     public function out(): void {
-        foreach ($this->actions as $id => $action) {
+        foreach ($this->actions as $action) {
             // Construct the row data.
             $rowdata = (object) [
-                'id' => $id,
-                'action' => $action,
-                'enabled' => \core_ai\manager::is_action_enabled($this->pluginname, get_class($action)),
+                    'action' => $action,
+                    'enabled' => \core_ai\manager::is_action_enabled($this->pluginname, $action),
             ];
             $this->add_data_keyed(
                 $this->format_row($rowdata),

@@ -34,16 +34,6 @@ abstract class base {
     protected int $timecreated;
 
     /**
-     * Class constructor.
-     *
-     * @throws coding_exception
-     */
-    public function __construct() {
-        $this->timecreated = \core\di::get(\core\clock::class)->time();
-        $this->ensure_configure_method_exists();
-    }
-
-    /**
      * Responsible for storing any action specific data in the database.
      *
      * @param response_base $response The response object to store.
@@ -57,8 +47,8 @@ abstract class base {
      *
      * @return string The basename of the class.
      */
-    public function get_basename(): string {
-        return basename(str_replace('\\', '/', $this::class));
+    public static function get_basename(): string {
+        return basename(str_replace('\\', '/', static::class));
     }
 
     /**
@@ -68,8 +58,8 @@ abstract class base {
      * @return string
      * @throws coding_exception
      */
-    public function get_name(): string {
-        $stringid = 'action_' . $this->get_basename();
+    public static function get_name(): string {
+        $stringid = 'action_' . self::get_basename();
         return get_string($stringid, 'core_ai');
     }
 
@@ -80,8 +70,8 @@ abstract class base {
      * @return string
      * @throws coding_exception
      */
-    public function get_description(): string {
-        $stringid = 'action_' . $this->get_basename() . '_desc';
+    public static function get_description(): string {
+        $stringid = 'action_' . self::get_basename() . '_desc';
         return get_string($stringid, 'core_ai');
     }
 
@@ -110,54 +100,5 @@ abstract class base {
      */
     public function get_configuration(string $name): mixed {
         return $this->$name;
-    }
-
-    /**
-     * Ensure the configuration method exists and is correctly defined.
-     * We do it this way instead of simply declaring the method as abstract,
-     * because each configuration method will have a different signature.
-     *
-     * @return void
-     * @throws coding_exception
-     */
-    private function ensure_configure_method_exists(): void {
-        try {
-            $reflection = new \ReflectionMethod($this, 'configure');
-
-            // Check if the method exists.
-            if (!$reflection->isPublic()) {
-                throw new coding_exception('The configure method must be public in the subclass.');
-            }
-
-            // Check the return type.
-            $returntype = $reflection->getReturnType();
-            if ($returntype && $returntype->getName() !== 'void') {
-                throw new coding_exception('The configure method must have a void return type in the subclass.');
-            }
-
-            // Check if the method at least takes the contextid as a variable.
-            $parameters = $reflection->getParameters();
-            $parameterexists = false;
-            foreach ($parameters as $parameter) {
-                if ($parameter->getName() === 'contextid') {
-                    $parameterexists = true;
-                    break;
-                }
-            }
-            if (!$parameterexists) {
-                throw new coding_exception('The configure method must take a contextid parameter.');
-            }
-        } catch (\ReflectionException $e) {
-            throw new coding_exception('The configure method must be implemented in the subclass.');
-        }
-    }
-
-    /**
-     * Constructs the table name for the action.
-     *
-     * @return string The constructed table name.
-     */
-    protected function get_tablename(): string {
-        return 'ai_action_' . $this->get_basename();
     }
 }
