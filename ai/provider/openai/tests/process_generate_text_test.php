@@ -69,8 +69,8 @@ final class process_generate_text_test extends \advanced_testcase {
         $method = new \ReflectionMethod($processor, 'create_request_object');
         $request = $method->invoke($processor, $this->action, $userid);
 
-        $this->assertEquals($prompttext, $request->messages[0]->content);
-        $this->assertEquals('user', $request->messages[0]->role);
+        $this->assertEquals($prompttext, $request->messages[1]->content);
+        $this->assertEquals('user', $request->messages[1]->role);
     }
 
     /**

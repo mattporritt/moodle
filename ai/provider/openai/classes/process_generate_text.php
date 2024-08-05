@@ -17,9 +17,11 @@
 namespace aiprovider_openai;
 
 use core\http_client;
+use core_ai\aiactions\base;
 use core_ai\aiactions\responses\response_base;
 use core_ai\aiactions\responses\response_generate_text;
 use core_ai\process_base;
+use core_ai\provider;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 
@@ -32,11 +34,26 @@ use Psr\Http\Message\ResponseInterface;
  */
 class process_generate_text extends process_base {
     /** @var string The API endpoint to make requests against */
-    private string $aiendpoint = 'https://api.openai.com/v1/chat/completions';
+    protected string $aiendpoint;
 
     /** @var string The API model to use */
-    private string $model = 'gpt-4o';
+    protected string $model;
 
+    /** @var string The system instructions. */
+    protected string $systeminstructions;
+
+    /**
+     * Class constructor.
+     *
+     * @param provider $provider The provider that will process the action.
+     * @param base $action The action to process.
+     */
+    public function __construct(provider $provider, base $action) {
+        parent::__construct($provider, $action);
+        $this->aiendpoint = get_config('aiprovider_openai', 'action_generate_text_endpoint');
+        $this->model = get_config('aiprovider_openai', 'action_generate_text_model');
+        $this->systeminstructions = get_config('aiprovider_openai', 'action_generate_text_systeminstruction');
+    }
 
     /**
      * Process the AI request.
@@ -123,7 +140,7 @@ class process_generate_text extends process_base {
         $requestobj->user = $userid;
 
         // If there is a system string available, use it.
-        $systeminstruction = $action->get_system_instruction();
+        $systeminstruction = $this->systeminstructions;
         if (!empty($systeminstruction)) {
             $systemobj = new \stdClass();
             $systemobj->role = 'system';

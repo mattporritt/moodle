@@ -146,4 +146,60 @@ class provider extends \core_ai\provider {
 
         return true;
     }
+
+    /**
+     * Get any action settings for this provider.
+     *
+     * @param string $action The action class name.
+     * @param \admin_root $ADMIN The admin root object.
+     * @param string $section The section name.
+     * @param bool $hassiteconfig Whether the current user has moodle/site:config capability.
+     * @return array An array of settings.
+     */
+    public function get_action_settings(
+            string $action,
+            \admin_root $ADMIN,
+            string $section,
+            bool $hassiteconfig)
+    : array {
+        $actionname =  substr($action, (strrpos($action, '\\') + 1));
+        $settings = [];
+        if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
+            $modeldefault = 'gpt-4o';
+            $endpointdefault = 'https://api.openai.com/v1/chat/completions';
+        } else if ($actionname === 'generate_image') {
+            $modeldefault = 'dall-e-3';
+            $endpointdefault = 'https://api.openai.com/v1/images/generations';
+        }
+
+        // Add the model setting.
+        $settings[] = new \admin_setting_configtext(
+                "aiprovider_openai/action_{$actionname}_model",
+                new \lang_string("action_model", 'aiprovider_openai'),
+                new \lang_string("action_model_desc", 'aiprovider_openai'),
+                $modeldefault,
+                PARAM_ALPHANUMEXT,
+        );
+        // Add API endpoint.
+        $settings[] = new \admin_setting_configtext(
+                "aiprovider_openai/action_{$actionname}_endpoint",
+                new \lang_string("action_endpoint", 'aiprovider_openai'),
+                new \lang_string("action_endpoint_desc", 'aiprovider_openai'),
+                $endpointdefault,
+                PARAM_URL,
+        );
+
+        if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
+            // Add system instruction settings.
+            $settings[] = new \admin_setting_configtextarea(
+                    "aiprovider_openai/action_{$actionname}_systeminstruction",
+                    new \lang_string("action_systeminstruction", 'aiprovider_openai'),
+                    new \lang_string("action_systeminstruction_desc", 'aiprovider_openai'),
+                    $action::get_system_instruction(),
+                    PARAM_TEXT
+            );
+        }
+
+        return $settings;
+    }
 }

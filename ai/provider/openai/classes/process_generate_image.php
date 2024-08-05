@@ -16,8 +16,10 @@
 
 namespace aiprovider_openai;
 
+use core_ai\aiactions\base;
 use core_ai\aiactions\responses\response_base;
 use core_ai\aiactions\responses\response_generate_image;
+use core_ai\provider;
 use Psr\Http\Message\ResponseInterface;
 
 defined('MOODLE_INTERNAL') || die();
@@ -33,16 +35,28 @@ require_once($CFG->libdir . '/filelib.php');
  */
 class process_generate_image extends process_generate_text {
     /** @var string The API endpoint to make requests against */
-    private string $aiendpoint = 'https://api.openai.com/v1/images/generations';
+    protected string $aiendpoint;
 
     /** @var string The API model to use */
-    private string $model = 'dall-e-3';
+    protected string $model;
 
     /** @var int The number of images to generate dall-e-3 only supports 1 */
     private int $numberimages = 1;
 
     /** @var string Response format: url or b64_json. */
     private string $responseformat = 'url';
+
+    /**
+     * Class constructor.
+     *
+     * @param provider $provider The provider that will process the action.
+     * @param base $action The action to process.
+     */
+    public function __construct(provider $provider, base $action) {
+        parent::__construct($provider, $action);
+        $this->aiendpoint = get_config('aiprovider_openai', 'action_generate_image_endpoint');
+        $this->model = get_config('aiprovider_openai', 'action_generate_image_model');
+    }
 
     /**
      * Process the AI request.

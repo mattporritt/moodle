@@ -16,7 +16,9 @@
 
 namespace aiprovider_openai;
 
+use core_ai\aiactions\base;
 use core_ai\aiactions\responses\response_summarise_text;
+use core_ai\provider;
 
 /**
  * Class process text summarisation.
@@ -26,6 +28,19 @@ use core_ai\aiactions\responses\response_summarise_text;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_summarise_text extends process_generate_text {
+    /**
+     * Class constructor.
+     *
+     * @param provider $provider The provider that will process the action.
+     * @param base $action The action to process.
+     */
+    public function __construct(provider $provider, base $action) {
+        parent::__construct($provider, $action);
+        $this->aiendpoint = get_config('aiprovider_openai', 'action_summarise_text_endpoint');
+        $this->model = get_config('aiprovider_openai', 'action_summarise_text_model');
+        $this->systeminstructions = get_config('aiprovider_openai', 'action_summarise_text_systeminstruction');
+    }
+
     /**
      * Prepare the response object.
      *
