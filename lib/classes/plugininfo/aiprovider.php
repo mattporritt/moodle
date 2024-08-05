@@ -16,6 +16,7 @@
 
 namespace core\plugininfo;
 
+use core\lang_string;
 use core_plugin_manager;
 use moodle_url;
 
@@ -103,8 +104,31 @@ class aiprovider extends base {
                 new \lang_string('manageaiproviders', 'core_ai'),
             ));
         }
-
         $ADMIN->add($parentnodename, $settings);
+
+        // Load any action settings for this provider.
+        $providerclass = "\\{$section}\\provider";
+        $provider = new $providerclass();
+        $actionlist = $provider->get_action_list();
+        foreach ($actionlist as $action) {
+            $actionsettings = $provider->get_action_settings($action, $ADMIN, $section, $hassiteconfig);
+            if (!empty($actionsettings)) {
+                $actionname =  substr($action, (strrpos($action, '\\') + 1));
+                $settings = new \admin_settingpage(
+                        $section . '_' . $actionname,
+                        $action::get_name(),
+                        'moodle/site:config', true);
+                $settings->add(
+                        new \admin_setting_heading("{$section}_actions/heading",
+                                new lang_string('actionsettingprovider', 'core_ai', $provider->get_name()),
+                                new lang_string('actionsettingprovider_desc', 'core_ai'),),
+                );
+                foreach ($actionsettings as $setting) {
+                    $settings->add($setting);
+                }
+                $ADMIN->add('root', $settings);
+            }
+        }
     }
 
     /**

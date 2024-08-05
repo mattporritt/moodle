@@ -16,6 +16,7 @@
 
 namespace core_ai\table;
 
+use core\check\external\get_result_admintree;
 use core_table\dynamic as dynamic_table;
 use flexible_table;
 use moodle_url;
@@ -181,7 +182,14 @@ class aiprovider_action_management_table extends flexible_table implements dynam
      * @return string
      */
     protected function col_settings(stdClass $row): string {
-        // TODO: add settings link.
+        global $CFG;
+        require_once($CFG->libdir . '/adminlib.php'); // Needed for the AJAX calls.
+        $tree = \admin_get_root();
+        $sectionname = $this->pluginname . '_' . $row->action::get_basename();
+        $sction = $tree->locate($sectionname);
+        if ($sction) {
+            return \html_writer::link($sction->get_settings_page_url(), get_string('settings'));
+        }
         return '';
     }
 
