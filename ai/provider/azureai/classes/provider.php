@@ -34,12 +34,6 @@ class provider extends \core_ai\provider {
     /** @var string The Azure AI API endpoint, is different for each organisation. */
     public string $apiendpoint;
 
-    /** @var string The Azure AI API deployment name. */
-    public string $deploymentname;
-
-    /** @var string the Azure AI API version. */
-    public string $apiversion;
-
     /** @var bool Is global rate limiting for the API enabled. */
     private bool $enableglobalratelimit;
 
@@ -60,10 +54,6 @@ class provider extends \core_ai\provider {
         $this->apikey = get_config('aiprovider_azureai', 'apikey');
         // Get api endpoint url id from config.
         $this->apiendpoint = get_config('aiprovider_azureai', 'endpoint');
-        // Get api deployment name from config.
-        $this->deploymentname = get_config('aiprovider_azureai', 'deployment');
-        // Get api version from config.
-        $this->apiversion = get_config('aiprovider_azureai', 'apiversion');
         // Get global rate limit from config.
         $this->enableglobalratelimit = get_config('aiprovider_azureai', 'enableglobalratelimit');
         $this->globalratelimit = get_config('aiprovider_azureai', 'globalratelimit');
@@ -155,6 +145,55 @@ class provider extends \core_ai\provider {
         }
 
         return true;
+    }
+
+    /**
+     * Get any action settings for this provider.
+     *
+     * @param string $action The action class name.
+     * @param \admin_root $ADMIN The admin root object.
+     * @param string $section The section name.
+     * @param bool $hassiteconfig Whether the current user has moodle/site:config capability.
+     * @return array An array of settings.
+     */
+    public function get_action_settings(
+            string $action,
+            \admin_root $ADMIN,
+            string $section,
+            bool $hassiteconfig)
+    : array {
+        $actionname =  substr($action, (strrpos($action, '\\') + 1));
+        $settings = [];
+
+        // Add API deployment name.
+        $settings[] = new \admin_setting_configtext(
+                "aiprovider_azureai/action_{$actionname}_deployment",
+                new \lang_string("action_deployment", 'aiprovider_azureai'),
+                new \lang_string("action_deployment_desc", 'aiprovider_azureai'),
+                '',
+                PARAM_ALPHANUMEXT,
+        );
+        // Add API version.
+        $settings[] = new \admin_setting_configtext(
+                "aiprovider_azureai/action_{$actionname}_apiversion",
+                new \lang_string("action_apiversion", 'aiprovider_azureai'),
+                new \lang_string("action_apiversion_desc", 'aiprovider_azureai'),
+                '2024-06-01',
+                PARAM_ALPHANUMEXT,
+        );
+
+        if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
+            // Add system instruction settings.
+            $settings[] = new \admin_setting_configtextarea(
+                    "aiprovider_azureai/action_{$actionname}_systeminstruction",
+                    new \lang_string("action_systeminstruction", 'aiprovider_azureai'),
+                    new \lang_string("action_systeminstruction_desc", 'aiprovider_azureai'),
+                    $action::get_system_instruction(),
+                    PARAM_TEXT
+            );
+        }
+
+        return $settings;
     }
 
 }

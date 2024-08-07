@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_azureai;
 
-use aiprovider_azureai\process_generate_text;
 use core_ai\aiactions\base;
 use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
 
 /**
- * Test Generate text provider class for azureai provider methods.
+ * Test response_base Azure AI provider methods.
  *
  * @package    aiprovider_azureai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \core_ai\provider\azureai
  */
-final class process_generate_text_test extends \advanced_testcase {
+final class process_generate_image_test extends \advanced_testcase {
     /** @var string A successful response in JSON format. */
     protected string $responsebodyjson;
 
@@ -45,16 +43,44 @@ final class process_generate_text_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         // Load a response body from a file.
-        $this->responsebodyjson = file_get_contents(__DIR__ . '/fixtures/text_request_success.json');
+        $this->responsebodyjson = file_get_contents(__DIR__ . '/fixtures/image_request_success.json');
         $this->provider = new \aiprovider_azureai\provider();
         $contextid = 1;
         $userid = 1;
         $prompttext = 'This is a test prompt';
-        $this->action = new \core_ai\aiactions\generate_text(
-                contextid: $contextid,
+        $aspectratio = 'square';
+        $quality = 'hd';
+        $numimages = 1;
+        $style = 'vivid';
+        $this->action = new \core_ai\aiactions\generate_image(contextid: $contextid,
                 userid: $userid,
-                prompttext: $prompttext
-        );
+                prompttext: $prompttext,
+                quality: $quality,
+                aspectratio: $aspectratio,
+                numimages: $numimages,
+                style: $style);
+    }
+
+    /**
+     * Test calculate_size.
+     */
+    public function test_calculate_size(): void {
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'calculate_size');
+
+        $ratio = 'square';
+        $size = $method->invoke($processor, $ratio);
+        $this->assertEquals('1024x1024', $size);
+
+        $ratio = 'portrait';
+        $size = $method->invoke($processor, $ratio);
+        $this->assertEquals('1024x1792', $size);
+
+        $ratio = 'landscape';
+        $size = $method->invoke($processor, $ratio);
+        $this->assertEquals('1792x1024', $size);
     }
 
     /**
@@ -63,14 +89,17 @@ final class process_generate_text_test extends \advanced_testcase {
     public function test_create_request_object(): void {
         $userid = 1;
         $prompttext = 'This is a test prompt';
-        $processor = new process_generate_text($this->provider, $this->action);
+        $quality = 'hd';
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
         $method = new \ReflectionMethod($processor, 'create_request_object');
         $request = $method->invoke($processor, $this->action, $userid);
 
-        $this->assertEquals($prompttext, $request->messages[1]->content);
-        $this->assertEquals('user', $request->messages[1]->role);
+        $this->assertEquals($prompttext, $request->prompt);
+        $this->assertEquals('1', $request->n);
+        $this->assertEquals($quality, $request->quality);
+        $this->assertEquals('1024x1024', $request->size);
     }
 
     /**
@@ -89,7 +118,7 @@ final class process_generate_text_test extends \advanced_testcase {
                         '{"error": {"message": "Rate limit reached for requests"}}'),
         ];
 
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
         $method = new \ReflectionMethod($processor, 'handle_api_error');
 
         foreach ($responses as $status => $response) {
@@ -117,19 +146,13 @@ final class process_generate_text_test extends \advanced_testcase {
         );
 
         // We're testing a private method, so we need to setup reflector magic.
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
         $method = new \ReflectionMethod($processor, 'handle_api_success');
 
         $result = $method->invoke($processor, $response);
 
-        $this->assertTrue($result['success']);
-        $this->assertEquals('chatcmpl-9ooaXlMSUIhOkd2pfxKBgpipMynkX', $result['id']);
-        $this->assertEquals('fp_abc28019ad', $result['fingerprint']);
-        $this->assertStringContainsString('Sure, I\'m here to help', $result['generatedcontent']);
-        $this->assertEquals('stop', $result['finishreason']);
-        $this->assertEquals('12', $result['prompttokens']);
-        $this->assertEquals('14', $result['completiontokens']);
-
+        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revisedprompt']);
+        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['sourceurl']);
     }
 
     /**
@@ -147,61 +170,52 @@ final class process_generate_text_test extends \advanced_testcase {
 
         // Create a request object.
         $requestobj = new \stdClass();
-        $requestobj->model = 'gpt-4o';
+        $requestobj->prompt = 'generate a test image';
+        $requestobj->model = 'awesome-ai-3';
+        $requestobj->n = '3';
+        $requestobj->quality = 'hd';
+        $requestobj->response_format = 'url;';
+        $requestobj->size = '1024x1024';
+        $requestobj->style = 'vivid';
         $requestobj->user = 't3464h89dftjltestudfaser';
 
-        $userobj = new \stdClass();
-        $userobj->role = 'user';
-        $userobj->content = 'This is a test prompt';
-
-        $requestobj->messages = [$userobj];
-
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
         $method = new \ReflectionMethod($processor, 'query_ai_api');
         $result = $method->invoke($processor, $client, $requestobj);
 
-        $this->assertTrue($result['success']);
-        $this->assertEquals('chatcmpl-9ooaXlMSUIhOkd2pfxKBgpipMynkX', $result['id']);
-        $this->assertEquals('fp_abc28019ad', $result['fingerprint']);
-        $this->assertStringContainsString('Sure, I\'m here to help', $result['generatedcontent']);
-        $this->assertEquals('stop', $result['finishreason']);
-        $this->assertEquals('12', $result['prompttokens']);
-        $this->assertEquals('14', $result['completiontokens']);
+        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revisedprompt']);
+        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['sourceurl']);
     }
 
     /**
      * Test prepare_response success.
      */
     public function test_prepare_response_success(): void {
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
         $method = new \ReflectionMethod($processor, 'prepare_response');
 
         $response = [
                 'success' => true,
-                'id' => 'chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo',
-                'fingerprint' => 'fp_c4e5b6fa31',
-                'generatedcontent' => 'Sure, here is some sample text',
-                'finishreason' => 'stop',
-                'prompttokens' => '11',
-                'completiontokens' => '14',
-        ];
+                    'revisedprompt' => 'An image that represents the concept of a \'test\'.',
+                    'imageurl' => 'oaidalleapiprodscus.blob.core.windows.net',
+                ];
 
         $result = $method->invoke($processor, $response);
 
         $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
         $this->assertTrue($result->get_success());
-        $this->assertEquals('generate_text', $result->get_actionname());
+        $this->assertEquals('generate_image', $result->get_actionname());
         $this->assertEquals($response['success'], $result->get_success());
-        $this->assertEquals($response['generatedcontent'], $result->get_response()['generatedcontent']);
+        $this->assertEquals($response['revisedprompt'], $result->get_response()['revisedprompt']);
     }
 
     /**
      * Test prepare_response error.
      */
     public function test_prepare_response_error(): void {
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
         $method = new \ReflectionMethod($processor, 'prepare_response');
@@ -216,8 +230,76 @@ final class process_generate_text_test extends \advanced_testcase {
 
         $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
         $this->assertFalse($result->get_success());
-        $this->assertEquals('generate_text', $result->get_actionname());
+        $this->assertEquals('generate_image', $result->get_actionname());
         $this->assertEquals($response['errorcode'], $result->get_errorcode());
         $this->assertEquals($response['errormessage'], $result->get_errormessage());
+    }
+
+    /**
+     * Test url_to_file.
+     */
+    public function test_url_to_file(): void {
+        $this->resetAfterTest();
+        // Log in user.
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $processor = new \aiprovider_azureai\process_generate_image($this->provider, $this->action);
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'url_to_file');
+
+        $contextid = 1;
+        $url = $this->getExternalTestFileUrl('/test.html', false);
+        $filenobj = $method->invoke($processor, $contextid, $url);
+
+        $this->assertEquals(
+                'd05c62f634cdfa98336b9776fde06f08a65daa9e3e6286720a28370eb04a0'
+                .'a1a2a35b9cec59c50ee491e5d8edad4a42a4454fe3ea20abc72664190861e34ed51.html',
+                $filenobj->get_filename());
+    }
+
+    /**
+     * Test process.
+     */
+    public function test_process(): void {
+        $this->resetAfterTest();
+        // Log in user.
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        // Mock the http client to return a successful response.
+        $url = $this->getExternalTestFileUrl('/test.html', false);
+
+        $responsebodyjson = json_encode([
+                'created' => 1719140500,
+                'data' => [
+                        (object) [
+                                'revised_prompt' => 'An image that represents the concept of a \'test\'.',
+                                'url' => $url,
+                        ],
+                ],
+        ]);
+
+        $response = new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                $responsebodyjson,
+        );
+
+        $mockhttpclient = $this->createMock(\core\http_client::class);
+        $mockhttpclient->method('request')->willReturn($response);
+
+        // Mock the provider to return the mocked http client.
+        $mockprovider = $this->getMockBuilder(\aiprovider_azureai\provider::class)
+            ->onlyMethods(['create_http_client'])
+            ->getMock();
+
+        $mockprovider->method('create_http_client')->willReturn($mockhttpclient);
+        $processor = new \aiprovider_azureai\process_generate_image($mockprovider, $this->action);
+        $result = $processor->process();
+
+        $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
+        $this->assertTrue($result->get_success());
+        $this->assertEquals('generate_image', $result->get_actionname());
+        $this->assertEquals('An image that represents the concept of a \'test\'.', $result->get_response()['revisedprompt']);
+        $this->assertEquals($url, $result->get_response()['sourceurl']);
     }
 }

@@ -17,9 +17,11 @@
 namespace aiprovider_azureai;
 
 use core\http_client;
+use core_ai\aiactions\base;
 use core_ai\aiactions\responses\response_base;
 use core_ai\aiactions\responses\response_generate_text;
 use core_ai\process_base;
+use core_ai\provider;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 
@@ -31,6 +33,28 @@ use Psr\Http\Message\ResponseInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_generate_text extends process_base {
+    /** @var string The Azure AI API deployment name. */
+    protected string $deploymentname;
+
+    /** @var string the Azure AI API version. */
+    protected string $apiversion;
+
+    /** @var string The system instructions. */
+    protected string $systeminstructions;
+
+    /**
+     * Class constructor.
+     *
+     * @param provider $provider The provider that will process the action.
+     * @param base $action The action to process.
+     */
+    public function __construct(provider $provider, base $action) {
+        parent::__construct($provider, $action);
+        $this->deploymentname = get_config('aiprovider_azureai', 'action_generate_text_deployment');
+        $this->apiversion = get_config('aiprovider_azureai', 'action_generate_text_apiversion');
+        $this->systeminstructions = get_config('aiprovider_azureai', 'action_generate_text_systeminstruction');
+    }
+
     /**
      * Process the AI request.
      *
@@ -52,9 +76,9 @@ class process_generate_text extends process_base {
 
         $url = rtrim($this->provider->apiendpoint, '/')
                 . '/openai/deployments/'
-                . $this->provider->deploymentname
+                . $this->deploymentname
                 . '/chat/completions?api-version='
-                . $this->provider->apiversion;
+                . $this->apiversion;
         $client = $this->provider->create_http_client($url);
 
         // Create the request object.
@@ -74,7 +98,7 @@ class process_generate_text extends process_base {
      * @param \stdClass $requestobj The request object.
      * @return array The response from the AI service.
      */
-    private function query_ai_api(http_client $client, \stdClass $requestobj): array {
+    protected function query_ai_api(http_client $client, \stdClass $requestobj): array {
         $requestjson = json_encode($requestobj);
 
         try {
@@ -121,7 +145,7 @@ class process_generate_text extends process_base {
         $requestobj->user = $userid;
 
         // If there is a system string available, use it.
-        $systeminstruction = $action->get_system_instruction();
+        $systeminstruction = $this->systeminstructions;
         if (!empty($systeminstruction)) {
             $systemobj = new \stdClass();
             $systemobj->role = 'system';

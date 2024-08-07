@@ -46,20 +46,6 @@ if ($hassiteconfig) {
             '',
             PARAM_URL));
 
-    // Setting to store AzureAI deployment name.
-    $settings->add(new admin_setting_configtext('aiprovider_azureai/deployment',
-            new lang_string('deployment', 'aiprovider_azureai'),
-            new lang_string('deployment_desc', 'aiprovider_azureai'),
-            '',
-            PARAM_TEXT));
-
-    // Setting to store the AzureAI API version number.
-    $settings->add(new admin_setting_configtext('aiprovider_azureai/apiversion',
-            new lang_string('apiversion', 'aiprovider_azureai'),
-            new lang_string('apiversion_desc', 'aiprovider_azureai'),
-            '2024-06-01',
-            PARAM_TEXT));
-
     // Setting to enable/disable global rate limiting.
     $settings->add(new admin_setting_configcheckbox('aiprovider_azureai/enableglobalratelimit',
             new lang_string('enableglobalratelimit', 'aiprovider_azureai'),
