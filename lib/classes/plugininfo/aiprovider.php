@@ -104,7 +104,7 @@ class aiprovider extends base {
                 new \lang_string('manageaiproviders', 'core_ai'),
             ));
         }
-        $ADMIN->add($parentnodename, $settings);
+        $ADMIN->add('root', $settings);
 
         // Load any action settings for this provider.
         $providerclass = "\\{$section}\\provider";
