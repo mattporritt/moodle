@@ -16,14 +16,14 @@
 
 namespace aiprovider_awsbedrock;
 
-use core\http_client;
+use Aws\BedrockRuntime\BedrockRuntimeClient;
+use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\aiactions\responses\response_base;
 use core_ai\aiactions\responses\response_generate_text;
 use core_ai\process_base;
 use core_ai\provider;
 use GuzzleHttp\Exception\RequestException;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class process text generation.
@@ -53,7 +53,7 @@ class process_generate_text extends process_base {
      */
     public function __construct(provider $provider, base $action) {
         parent::__construct($provider, $action);
-        $this->region = get_config('aiprovider_awsbedrock', 'action_generate_text_endpoint');
+        $this->region = get_config('aiprovider_awsbedrock', 'action_generate_text_region');
         $this->model = get_config('aiprovider_awsbedrock', 'action_generate_text_model');
         $this->modelid = get_config('aiprovider_awsbedrock', 'action_generate_text_modelid');
         $this->systeminstructions = get_config('aiprovider_awsbedrock', 'action_generate_text_systeminstruction');
@@ -79,10 +79,10 @@ class process_generate_text extends process_base {
         $client = $this->provider->create_bedrock_client($this->region);
 
         // Create the request object.
-        $requestobj = $this->create_request_array($this->action);
+        $request = $this->create_request($this->action);
 
         // Make the request to the OpenAI API.
-        $response = $this->query_ai_api($client, $requestobj);
+        $response = $this->query_ai_api($client, $request);
 
         // Format the action response object.
         return $this->prepare_response($response);
@@ -91,21 +91,17 @@ class process_generate_text extends process_base {
     /**
      * Query the AI service.
      *
-     * @param http_client $client The http client.
-     * @param \stdClass $requestobj The request object.
+     * @param BedrockRuntimeClient $client The client used to make requests.
+     * @param array $request The request to process.
      * @return array The response from the AI service.
      */
-    protected function query_ai_api(http_client $client, \stdClass $requestobj): array {
-        $requestjson = json_encode($requestobj);
+    protected function query_ai_api(BedrockRuntimeClient $client, array $request): array {
 
         try {
             // Call the external AI service.
-            $response = $client->request('POST', '', [
-                    'body' => $requestjson,
-            ]);
-
+            $response = $client->invokeModel($request);
             // Double-check the response codes, in case of a non 200 that didn't throw an error.
-            $status = $response->getStatusCode();
+            $status = $response['@metadata']['statusCode'];
             if ($status == 200) {
                 return $this->handle_api_success($response);
             } else {
@@ -130,13 +126,14 @@ class process_generate_text extends process_base {
      * @return array The request array to send to AWS Bedrock.
      * @throws \coding_exception
      */
-    private function create_request_array(\core_ai\aiactions\base $action): array {
-        $body = [];
+    private function create_request(\core_ai\aiactions\base $action): array {
+        $body = new \stdClass();
+        $body->inputText = $action->get_configuration('prompttext');
         return [
-            'ModelId' => $this->modelid,
             'ContentType' => 'application/json',
             'Accept' => 'application/json',
-            'Body' => json_encode($body),
+            'modelId' => $this->model,
+            'body' => json_encode($body),
         ];
     }
 
@@ -144,10 +141,10 @@ class process_generate_text extends process_base {
      * Handle an error from the external AI api.
      *
      * @param int $status The status code.
-     * @param ResponseInterface $response The response object.
+     * @param Result $response The response object.
      * @return array The error response.
      */
-    protected function handle_api_error(int $status, ResponseInterface $response): array {
+    protected function handle_api_error(int $status, Result $response): array {
         $responsearr = [
                 'success' => false,
                 'errorcode' => $status,
@@ -169,21 +166,19 @@ class process_generate_text extends process_base {
     /**
      * Handle a successful response from the external AI api.
      *
-     * @param ResponseInterface $response The response object.
+     * @param Result $response The response object.
      * @return array The response.
      */
-    protected function handle_api_success(ResponseInterface $response): array {
-        $responsebody = $response->getBody();
+    protected function handle_api_success(Result $response): array {
+        $responsebody = $response['body'];
         $bodyobj = json_decode($responsebody->getContents());
 
         return [
                 'success' => true,
-                'id' => $bodyobj->id,
-                'fingerprint' => $bodyobj->system_fingerprint,
-                'generatedcontent' => $bodyobj->choices[0]->message->content,
-                'finishreason' => $bodyobj->choices[0]->finish_reason,
-                'prompttokens' => $bodyobj->usage->prompt_tokens,
-                'completiontokens' => $bodyobj->usage->completion_tokens,
+                'generatedcontent' => $bodyobj->results[0]->outputText,
+                'finishreason' => $bodyobj->results[0]->completionReason,
+                'prompttokens' => $bodyobj->inputTextTokenCount,
+                'completiontokens' => $bodyobj->results[0]->tokenCount,
         ];
     }
 

@@ -16,10 +16,9 @@
 
 namespace aiprovider_awsbedrock;
 
-use core\http_client;
+use Aws\BedrockRuntime\BedrockRuntimeClient;
 use core_ai\aiactions;
 use core_ai\ratelimiter;
-use Aws\Bedrock\BedrockClient;
 
 /**
  * Class provider.
@@ -81,10 +80,10 @@ class provider extends \core_ai\provider {
      *
      * @param string $region The AWS region the model is hosted in
      * @param string $version The version of the webservice to utilize.
-     * @return BedrockClient The HTTP client used to make requests.
+     * @return BedrockRuntimeClient The client used to make requests.
      */
-    public function create_bedrock_client(string $region, string $version = 'latest'): BedrockClient {
-        return new BedrockClient([
+    public function create_bedrock_client(string $region, string $version = 'latest'): BedrockRuntimeClient {
+        return new BedrockRuntimeClient([
             'region' => $region,
             'version' => $version,
             'credentials' => [

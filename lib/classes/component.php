@@ -153,6 +153,7 @@ class component {
         'lib/php-di/php-di/src/functions.php',
         'lib/ralouphi/getallheaders/src/getallheaders.php',
         'lib/symfony/deprecation-contracts/function.php',
+        'lib/aws-sdk/src/functions.php',
     ];
 
     /**

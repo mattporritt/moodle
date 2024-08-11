@@ -53,13 +53,16 @@ if ($hassiteconfig) {
             0));
 
     // Setting to set how many requests per hour are allowed for the global rate limit.
-    // Should only be enabled when global rate limiting is enabled.
+    // Should only be displayed when global rate limiting is enabled.
     $settings->add(new admin_setting_configtext('aiprovider_awsbedrock/globalratelimit',
             new lang_string('globalratelimit', 'aiprovider_awsbedrock'),
             new lang_string('globalratelimit_desc', 'aiprovider_awsbedrock'),
             100,
             PARAM_INT));
-    new admin_settingdependency('aiprovider_awsbedrock/globalratelimit', 'aiprovider_awsbedrock/enableglobalratelimit', 'eq', 1);
+    $settings->hide_if(
+            'aiprovider_awsbedrock/globalratelimit',
+            'aiprovider_awsbedrock/enableglobalratelimit',
+            'eq', 0);
 
     // Setting to enable/disable user rate limiting.
     $settings->add(new admin_setting_configcheckbox('aiprovider_awsbedrock/enableuserratelimit',
@@ -68,11 +71,14 @@ if ($hassiteconfig) {
             0));
 
     // Setting to set how many requests per hour are allowed for the user rate limit.
-    // Should only be enabled when user rate limiting is enabled.
+    // Should only be displayed when user rate limiting is enabled.
     $settings->add(new admin_setting_configtext('aiprovider_awsbedrock/userratelimit',
             new lang_string('userratelimit', 'aiprovider_awsbedrock'),
             new lang_string('userratelimit_desc', 'aiprovider_awsbedrock'),
             10,
             PARAM_INT));
-    new admin_settingdependency('aiprovider_awsbedrock/userratelimit', 'aiprovider_awsbedrock/enableuserratelimit', 'eq', 1);
-}
+    $settings->hide_if(
+            'aiprovider_awsbedrock/userratelimit',
+            'aiprovider_awsbedrock/enableuserratelimit',
+            'eq', 0);
+};
