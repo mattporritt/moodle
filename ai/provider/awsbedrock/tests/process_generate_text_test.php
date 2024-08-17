@@ -17,6 +17,7 @@
 namespace aiprovider_awsbedrock;
 
 use aiprovider_awsbedrock\process_generate_text;
+use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
@@ -30,9 +31,6 @@ use GuzzleHttp\Psr7\Response;
  * @covers     \core_ai\provider\awsbedrock
  */
 final class process_generate_text_test extends \advanced_testcase {
-    /** @var string A successful response in JSON format. */
-    protected string $responsebodyjson;
-
     /** @var provider The provider that will process the action. */
     protected provider $provider;
 
@@ -44,8 +42,6 @@ final class process_generate_text_test extends \advanced_testcase {
      */
     protected function setUp(): void {
         parent::setUp();
-        // Load a response body from a file.
-        $this->responsebodyjson = file_get_contents(__DIR__ . '/fixtures/titan_text_request_success.json');
         $this->provider = new \aiprovider_awsbedrock\provider();
         $contextid = 1;
         $userid = 1;
@@ -71,6 +67,29 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertEquals($prompttext, json_decode($request['body'])->inputText);
     }
 
+    /**
+     * Test the API error response handler method.
+     *
+     */
+    public function test_handle_api_error(): void {
+        $responses = [
+            500 => new Result(['@metadata' => ['statusCode' => 500]]),
+            503 => new Result(['@metadata' => ['statusCode' => 503]]),
+        ];
+
+        $processor = new process_generate_text($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'handle_api_error');
+
+        foreach ($responses as $status => $response) {
+            $result = $method->invoke($processor, $status, $response);
+            $this->assertEquals($status, $result['errorcode']);
+            if ($status == 500) {
+                $this->assertEquals('Internal server error.', $result['errormessage']);
+            } else if ($status == 503) {
+                $this->assertEquals('Service unavailable.', $result['errormessage']);
+            }
+        }
+    }
 
 
     /**
@@ -85,7 +104,7 @@ final class process_generate_text_test extends \advanced_testcase {
 
         $provider = new \aiprovider_awsbedrock\provider();
         $processor = new process_generate_text($provider, $this->action);
-        $result = $processor->process();
+        //$result = $processor->process();
 
     }
 

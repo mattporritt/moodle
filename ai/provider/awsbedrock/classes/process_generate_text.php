@@ -17,6 +17,7 @@
 namespace aiprovider_awsbedrock;
 
 use Aws\BedrockRuntime\BedrockRuntimeClient;
+use Aws\BedrockRuntime\Exception\BedrockRuntimeException;
 use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\aiactions\responses\response_base;
@@ -107,12 +108,12 @@ class process_generate_text extends process_base {
             } else {
                 return $this->handle_api_error($status, $response);
             }
-        } catch (RequestException $e) {
+        } catch (BedrockRuntimeException $e) {
             // Handle any exceptions.
             return [
                     'success' => false,
-                    'errorcode' => $e->getCode(),
-                    'errormessage' => $e->getMessage(),
+                    'errorcode' => $e->getStatusCode(),
+                    'errormessage' => $e->getAwsErrorMessage(),
             ];
         }
 
@@ -138,7 +139,8 @@ class process_generate_text extends process_base {
     }
 
     /**
-     * Handle an error from the external AI api.
+     * Handle an error from the external AI api,
+     * where we have an explicit response code but an exception was not thrown.
      *
      * @param int $status The status code.
      * @param Result $response The response object.
@@ -150,14 +152,10 @@ class process_generate_text extends process_base {
                 'errorcode' => $status,
         ];
 
-        if ($status == 500) {
-            $responsearr['errormessage'] = 'Internal server error.';
-        } else if ($status == 503) {
+        if ($status == 503) {
             $responsearr['errormessage'] = 'Service unavailable.';
         } else {
-            $responsebody = $response->getBody();
-            $bodyobj = json_decode($responsebody->getContents());
-            $responsearr['errormessage'] = $bodyobj->error->message;
+            $responsearr['errormessage'] = 'Internal server error.';
         }
 
         return $responsearr;
