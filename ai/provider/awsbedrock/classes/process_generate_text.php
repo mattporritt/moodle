@@ -106,7 +106,7 @@ class process_generate_text extends process_base {
             if ($status == 200) {
                 return $this->handle_api_success($response);
             } else {
-                return $this->handle_api_error($status, $response);
+                return $this->handle_api_error($status);
             }
         } catch (BedrockRuntimeException $e) {
             // Handle any exceptions.
@@ -143,10 +143,9 @@ class process_generate_text extends process_base {
      * where we have an explicit response code but an exception was not thrown.
      *
      * @param int $status The status code.
-     * @param Result $response The response object.
      * @return array The error response.
      */
-    protected function handle_api_error(int $status, Result $response): array {
+    protected function handle_api_error(int $status): array {
         $responsearr = [
                 'success' => false,
                 'errorcode' => $status,

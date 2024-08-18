@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_awsbedrock;
-
 use aiprovider_awsbedrock\process_generate_text;
 use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\provider;
-use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Stream;
 
 /**
  * Test Generate text provider class for AWS Bedrock provider methods.
@@ -91,6 +89,33 @@ final class process_generate_text_test extends \advanced_testcase {
         }
     }
 
+    /**
+     * Test the API success response handler method.
+     *
+     */
+    public function test_handle_api_success(): void {
+        // Create a mock of the GuzzleHttp\Psr7\Stream class
+        $streammock = $this->createMock(Stream::class);
+        $streammock->method('getContents')
+            ->willReturn('{"inputTextTokenCount":5,"results":[{"tokenCount":7,"outputText":"This is a test prompt","completionReason":"FINISH"}]}');
+
+        $response = new Result([
+            '@metadata' => ['statusCode' => 200],
+            'body' => $streammock
+        ]);
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $processor = new process_generate_text($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'handle_api_success');
+
+        $result = $method->invoke($processor, $response);
+
+        $this->assertEquals(true, $result['success']);
+        $this->assertEquals('This is a test prompt', $result['generatedcontent']);
+        $this->assertEquals('FINISH', $result['finishreason']);
+        $this->assertEquals(5, $result['prompttokens']);
+        $this->assertEquals(7, $result['completiontokens']);
+    }
 
     /**
      * Test query_ai_api for a successful call.
