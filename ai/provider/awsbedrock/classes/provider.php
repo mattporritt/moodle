@@ -272,7 +272,7 @@ class provider extends \core_ai\provider {
         } else if ($actionname === 'generate_image') {
             // Add the model setting.
             $settings[] = new \admin_setting_configselect(
-                "aiprovider_awsbedrock/action_{$actionname}_modelid",
+                "aiprovider_awsbedrock/action_{$actionname}_model",
                 new \lang_string('action_model', 'aiprovider_awsbedrock'),
                 new \lang_string('action_model_desc', 'aiprovider_awsbedrock'),
                 'stability.stable-diffusion-xl-v1:0',

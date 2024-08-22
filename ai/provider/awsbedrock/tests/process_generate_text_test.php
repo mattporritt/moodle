@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 use aiprovider_awsbedrock\process_generate_text;
+use Aws\BedrockRuntime\BedrockRuntimeClient;
 use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\provider;
@@ -120,17 +121,93 @@ final class process_generate_text_test extends \advanced_testcase {
     /**
      * Test query_ai_api for a successful call.
      */
-    public function test_process(): void {
-        $this->resetAfterTest();
-        set_config('apikey', '123', 'aiprovider_awsbedrock');
-        set_config('apisecret', '456', 'aiprovider_awsbedrock');
-        set_config('action_generate_text_region', 'ap-southeast-2', 'aiprovider_awsbedrock');
-        set_config('action_generate_text_model', 'amazon.titan-text-express-v1', 'aiprovider_awsbedrock');
+    public function test_query_ai_api_success(): void {
+        // Create a mock of the GuzzleHttp\Psr7\Stream class
+        $streammock = $this->createMock(Stream::class);
+        $streammock->method('getContents')
+                ->willReturn('{"inputTextTokenCount":5,"results":[{"tokenCount":7,"outputText":"This is a test prompt","completionReason":"FINISH"}]}');
 
-        $provider = new \aiprovider_awsbedrock\provider();
-        $processor = new process_generate_text($provider, $this->action);
-        //$result = $processor->process();
+        $response = new Result([
+                '@metadata' => ['statusCode' => 200],
+                'body' => $streammock
+        ]);
 
+        $client = $this->createMock(BedrockRuntimeClient::class);
+        // Using a callback to simulate the dynamic invocation
+        $client->method('__call')
+                ->with('invokeModel', $this->anything())
+                ->willReturn($response);
+
+        $body = new \stdClass();
+        $body->inputText = 'This is a test prompt';
+        $request = [
+                'ContentType' => 'application/json',
+                'Accept' => 'application/json',
+                'modelId' => 'amazon.titan-text-express-v1',
+                'body' => json_encode($body),
+        ];
+
+        $processor = new process_generate_text($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'query_ai_api');
+        $result = $method->invoke($processor, $client, $request);
+
+        $this->assertEquals(true, $result['success']);
+        $this->assertEquals('This is a test prompt', $result['generatedcontent']);
+        $this->assertEquals('FINISH', $result['finishreason']);
+        $this->assertEquals(5, $result['prompttokens']);
+        $this->assertEquals(7, $result['completiontokens']);
+
+
+    }
+
+    /**
+     * Test prepare_response success.
+     */
+    public function test_prepare_response_success(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'prepare_response');
+
+        $response = [
+            'success' => true,
+            'generatedcontent' => 'This is a test prompt',
+            'finishreason' => 'FINISH',
+            'prompttokens' => 5,
+            'completiontokens' => 7,
+        ];
+
+        $result = $method->invoke($processor, $response);
+
+        $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
+        $this->assertTrue($result->get_success());
+        $this->assertEquals('generate_text', $result->get_actionname());
+        $this->assertEquals($response['success'], $result->get_success());
+        $this->assertEquals($response['generatedcontent'], $result->get_response()['generatedcontent']);
+    }
+
+    /**
+     * Test prepare_response error.
+     */
+    public function test_prepare_response_error(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'prepare_response');
+
+        $response = [
+                'success' => false,
+                'errorcode' => 500,
+                'errormessage' => 'Internal server error.',
+        ];
+
+        $result = $method->invoke($processor, $response);
+
+        $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
+        $this->assertFalse($result->get_success());
+        $this->assertEquals('generate_text', $result->get_actionname());
+        $this->assertEquals($response['errorcode'], $result->get_errorcode());
+        $this->assertEquals($response['errormessage'], $result->get_errormessage());
     }
 
 }
