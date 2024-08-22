@@ -40,9 +40,6 @@ class process_generate_text extends process_base {
     /** @var string The API model to use. */
     protected string $model;
 
-    /** @var string The id of the model. */
-    protected string $modelid;
-
     /** @var string The system instructions. */
     protected string $systeminstructions;
 
@@ -56,7 +53,6 @@ class process_generate_text extends process_base {
         parent::__construct($provider, $action);
         $this->region = get_config('aiprovider_awsbedrock', 'action_generate_text_region');
         $this->model = get_config('aiprovider_awsbedrock', 'action_generate_text_model');
-        $this->modelid = get_config('aiprovider_awsbedrock', 'action_generate_text_modelid');
         $this->systeminstructions = get_config('aiprovider_awsbedrock', 'action_generate_text_systeminstruction');
     }
 

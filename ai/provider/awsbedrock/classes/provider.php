@@ -192,14 +192,6 @@ class provider extends \core_ai\provider {
                     'us-gov-west-1' => new \lang_string('action_region:us-gov-west-1', 'aiprovider_awsbedrock'),
                 ]
         );
-        // Add the model id  setting.
-        $settings[] = new \admin_setting_configtext(
-                "aiprovider_awsbedrock/action_{$actionname}_modelid",
-                new \lang_string('action_modelid', 'aiprovider_awsbedrock'),
-                new \lang_string('action_modelid_desc', 'aiprovider_awsbedrock'),
-                '',
-                PARAM_ALPHANUMEXT,
-        );
 
         if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
             // Add the model setting.
