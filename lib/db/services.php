@@ -3239,7 +3239,6 @@ $functions = array(
     ],
     'core_ai_set_policy_status' => [
         'classname'   => 'core_ai\external\set_policy_status',
-        'methodname'  => 'set_policy_status',
         'description' => 'Set a users AI policy acceptance',
         'type'        => 'write',
         'ajax'        => true,
@@ -3247,7 +3246,6 @@ $functions = array(
     ],
     'core_ai_get_policy_status' => [
         'classname'   => 'core_ai\external\get_policy_status',
-        'methodname'  => 'get_policy_status',
         'description' => 'Get a users AI policy acceptance',
         'type'        => 'read',
         'ajax'        => true,
