@@ -253,14 +253,6 @@ class provider extends \core_ai\provider {
                 ],
             );
 
-            // Add system instruction settings.
-            $settings[] = new \admin_setting_configtextarea(
-                    "aiprovider_awsbedrock/action_{$actionname}_systeminstruction",
-                    new \lang_string('action_systeminstruction', 'aiprovider_awsbedrock'),
-                    new \lang_string('action_systeminstruction_desc', 'aiprovider_awsbedrock'),
-                    $action::get_system_instruction(),
-                    PARAM_TEXT
-            );
         } else if ($actionname === 'generate_image') {
             // Add the model setting.
             $settings[] = new \admin_setting_configselect(
@@ -275,6 +267,18 @@ class provider extends \core_ai\provider {
                     'stability.stable-diffusion-xl-v1:0' => new \lang_string('action_model:stability.stable-diffusion-xl-v1:0', 'aiprovider_awsbedrock'),
                     'stability.stable-diffusion-xl-v1' => new \lang_string('action_model:stability.stable-diffusion-xl-v1', 'aiprovider_awsbedrock'),
                 ],
+            );
+        }
+
+        if ($actionname === 'summarise_text') {
+
+            // Add system instruction settings.
+            $settings[] = new \admin_setting_configtextarea(
+                    "aiprovider_awsbedrock/action_{$actionname}_systeminstruction",
+                    new \lang_string('action_systeminstruction', 'aiprovider_awsbedrock'),
+                    new \lang_string('action_systeminstruction_desc', 'aiprovider_awsbedrock'),
+                    $action::get_system_instruction(),
+                    PARAM_TEXT
             );
         }
 
