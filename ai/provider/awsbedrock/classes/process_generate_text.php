@@ -125,7 +125,16 @@ class process_generate_text extends process_base {
      */
     private function create_request(\core_ai\aiactions\base $action): array {
         $body = new \stdClass();
-        $body->inputText = $action->get_configuration('prompttext');
+
+        // Handle model family specific configuration.
+        if (str_contains($this->model, 'amazon')) {
+            $body->inputText = $action->get_configuration('prompttext');
+        } else if (str_contains($this->model, 'mistral')) {
+            $body->inputText = '<s>[INST] ' . $action->get_configuration('prompttext') . ' [/INST]';
+        } else {
+            throw new \coding_exception('Unknown model class type.');
+        }
+
         return [
             'ContentType' => 'application/json',
             'Accept' => 'application/json',
