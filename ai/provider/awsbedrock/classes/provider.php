@@ -226,7 +226,7 @@ class provider extends \core_ai\provider {
             );
         }
 
-        if ($actionname === 'summarise_text') {
+        if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
 
             // Add system instruction settings.
             $settings[] = new \admin_setting_configtextarea(

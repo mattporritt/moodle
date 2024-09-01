@@ -125,12 +125,24 @@ class process_generate_text extends process_base {
      */
     private function create_request(\core_ai\aiactions\base $action): array {
         $body = new \stdClass();
+        $systeminstruction = $this->systeminstructions;
 
         // Handle model family specific configuration.
         if (str_contains($this->model, 'amazon')) {
-            $body->inputText = $action->get_configuration('prompttext');
+            if (!empty($systeminstruction)) {
+                $body->inputText = $action->get_configuration('prompttext') . '\n\n' . $systeminstruction;
+            } else {
+                $body->inputText = $action->get_configuration('prompttext');
+            }
         } else if (str_contains($this->model, 'mistral')) {
-            $body->inputText = '<s>[INST] ' . $action->get_configuration('prompttext') . ' [/INST]';
+            if (!empty($systeminstruction)) {
+                $body->prompt = '<s>[INST] '
+                        . 'System: ' . $systeminstruction
+                        . ' User: ' . $action->get_configuration('prompttext')
+                        . ' [/INST]';
+            } else {
+                $body->prompt = '<s>[INST] ' . $action->get_configuration('prompttext') . ' [/INST]';
+            }
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
@@ -175,13 +187,27 @@ class process_generate_text extends process_base {
         $responsebody = $response['body'];
         $bodyobj = json_decode($responsebody->getContents());
 
-        return [
-                'success' => true,
-                'generatedcontent' => $bodyobj->results[0]->outputText,
-                'finishreason' => $bodyobj->results[0]->completionReason,
-                'prompttokens' => $bodyobj->inputTextTokenCount,
-                'completiontokens' => $bodyobj->results[0]->tokenCount,
+        // Bedrock contains token counts in the headers.
+        $responseheaders = $response['@metadata']['headers'];
+        $response = [
+            'success' => true,
+            'fingerprint' => $responseheaders['x-amzn-requestid'],
+            'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
+            'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
         ];
+
+        // Bedrock contains different response structures for different models.
+        if (str_contains($this->model, 'amazon')) {
+            $response['generatedcontent'] = $bodyobj->results[0]->outputText;
+            $response['finishreason'] = $bodyobj->results[0]->completionReason;
+        } else if (str_contains($this->model, 'mistral')) {
+            $response['generatedcontent'] = $bodyobj->outputs[0]->text;
+            $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;
+        } else {
+            throw new \coding_exception('Unknown model class type.');
+        }
+
+        return $response;
     }
 
     /**
