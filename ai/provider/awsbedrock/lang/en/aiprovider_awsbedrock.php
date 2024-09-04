@@ -26,6 +26,8 @@
 $string['action_model'] = 'AI model';
 $string['action_model:amazon.titan-text-lite-v1'] = 'Titan Text G1 - Lite, Amazon, 4k';
 $string['action_model:amazon.titan-text-express-v1'] = 'Titan Text G1 - Express v1, Amazon, 8k';
+$string['action_model:anthropic.claude-3-sonnet-20240229-v1:0'] = 'Claude 3 - Sonnet, Anthropic, 200k';
+$string['action_model:anthropic.claude-3-haiku-20240307-v1:0'] = 'Claude 3 - Haiku, Anthropic, 200k';
 $string['action_model:mistral.mistral-7b-instruct-v0:2'] = 'Mistral 7B Instruct, Mistral AI, 32k';
 $string['action_model:mistral.mistral-large-2402-v1:0'] = 'Mistral Large (24.02), Mistral AI, 32k';
 $string['action_model:mistral.mixtral-8x7b-instruct-v0:1'] = 'Mixtral 8x7B Instruct, Mistral AI, 32k';

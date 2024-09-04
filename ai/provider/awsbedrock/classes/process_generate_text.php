@@ -134,6 +134,24 @@ class process_generate_text extends process_base {
             } else {
                 $body->inputText = $action->get_configuration('prompttext');
             }
+        } else if (str_contains($this->model, 'anthropic')) {
+            $body->anthropic_version = "bedrock-2023-05-31";
+            $body->max_tokens = 10000; // TODO: Make this configurable.
+            if (!empty($systeminstruction)) {
+                $body->system = $systeminstruction;
+            }
+
+            // Create message object.
+            $messageobj = new \stdClass();
+            $messageobj->type = 'text';
+            $messageobj->text = $action->get_configuration('prompttext');
+
+            // Create the user object.
+            $userobj = new \stdClass();
+            $userobj->role = 'user';
+            $userobj->content = [$messageobj];
+
+            $body->messages = [$userobj];
         } else if (str_contains($this->model, 'mistral')) {
             if (!empty($systeminstruction)) {
                 $body->prompt = '<s>[INST] '
@@ -200,6 +218,9 @@ class process_generate_text extends process_base {
         if (str_contains($this->model, 'amazon')) {
             $response['generatedcontent'] = $bodyobj->results[0]->outputText;
             $response['finishreason'] = $bodyobj->results[0]->completionReason;
+        } else if (str_contains($this->model, 'anthropic')) {
+            $response['generatedcontent'] = $bodyobj->content[0]->text;
+            $response['finishreason'] = $bodyobj->stop_reason;
         } else if (str_contains($this->model, 'mistral')) {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
             $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;

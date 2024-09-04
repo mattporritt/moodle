@@ -84,7 +84,7 @@ class get_policy_status extends external_api {
         require_capability('moodle/ai:getpolicy', $context);
 
         // If the context level is that of a user, check the user is the same as the one passed in.
-        if ($context->contextlevel == CONTEXT_USER && ($USER->id !== $userid)) {
+        if ($context->contextlevel == CONTEXT_USER && ((int)$USER->id !== $userid)) {
             throw new \moodle_exception('invaliduser');
         }
 

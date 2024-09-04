@@ -203,6 +203,8 @@ class provider extends \core_ai\provider {
                 [
                     'amazon.titan-text-lite-v1' => new \lang_string('action_model:amazon.titan-text-lite-v1', 'aiprovider_awsbedrock'),
                     'amazon.titan-text-express-v1' => new \lang_string('action_model:amazon.titan-text-express-v1', 'aiprovider_awsbedrock'),
+                    'anthropic.claude-3-sonnet-20240229-v1:0' => new \lang_string('action_model:anthropic.claude-3-sonnet-20240229-v1:0', 'aiprovider_awsbedrock'),
+                    'anthropic.claude-3-haiku-20240307-v1:0' => new \lang_string('action_model:anthropic.claude-3-haiku-20240307-v1:0', 'aiprovider_awsbedrock'),
                     'mistral.mistral-7b-instruct-v0:2' => new \lang_string('action_model:mistral.mistral-7b-instruct-v0:2', 'aiprovider_awsbedrock'),
                     'mistral.mistral-large-2402-v1:0' => new \lang_string('action_model:mistral.mistral-large-2402-v1:0', 'aiprovider_awsbedrock'),
                     'mistral.mixtral-8x7b-instruct-v0:1' => new \lang_string('action_model:mistral.mixtral-8x7b-instruct-v0:1', 'aiprovider_awsbedrock'),
