@@ -120,8 +120,8 @@ class aiprovider extends base {
         foreach ($actionlist as $action) {
             $actionsettings = $provider->get_action_settings($action, $ADMIN, $section, $hassiteconfig);
             if (!empty($actionsettings)) {
-                $actionname =  substr($action, (strrpos($action, '\\') + 1));
-                $settings = new \admin_settingpage($section . '_' . $actionname, $action::get_name(),'moodle/site:config', true);
+                $actionname = substr($action, (strrpos($action, '\\') + 1));
+                $settings = new \admin_settingpage($section . '_' . $actionname, $action::get_name(), 'moodle/site:config', true);
                 $setting = new \admin_setting_heading("{$section}_actions/heading",
                     new \lang_string('actionsettingprovider', 'core_ai', $provider->get_name()),
                     new \lang_string('actionsettingprovider_desc', 'core_ai'));

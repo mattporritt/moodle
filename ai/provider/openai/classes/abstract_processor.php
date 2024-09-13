@@ -53,7 +53,7 @@ abstract class abstract_processor extends process_base {
      * @return string
      */
     protected function get_system_instruction(): string {
-        return $this->action->get_system_instruction();
+        return $this->action::get_system_instruction();
     }
 
     /**

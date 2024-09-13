@@ -62,7 +62,7 @@ abstract class provider {
      * @param string $section The section name.
      * @param bool $hassiteconfig Whether the current user has moodle/site:config capability.
      * @return array An array of settings.
-    */
+     */
     public function get_action_settings(
         string $action,
         \admin_root $ADMIN,

@@ -159,7 +159,7 @@ class provider extends \core_ai\provider {
         string $section,
         bool $hassiteconfig
     ): array {
-        $actionname =  substr($action, (strrpos($action, '\\') + 1));
+        $actionname = substr($action, (strrpos($action, '\\') + 1));
         $settings = [];
         if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
             // Add the model setting.
