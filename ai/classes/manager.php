@@ -265,4 +265,32 @@ class manager {
         }
         return (bool) $value;
     }
+
+    /**
+     * Check if an action is available.
+     * Action is available if it is enabled
+     * for at least one enabled provider.
+     *
+     * @param string $action
+     * @return bool
+     */
+    public static function is_action_available(string $action): bool {
+        $providers = self::get_providers_for_actions([$action], true);
+        // Check if the action has any providers.
+        if (empty($providers[$action])) {
+            return false;
+        }
+        // Check if the requested action is enabled for at least one provider.
+        foreach ($providers as $provideractions) {
+            foreach ($provideractions as $provider) {
+                $pluginname = explode('\\', $provider::class)[0];
+                $actionname = explode('\\', $action)[2];
+                if (self::is_action_enabled($pluginname, $actionname)) {
+                    return true;
+                }
+            }
+        }
+        // There are no providers with this action enabled.
+        return false;
+    }
 }

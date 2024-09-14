@@ -399,4 +399,31 @@ final class manager_test extends \advanced_testcase {
         $result = manager::set_action_state($plugin, $action, 1);
         $this->assertTrue($result);
     }
+
+    /**
+     * Test is_action_available method.
+     */
+    public function test_is_action_available(): void {
+        $this->resetAfterTest();
+        $action = generate_image::class;
+
+        // Plugin is disabled by default, action state should not matter. Everything should be false.
+        $result = manager::is_action_available($action);
+        $this->assertFalse($result);
+
+        // Enable the plugin, actions will be enabled by default when the plugin is enabled.
+        $manager = \core_plugin_manager::resolve_plugininfo_class('aiprovider');
+        $manager::enable_plugin('openai', 1);
+
+        // Should now be available.
+        $result = manager::is_action_available($action);
+        $this->assertTrue($result);
+
+        // Disable the action.
+        set_config($action, 0, 'aiprovider_openai');
+
+        // Should now be unavailable.
+        $result = manager::is_action_available($action);
+        $this->assertFalse($result);
+    }
 }
