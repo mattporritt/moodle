@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {getPolicyStatus, setPolicyStatus} from 'core/ai/policy';
+import {getPolicyStatus, setPolicyStatus} from 'core_ai/repository';
 import Templates from 'core/templates';
 import Ajax from 'core/ajax';
 import 'core/copy_to_clipboard';
