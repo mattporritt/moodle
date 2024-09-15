@@ -284,7 +284,8 @@ const AICourseAssist = class {
      * @param {String} content The content to display.
      */
     displayResponse(content) {
-        Templates.render('aiplacement_courseassist/response', {content: content}).then((html) => {
+        const formattedContent = this.replaceLineBreaks(content);
+        Templates.render('aiplacement_courseassist/response', {content: formattedContent}).then((html) => {
             this.aiDrawerBodyElement.innerHTML = html;
             this.aiDrawerBodyElement.dataset.hasdata = '1';
             this.registerResponseEventListeners();
@@ -310,6 +311,24 @@ const AICourseAssist = class {
     getTextContent() {
         const mainRegion = document.querySelector(Selectors.ELEMENTS.MAIN_REGION);
         return mainRegion.innerText || mainRegion.textContent;
+    }
+
+    /**
+     * Replace double line breaks with <br> and with </p><p> for paragraphs.
+     * This is to handle the difference in response from the AI to what is expected by the editor.
+     *
+     * @param {String} text The text to replace.
+     * @returns {String}
+     */
+    replaceLineBreaks(text) {
+        // Replace double line breaks with </p><p> for paragraphs
+        const textWithParagraphs = text.replace(/\n{2,}|\r\n/g, '<br/><br/>');
+
+        // Replace remaining single line breaks with <br> tags
+        const textWithBreaks = textWithParagraphs.replace(/\n/g, '<br/>');
+
+        // Add opening and closing <p> tags to wrap the entire content
+        return `<p>${textWithBreaks}</p>`;
     }
 };
 
