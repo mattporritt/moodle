@@ -204,11 +204,11 @@ class aiplacement_action_management_table extends flexible_table implements dyna
      * Print the table.
      */
     public function out(): void {
-        foreach ($this->actions as $action) {
+        foreach ($this->actions as $actionclass) {
             // Construct the row data.
             $rowdata = (object) [
-                'action' => $action,
-                'enabled' => manager::is_action_enabled($this->pluginname, $action::get_basename()),
+                'action' => $actionclass,
+                'enabled' => manager::is_action_enabled($this->pluginname, $actionclass),
             ];
             $this->add_data_keyed(
                 $this->format_row($rowdata),
