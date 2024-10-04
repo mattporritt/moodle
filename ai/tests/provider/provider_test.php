@@ -51,6 +51,7 @@ final class provider_test extends \advanced_testcase {
      * Test get_contexts_for_userid().
      */
     public function test_get_contexts_for_userid(): void {
+        global $DB;
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
@@ -93,7 +94,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -125,7 +126,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -164,7 +165,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -209,6 +210,7 @@ final class provider_test extends \advanced_testcase {
      * Test export_user_data() for generate text.
      */
     public function test_export_user_data_for_generate_text(): void {
+        global $DB;
         $user = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
@@ -237,7 +239,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -313,6 +315,7 @@ final class provider_test extends \advanced_testcase {
      * Test export_user_data() for generate image.
      */
     public function test_export_user_data_for_generate_image(): void {
+        global $DB;
         $user = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
@@ -341,7 +344,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -421,6 +424,7 @@ final class provider_test extends \advanced_testcase {
      * Test export_user_data() for summarise text.
      */
     public function test_export_user_data_for_summarise_text(): void {
+        global $DB;
         $user = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
@@ -449,7 +453,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -582,7 +586,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -658,7 +662,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -732,7 +736,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -807,7 +811,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -884,7 +888,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -959,7 +963,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -1038,6 +1042,7 @@ final class provider_test extends \advanced_testcase {
      * Test get_users_in_context() for generate text.
      */
     public function test_get_users_in_context_for_generate_text(): void {
+        global $DB;
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
@@ -1066,7 +1071,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -1111,6 +1116,7 @@ final class provider_test extends \advanced_testcase {
      * Test get_users_in_context() for generate image.
      */
     public function test_get_users_in_context_for_generate_image(): void {
+        global $DB;
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
@@ -1139,7 +1145,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -1213,7 +1219,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -1318,7 +1324,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -1398,7 +1404,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 
@@ -1475,7 +1481,7 @@ final class provider_test extends \advanced_testcase {
         $actionresponse->set_response_data($body);
 
         $provider = new \aiprovider_openai\provider();
-        $manager = new manager();
+        $manager = new manager($DB);
         $method = new \ReflectionMethod($manager, 'store_action_result');
         $storeresult1 = $method->invoke($manager, $provider, $action, $actionresponse);
 

@@ -27,42 +27,22 @@ use moodle_url;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class aiprovider extends base {
-    /**
-     * Should there be a way to uninstall the plugin via the administration UI.
-     *
-     * By default, uninstallation is allowed.
-     *
-     * @return bool
-     */
+    #[\Override]
     public function is_uninstall_allowed(): bool {
         return true;
     }
 
-    /**
-     * This plugintype supports its plugins being disabled.
-     *
-     * @return bool
-     */
+    #[\Override]
     public static function plugintype_supports_disabling(): bool {
         return true;
     }
 
-    /**
-     * Returns the node name used in admin settings menu for this plugin settings.
-     *
-     * @return string node name.
-     */
+    #[\Override]
     public function get_settings_section_name(): string {
         return $this->type . '_' . $this->name;
     }
 
-    /**
-     * Loads plugin settings to the settings tree.
-     *
-     * @param \part_of_admin_tree $adminroot
-     * @param string $parentnodename
-     * @param bool $hassiteconfig whether the current user has moodle/site:config capability
-     */
+    #[\Override]
     public function load_settings(
         \part_of_admin_tree $adminroot,
         $parentnodename,
@@ -138,25 +118,14 @@ class aiprovider extends base {
         }
     }
 
-    /**
-     * Return URL used for management of plugins of this type.
-     *
-     * @return moodle_url
-     */
+    #[\Override]
     public static function get_manage_url(): moodle_url {
         return new moodle_url('/admin/settings.php', [
             'section' => 'aiprovider',
         ]);
     }
 
-    /**
-     * Enable or disable a plugin.
-     * When possible, the change will be stored into the config_log table, to let admins check when/who has modified it.
-     *
-     * @param string $pluginname The plugin name to enable/disable.
-     * @param int $enabled Whether the pluginname should be enabled (1) or not (0).
-     * @return bool Whether $pluginname has been updated or not.
-     */
+    #[\Override]
     public static function enable_plugin(string $pluginname, int $enabled): bool {
         $plugin = 'aiprovider_' . $pluginname;
         $oldvalue = self::is_plugin_enabled($pluginname);
@@ -177,11 +146,7 @@ class aiprovider extends base {
         return false;
     }
 
-    /**
-     * Finds all enabled plugins, the result may include missing plugins.
-     *
-     * @return array|null of enabled plugins $pluginname=>$pluginname, null means unknown.
-     */
+    #[\Override]
     public static function get_enabled_plugins(): ?array {
         $pluginmanager = core_plugin_manager::instance();
         $plugins = $pluginmanager->get_installed_plugins('aiprovider');

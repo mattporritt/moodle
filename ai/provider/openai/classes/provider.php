@@ -50,6 +50,7 @@ class provider extends \core_ai\provider {
      * Class constructor.
      */
     public function __construct() {
+        parent::__construct('openai', '{}');
         // Get api key from config.
         $this->apikey = get_config('aiprovider_openai', 'apikey');
         // Get api org id from config.

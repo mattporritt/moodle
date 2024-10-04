@@ -107,7 +107,9 @@ final class manager_test extends \advanced_testcase {
      */
     public function test_process_action_fail(): void {
         $this->resetAfterTest();
+        global $DB;
         $managermock = $this->getMockBuilder(manager::class)
+            ->setConstructorArgs([$DB])
             ->onlyMethods(['call_action_provider'])
             ->getMock();
 
@@ -140,6 +142,7 @@ final class manager_test extends \advanced_testcase {
      */
     public function test_process_action(): void {
         $this->resetAfterTest();
+        global $DB;
 
         // Enable the providers.
         set_config('enabled', 1, 'aiprovider_openai');
@@ -150,6 +153,7 @@ final class manager_test extends \advanced_testcase {
         set_config('endpoint', 'abc', 'aiprovider_azureai');
 
         $managermock = $this->getMockBuilder(manager::class)
+            ->setConstructorArgs([$DB])
             ->onlyMethods(['call_action_provider'])
             ->getMock();
 
@@ -432,5 +436,225 @@ final class manager_test extends \advanced_testcase {
         // Should now be unavailable.
         $result = manager::is_action_available($action);
         $this->assertFalse($result);
+    }
+
+    /**
+     * Test create_provider_instance method.
+     */
+    public function test_create_provider_instance(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $config = (object) [
+            'enabled' => true,
+            'data' => 'goeshere',
+        ];
+
+        // Create a dummy provider.
+        $dummy = $this->getMockBuilder(\core_ai\provider::class)
+            ->setConstructorArgs([
+                'name' => 'dummy',
+                'config' => json_encode($config),
+            ])
+            ->onlyMethods(['get_action_list'])
+            ->getMock();
+        $dummyprovider = get_class($dummy);
+
+        // Create the provider instance.
+        $manager = \core\di::get(\core_ai\manager::class);
+        $provider = $manager->create_provider_instance(
+            classname: $dummyprovider,
+            name: 'dummy',
+            config: $config,
+        );
+
+        $this->assertIsInt($provider->id);
+        $this->assertTrue($provider->enabled);
+        $this->assertEquals('goeshere', $provider->config->data);
+
+        // Check the record was written to the DB.
+        $record = $DB->get_record('ai_providers', ['id' => $provider->id], '*', MUST_EXIST);
+        $this->assertEquals($provider->id, $record->id);
+
+    }
+
+    /**
+     * Test create_provider_instance non provider class.
+     */
+    public function test_create_provider_instance_non_provider_class(): void {
+        $this->resetAfterTest();
+
+        // Should throw an exception as the class is not a provider.
+        $this->expectException(\coding_exception::class);
+        $this->expectExceptionMessage(' Provider class not valid: ' . $this::class);
+
+        // Create the provider instance.
+        $manager = \core\di::get(\core_ai\manager::class);
+        $provider = $manager->create_provider_instance(
+            classname: $this::class,
+            name: 'dummy',
+        );
+
+    }
+
+    /**
+     * Test get_provider_records method.
+     */
+    public function test_get_provider_records(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $config = (object) [
+            'enabled' => true,
+            'data' => 'goeshere',
+        ];
+
+        // Create some dummy provider records directly in the database.
+        $record1 = new \stdClass();
+        $record1->name = 'dummy1';
+        $record1->provider = 'dummy';
+        $record1->enabled = 1;
+        $record1->config = json_encode($config);
+
+        $record2 = new \stdClass();
+        $record2->name = 'dummy2';
+        $record2->provider = 'dummy';
+        $record2->enabled = 1;
+        $record2->config = json_encode($config);
+
+        $DB->insert_records('ai_providers', [
+            $record1,
+            $record2,
+        ]);
+
+        // Get the provider records.
+        $manager = \core\di::get(\core_ai\manager::class);
+        $providers = $manager->get_provider_records(['provider' => 'dummy']);
+
+        // Assert that the records were returned.
+        $this->assertCount(2, $providers);
+    }
+
+    /**
+     * Test get_provider_instances method.
+     */
+    public function test_get_provider_instances(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $config = (object) [
+            'enabled' => true,
+            'data' => 'goeshere',
+        ];
+
+        $manager = \core\di::get(\core_ai\manager::class);
+
+        // Create a dummy provider and instance.
+        $dummy = $this->getMockBuilder(\core_ai\provider::class)
+            ->setConstructorArgs([
+                'name' => 'dummy',
+                'config' => json_encode($config),
+            ])
+            ->onlyMethods(['get_action_list'])
+            ->getMock();
+        $dummyprovider = get_class($dummy);
+        $provider = $manager->create_provider_instance(
+            classname: $dummyprovider,
+            name: 'dummy',
+            config: $config,
+        );
+
+        // Create an instance record for a non provider class.
+        $record = new \stdClass();
+        $record->name = 'dummy';
+        $record->provider = 'dummy';
+        $record->enabled = 1;
+        $record->config = json_encode($config);
+
+        $DB->insert_record('ai_providers', $record);
+
+        // Get the provider instances.
+        $instances = $manager->get_provider_instances();
+        $this->assertDebuggingCalled('Unable to find a provider class for dummy');
+        $this->assertCount(1, $instances);
+        $this->assertEquals($provider->id, $instances[$provider->id]->id);
+    }
+
+    /**
+     * Test update_provider_instance method.
+     */
+    public function test_update_provider_instance(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $config = (object) [
+                'enabled' => true,
+                'data' => 'goeshere',
+        ];
+
+        // Create a dummy provider.
+        $dummy = $this->getMockBuilder(\core_ai\provider::class)
+                ->setConstructorArgs([
+                        'name' => 'dummy',
+                        'config' => json_encode($config),
+                ])
+                ->onlyMethods(['get_action_list'])
+                ->getMock();
+        $dummyprovider = get_class($dummy);
+
+        // Create the provider instance.
+        $manager = \core\di::get(\core_ai\manager::class);
+        $provider = $manager->create_provider_instance(
+                classname: $dummyprovider,
+                name: 'dummy',
+                config: $config,
+        );
+
+        // Update the provider instance.
+        $config->data = 'updateddata';
+        $manager->update_provider_instance($provider, $config);
+
+        // Check the record was updated in the DB.
+        $record = $DB->get_record('ai_providers', ['id' => $provider->id], '*', MUST_EXIST);
+        $this->assertEquals($provider->id, $record->id);
+        $this->assertEquals('updateddata', json_decode($record->config)->data);
+    }
+
+    /**
+     * Test delete_provider_instance method.
+     */
+    public function test_delete_provider_instance(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $config = (object) [
+                'enabled' => true,
+                'data' => 'goeshere',
+        ];
+
+        // Create a dummy provider.
+        $dummy = $this->getMockBuilder(\core_ai\provider::class)
+                ->setConstructorArgs([
+                        'name' => 'dummy',
+                        'config' => json_encode($config),
+                ])
+                ->onlyMethods(['get_action_list'])
+                ->getMock();
+        $dummyprovider = get_class($dummy);
+
+        // Create the provider instance.
+        $manager = \core\di::get(\core_ai\manager::class);
+        $provider = $manager->create_provider_instance(
+                classname: $dummyprovider,
+                name: 'dummy',
+                config: $config,
+        );
+
+        // Delete the provider instance.
+        $manager->delete_provider_instance($provider);
+
+        // Check the record was deleted from the DB.
+        $record = $DB->record_exists('ai_providers', ['id' => $provider->id]);
+        $this->assertFalse($record);
     }
 }

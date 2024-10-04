@@ -16,6 +16,8 @@
 
 namespace core_ai;
 
+use Spatie\Cloneable\Cloneable;
+
 /**
  * Class provider.
  *
@@ -24,6 +26,32 @@ namespace core_ai;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class provider {
+    use Cloneable;
+
+    /** @var \stdClass The configuration for this instance */
+    public readonly \stdClass $config;
+
+    /** @var bool Whether the provider is enabled. */
+    public readonly bool $enabled;
+
+    /**
+     * Create a new provider.
+     *
+     * @param string $name The name of the provider config.
+     * @param string $config The configuration for this instance.
+     * @param int|null $id The id of the provider in the database.
+     */
+    public function __construct(
+        /** @var string The name of the provider config. */
+        public string $name,
+        string $config,
+        /** @var null|int The ID of the provider in the database, or null if it has not been persisted yet. */
+        public readonly ?int $id = null,
+    ) {
+        $this->config = json_decode($config);
+        $this->enabled = $this->config->enabled ?? true;
+    }
+
     /**
      * Get the actions that this provider supports.
      *
@@ -79,5 +107,20 @@ abstract class provider {
      */
     public function is_provider_configured(): bool {
         return false;
+    }
+
+    /**
+     * Convert this object to a stdClass, suitable for saving to the database.
+     *
+     * @return \stdClass
+     */
+    public function to_record(): \stdClass {
+        return (object) [
+                'id' => $this->id,
+                'name' => $this->name,
+                'provider' => get_class($this),
+                'enabled' => $this->enabled,
+                'config' => json_encode($this->config),
+        ];
     }
 }
