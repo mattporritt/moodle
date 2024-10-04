@@ -47,6 +47,12 @@ class set_action extends external_api {
                 'The target state',
                 VALUE_REQUIRED,
             ),
+            'providerid' => new external_value(
+                PARAM_INT,
+                'The provider id',
+                VALUE_DEFAULT,
+                0
+            ),
         ]);
     }
 
@@ -55,19 +61,23 @@ class set_action extends external_api {
      *
      * @param string $plugin The name of the plugin.
      * @param int $state The target state.
+     * @param int $providerid The provider id.
      * @return array
      */
     public static function execute(
         string $plugin,
         int $state,
+        int $providerid = 0
     ): array {
         // Parameter validation.
         [
             'plugin' => $plugin,
             'state' => $state,
+            'providerid' => $providerid,
         ] = self::validate_parameters(self::execute_parameters(), [
             'plugin' => $plugin,
             'state' => $state,
+            'providerid' => $providerid,
         ]);
 
         $context = system::instance();
@@ -89,7 +99,13 @@ class set_action extends external_api {
             );
         }
 
-        manager::set_action_state($plugin, $action, $state);
+        $manager = \core\di::get(manager::class);
+        $manager->set_action_state(
+                plugin: $plugin,
+                actionbasename: $action,
+                enabled: $state,
+                instanceid: $providerid
+        );
 
         return [];
     }
