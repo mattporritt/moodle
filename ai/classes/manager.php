@@ -28,6 +28,18 @@ use core_ai\aiactions\responses;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class manager {
+
+    /**
+     * Create a new SMS manager.
+     *
+     * @param \moodle_database $db
+     */
+    public function __construct(
+        /** @var \moodle_database The database instance */
+        protected readonly \moodle_database $db,
+    ) {
+    }
+
     /**
      * Get communication provider class name from the plugin name.
      *
@@ -289,5 +301,127 @@ class manager {
         }
         // There are no providers with this action enabled.
         return false;
+    }
+
+    /**
+     * Create a new provider instance.
+     *
+     * @param string $classname Classname of the provider.
+     * @param string $name The name of the provider config.
+     * @param \stdClass|null $config The config json.
+     * @return provider
+     */
+    public function create_provider_instance(
+        string $classname,
+        string $name,
+        ?\stdClass $config = null,
+    ): provider {
+        if (!class_exists($classname) || !is_a($classname, provider::class, true)) {
+            throw new \coding_exception("Provider class not valid: {$classname}");
+        }
+        $provider = new $classname(
+            name: $name,
+            config: $config ? json_encode($config) : '',
+        );
+
+        $id = $this->db->insert_record('ai_providers', $provider->to_record());
+
+        return $provider->with(id: $id);
+    }
+
+    /**
+     * Get the provider records according to the filter.
+     *
+     * @param array|null $filter The filterable elements to get the records from.
+     * @return array
+     * @throws \dml_exception
+     */
+    public function get_provider_records(?array $filter = null): array {
+        return $this->db->get_records(
+                table: 'ai_providers',
+                conditions: $filter,
+        );
+    }
+
+    /**
+     * Get a list of all provider instances.
+     *
+     * This method retrieves provider records from the database, attempts to instantiate
+     * each provider class, and returns an array of provider instances. It filters out
+     * any records where the provider class does not exist.
+     *
+     * @param null|array $filter The database filter to apply when fetching provider records.
+     * @return array An array of instantiated provider objects.
+     * @throws \dml_exception If there is a database error during record retrieval.
+     */
+    public function get_provider_instances(?array $filter = null): array {
+        return array_filter(
+            // Apply a callback function to each provider record to instantiate the provider.
+            array_map(
+                function ($record): ?provider {
+                    // Check if the provider class specified in the record exists.
+                    if (!class_exists($record->provider)) {
+                        // Log a debugging message if the provider class is not found.
+                        debugging(
+                            "Unable to find a provider class for {$record->provider}",
+                            DEBUG_DEVELOPER,
+                        );
+                        // Return null to indicate that the provider could not be instantiated.
+                        return null;
+                    }
+
+                    // Instantiate the provider class with the record's data.
+                    return new $record->provider(
+                        id: $record->id,
+                        name: $record->name,
+                        config: $record->config,
+                    );
+                },
+                // Retrieve the provider records from the database with the optional filter.
+                $this->get_provider_records($filter),
+            )
+        // Filter out any null values from the array (providers that couldn't be instantiated).
+        );
+    }
+
+    /**
+     * Update provider instance.
+     *
+     * @param provider $provider The provider instance
+     * @param \stdClass|null $config the configuration of the provider instance to be updated
+     * @return provider
+     * @throws \dml_exception
+     */
+    public function update_provider_instance(
+            provider $provider,
+            ?\stdClass $config = null,
+    ): provider {
+        $provider = $provider->with(config: $config, name: $provider->name);
+        $this->db->update_record('ai_providers', $provider->to_record());
+        return $provider;
+    }
+
+    /**
+     * Delete the provider instance.
+     *
+     * @param provider $provider The provider instance.
+     * @return bool
+     */
+    public function delete_provider_instance(provider $provider): bool {
+        try {
+            // Dispatch the hook before deleting the record.
+            $hook = new \core_ai\hook\before_provider_deleted(
+                    provider: $provider,
+            );
+            $hookmanager = \core\di::get(\core\hook\manager::class)->dispatch($hook);
+            if ($hookmanager->isPropagationStopped()) {
+                $deleted = false;
+            } else {
+                $deleted = $this->db->delete_records('ai_providers', ['id' => $provider->id]);
+            }
+        } catch (\dml_exception $exception) {
+            $deleted = false;
+        }
+        return $deleted;
     }
 }

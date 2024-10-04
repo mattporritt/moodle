@@ -30,8 +30,15 @@ if ($hassiteconfig) {
     // Add settings page for AI provider settings.
     $providers = new admin_settingpage('aiprovider', new lang_string('aiproviders', 'ai'));
     $providers->add(new admin_setting_heading('availableproviders',
-            get_string('availableproviders', 'core_ai'),
-            get_string('availableproviders_desc', 'core_ai')));
+        get_string('availableproviders', 'core_ai'),
+        get_string('availableproviders_desc', 'core_ai')));
+    // Add call to action to add a new provider.
+    $providers->add(new \core_admin\admin\admin_setting_template_render(
+        name: 'addnewprovider',
+        templatename: 'core_ai/admin_add_provider',
+        context: ['addnewproviderurl' => new moodle_url('/ai/configure.php')]
+    ));
+
     $providers->add(new \core_admin\admin\admin_setting_plugin_manager(
             'aiprovider',
             \core_ai\table\aiprovider_management_table::class,
