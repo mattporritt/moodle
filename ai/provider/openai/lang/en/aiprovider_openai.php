@@ -36,15 +36,9 @@ $string['action:summarise_text:model_desc'] = 'The model used to summarise the p
 $string['action:summarise_text:systeminstruction'] = 'System instruction';
 $string['action:summarise_text:systeminstruction_desc'] = 'This instruction is sent to the AI model along with the user\'s prompt. Editing this instruction is not recommended unless absolutely required.';
 $string['apikey'] = 'OpenAI API key';
-$string['apikey_desc'] = 'Get a key from your <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI API keys</a>.';
-$string['enableglobalratelimit'] = 'Set site-wide rate limit';
-$string['enableglobalratelimit_desc'] = 'Limit the number of requests that the OpenAI API provider can receive across the entire site every hour.';
-$string['enableuserratelimit'] = 'Set user rate limit';
-$string['enableuserratelimit_desc'] = 'Limit the number of requests each user can make to the OpenAI API provider every hour.';
-$string['globalratelimit'] = 'Maximum number of site-wide requests';
-$string['globalratelimit_desc'] = 'The number of site-wide requests allowed per hour.';
+$string['apikey_help'] = 'Get a key from your <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI API keys</a>.';
 $string['orgid'] = 'OpenAI organization ID';
-$string['orgid_desc'] = 'Get your OpenAI organization ID from your <a href="https://platform.openai.com/account/org-settings" target="_blank">OpenAI account</a>.';
+$string['orgid_help'] = 'Get your OpenAI organization ID from your <a href="https://platform.openai.com/account/org-settings" target="_blank">OpenAI account</a>.';
 $string['pluginname'] = 'OpenAI API Provider';
 $string['privacy:metadata'] = 'The OpenAI API provider plugin does not store any personal data.';
 $string['privacy:metadata:aiprovider_openai:externalpurpose'] = 'This information is sent to the OpenAI API in order for a response to be generated. Your OpenAI account settings may change how OpenAI stores and retains this data. No user data is explicitly sent to OpenAI or stored in Moodle LMS by this plugin.';

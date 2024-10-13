@@ -83,9 +83,18 @@ class ai_provider_form extends moodleform {
         // Dispatch a hook for plugins to add their fields.
         $hook = new \core_ai\hook\after_ai_provider_form_hook(
             mform: $mform,
-            plugin: $providerconfigs->aiprovider ?? 'aiprovider_aws',
+            plugin: $providerconfigs->aiprovider ?? 'aiprovider_openai',
         );
         \core\di::get(\core\hook\manager::class)->dispatch($hook);
+
+        // Add rate limiting settings.
+        // Setting to enable/disable global rate limiting.
+        $mform->addElement(
+            'checkbox',
+            'enableglobalratelimit',
+            get_string('enableglobalratelimit', 'core_ai'),
+            get_string('enableglobalratelimit_help', 'core_ai'),
+        );
 
         // Form buttons.
         $buttonarray = [];
