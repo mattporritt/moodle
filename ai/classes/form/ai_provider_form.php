@@ -95,6 +95,36 @@ class ai_provider_form extends moodleform {
             get_string('enableglobalratelimit', 'core_ai'),
             get_string('enableglobalratelimit_help', 'core_ai'),
         );
+        // Setting to set how many requests per hour are allowed for the global rate limit.
+        // Should only be enabled when global rate limiting is enabled.
+        $mform->addElement(
+            'text',
+            'globalratelimit',
+            get_string('globalratelimit', 'core_ai'),
+            'maxlength="10" size="4"',
+        );
+        $mform->setType('globalratelimit', PARAM_INT);
+        $mform->addHelpButton('globalratelimit', 'globalratelimit', 'core_ai');
+        $mform->hideIf('globalratelimit', 'enableglobalratelimit', 'notchecked');
+
+        // Setting to enable/disable user rate limiting.
+        $mform->addElement(
+            'checkbox',
+            'enableuserratelimit',
+            get_string('enableuserratelimit', 'core_ai'),
+            get_string('enableuserratelimit_help', 'core_ai'),
+        );
+        // Setting to set how many requests per hour are allowed for the user rate limit.
+        // Should only be enabled when user rate limiting is enabled.
+        $mform->addElement(
+            'text',
+            'userratelimit',
+            get_string('userratelimit', 'core_ai'),
+            'maxlength="10" size="4"',
+        );
+        $mform->setType('userratelimit', PARAM_INT);
+        $mform->addHelpButton('userratelimit', 'userratelimit', 'core_ai');
+        $mform->hideIf('userratelimit', 'enableuserratelimit', 'notchecked');
 
         // Form buttons.
         $buttonarray = [];
