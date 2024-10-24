@@ -2429,12 +2429,13 @@ function xmldb_main_upgrade($oldversion) {
 
         // Rename the ltiservice_gradebookservices table so that it's not removed during the uninstallation of that plugin.
         // This permits data migration to the replacement ltixservice_gradebookservices during that plugin's install.php.
+        if (!$dbman->table_exists(new xmldb_table('ltixservice_gradebookservices'))) {
+            // Define table ltiservice_gradebookservices to be renamed to tmp_ltiservice_gradebookservices.
+            $table = new xmldb_table('ltiservice_gradebookservices');
 
-        // Define table ltiservice_gradebookservices to be renamed to tmp_ltiservice_gradebookservices.
-        $table = new xmldb_table('ltiservice_gradebookservices');
-
-        // Launch rename table for ltiservice_gradebookservices.
-        $dbman->rename_table($table, 'tmp_ltiservice_gradebookservices');
+            // Launch rename table for ltiservice_gradebookservices.
+            $dbman->rename_table($table, 'tmp_ltiservice_gradebookservices');
+        }
 
         $servicetypes = ['basicoutcomes', 'gradebookservices', 'memberships', 'profile', 'toolproxy', 'toolsettings'];
         foreach ($servicetypes as $type) {
