@@ -27,7 +27,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 
-$plugin->version   = 2026100501;
+$plugin->version   = 2026100502;
 $plugin->requires  = 2026100200;
 $plugin->component = 'ltixservice_toolproxy';
 $plugin->dependencies = [
