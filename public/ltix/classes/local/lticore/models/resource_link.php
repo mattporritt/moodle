@@ -38,8 +38,6 @@ final class resource_link extends persistent {
      * @return array The persistent property definitions, keyed by property name.
      */
     protected static function define_properties(): array {
-        global $CFG;
-        require_once($CFG->dirroot . '/ltix/constants.php');
 
         return [
             'typeid' => [
@@ -85,14 +83,14 @@ final class resource_link extends persistent {
             ],
             'launchcontainer' => [
                 'type' => PARAM_INT,
-                'default' => LTI_LAUNCH_CONTAINER_DEFAULT,
+                'default' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
                 'null' => NULL_NOT_ALLOWED,
                 'choices' => [
-                    LTI_LAUNCH_CONTAINER_DEFAULT,
-                    LTI_LAUNCH_CONTAINER_EMBED,
-                    LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS,
-                    LTI_LAUNCH_CONTAINER_WINDOW,
-                    LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW,
+                    \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
+                    \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED,
+                    \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS,
+                    \core_ltix\constants::LTI_LAUNCH_CONTAINER_WINDOW,
+                    \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW,
                 ],
             ],
             'customparams' => [

@@ -25,8 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot . '/mod/lti/locallib.php');
-require_once($CFG->dirroot . '/ltix/constants.php');
+require_once($CFG->dirroot.'/mod/lti/locallib.php');
 
 use core_ltix\local\ltiservice\service_helper;
 

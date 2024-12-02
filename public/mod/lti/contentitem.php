@@ -33,7 +33,7 @@ $title = optional_param('title', '', PARAM_TEXT);
 $text = optional_param('text', '', PARAM_RAW);
 
 $config = \core_ltix\helper::get_type_type_config($id);
-if ($config->lti_ltiversion === LTI_VERSION_1P3) {
+if ($config->lti_ltiversion === \core_ltix\constants::LTI_VERSION_1P3) {
     if (!isset($SESSION->lti_initiatelogin_status)) {
         echo \core_ltix\helper::initiate_login($courseid, 0, null, $config, 'ContentItemSelectionRequest', $title, $text);
         exit;

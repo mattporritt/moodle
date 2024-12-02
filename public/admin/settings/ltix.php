@@ -54,7 +54,6 @@ foreach (core_plugin_manager::instance()->get_plugins_of_type('ltisource') as $p
 
 if ($ADMIN->fulltree) {
     global $PAGE, $CFG, $USER;
-    require_once($CFG->dirroot . '/ltix/constants.php');
 
     $configuredtoolshtml = '';
     $pendingtoolshtml = '';
@@ -77,15 +76,15 @@ if ($ADMIN->fulltree) {
 
     $types = \core_ltix\helper::filter_get_types(get_site()->id);
 
-    $configuredtools = \core_ltix\helper::filter_tool_types($types, LTI_TOOL_STATE_CONFIGURED);
+    $configuredtools = \core_ltix\helper::filter_tool_types($types, \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED);
 
     $configuredtoolshtml = \core_ltix\helper::get_tool_table($configuredtools, 'lti_configured');
 
-    $pendingtools = \core_ltix\helper::filter_tool_types($types, LTI_TOOL_STATE_PENDING);
+    $pendingtools = \core_ltix\helper::filter_tool_types($types, \core_ltix\constants::LTI_TOOL_STATE_PENDING);
 
     $pendingtoolshtml = \core_ltix\helper::get_tool_table($pendingtools, 'lti_pending');
 
-    $rejectedtools = \core_ltix\helper::filter_tool_types($types, LTI_TOOL_STATE_REJECTED);
+    $rejectedtools = \core_ltix\helper::filter_tool_types($types, \core_ltix\constants::LTI_TOOL_STATE_REJECTED);
 
     $rejectedtoolshtml = \core_ltix\helper::get_tool_table($rejectedtools, 'lti_rejected');
 

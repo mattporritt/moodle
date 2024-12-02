@@ -48,7 +48,7 @@ final class delete_course_tool_type_test extends externallib_advanced_testcase {
 
         $typeid = helper::add_type(
             (object) [
-                'state' => LTI_TOOL_STATE_CONFIGURED,
+                'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                 'course' => $course->id
             ],
             (object) [
@@ -78,7 +78,7 @@ final class delete_course_tool_type_test extends externallib_advanced_testcase {
 
         $typeid = helper::add_type(
             (object) [
-                'state' => LTI_TOOL_STATE_CONFIGURED,
+                'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
             ],
             (object) [
                 'lti_typename' => "My site tool",
