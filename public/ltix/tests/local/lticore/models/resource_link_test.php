@@ -54,9 +54,6 @@ final class resource_link_test extends \advanced_testcase {
     }
 
     public static function create_resource_link_provider(): array {
-        global $CFG;
-        require_once($CFG->dirroot . '/ltix/constants.php');
-
         return [
             'minimal set, required fields only' => [
                 'setdata' => [
@@ -79,7 +76,7 @@ final class resource_link_test extends \advanced_testcase {
                     'text' => null,
                     'textformat' => FORMAT_MOODLE,
                     'gradable' => false,
-                    'launchcontainer' => LTI_LAUNCH_CONTAINER_DEFAULT,
+                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
                     'customparams' => null,
                     'icon' => null,
                     'servicesalt' => null,
@@ -97,7 +94,7 @@ final class resource_link_test extends \advanced_testcase {
                     'text' => '<div>This is a larger description of the resource link</div>',
                     'textformat' => FORMAT_HTML,
                     'gradable' => true,
-                    'launchcontainer' => LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS,
+                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS,
                     'customparams' => 'id=abc-123-fff',
                     'icon' => (new \moodle_url('http://tool.example.com/my/resource/icon.png'))->out(false),
                     'servicesalt' => '664c4261e47d85.53212526',
@@ -113,7 +110,7 @@ final class resource_link_test extends \advanced_testcase {
                     'text' => '<div>This is a larger description of the resource link</div>',
                     'textformat' => FORMAT_HTML,
                     'gradable' => true,
-                    'launchcontainer' => LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS,
+                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS,
                     'customparams' => 'id=abc-123-fff',
                     'icon' => 'http://tool.example.com/my/resource/icon.png',
                     'servicesalt' => '664c4261e47d85.53212526',

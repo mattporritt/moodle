@@ -326,7 +326,7 @@ final class gradebookservices_test extends \advanced_testcase {
 
         $lti = ['course' => $course->id,
             'typeid' => $typeid,
-            'instructorchoiceacceptgrades' => LTI_SETTING_ALWAYS,
+            'instructorchoiceacceptgrades' => \core_ltix\constants::LTI_SETTING_ALWAYS,
             'grade' => 10,
             'lineitemresourceid' => $resourceid,
             'lineitemtag' => $tag,
@@ -348,7 +348,7 @@ final class gradebookservices_test extends \advanced_testcase {
 
         $lti = ['course' => $course->id,
             'typeid' => $typeid,
-            'instructorchoiceacceptgrades' => LTI_SETTING_NEVER];
+            'instructorchoiceacceptgrades' => \core_ltix\constants::LTI_SETTING_NEVER];
 
         return $this->getDataGenerator()->create_module('lti', $lti, array());
     }
@@ -381,10 +381,8 @@ final class gradebookservices_test extends \advanced_testcase {
      * Creates a new LTI Tool Type.
      */
     private function create_type() {
-        global $CFG;
-        require_once($CFG->dirroot . '/ltix/constants.php');
         $type = new \stdClass();
-        $type->state = LTI_TOOL_STATE_CONFIGURED;
+        $type->state = \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED;
         $type->name = "Test tool";
         $type->description = "Example description";
         $type->clientid = "Test client ID";
