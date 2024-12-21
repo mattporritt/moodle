@@ -518,7 +518,7 @@ class manager {
         if ($provider->enabled) {
             try {
                 $hook = new \core_ai\hook\before_provider_disabled(
-                        provider: $provider,
+                    provider: $provider,
                 );
                 $hookmanager = \core\di::get(\core\hook\manager::class)->dispatch($hook);
                 if (!$hookmanager->isPropagationStopped()) {

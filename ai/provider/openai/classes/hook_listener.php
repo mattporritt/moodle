@@ -30,7 +30,7 @@ class hook_listener {
     /**
      * Hook listener for the Open AI instance setup form.
      *
-     * @param after_ai_provider_form_hook $hook The hook to add to sms gateway setup.
+     * @param after_ai_provider_form_hook $hook The hook to add to the AI instance setup.
      */
     public static function set_form_definition_for_aiprovider_openai(after_ai_provider_form_hook $hook): void {
         if ($hook->plugin !== 'aiprovider_openai') {

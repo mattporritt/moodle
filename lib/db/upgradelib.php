@@ -1940,7 +1940,7 @@ function upgrade_convert_ai_providers_to_instances() {
         // Create the instance config. We don't want everything from the provider config.
         $instanceconfig = [
             'aiprovider' => \aiprovider_azureai\provider::class,
-            'name ' => get_string('pluginname', 'aiprovider_azureai'),
+            'name' => get_string('pluginname', 'aiprovider_azureai'),
             'apikey' => $azureaiconfig->apikey ?? '',
             'endpoint' => $azureaiconfig->endpoint ?? '',
             'enableglobalratelimit' => $azureaiconfig->enableglobalratelimit ?? 0,

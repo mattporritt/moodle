@@ -322,9 +322,9 @@ class behat_core_generator extends behat_generator_base {
                 'required' => ['idnumber'],
             ],
             'ai providers' => [
-                    'singular' => 'ai provider',
-                    'datagenerator' => 'ai_provider',
-                    'required' => ['provider', 'name', 'enabled', 'apikey', 'orgid'],
+                'singular' => 'ai provider',
+                'datagenerator' => 'ai_provider',
+                'required' => ['provider', 'name', 'enabled'],
             ],
         ];
 

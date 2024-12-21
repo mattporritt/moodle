@@ -20,7 +20,7 @@ let watching = false;
 /**
  * Handles setting plugin state for the AI provider management table.
  *
- * @module     core_ai/action_management_table
+ * @module     core_ai/aiprovider_action_management_table
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
