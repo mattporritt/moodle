@@ -79,6 +79,7 @@ class provider extends \core_ai\provider {
         $actionname = substr($action, (strrpos($action, '\\') + 1));
         $customdata['actionname'] = $actionname;
         $customdata['action'] = $action;
+        $customdata['providername'] = 'aiprovider_openai';
         if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
             return new form\action_generate_text_form(customdata: $customdata);
         } else if ($actionname === 'generate_image') {
@@ -94,6 +95,7 @@ class provider extends \core_ai\provider {
         $customdata = [
             'actionname' => $actionname,
             'action' => $action,
+            'providername' => 'aiprovider_openai',
         ];
         if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
             $mform = new form\action_generate_text_form(customdata: $customdata);
