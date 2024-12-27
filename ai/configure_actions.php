@@ -80,7 +80,7 @@ if ($mform->is_cancelled()) {
     }
 }
 
-if ($data = $mform->get_data()) {
+if (!$mform->is_cancelled() && $data = $mform->get_data()) {
     $manager = \core\di::get(\core_ai\manager::class);
     $aiprovider = $data->provider;
     unset($data->provider, $data->id, $data->action, $data->returnurl, $data->submitbutton);
