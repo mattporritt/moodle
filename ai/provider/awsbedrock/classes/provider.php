@@ -16,6 +16,7 @@
 
 namespace aiprovider_awsbedrock;
 
+use Aws\BedrockRuntime\BedrockRuntimeClient;
 use core_ai\form\action_settings_form;
 use Psr\Http\Message\RequestInterface;
 
@@ -41,34 +42,24 @@ class provider extends \core_ai\provider {
     }
 
     /**
-     * Generate a user id.
+     * Create the Bedrock API client.
      *
-     * This is a hash of the site id and user id,
-     * this means we can determine who made the request
-     * but don't pass any personal data to OpenAI.
-     *
-     * @param string $userid The user id.
-     * @return string The generated user id.
+     * @param string $region The AWS region the model is hosted in
+     * @param string $version The version of the webservice to utilize.
+     * @return BedrockRuntimeClient The client used to make requests.
      */
-    public function generate_userid(string $userid): string {
-        global $CFG;
-        return hash('sha256', $CFG->siteidentifier . $userid);
-    }
-
-    /**
-     * Update a request to add any headers required by the provider.
-     *
-     * @param RequestInterface $request
-     * @return RequestInterface
-     */
-    public function add_authentication_headers(RequestInterface $request): RequestInterface {
-        if (isset($this->config['orgid'])) {
-            return $request
-                ->withAddedHeader('Authorization', "Bearer {$this->config['apikey']}")
-                ->withAddedHeader('OpenAI-Organization', $this->config['orgid']);
-        } else {
-            return $request->withAddedHeader('Authorization', "Bearer {$this->config['apikey']}");
-        }
+    public function create_bedrock_client(
+            string $region,
+            string $version = 'latest'
+    ): BedrockRuntimeClient {
+        return new BedrockRuntimeClient([
+                'region' => $region,
+                'version' => $version,
+                'credentials' => [
+                        'key' => $this->config['apikey'],
+                        'secret' => $this->config['apisecret'],
+                ]
+        ]);
     }
 
     #[\Override]

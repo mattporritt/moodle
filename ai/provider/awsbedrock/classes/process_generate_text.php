@@ -35,42 +35,36 @@ class process_generate_text extends abstract_processor {
     }
 
     #[\Override]
-    protected function create_request_object(string $userid): RequestInterface {
-        // Create the user object.
-        $userobj = new \stdClass();
-        $userobj->role = 'user';
-        $userobj->content = $this->action->get_configuration('prompttext');
-
-        // Create the request object.
+    protected function create_request(): array {
         $requestobj = new \stdClass();
-        $requestobj->model = $this->get_model();
-        $requestobj->user = $userid;
-
-        // If there is a system string available, use it.
         $systeminstruction = $this->get_system_instruction();
-        if (!empty($systeminstruction)) {
-            $systemobj = new \stdClass();
-            $systemobj->role = 'system';
-            $systemobj->content = $systeminstruction;
-            $requestobj->messages = [$systemobj, $userobj];
-        } else {
-            $requestobj->messages = [$userobj];
-        }
-
-        // Append the extra model settings.
         $modelsettings = $this->get_model_settings();
-        foreach ($modelsettings as $setting => $value) {
-            $requestobj->$setting = $value;
+
+        // Handle model family specific configuration.
+        if (str_contains($this->get_model(), 'amazon')) {
+            if (!empty($systeminstruction)) {
+                $requestobj->inputText = $this->action->get_configuration('prompttext') . '\n\n' . $systeminstruction;
+            } else {
+                $requestobj->inputText = $this->action->get_configuration('prompttext');
+            }
+            // Append the extra model settings.
+            if (!empty($modelsettings)) {
+                $modelobj = new \stdClass();
+                foreach ($modelsettings as $setting => $value) {
+                    $modelobj->$setting = $value;
+                }
+                $requestobj->textGenerationConfig = $modelobj;
+            }
+        } else {
+            throw new \coding_exception('Unknown model class type.');
         }
 
-        return new Request(
-            method: 'POST',
-            uri: '',
-            headers: [
-                'Content-Type' => 'application/json',
-            ],
-            body: json_encode($requestobj),
-        );
+        return [
+            'ContentType' => 'application/json',
+            'Accept' => 'application/json',
+            'modelId' => $this->get_model(),
+            'body' => json_encode($requestobj),
+        ];
     }
 
     /**

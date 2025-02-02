@@ -38,6 +38,7 @@ trait testcase_helper_trait {
         $manager = \core\di::get(\core_ai\manager::class);
         $config = [
             'apikey' => '123',
+            'apisecret' => '456',
             'enableuserratelimit' => true,
             'userratelimit' => 1,
             'enableglobalratelimit' => true,
@@ -46,8 +47,8 @@ trait testcase_helper_trait {
         $defaultactionconfig = [
             $actionclass => [
                 'settings' => [
-                    'model' => 'gpt-4o',
-                    'endpoint' => "https://api.awsbedrock.com/v1/chat/completions",
+                    'model' => 'amazon.titan-text-lite-v1',
+                    'awsregion' => 'ap-southeast-2',
                 ],
             ],
         ];

@@ -16,6 +16,9 @@
 
 namespace aiprovider_awsbedrock;
 
+use Aws\BedrockRuntime\BedrockRuntimeClient;
+use Aws\BedrockRuntime\Exception\BedrockRuntimeException;
+use Aws\Result;
 use core\http_client;
 use core_ai\process_base;
 use GuzzleHttp\Exception\RequestException;
@@ -33,15 +36,6 @@ use Psr\Http\Message\UriInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class abstract_processor extends process_base {
-    /**
-     * Get the endpoint URI.
-     *
-     * @return UriInterface
-     */
-    protected function get_endpoint(): UriInterface {
-        return new Uri($this->provider->actionconfig[$this->action::class]['settings']['endpoint']);
-    }
-
     /**
      * Get the name of the model to use.
      *
@@ -91,14 +85,9 @@ abstract class abstract_processor extends process_base {
      *
      * This object contains all the required parameters for the request.
      *
-     *
-     *
-     * @param string $userid The user id.
-     * @return RequestInterface The request object to send to the OpenAI API.
+     * @return array The request object to send to the OpenAI API.
      */
-    abstract protected function create_request_object(
-        string $userid,
-    ): RequestInterface;
+    abstract protected function create_request(): array;
 
     /**
      * Handle a successful response from the external AI api.
@@ -110,18 +99,13 @@ abstract class abstract_processor extends process_base {
 
     #[\Override]
     protected function query_ai_api(): array {
-        $request = $this->create_request_object(
-            userid: $this->provider->generate_userid($this->action->get_configuration('userid')),
+        $request = $this->create_request();
+        $client = $this->provider->create_bedrock_client(
+                region: $this->action->get_configuration('userid'),
         );
-        $request = $this->provider->add_authentication_headers($request);
-
-        $client = \core\di::get(http_client::class);
         try {
             // Call the external AI service.
-            $response = $client->send($request, [
-                'base_uri' => $this->get_endpoint(),
-                RequestOptions::HTTP_ERRORS => false,
-            ]);
+            $response = $client->invokeModel($request);
         } catch (RequestException $e) {
             // Handle any exceptions.
             return [
@@ -132,7 +116,7 @@ abstract class abstract_processor extends process_base {
         }
 
         // Double-check the response codes, in case of a non 200 that didn't throw an error.
-        $status = $response->getStatusCode();
+        $status = $response['@metadata']['statusCode'];
         if ($status === 200) {
             return $this->handle_api_success($response);
         } else {
