@@ -40,26 +40,26 @@ class hook_listener {
 
         $mform = $hook->mform;
 
-        // Required setting to store OpenAI API key.
+        // Required setting to store AWS API key.
         $mform->addElement(
-            'passwordunmask',
+            'text',
             'apikey',
             get_string('apikey', 'aiprovider_awsbedrock'),
-            ['size' => 75],
+            ['size' => 32],
         );
+        $mform->setType('apikey', PARAM_TEXT);
         $mform->addHelpButton('apikey', 'apikey', 'aiprovider_awsbedrock');
         $mform->addRule('apikey', get_string('required'), 'required', null, 'client');
 
-        // Setting to store OpenAI organization ID.
+        // Setting to store AWS API secret.
         $mform->addElement(
-            'text',
-            'orgid',
-            get_string('orgid', 'aiprovider_awsbedrock'),
-            ['size' => 25],
+            'passwordunmask',
+            'apisecret',
+            get_string('apisecret', 'aiprovider_awsbedrock'),
+            ['size' => 32],
         );
-        $mform->setType('orgid', PARAM_TEXT);
-        $mform->addHelpButton('orgid', 'orgid', 'aiprovider_awsbedrock');
-
+        $mform->addHelpButton('apisecret', 'apisecret', 'aiprovider_awsbedrock');
+        $mform->addRule('apisecret', get_string('required'), 'required', null, 'client');
     }
 
     /**

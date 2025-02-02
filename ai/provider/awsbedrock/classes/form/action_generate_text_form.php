@@ -33,6 +33,14 @@ class action_generate_text_form extends action_form {
 
         $this->add_model_fields(awsbedrock_base::MODEL_TYPE_TEXT);
 
+        $mform->addElement(
+                'select',
+                'awsregion',
+                get_string('awsregion', 'aiprovider_awsbedrock'),
+                $this->get_regions(),
+        );
+        $mform->setDefault('awsregion', 'ap-southeast-2');
+
         // API endpoint.
         $mform->addElement(
             'text',

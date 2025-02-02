@@ -195,4 +195,46 @@ class action_form extends action_settings_form {
         }
         return $models;
     }
+
+    /**
+     * Retrieves a list of AWS regions mapped to their corresponding language strings.
+     *
+     * @return array An associative array where keys represent AWS region codes and values
+     *               are language string objects for the respective region.
+     */
+    protected function get_regions(): array {
+        return [
+                'af-south-1' => new \lang_string('awsregion:af-south-1', 'aiprovider_awsbedrock'),
+                'ap-east-1' => new \lang_string('awsregion:ap-east-1', 'aiprovider_awsbedrock'),
+                'ap-south-2' => new \lang_string('awsregion:ap-south-2', 'aiprovider_awsbedrock'),
+                'ap-southeast-3' => new \lang_string('awsregion:ap-southeast-3', 'aiprovider_awsbedrock'),
+                'ap-southeast-4' => new \lang_string('awsregion:ap-southeast-4', 'aiprovider_awsbedrock'),
+                'ap-south-1' => new \lang_string('awsregion:ap-south-1', 'aiprovider_awsbedrock'),
+                'ap-northeast-3' => new \lang_string('awsregion:ap-northeast-3', 'aiprovider_awsbedrock'),
+                'ap-northeast-2' => new \lang_string('awsregion:ap-northeast-2', 'aiprovider_awsbedrock'),
+                'ap-southeast-1' => new \lang_string('awsregion:ap-southeast-1', 'aiprovider_awsbedrock'),
+                'ap-southeast-2' => new \lang_string('awsregion:ap-southeast-2', 'aiprovider_awsbedrock'),
+                'ap-northeast-1' => new \lang_string('awsregion:ap-northeast-1', 'aiprovider_awsbedrock'),
+                'ca-central-1' => new \lang_string('awsregion:ca-central-1', 'aiprovider_awsbedrock'),
+                'ca-west-1' => new \lang_string('awsregion:ca-west-1', 'aiprovider_awsbedrock'),
+                'eu-central-1' => new \lang_string('awsregion:eu-central-1', 'aiprovider_awsbedrock'),
+                'eu-west-1' => new \lang_string('awsregion:eu-west-1', 'aiprovider_awsbedrock'),
+                'eu-west-2' => new \lang_string('awsregion:eu-west-2', 'aiprovider_awsbedrock'),
+                'eu-south-1' => new \lang_string('awsregion:eu-south-1', 'aiprovider_awsbedrock'),
+                'eu-west-3' => new \lang_string('awsregion:eu-west-3', 'aiprovider_awsbedrock'),
+                'eu-south-2' => new \lang_string('awsregion:eu-south-2', 'aiprovider_awsbedrock'),
+                'eu-north-1' => new \lang_string('awsregion:eu-north-1', 'aiprovider_awsbedrock'),
+                'eu-central-2' => new \lang_string('awsregion:eu-central-2', 'aiprovider_awsbedrock'),
+                'il-central-1' => new \lang_string('awsregion:il-central-1', 'aiprovider_awsbedrock'),
+                'me-south-1' => new \lang_string('awsregion:me-south-1', 'aiprovider_awsbedrock'),
+                'me-central-1' => new \lang_string('awsregion:me-central-1', 'aiprovider_awsbedrock'),
+                'sa-east-1' => new \lang_string('awsregion:sa-east-1', 'aiprovider_awsbedrock'),
+                'us-east-2' => new \lang_string('awsregion:us-east-2', 'aiprovider_awsbedrock'),
+                'us-east-1' => new \lang_string('awsregion:us-east-1', 'aiprovider_awsbedrock'),
+                'us-west-1' => new \lang_string('awsregion:us-west-1', 'aiprovider_awsbedrock'),
+                'us-west-2' => new \lang_string('awsregion:us-west-2', 'aiprovider_awsbedrock'),
+                'us-gov-east-1' => new \lang_string('awsregion:us-gov-east-1', 'aiprovider_awsbedrock'),
+                'us-gov-west-1' => new \lang_string('awsregion:us-gov-west-1', 'aiprovider_awsbedrock'),
+        ];
+    }
 }
