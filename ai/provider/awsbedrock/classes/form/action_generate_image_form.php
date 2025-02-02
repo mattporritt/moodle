@@ -33,17 +33,6 @@ class action_generate_image_form extends action_form {
 
         $this->add_model_fields(awsbedrock_base::MODEL_TYPE_IMAGE);
 
-        // API endpoint.
-        $mform->addElement(
-            'text',
-            'endpoint',
-            get_string("action:{$this->actionname}:endpoint", 'aiprovider_awsbedrock'),
-            'maxlength="255" size="30"',
-        );
-        $mform->setType('endpoint', PARAM_URL);
-        $mform->addRule('endpoint', null, 'required', null, 'client');
-        $mform->setDefault('endpoint', $this->actionconfig['endpoint'] ?? 'https://api.awsbedrock.com/v1/images/generations');
-
         if ($this->returnurl) {
             $mform->addElement('hidden', 'returnurl', $this->returnurl);
             $mform->setType('returnurl', PARAM_LOCALURL);

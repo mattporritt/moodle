@@ -41,17 +41,6 @@ class action_generate_text_form extends action_form {
         );
         $mform->setDefault('awsregion', 'ap-southeast-2');
 
-        // API endpoint.
-        $mform->addElement(
-            'text',
-            'endpoint',
-            get_string("action:{$this->actionname}:endpoint", 'aiprovider_awsbedrock'),
-            'maxlength="255" size="30"',
-        );
-        $mform->setType('endpoint', PARAM_URL);
-        $mform->addRule('endpoint', null, 'required', null, 'client');
-        $mform->setDefault('endpoint', $actionconfig['endpoint'] ?? 'https://api.awsbedrock.com/v1/chat/completions');
-
         // System Instructions.
         $mform->addElement(
             'textarea',
