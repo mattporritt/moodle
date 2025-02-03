@@ -92,16 +92,16 @@ abstract class abstract_processor extends process_base {
     /**
      * Handle a successful response from the external AI api.
      *
-     * @param ResponseInterface $response The response object.
+     * @param array $response The response object.
      * @return array The response.
      */
-    abstract protected function handle_api_success(ResponseInterface $response): array;
+    abstract protected function handle_api_success(array $response): array;
 
     #[\Override]
     protected function query_ai_api(): array {
         $request = $this->create_request();
         $client = $this->provider->create_bedrock_client(
-                region: $this->action->get_configuration('userid'),
+            region: $this->action->get_configuration('userid'),
         );
         try {
             // Call the external AI service.
@@ -127,10 +127,10 @@ abstract class abstract_processor extends process_base {
     /**
      * Handle an error from the external AI api.
      *
-     * @param ResponseInterface $response The response object.
+     * @param array $response The response object.
      * @return array The error response.
      */
-    protected function handle_api_error(ResponseInterface $response): array {
+    protected function handle_api_error(array $response): array {
         $responsearr = [
             'success' => false,
             'errorcode' => $response->getStatusCode(),

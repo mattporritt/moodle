@@ -70,10 +70,10 @@ class process_generate_text extends abstract_processor {
     /**
      * Handle a successful response from the external AI api.
      *
-     * @param ResponseInterface $response The response object.
+     * @param array $response The response object.
      * @return array The response.
      */
-    protected function handle_api_success(ResponseInterface $response): array {
+    protected function handle_api_success(array $response): array {
         $responsebody = $response->getBody();
         $bodyobj = json_decode($responsebody->getContents());
 

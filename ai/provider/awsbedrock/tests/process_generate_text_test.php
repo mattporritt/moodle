@@ -80,7 +80,7 @@ final class process_generate_text_test extends \advanced_testcase {
     /**
      * Test create_request_object
      */
-    public function test_create_request_object(): void {
+    public function test_create_request(): void {
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
