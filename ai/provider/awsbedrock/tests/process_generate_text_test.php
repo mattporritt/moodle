@@ -17,6 +17,9 @@
 namespace aiprovider_awsbedrock;
 
 use aiprovider_awsbedrock\test\testcase_helper_trait;
+use Aws\Command;
+use Aws\Exception\AwsException;
+use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
@@ -78,23 +81,34 @@ final class process_generate_text_test extends \advanced_testcase {
     }
 
     /**
+     * Test query_ai_api
+     */
+    //public function test_query_ai_api(): void {
+    //    $processor = new process_generate_text($this->provider, $this->action);
+    //    // We're working with a private method here, so we need to use reflection.
+    //    $method = new \ReflectionMethod($processor, 'query_ai_api');
+    //    $request = $method->invoke($processor);
+    //    var_dump(print_r($request, true));
+    //}
+
+    /**
      * Test create_request_object
      */
     public function test_create_request(): void {
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_request_object');
-        $request = $method->invoke($processor, 1);
+        $method = new \ReflectionMethod($processor, 'create_request');
+        $request = $method->invoke($processor);
 
-        $body = (object) json_decode($request->getBody()->getContents());
+        $body = (object) json_decode($request['body']);
 
-        $this->assertEquals('This is a test prompt', $body->messages[1]->content);
-        $this->assertEquals('user', $body->messages[1]->role);
+        $this->assertStringContainsString('This is a test prompt', $body->inputText);
+        $this->assertStringContainsString('You will receive a text input from the user.', $body->inputText);
     }
 
     /**
-     * Test create_request_object with extra model settings.
+     * Test create_request with extra model settings.
      */
     public function test_create_request_object_with_model_settings(): void {
         $this->provider = $this->create_provider(
@@ -107,86 +121,128 @@ final class process_generate_text_test extends \advanced_testcase {
         );
         $processor = new process_generate_text($this->provider, $this->action);
 
-        // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_request_object');
-        $request = $method->invoke($processor, 1);
+        // We're working with a protected method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_request');
+        $request = $method->invoke($processor);
 
-        $body = (object) json_decode($request->getBody()->getContents());
+        $body = (object) json_decode($request['body']);
 
-        $this->assertEquals('gpt-4o', $body->model);
-        $this->assertEquals('0.5', $body->temperature);
-        $this->assertEquals('100', $body->max_tokens);
+        $this->assertEquals('amazon.titan-text-lite-v1', $request['modelId']);
+        $this->assertEquals('0.5', $body->textGenerationConfig->temperature);
+        $this->assertEquals('100', $body->textGenerationConfig->max_tokens);
 
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_text::class,
             actionconfig: [
-                'model' => 'my-custom-gpt',
+                'model' => 'amazon.titan-text-lite-v2',
                 'systeminstruction' => get_string('action_generate_text_instruction', 'core_ai'),
                 'modelextraparams' => '{"temperature": 0.5,"max_tokens": 100}',
             ],
         );
         $processor = new process_generate_text($this->provider, $this->action);
 
-        // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_request_object');
-        $request = $method->invoke($processor, 1);
+        // We're working with a protected method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_request');
+        $request = $method->invoke($processor);
 
-        $body = (object) json_decode($request->getBody()->getContents());
+        $body = (object) json_decode($request['body']);
 
-        $this->assertEquals('my-custom-gpt', $body->model);
-        $this->assertEquals('0.5', $body->temperature);
-        $this->assertEquals('100', $body->max_tokens);
+        $this->assertEquals('amazon.titan-text-lite-v2', $request['modelId']);
+        $this->assertEquals('0.5', $body->textGenerationConfig->temperature);
+        $this->assertEquals('100', $body->textGenerationConfig->max_tokens);
     }
 
     /**
      * Test the API error response handler method.
      */
     public function test_handle_api_error(): void {
+        // Mock an AWS Command
+        $command = new Command('InvokeModel');
+
+        // Define various error responses
         $responses = [
-            500 => new Response(500, ['Content-Type' => 'application/json']),
-            503 => new Response(503, ['Content-Type' => 'application/json']),
-            401 => new Response(
-                401,
-                ['Content-Type' => 'application/json'],
-                json_encode(['error' => ['message' => 'Invalid Authentication']]),
+            400 => new AwsException(
+                'ValidationException: Invalid modelId',
+                $command,
+                [
+                    'code' => 'ValidationException',
+                    'response' => new Response(400, [], json_encode([
+                        'message' => 'Invalid modelId: invalid-model-id',
+                        'code' => 'ValidationException'
+                    ]))
+                ]
             ),
-            404 => new Response(
-                404,
-                ['Content-Type' => 'application/json'],
-                json_encode(['error' => ['message' => 'You must be a member of an organization to use the API']]),
+            403 => new AwsException(
+                'AccessDeniedException: You do not have permission to access this resource',
+                $command,
+                [
+                    'code' => 'AccessDeniedException',
+                    'response' => new Response(403, [], json_encode([
+                        'message' => 'You do not have permission to invoke this model',
+                        'code' => 'AccessDeniedException'
+                    ]))
+                ]
             ),
-            429 => new Response(
-                429,
-                ['Content-Type' => 'application/json'],
-                json_encode(['error' => ['message' => 'Rate limit reached for requests']]),
+            429 => new AwsException(
+                'ThrottlingException: Too many requests',
+                $command,
+                [
+                    'code' => 'ThrottlingException',
+                    'response' => new Response(429, [], json_encode([
+                        'message' => 'Rate limit exceeded, please try again later',
+                        'code' => 'ThrottlingException'
+                    ]))
+                ]
             ),
+            500 => new AwsException(
+                'InternalServerException: AWS Bedrock encountered an error',
+                $command,
+                [
+                    'code' => 'InternalServerException',
+                    'response' => new Response(500, [], json_encode([
+                        'message' => 'An internal server error occurred',
+                        'code' => 'InternalServerException'
+                    ]))
+                ]
+            )
         ];
 
+        // Create an instance of the class that processes API errors
         $processor = new process_generate_text($this->provider, $this->action);
         $method = new \ReflectionMethod($processor, 'handle_api_error');
 
-        foreach ($responses as $status => $response) {
-            $result = $method->invoke($processor, $response);
-            $this->assertEquals($status, $result['errorcode']);
-            if ($status == 500) {
-                $this->assertEquals('Internal Server Error', $result['errormessage']);
-            } else if ($status == 503) {
-                $this->assertEquals('Service Unavailable', $result['errormessage']);
-            } else {
-                $this->assertStringContainsString($response->getBody()->getContents(), $result['errormessage']);
-            }
+        foreach ($responses as $status => $exception) {
+            $result = $method->invoke($processor, $exception);
+
+            // Assert that the returned error code matches the expected HTTP status
+            $this->assertEquals($status, $result['errorcode'], "Failed asserting for status $status");
         }
     }
+
 
     /**
      * Test the API success response handler method.
      */
     public function test_handle_api_success(): void {
-        $response = new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        );
+        $response = new Result(
+            [
+                'body' => json_encode([
+                    'id' => 'chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo',
+                    'fingerprint' => 'fp_c4e5b6fa31',
+                    'generatedcontent' => 'Sure, here is some sample text',
+                    'finishreason' => 'stop',
+                    'prompttokens' => '11',
+                    'completiontokens' => '568',
+                    'model' => 'gpt-4o-2024-05-13',
+                ]),
+                '@metadata' => [
+                    'headers' => [
+                        'x-amzn-requestid' => 'fp_c4e5b6fa31',
+                        'x-amzn-bedrock-input-token-count' => '11',
+                        'x-amzn-bedrock-output-token-count' => '568',
+                    ],
+                ],
+            ]);
 
         // We're testing a private method, so we need to setup reflector magic.
         $processor = new process_generate_text($this->provider, $this->action);

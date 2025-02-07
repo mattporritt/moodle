@@ -18,6 +18,7 @@ namespace aiprovider_awsbedrock;
 
 use Aws\BedrockRuntime\BedrockRuntimeClient;
 use Aws\BedrockRuntime\Exception\BedrockRuntimeException;
+use Aws\Exception\AwsException;
 use Aws\Result;
 use core\http_client;
 use core_ai\process_base;
@@ -90,60 +91,41 @@ abstract class abstract_processor extends process_base {
     abstract protected function create_request(): array;
 
     /**
-     * Handle a successful response from the external AI api.
+     * Handle a successful result from the external AI api.
      *
-     * @param array $response The response object.
+     * @param Result $result The result object.
      * @return array The response.
      */
-    abstract protected function handle_api_success(array $response): array;
+    abstract protected function handle_api_success(Result $result): array;
 
     #[\Override]
     protected function query_ai_api(): array {
         $request = $this->create_request();
         $client = $this->provider->create_bedrock_client(
-            region: $this->action->get_configuration('userid'),
+            region: $this->get_model_settings()['awsregion'],
         );
         try {
             // Call the external AI service.
             $response = $client->invokeModel($request);
-        } catch (RequestException $e) {
+        } catch (AwsException $exception) {
             // Handle any exceptions.
-            return [
-                'success' => false,
-                'errorcode' => $e->getCode(),
-                'errormessage' => $e->getMessage(),
-            ];
-        }
+            return $this->handle_api_error($exception);
 
-        // Double-check the response codes, in case of a non 200 that didn't throw an error.
-        $status = $response['@metadata']['statusCode'];
-        if ($status === 200) {
-            return $this->handle_api_success($response);
-        } else {
-            return $this->handle_api_error($response);
         }
+        return $this->handle_api_success($response);
     }
 
     /**
      * Handle an error from the external AI api.
      *
-     * @param array $response The response object.
+     * @param AwsException $response The response object.
      * @return array The error response.
      */
-    protected function handle_api_error(array $response): array {
-        $responsearr = [
+    protected function handle_api_error(AwsException $exception): array {
+        return [
             'success' => false,
-            'errorcode' => $response->getStatusCode(),
+            'errorcode' => $exception->getStatusCode(),
+            'errormessage' => $exception->getAwsErrorMessage(),
         ];
-
-        $status = $response->getStatusCode();
-        if ($status >= 500 && $status < 600) {
-            $responsearr['errormessage'] = $response->getReasonPhrase();
-        } else {
-            $bodyobj = json_decode($response->getBody()->getContents());
-            $responsearr['errormessage'] = $bodyobj->error->message;
-        }
-
-        return $responsearr;
     }
 }

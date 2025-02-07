@@ -16,6 +16,7 @@
 
 namespace aiprovider_awsbedrock;
 
+use Aws\Result;
 use GuzzleHttp\Psr7\Request;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -31,7 +32,7 @@ class process_generate_text extends abstract_processor {
 
     #[\Override]
     protected function get_system_instruction(): string {
-        return $this->provider->actionconfig[$this->action::class]['settings']['systeminstruction'];
+        return $this->provider->actionconfig[$this->action::class]['settings']['systeminstruction'] ?? '';
     }
 
     #[\Override]
@@ -50,10 +51,18 @@ class process_generate_text extends abstract_processor {
             // Append the extra model settings.
             if (!empty($modelsettings)) {
                 $modelobj = new \stdClass();
+
                 foreach ($modelsettings as $setting => $value) {
+                    // Skip if the setting is the aws region.
+                    if ($setting === 'awsregion') {
+                        continue;
+                    }
                     $modelobj->$setting = $value;
                 }
-                $requestobj->textGenerationConfig = $modelobj;
+                // Only add the model settings if we have any.
+                if(!empty((array)$modelobj)) {
+                    $requestobj->textGenerationConfig = $modelobj;
+                }
             }
         } else {
             throw new \coding_exception('Unknown model class type.');
@@ -67,25 +76,33 @@ class process_generate_text extends abstract_processor {
         ];
     }
 
-    /**
-     * Handle a successful response from the external AI api.
-     *
-     * @param array $response The response object.
-     * @return array The response.
-     */
-    protected function handle_api_success(array $response): array {
-        $responsebody = $response->getBody();
-        $bodyobj = json_decode($responsebody->getContents());
+    #[\Override]
+    protected function handle_api_success(Result $result): array {
+        $bodyobj = json_decode($result['body']->getContents());
 
-        return [
+        // Bedrock contains token counts in the headers.
+        $responseheaders = $result['@metadata']['headers'];
+        $response = [
             'success' => true,
-            'id' => $bodyobj->id,
-            'fingerprint' => $bodyobj->system_fingerprint,
-            'generatedcontent' => $bodyobj->choices[0]->message->content,
-            'finishreason' => $bodyobj->choices[0]->finish_reason,
-            'prompttokens' => $bodyobj->usage->prompt_tokens,
-            'completiontokens' => $bodyobj->usage->completion_tokens,
-            'model' => $bodyobj->model ?? $this->get_model(), // Fallback to config model.
+            'fingerprint' => $responseheaders['x-amzn-requestid'],
+            'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
+            'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
         ];
+
+        // Bedrock contains different response structures for different models.
+        if (str_contains($this->get_model(), 'amazon')) {
+            $response['generatedcontent'] = $bodyobj->results[0]->outputText;
+            $response['finishreason'] = $bodyobj->results[0]->completionReason;
+        } else if (str_contains($this->get_model(), 'anthropic')) {
+            $response['generatedcontent'] = $bodyobj->content[0]->text;
+            $response['finishreason'] = $bodyobj->stop_reason;
+        } else if (str_contains($this->get_model(), 'mistral')) {
+            $response['generatedcontent'] = $bodyobj->outputs[0]->text;
+            $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;
+        } else {
+            throw new \coding_exception('Unknown model class type.');
+        }
+
+        return $response;
     }
 }
