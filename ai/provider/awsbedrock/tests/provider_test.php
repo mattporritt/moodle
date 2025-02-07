@@ -62,17 +62,6 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
-     * Test generate_userid.
-     */
-    public function test_generate_userid(): void {
-        $userid = $this->provider->generate_userid(1);
-
-        // Assert that the generated userid is a string of proper length.
-        $this->assertIsString($userid);
-        $this->assertEquals(64, strlen($userid));
-    }
-
-    /**
      * Test is_request_allowed.
      */
     public function test_is_request_allowed(): void {

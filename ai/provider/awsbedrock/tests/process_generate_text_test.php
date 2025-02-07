@@ -25,6 +25,7 @@ use core_ai\aiactions\base;
 use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Utils;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Test Generate text provider class for AWS Bedrock provider methods.
@@ -39,9 +40,6 @@ use GuzzleHttp\Psr7\Utils;
 final class process_generate_text_test extends \advanced_testcase {
 
     use testcase_helper_trait;
-
-    /** @var string A successful response in JSON format. */
-    protected string $responsebodyjson;
 
     /** @var \core_ai\manager */
     private $manager;
@@ -58,8 +56,6 @@ final class process_generate_text_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
-        // Load a response body from a file.
-        $this->responsebodyjson = file_get_contents(self::get_fixture_path('aiprovider_awsbedrock', 'text_request_success.json'));
         $this->manager = \core\di::get(\core_ai\manager::class);
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_text::class,
@@ -112,6 +108,52 @@ final class process_generate_text_test extends \advanced_testcase {
                 ]
             ]
         ]);
+    }
+
+    /**
+     * Mock the result from query_ai_api().
+     * Returns a MockBuilder object for a processor.
+     *
+     * @param provider $provider The provider to use.
+     * @param bool $success Whether the query was successful.
+     * @return MockObject The mocked processor object.
+     */
+    private function get_mocked_query_ai_api_result(
+        provider $provider,
+        bool $success = true): MockObject {
+        // Define the mock successful response from query_ai_api().
+        $responsesuccess = [
+            'success' => true,
+            'fingerprint' => 'mock-request-id',
+            'prompttokens' => '11',
+            'completiontokens' => '568',
+            'model' => 'amazon.titan-text-lite-v1',
+            'generatedcontent' => 'The capital of Australia is Canberra.',
+            'finishreason' => 'FINISHED',
+        ];
+
+        $responseerror = [
+            'success' => false,
+            'errorcode' => 401,
+            'errormessage' => 'Invalid Authentication',
+        ];
+
+        // Create a partial mock of `process_generate_text`, only mocking `query_ai_api()`.
+        $processor = $this->getMockBuilder(process_generate_text::class)
+            ->setConstructorArgs([$provider, $this->action])
+            ->onlyMethods(['query_ai_api'])
+            ->getMock();
+
+        // Mock `query_ai_api()` to return the predefined response.
+        if ($success) {
+            $processor->method('query_ai_api')
+                ->willReturn($responsesuccess);
+        } else {
+            $processor->method('query_ai_api')
+                ->willReturn($responseerror);
+        }
+
+        return $processor;
     }
 
     /**
@@ -374,17 +416,7 @@ final class process_generate_text_test extends \advanced_testcase {
         // Log in user.
         $this->setUser($this->getDataGenerator()->create_user());
 
-        // Mock the http client to return a successful response.
-        ['mock' => $mock] = $this->get_mocked_http_client();
-
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
-
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($this->provider);
         $result = $processor->process();
 
         $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
@@ -399,17 +431,7 @@ final class process_generate_text_test extends \advanced_testcase {
         // Log in user.
         $this->setUser($this->getDataGenerator()->create_user());
 
-        // Mock the http client to return a successful response.
-        ['mock' => $mock] = $this->get_mocked_http_client();
-
-        // The response from OpenAI.
-        $mock->append(new Response(
-            401,
-            ['Content-Type' => 'application/json'],
-            json_encode(['error' => ['message' => 'Invalid Authentication']]),
-        ));
-
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($this->provider, false);
         $result = $processor->process();
 
         $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
@@ -452,31 +474,16 @@ final class process_generate_text_test extends \advanced_testcase {
             ],
         );
 
-        // Mock the http client to return a successful response.
-        ['mock' => $mock] = $this->get_mocked_http_client();
-
         // Case 1: User rate limit has not been reached.
         $this->create_action($user1->id);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
-        $processor = new process_generate_text($this->provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($provider);
         $result = $processor->process();
         $this->assertTrue($result->get_success());
 
         // Case 2: User rate limit has been reached.
         $clock->bump(HOURSECS - 10);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
         $this->create_action($user1->id);
-        $processor = new process_generate_text($provider, $this->action);
+
         $result = $processor->process();
         $this->assertEquals(429, $result->get_errorcode());
         $this->assertEquals('User rate limit exceeded', $result->get_errormessage());
@@ -486,13 +493,7 @@ final class process_generate_text_test extends \advanced_testcase {
         // Log in user2.
         $this->setUser($user2);
         $this->create_action($user2->id);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
-        $processor = new process_generate_text($provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($provider);
         $result = $processor->process();
         $this->assertTrue($result->get_success());
 
@@ -500,15 +501,9 @@ final class process_generate_text_test extends \advanced_testcase {
         $clock->bump(11);
         // Log in user1.
         $this->setUser($user1);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
         $this->provider = $this->create_provider(\core_ai\aiactions\generate_text::class);
         $this->create_action($user1->id);
-        $processor = new process_generate_text($provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($provider);
         $result = $processor->process();
         $this->assertTrue($result->get_success());
     }
@@ -546,31 +541,16 @@ final class process_generate_text_test extends \advanced_testcase {
             ],
         );
 
-        // Mock the http client to return a successful response.
-        ['mock' => $mock] = $this->get_mocked_http_client();
-
         // Case 1: Global rate limit has not been reached.
         $this->create_action($user1->id);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
-        $processor = new process_generate_text($provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($provider);
         $result = $processor->process();
         $this->assertTrue($result->get_success());
 
         // Case 2: Global rate limit has been reached.
         $clock->bump(HOURSECS - 10);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
         $this->create_action($user1->id);
-        $processor = new process_generate_text($provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($provider);
         $result = $processor->process();
         $this->assertEquals(429, $result->get_errorcode());
         $this->assertEquals('Global rate limit exceeded', $result->get_errormessage());
@@ -580,13 +560,7 @@ final class process_generate_text_test extends \advanced_testcase {
         // Log in user2.
         $this->setUser($user2);
         $this->create_action($user2->id);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
-        $processor = new process_generate_text($provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($provider);
         $result = $processor->process();
         $this->assertFalse($result->get_success());
 
@@ -594,15 +568,8 @@ final class process_generate_text_test extends \advanced_testcase {
         $clock->bump(11);
         // Log in user1.
         $this->setUser($user1);
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
-        $this->provider = $this->create_provider(\core_ai\aiactions\generate_text::class);
         $this->create_action($user1->id);
-        $processor = new process_generate_text($provider, $this->action);
+        $processor = $this->get_mocked_query_ai_api_result($provider);
         $result = $processor->process();
         $this->assertTrue($result->get_success());
     }
