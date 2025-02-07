@@ -224,25 +224,32 @@ final class process_generate_text_test extends \advanced_testcase {
      * Test the API success response handler method.
      */
     public function test_handle_api_success(): void {
-        $response = new Result(
-            [
-                'body' => json_encode([
-                    'id' => 'chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo',
-                    'fingerprint' => 'fp_c4e5b6fa31',
-                    'generatedcontent' => 'Sure, here is some sample text',
-                    'finishreason' => 'stop',
-                    'prompttokens' => '11',
-                    'completiontokens' => '568',
-                    'model' => 'gpt-4o-2024-05-13',
-                ]),
-                '@metadata' => [
-                    'headers' => [
-                        'x-amzn-requestid' => 'fp_c4e5b6fa31',
-                        'x-amzn-bedrock-input-token-count' => '11',
-                        'x-amzn-bedrock-output-token-count' => '568',
-                    ],
-                ],
-            ]);
+        // Mock JSON response body.
+        $mockResponseBody = json_encode([
+            'results' => [
+                [
+                    'outputText' => 'The capital of Australia is Canberra.',
+                    'completionReason' => 'FINISHED'
+                ]
+            ]
+        ]);
+
+        // Create a PSR-7 Stream for the response body.
+        $stream = \GuzzleHttp\Psr7\Utils::streamFor($mockResponseBody);
+
+        // Create a fake `Aws\Result`
+        $response = new Result([
+            'body' => $stream,  // Simulate AWS SDK response body.
+            'contentType' => 'application/json',
+            '@metadata' => [
+                'statusCode' => 200,
+                'headers' => [
+                    'x-amzn-requestid' => 'mock-request-id',
+                    'x-amzn-bedrock-input-token-count' => '11',
+                    'x-amzn-bedrock-output-token-count' => '568',
+                ]
+            ]
+        ]);
 
         // We're testing a private method, so we need to setup reflector magic.
         $processor = new process_generate_text($this->provider, $this->action);
@@ -251,13 +258,12 @@ final class process_generate_text_test extends \advanced_testcase {
         $result = $method->invoke($processor, $response);
 
         $this->assertTrue($result['success']);
-        $this->assertEquals('chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo', $result['id']);
-        $this->assertEquals('fp_c4e5b6fa31', $result['fingerprint']);
-        $this->assertStringContainsString('Sure, here is some sample text', $result['generatedcontent']);
-        $this->assertEquals('stop', $result['finishreason']);
+        $this->assertEquals('mock-request-id', $result['fingerprint']);
+        $this->assertEquals('The capital of Australia is Canberra.', $result['generatedcontent']);
+        $this->assertEquals('FINISHED', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
-        $this->assertEquals('gpt-4o-2024-05-13', $result['model']);
+        $this->assertEquals('amazon.titan-text-lite-v1', $result['model']);
     }
 
     /**
@@ -279,8 +285,7 @@ final class process_generate_text_test extends \advanced_testcase {
         $result = $method->invoke($processor);
 
         $this->assertTrue($result['success']);
-        $this->assertEquals('chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo', $result['id']);
-        $this->assertEquals('fp_c4e5b6fa31', $result['fingerprint']);
+        $this->assertEquals('mock-request-id', $result['fingerprint']);
         $this->assertStringContainsString('Sure, here is some sample text', $result['generatedcontent']);
         $this->assertEquals('stop', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);

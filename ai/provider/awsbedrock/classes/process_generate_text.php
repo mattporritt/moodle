@@ -87,6 +87,7 @@ class process_generate_text extends abstract_processor {
             'fingerprint' => $responseheaders['x-amzn-requestid'],
             'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
             'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
+            'model' => $this->get_model(),
         ];
 
         // Bedrock contains different response structures for different models.
