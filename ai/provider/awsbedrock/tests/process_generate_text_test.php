@@ -17,12 +17,14 @@
 namespace aiprovider_awsbedrock;
 
 use aiprovider_awsbedrock\test\testcase_helper_trait;
+use Aws\BedrockRuntime\BedrockRuntimeClient;
 use Aws\Command;
 use Aws\Exception\AwsException;
 use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Utils;
 
 /**
  * Test Generate text provider class for AWS Bedrock provider methods.
@@ -81,15 +83,36 @@ final class process_generate_text_test extends \advanced_testcase {
     }
 
     /**
-     * Test query_ai_api
+     * Create a mocked Aws\Result.
      */
-    //public function test_query_ai_api(): void {
-    //    $processor = new process_generate_text($this->provider, $this->action);
-    //    // We're working with a private method here, so we need to use reflection.
-    //    $method = new \ReflectionMethod($processor, 'query_ai_api');
-    //    $request = $method->invoke($processor);
-    //    var_dump(print_r($request, true));
-    //}
+    private function get_mocked_aws_result(): Result {
+        // Mock JSON response body.
+        $mockresponsebody = json_encode([
+            'results' => [
+                [
+                    'outputText' => 'The capital of Australia is Canberra.',
+                    'completionReason' => 'FINISHED'
+                ]
+            ]
+        ]);
+
+        // Create a PSR-7 Stream for the response body.
+        $stream = Utils::streamFor($mockresponsebody);
+
+        // Create a mocked Aws\Result.
+        return new Result([
+            'body' => $stream,  // Simulate AWS SDK response body.
+            'contentType' => 'application/json',
+            '@metadata' => [
+                'statusCode' => 200,
+                'headers' => [
+                    'x-amzn-requestid' => 'mock-request-id',
+                    'x-amzn-bedrock-input-token-count' => '11',
+                    'x-amzn-bedrock-output-token-count' => '568',
+                ]
+            ]
+        ]);
+    }
 
     /**
      * Test create_request_object
@@ -224,38 +247,11 @@ final class process_generate_text_test extends \advanced_testcase {
      * Test the API success response handler method.
      */
     public function test_handle_api_success(): void {
-        // Mock JSON response body.
-        $mockResponseBody = json_encode([
-            'results' => [
-                [
-                    'outputText' => 'The capital of Australia is Canberra.',
-                    'completionReason' => 'FINISHED'
-                ]
-            ]
-        ]);
-
-        // Create a PSR-7 Stream for the response body.
-        $stream = \GuzzleHttp\Psr7\Utils::streamFor($mockResponseBody);
-
-        // Create a fake `Aws\Result`
-        $response = new Result([
-            'body' => $stream,  // Simulate AWS SDK response body.
-            'contentType' => 'application/json',
-            '@metadata' => [
-                'statusCode' => 200,
-                'headers' => [
-                    'x-amzn-requestid' => 'mock-request-id',
-                    'x-amzn-bedrock-input-token-count' => '11',
-                    'x-amzn-bedrock-output-token-count' => '568',
-                ]
-            ]
-        ]);
-
-        // We're testing a private method, so we need to setup reflector magic.
+        // We're testing a protected method, so we need to setup reflector magic.
         $processor = new process_generate_text($this->provider, $this->action);
         $method = new \ReflectionMethod($processor, 'handle_api_success');
 
-        $result = $method->invoke($processor, $response);
+        $result = $method->invoke($processor, $this->get_mocked_aws_result());
 
         $this->assertTrue($result['success']);
         $this->assertEquals('mock-request-id', $result['fingerprint']);
@@ -270,28 +266,52 @@ final class process_generate_text_test extends \advanced_testcase {
      * Test query_ai_api for a successful call.
      */
     public function test_query_ai_api_success(): void {
-        // Mock the http client to return a successful response.
-        ['mock' => $mock] = $this->get_mocked_http_client();
+        // Create a mock of the Bedrock client.
+        $mockclient = $this->createMock(BedrockRuntimeClient::class);
 
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
+        // Properly mock the invokeModel call using __call.
+        $mockclient->expects($this->any())
+            ->method('__call')
+            ->with('invokeModel', $this->anything()) // AWS SDK calls are dynamic via __call
+            ->willReturn($this->get_mocked_aws_result());
 
-        $processor = new process_generate_text($this->provider, $this->action);
+        // Now properly mock the provider while calling its constructor.
+        $mockprovider = $this->getMockBuilder(get_class($this->provider))
+            ->setConstructorArgs([
+                true, // Enable the provider.
+                'mockprovider', // Provider name.
+                '{}', // Empty config is ok here.
+            ])
+            ->onlyMethods(['create_bedrock_client']) // Only mock this method.
+            ->getMock();
+
+        // Ensure the mock returns our fake client.
+        $mockprovider->method('create_bedrock_client')
+            ->willReturn($mockclient);
+
+        // Ensure the mock returns our fake client.
+        $mockprovider->method('create_bedrock_client')
+            ->willReturn($mockclient);
+
+        // Create an instance of the processor with the mocked provider.
+        $processor = new process_generate_text($mockprovider, $this->action);
+
+        // We're testing a protected method, so we need to setup reflector magic.
         $method = new \ReflectionMethod($processor, 'query_ai_api');
+
+        // Invoke the query_ai_api method.
         $result = $method->invoke($processor);
 
+        // Assertions.
+        $this->assertIsArray($result);
         $this->assertTrue($result['success']);
         $this->assertEquals('mock-request-id', $result['fingerprint']);
-        $this->assertStringContainsString('Sure, here is some sample text', $result['generatedcontent']);
-        $this->assertEquals('stop', $result['finishreason']);
+        $this->assertEquals('The capital of Australia is Canberra.', $result['generatedcontent']);
+        $this->assertEquals('FINISHED', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
-        $this->assertEquals('gpt-4o-2024-05-13', $result['model']);
     }
+
 
     /**
      * Test prepare_response success.
