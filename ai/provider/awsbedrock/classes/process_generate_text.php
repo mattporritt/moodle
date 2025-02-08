@@ -57,7 +57,12 @@ class process_generate_text extends abstract_processor {
                     if ($setting === 'awsregion') {
                         continue;
                     }
-                    $modelobj->$setting = $value;
+                    // Correctly format the stopSequences setting.
+                    if ($setting === 'stopSequences') {
+                        $modelobj->$setting = [$value];
+                    } else {
+                        $modelobj->$setting = $value;
+                    }
                 }
                 // Only add the model settings if we have any.
                 if(!empty((array)$modelobj)) {

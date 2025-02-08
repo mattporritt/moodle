@@ -45,7 +45,45 @@ class amazon_titan_text_lite_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function add_model_settings(MoodleQuickForm $mform): void {
+        // Temperature – Use a lower value to decrease randomness in responses.
+        // Default: 0.7, min: 0, max: 1.
+        $mform->addElement(
+            'text',
+            'temperature',
+            get_string('settings_temperature', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('temperature', PARAM_FLOAT);
+        $mform->addHelpButton('temperature', 'settings_temperature', 'aiprovider_awsbedrock');
 
+        // TopP – Use a lower value to ignore less probable options and decrease the diversity of responses.
+        // Default: 0.9, min: 0, max: 1.
+        $mform->addElement(
+            'text',
+            'topP',
+            get_string('settings_top_p', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('topP', PARAM_FLOAT);
+        $mform->addHelpButton('topP', 'settings_top_p', 'aiprovider_awsbedrock');
+
+        // Max token count – The maximum number of tokens to generate in the response. Maximum token limits are strictly enforced.
+        // Default: 512, Min and Max vary by specific model type.
+        $mform->addElement(
+            'text',
+            'maxTokenCount',
+            get_string('settings_max_tokens', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('maxTokenCount', PARAM_INT);
+        $mform->addHelpButton('maxTokenCount', 'settings_max_tokens', 'aiprovider_awsbedrock');
+
+        // Stop Sequences – Specify a character sequence to indicate where the model should stop.
+        $mform->addElement(
+            'text',
+            'stopSequences',
+            get_string('settings_stop_sequences', 'aiprovider_awsbedrock'),
+        );
+        // This is a raw value because it can be a float from -2.0 to 2.0.
+        $mform->setType('stopSequences', PARAM_RAW);
+        $mform->addHelpButton('stopSequences', 'settings_stop_sequences', 'aiprovider_awsbedrock');
     }
 
     #[\Override]

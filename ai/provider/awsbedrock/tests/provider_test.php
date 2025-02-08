@@ -137,7 +137,7 @@ final class provider_test extends \advanced_testcase {
         // Properly configured values.
         $updatedprovider = $this->manager->update_provider_instance(
             provider: $this->provider,
-            config: ['apikey' => '123'],
+            config: ['apikey' => '123', 'apisecret' => '456'],
         );
         $this->assertTrue($updatedprovider->is_provider_configured());
     }
