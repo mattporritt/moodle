@@ -35,6 +35,49 @@ class process_generate_text extends abstract_processor {
         return $this->provider->actionconfig[$this->action::class]['settings']['systeminstruction'] ?? '';
     }
 
+    /**
+     * Create the request object for the Amazon models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj
+     */
+    private function create_amazon_request(
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
+    ): \stdClass {
+        if (!empty($systeminstruction)) {
+            $requestobj->inputText = $systeminstruction. '\n\n' . $this->action->get_configuration('prompttext');
+        } else {
+            $requestobj->inputText = $this->action->get_configuration('prompttext');
+        }
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            $modelobj = new \stdClass();
+
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stopSequences') {
+                    $modelobj->$setting = [$value];
+                } else {
+                    $modelobj->$setting = $value;
+                }
+            }
+            // Only add the model settings if we have any.
+            if(!empty((array)$modelobj)) {
+                $requestobj->textGenerationConfig = $modelobj;
+            }
+        }
+
+        return $requestobj;
+    }
+
     #[\Override]
     protected function create_request(): array {
         $requestobj = new \stdClass();
@@ -43,11 +86,25 @@ class process_generate_text extends abstract_processor {
 
         // Handle model family specific configuration.
         if (str_contains($this->get_model(), 'amazon')) {
+            $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'anthropic')) {
+            $requestobj->anthropic_version = "bedrock-2023-05-31";
             if (!empty($systeminstruction)) {
-                $requestobj->inputText = $this->action->get_configuration('prompttext') . '\n\n' . $systeminstruction;
-            } else {
-                $requestobj->inputText = $this->action->get_configuration('prompttext');
+                $requestobj->system = $systeminstruction;
             }
+
+            // Create message object.
+            $messageobj = new \stdClass();
+            $messageobj->type = 'text';
+            $messageobj->text = $this->action->get_configuration('prompttext');
+
+            // Create the user object.
+            $userobj = new \stdClass();
+            $userobj->role = 'user';
+            $userobj->content = [$messageobj];
+
+            $requestobj->messages = [$userobj];
+
             // Append the extra model settings.
             if (!empty($modelsettings)) {
                 $modelobj = new \stdClass();
@@ -58,7 +115,7 @@ class process_generate_text extends abstract_processor {
                         continue;
                     }
                     // Correctly format the stopSequences setting.
-                    if ($setting === 'stopSequences') {
+                    if ($setting === 'stop_sequences') {
                         $modelobj->$setting = [$value];
                     } else {
                         $modelobj->$setting = $value;

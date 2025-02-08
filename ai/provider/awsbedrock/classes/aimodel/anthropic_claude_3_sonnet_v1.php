@@ -20,22 +20,22 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Titan Text G1 - Lite AI model.
+ * Claude 3 Sonnet  AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class amazon_titan_text_lite_v1 extends base implements awsbedrock_base {
+class anthropic_claude_3_sonnet_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
-        return 'amazon.titan-text-lite-v1';
+        return 'anthropic.claude-3-sonnet-20240229-v1:0';
     }
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Titan Text G1 - Lite';
+        return 'Claude 3 Sonnet';
     }
 
     #[\Override]
@@ -46,43 +46,54 @@ class amazon_titan_text_lite_v1 extends base implements awsbedrock_base {
     #[\Override]
     public function add_model_settings(MoodleQuickForm $mform): void {
         // Temperature – Use a lower value to decrease randomness in responses.
-        // Default: 0.7, min: 0, max: 1.
+        // Default: 1, min: 0, max: 1.
         $mform->addElement(
-            'text',
-            'temperature',
-            get_string('settings_temperature', 'aiprovider_awsbedrock'),
+                'text',
+                'temperature',
+                get_string('settings_temperature', 'aiprovider_awsbedrock'),
         );
         $mform->setType('temperature', PARAM_FLOAT);
         $mform->addHelpButton('temperature', 'settings_temperature', 'aiprovider_awsbedrock');
 
-        // TopP – Use a lower value to ignore less probable options and decrease the diversity of responses.
-        // Default: 0.9, min: 0, max: 1.
+        // Top_p – Use a lower value to ignore less probable options and decrease the diversity of responses.
+        // Default: 0.9999, min: 0, max: 1.
         $mform->addElement(
-            'text',
-            'topP',
-            get_string('settings_top_p', 'aiprovider_awsbedrock'),
+                'text',
+                'top_p',
+                get_string('settings_top_p', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('topP', PARAM_FLOAT);
-        $mform->addHelpButton('topP', 'settings_top_p', 'aiprovider_awsbedrock');
+        $mform->setType('top_p', PARAM_FLOAT);
+        $mform->addHelpButton('top_p', 'settings_top_p', 'aiprovider_awsbedrock');
+
+        // Top_k – Only sample from the top K options for each subsequent token.
+        // Use top_k to remove long tail low probability responses.
+        // Default: null, min: 0, max: 500.
+        $mform->addElement(
+                'text',
+                'top_k',
+                get_string('settings_top_k', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('top_k', PARAM_FLOAT);
+        $mform->addHelpButton('top_k', 'settings_top_k', 'aiprovider_awsbedrock');
 
         // Max token count – The maximum number of tokens to generate in the response. Maximum token limits are strictly enforced.
-        // Default: 512, Min and Max vary by specific model type.
         $mform->addElement(
-            'text',
-            'maxTokenCount',
-            get_string('settings_max_tokens', 'aiprovider_awsbedrock'),
+                'text',
+                'max_tokens',
+                get_string('settings_max_tokens', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('maxTokenCount', PARAM_INT);
-        $mform->addHelpButton('maxTokenCount', 'settings_max_tokens', 'aiprovider_awsbedrock');
+        $mform->setDefault('max_tokens', 4096);
+        $mform->setType('max_tokens', PARAM_INT);
+        $mform->addHelpButton('max_tokens', 'settings_max_tokens', 'aiprovider_awsbedrock');
 
         // Stop Sequences – Specify a character sequence to indicate where the model should stop.
         $mform->addElement(
-            'text',
-            'stopSequences',
-            get_string('settings_stop_sequences', 'aiprovider_awsbedrock'),
+                'text',
+                'stop_sequences',
+                get_string('settings_stop_sequences', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('stopSequences', PARAM_RAW);
-        $mform->addHelpButton('stopSequences', 'settings_stop_sequences', 'aiprovider_awsbedrock');
+        $mform->setType('stop_sequences', PARAM_TEXT);
+        $mform->addHelpButton('stop_sequences', 'settings_stop_sequences', 'aiprovider_awsbedrock');
     }
 
     #[\Override]
