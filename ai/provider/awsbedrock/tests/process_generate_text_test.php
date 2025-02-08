@@ -573,4 +573,62 @@ final class process_generate_text_test extends \advanced_testcase {
         $result = $processor->process();
         $this->assertTrue($result->get_success());
     }
+
+    /**
+     * Test create_amazon_request method.
+     */
+    public function test_create_amazon_request(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_amazon_request');
+
+        $requestobj = new \stdClass();
+        $systeminstruction = 'This is a test system instruction';
+        $modelsettings = [
+            'temperature' => 0.5,
+            'max_tokens' => 100,
+            'stopSequences' => 'alpha beta gamma',
+            'awsregion' => 'us-east-1',
+        ];
+
+        $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
+
+        $this->assertEquals('This is a test system instruction\n\nThis is a test prompt', $result->inputText);
+        $this->assertEquals(0.5, $result->textGenerationConfig->temperature);
+        $this->assertEquals(100, $result->textGenerationConfig->max_tokens);
+        $this->assertEquals(['alpha beta gamma'], $result->textGenerationConfig->stopSequences);
+    }
+
+    /**
+     * Test create_anthropic_request method.
+     */
+    public function test_create_anthropic_request(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_anthropic_request');
+
+        $requestobj = new \stdClass();
+        $systeminstruction = 'This is a test system instruction';
+        $modelsettings = [
+            'temperature' => 0.5,
+            'top_p' => 0.9,
+            'top_k' => 100,
+            'max_tokens' => 100,
+            'stop_sequences' => 'alpha beta gamma',
+            'awsregion' => 'us-east-1',
+        ];
+
+        $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
+
+        $this->assertEquals('bedrock-2023-05-31', $result->anthropic_version);
+        $this->assertEquals('This is a test system instruction', $result->system);
+        $this->assertEquals(0.5, $result->temperature);
+        $this->assertEquals(0.9, $result->top_p);
+        $this->assertEquals(100, $result->top_k);
+        $this->assertEquals(100, $result->max_tokens);
+        $this->assertEquals(['alpha beta gamma'], $result->stop_sequences);
+        $this->assertEquals('This is a test prompt', $result->messages[0]->content[0]->text);
+    }
 }

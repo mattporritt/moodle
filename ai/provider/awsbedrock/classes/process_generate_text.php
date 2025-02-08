@@ -66,7 +66,7 @@ class process_generate_text extends abstract_processor {
                 if ($setting === 'stopSequences') {
                     $modelobj->$setting = [$value];
                 } else {
-                    $modelobj->$setting = $value;
+                    $modelobj->$setting = is_numeric($value) ? ($value + 0) : $value;
                 }
             }
             // Only add the model settings if we have any.
@@ -75,6 +75,46 @@ class process_generate_text extends abstract_processor {
             }
         }
 
+        return $requestobj;
+    }
+
+    private function create_anthropic_request(
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
+    ): \stdClass {
+        $requestobj->anthropic_version = "bedrock-2023-05-31";
+        if (!empty($systeminstruction)) {
+            $requestobj->system = $systeminstruction;
+        }
+
+        // Create message object.
+        $messageobj = new \stdClass();
+        $messageobj->type = 'text';
+        $messageobj->text = $this->action->get_configuration('prompttext');
+
+        // Create the user object.
+        $userobj = new \stdClass();
+        $userobj->role = 'user';
+        $userobj->content = [$messageobj];
+
+        $requestobj->messages = [$userobj];
+
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stop_sequences') {
+                    $requestobj->$setting = [$value];
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
         return $requestobj;
     }
 
@@ -88,44 +128,7 @@ class process_generate_text extends abstract_processor {
         if (str_contains($this->get_model(), 'amazon')) {
             $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'anthropic')) {
-            $requestobj->anthropic_version = "bedrock-2023-05-31";
-            if (!empty($systeminstruction)) {
-                $requestobj->system = $systeminstruction;
-            }
-
-            // Create message object.
-            $messageobj = new \stdClass();
-            $messageobj->type = 'text';
-            $messageobj->text = $this->action->get_configuration('prompttext');
-
-            // Create the user object.
-            $userobj = new \stdClass();
-            $userobj->role = 'user';
-            $userobj->content = [$messageobj];
-
-            $requestobj->messages = [$userobj];
-
-            // Append the extra model settings.
-            if (!empty($modelsettings)) {
-                $modelobj = new \stdClass();
-
-                foreach ($modelsettings as $setting => $value) {
-                    // Skip if the setting is the aws region.
-                    if ($setting === 'awsregion') {
-                        continue;
-                    }
-                    // Correctly format the stopSequences setting.
-                    if ($setting === 'stop_sequences') {
-                        $modelobj->$setting = [$value];
-                    } else {
-                        $modelobj->$setting = $value;
-                    }
-                }
-                // Only add the model settings if we have any.
-                if(!empty((array)$modelobj)) {
-                    $requestobj->textGenerationConfig = $modelobj;
-                }
-            }
+            $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
@@ -149,16 +152,18 @@ class process_generate_text extends abstract_processor {
             'fingerprint' => $responseheaders['x-amzn-requestid'],
             'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
             'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
-            'model' => $this->get_model(),
         ];
 
         // Bedrock contains different response structures for different models.
         if (str_contains($this->get_model(), 'amazon')) {
             $response['generatedcontent'] = $bodyobj->results[0]->outputText;
             $response['finishreason'] = $bodyobj->results[0]->completionReason;
+            $response['model'] = $this->get_model();
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $response['generatedcontent'] = $bodyobj->content[0]->text;
             $response['finishreason'] = $bodyobj->stop_reason;
+            $response['model'] = $bodyobj->model;
+
         } else if (str_contains($this->get_model(), 'mistral')) {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
             $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;

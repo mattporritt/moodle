@@ -16,22 +16,26 @@
 
 namespace aiprovider_awsbedrock\aimodel;
 
+use core_ai\aimodel\base;
+use MoodleQuickForm;
+
 /**
- * Titan Text G1 - Express AI model.
+ * Claude 3.5 Sonnet V2 AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class amazon_titan_text_express_v1 extends amazon_titan_text_lite_v1 implements awsbedrock_base {
+class anthropic_claude_3_5_sonnet_v2 extends anthropic_claude_3_sonnet_v1 implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
-        return 'amazon.titan-text-express-v1';
+        return 'anthropic.claude-3-5-sonnet-20241022-v2:0';
     }
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Titan Text G1 - Express';
+        return 'Claude 3.5 Sonnet V2';
     }
+
 }
