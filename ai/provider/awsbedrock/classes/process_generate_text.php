@@ -41,7 +41,7 @@ class process_generate_text extends abstract_processor {
      * @param \stdClass $requestobj The base request object to extend.
      * @param string $systeminstruction The system instruction to append to the request object.
      * @param array $modelsettings The model settings to append to the request object.
-     * @return \stdClass $requestobj
+     * @return \stdClass $requestobj The extended request object.
      */
     private function create_amazon_request(
         \stdClass $requestobj,
@@ -78,6 +78,14 @@ class process_generate_text extends abstract_processor {
         return $requestobj;
     }
 
+    /**
+     * Create the request object for the Anthropic models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * * @param string $systeminstruction The system instruction to append to the request object.
+     * * @param array $modelsettings The model settings to append to the request object.
+     * * @return \stdClass $requestobj The extended request object.
+     */
     private function create_anthropic_request(
         \stdClass $requestobj,
         string $systeminstruction,
@@ -118,6 +126,47 @@ class process_generate_text extends abstract_processor {
         return $requestobj;
     }
 
+    /**
+     * Create the request object for the Mistral models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * * @param string $systeminstruction The system instruction to append to the request object.
+     * * @param array $modelsettings The model settings to append to the request object.
+     * * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_mistral_request(
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
+    ): \stdClass {
+        if (!empty($systeminstruction)) {
+            $requestobj->prompt = '<s>[INST] '
+                . 'System: ' . $systeminstruction
+                . ' User: ' . $this->action->get_configuration('prompttext')
+                . ' [/INST]';
+        } else {
+            $requestobj->prompt = '<s>[INST] ' . $this->action->get_configuration('prompttext') . ' [/INST]';
+        }
+
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stop') {
+                    $requestobj->$setting = [$value];
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
+
+        return $requestobj;
+    }
+
     #[\Override]
     protected function create_request(): array {
         $requestobj = new \stdClass();
@@ -129,6 +178,8 @@ class process_generate_text extends abstract_processor {
             $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'mistral')) {
+             $requestobj = $this->create_mistral_request($requestobj, $systeminstruction, $modelsettings);
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
@@ -167,6 +218,7 @@ class process_generate_text extends abstract_processor {
         } else if (str_contains($this->get_model(), 'mistral')) {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
             $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;
+            $response['model'] = $this->get_model();
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
