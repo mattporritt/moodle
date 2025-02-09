@@ -82,9 +82,9 @@ class process_generate_text extends abstract_processor {
      * Create the request object for the Anthropic models.
      *
      * @param \stdClass $requestobj The base request object to extend.
-     * * @param string $systeminstruction The system instruction to append to the request object.
-     * * @param array $modelsettings The model settings to append to the request object.
-     * * @return \stdClass $requestobj The extended request object.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
      */
     private function create_anthropic_request(
         \stdClass $requestobj,
@@ -130,9 +130,9 @@ class process_generate_text extends abstract_processor {
      * Create the request object for the Mistral models.
      *
      * @param \stdClass $requestobj The base request object to extend.
-     * * @param string $systeminstruction The system instruction to append to the request object.
-     * * @param array $modelsettings The model settings to append to the request object.
-     * * @return \stdClass $requestobj The extended request object.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
      */
     private function create_mistral_request(
         \stdClass $requestobj,
@@ -167,6 +167,56 @@ class process_generate_text extends abstract_processor {
         return $requestobj;
     }
 
+    /**
+     * Create the request object for the AI21 models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * * @param string $systeminstruction The system instruction to append to the request object.
+     * * @param array $modelsettings The model settings to append to the request object.
+     * * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_ai21_request(
+            \stdClass $requestobj,
+            string $systeminstruction,
+            array $modelsettings
+    ): \stdClass {
+        $requestobj->n = 1;
+
+        // Create user message object.
+        $messageobj = new \stdClass();
+        $messageobj->role = 'user';
+        $messageobj->content = $this->action->get_configuration('prompttext');
+
+        if (!empty($systeminstruction)) {
+            // Create system message object.
+            $systemobj = new \stdClass();
+            $systemobj->role = 'system';
+            $systemobj->content = $systeminstruction;
+
+            $requestobj->messages = [$systemobj, $messageobj];
+        } else {
+            $requestobj->messages = [$messageobj];
+        }
+
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stop') {
+                    $requestobj->$setting = [$value];
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
+
+        return $requestobj;
+    }
+
     #[\Override]
     protected function create_request(): array {
         $requestobj = new \stdClass();
@@ -179,10 +229,21 @@ class process_generate_text extends abstract_processor {
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'mistral')) {
-             $requestobj = $this->create_mistral_request($requestobj, $systeminstruction, $modelsettings);
+            $requestobj = $this->create_mistral_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'ai21')) {
+            $requestobj = $this->create_ai21_request($requestobj, $systeminstruction, $modelsettings);
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
+
+        //$requestobj = $requestobj = [
+        //        "messages" => [
+        //                [
+        //                        "role" => "user",
+        //                        "content" => "Hello, world!"
+        //                ]
+        //        ]
+        //];
 
         return [
             'ContentType' => 'application/json',
@@ -219,6 +280,10 @@ class process_generate_text extends abstract_processor {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
             $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;
             $response['model'] = $this->get_model();
+        } else if (str_contains($this->get_model(), 'ai21')) {
+            $response['generatedcontent'] = $bodyobj->choices[0]->message->content;
+            $response['finishreason'] = $bodyobj->choices[0]->finish_reason;
+            $response['model'] = $bodyobj->model;
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
