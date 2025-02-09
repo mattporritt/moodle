@@ -36,14 +36,55 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
-     * Create the request object for the Amazon models.
+     * Create the request object for the Amazon Nova models.
      *
      * @param \stdClass $requestobj The base request object to extend.
      * @param string $systeminstruction The system instruction to append to the request object.
      * @param array $modelsettings The model settings to append to the request object.
      * @return \stdClass $requestobj The extended request object.
      */
-    private function create_amazon_request(
+    private function create_amazon_nova_request(
+            \stdClass $requestobj,
+            string $systeminstruction,
+            array $modelsettings
+    ): \stdClass {
+        if (!empty($systeminstruction)) {
+            $requestobj->inputText = $systeminstruction. '\n\n' . $this->action->get_configuration('prompttext');
+        }
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            $modelobj = new \stdClass();
+
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stopSequences') {
+                    $modelobj->$setting = [$value];
+                } else {
+                    $modelobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+            // Only add the model settings if we have any.
+            if(!empty((array)$modelobj)) {
+                $requestobj->textGenerationConfig = $modelobj;
+            }
+        }
+
+        return $requestobj;
+    }
+
+    /**
+     * Create the request object for the Amazon Titan models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_amazon_titan_request(
         \stdClass $requestobj,
         string $systeminstruction,
         array $modelsettings
@@ -224,8 +265,10 @@ class process_generate_text extends abstract_processor {
         $modelsettings = $this->get_model_settings();
 
         // Handle model family specific configuration.
-        if (str_contains($this->get_model(), 'amazon')) {
-            $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
+        if (str_contains($this->get_model(), 'amazon.nova')) {
+            $requestobj = $this->create_amazon_nova_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'amazon.titan')) {
+            $requestobj = $this->create_amazon_titan_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'mistral')) {
@@ -235,15 +278,6 @@ class process_generate_text extends abstract_processor {
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
-
-        //$requestobj = $requestobj = [
-        //        "messages" => [
-        //                [
-        //                        "role" => "user",
-        //                        "content" => "Hello, world!"
-        //                ]
-        //        ]
-        //];
 
         return [
             'ContentType' => 'application/json',

@@ -577,7 +577,7 @@ final class process_generate_text_test extends \advanced_testcase {
     /**
      * Test create_amazon_request method.
      */
-    public function test_create_amazon_request(): void {
+    public function test_create_amazon_titan_request(): void {
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
