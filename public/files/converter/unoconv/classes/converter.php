@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/filelib.php');
 
+use core\exception\moodle_exception;
 use stored_file;
 use \core_files\conversion;
 
@@ -74,6 +75,11 @@ class converter implements \core_files\converter_interface {
     protected static $formats;
 
     /**
+     * @var string $error The error message string.
+     */
+    protected $errormsg = null;
+
+    /**
      * Convert a document to a new format and return a conversion object relating to the conversion in progress.
      *
      * @param   conversion $conversion The file to be converted
@@ -88,6 +94,7 @@ class converter implements \core_files\converter_interface {
                 "Unoconv conversion failed to verify the configuraton meets the minimum requirements. " .
                 "Please check the unoconv installation configuration."
             );
+            $this->errormsg = 'err_unoconvrequirements';
             return $this;
         }
 
@@ -102,6 +109,7 @@ class converter implements \core_files\converter_interface {
                 "Unoconv conversion for '" . $filepath . "' found input '" . $fromformat . "' " .
                 "file extension to convert from is not supported."
             );
+            $this->errormsg = 'err_unsupportedinformat';
             return $this;
         }
 
@@ -112,6 +120,7 @@ class converter implements \core_files\converter_interface {
                 "Unoconv conversion for '" . $filepath . "' found output '" . $format . "' " .
                 "file extension to convert to is not supported."
             );
+            $this->errormsg = 'err_unsupportedoutformat';
             return $this;
         }
 
@@ -148,7 +157,7 @@ class converter implements \core_files\converter_interface {
         $output = null;
         $currentdir = getcwd();
         chdir($uniqdir);
-        $result = exec($cmd, $output, $returncode);
+        exec($cmd, $output, $returncode);
         chdir($currentdir);
         touch($newtmpfile);
 
@@ -159,6 +168,7 @@ class converter implements \core_files\converter_interface {
                 "was unsuccessful; returned with exit status code (" . $returncode . "). Please check the unoconv " .
                 "configuration and conversion file content / format."
             );
+            $this->errormsg = 'err_generic';
             return $this;
         }
 
@@ -169,6 +179,7 @@ class converter implements \core_files\converter_interface {
                 "was unsuccessful; the output file was not found in '" . $newtmpfile . "'. Please check the disk " .
                 "permissions."
             );
+            $this->errormsg = 'err_nooutputfile';
             return $this;
         }
 
@@ -179,6 +190,7 @@ class converter implements \core_files\converter_interface {
                 "was unsuccessful; the output file size has 0 bytes in '" . $newtmpfile . "'. Please check the " .
                 "conversion file content / format with the command: [ " . $cmd . " ]"
             );
+            $this->errormsg = 'err_emptyoutputfile';
             return $this;
         }
 
@@ -252,6 +264,10 @@ class converter implements \core_files\converter_interface {
             $status = $conversion->get('status');
         } while ($status !== conversion::STATUS_COMPLETE && $status !== conversion::STATUS_FAILED);
 
+        if ($status === conversion::STATUS_FAILED) {
+            throw new moodle_exception($this->errormsg, 'fileconverter_unoconv');
+            return;
+        }
         readfile_accel($conversion->get_destfile(), 'application/pdf', true);
     }
 
@@ -375,15 +391,21 @@ class converter implements \core_files\converter_interface {
         if (!isset(self::$formats)) {
             // Ask unoconv for it's list of supported document formats.
             $cmd = escapeshellcmd(trim($CFG->pathtounoconv)) . ' --show';
-            $pipes = array();
-            $pipesspec = array(2 => array('pipe', 'w'));
+            $pipes = [];
+            $pipesspec = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
             $proc = proc_open($cmd, $pipesspec, $pipes);
-            $programoutput = stream_get_contents($pipes[2]);
+            $programoutput = stream_get_contents($pipes[1]);
+            $erroroutput = stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
             fclose($pipes[2]);
             proc_close($proc);
-            $matches = array();
+            if (trim($programoutput) === '') {
+                // phpcs:ignore moodle.PHP.ForbiddenFunctions.FoundWithAlternative
+                error_log('Unoconv could not determine supported output formats. Error message: '
+                . trim($erroroutput) . PHP_EOL);
+            }
+            $matches = [];
             preg_match_all('/\[\.(.*)\]/', $programoutput, $matches);
-
             $formats = $matches[1];
             self::$formats = array_unique($formats);
         }
