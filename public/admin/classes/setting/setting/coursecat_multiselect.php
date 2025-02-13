@@ -42,6 +42,14 @@ class coursecat_multiselect extends \core_admin\setting\setting\configmultiselec
             return true;
         }
         $this->choices = \core_course_category::make_categories_list('', 0, ' / ');
+
+        $deletedcategories = array_diff($this->get_setting() ?? [], array_keys($this->choices));
+        if (count($deletedcategories) > 0) {
+            $this->visiblename .= '<div class="alert alert-info">'
+                . get_string('configdeletedcategory_warning', 'admin') . '</div>';
+            $this->choices = $this->choices + array_fill_keys($deletedcategories, get_string('configdeletedcategory', 'admin'));
+        }
+
         return true;
     }
 }
