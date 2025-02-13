@@ -350,6 +350,9 @@ final class automated_backup_test extends \advanced_testcase {
         $category2 = \core_course_category::create(['name' => 'Cat2', 'parent' => $category1->id]);
         $category3 = \core_course_category::create(['name' => 'Cat3']);
 
+        $categorydeleted = \core_course_category::create(['name' => 'Cat for deletion']);
+        $categorydeleted->delete_full();
+
         $generator = $this->getDataGenerator();
 
         $course1 = $generator->create_course(['category' => $category1->id]);
@@ -364,7 +367,7 @@ final class automated_backup_test extends \advanced_testcase {
         $method = new \ReflectionMethod('\backup_cron_automated_helper', 'get_courses');
         $method->setAccessible(true); // Allow accessing of private method.
 
-        // Filter for no category. Filter should not apply at all.
+        // Filter for no category. Filter should not apply at all, all courses should be backed up.
         $categories = [];
         set_config('backup_courses_in_categories', implode(',', $categories), 'backup');
         $courses = $method->invoke($classobject);
@@ -377,7 +380,8 @@ final class automated_backup_test extends \advanced_testcase {
         $this->assertContains($course3->id, $courseids);
         $this->assertContains($this->course->id, $courseids);
 
-        // Filter for one category.
+        // Filter for one category. Direct members of this category should be backed up.
+        // No courses in sub-categories should be backed up.
         $categories = [
             $category1->id,
         ];
@@ -405,6 +409,39 @@ final class automated_backup_test extends \advanced_testcase {
         }
         $this->assertContains($course1->id, $courseids);
         $this->assertContains($course2->id, $courseids);
+        $this->assertNotContains($course3->id, $courseids);
+        $this->assertNotContains($this->course->id, $courseids);
+
+        // Filter for two categories and a deleted one.
+        // The courses in the two existing categories should be backed up.
+        $categories = [
+            $category1->id,
+            $category2->id,
+            $categorydeleted->id,
+        ];
+        set_config('backup_courses_in_categories', implode(',', $categories), 'backup');
+        $courses = $method->invoke($classobject);
+        $courseids = [];
+        foreach ($courses as $course) {
+            $courseids[] = $course->id;
+        }
+        $this->assertContains($course1->id, $courseids);
+        $this->assertContains($course2->id, $courseids);
+        $this->assertNotContains($course3->id, $courseids);
+        $this->assertNotContains($this->course->id, $courseids);
+
+        // Filter for a deleted category only. No course should be backed up.
+        $categories = [
+            $categorydeleted->id,
+        ];
+        set_config('backup_courses_in_categories', implode(',', $categories), 'backup');
+        $courses = $method->invoke($classobject);
+        $courseids = [];
+        foreach ($courses as $course) {
+            $courseids[] = $course->id;
+        }
+        $this->assertNotContains($course1->id, $courseids);
+        $this->assertNotContains($course2->id, $courseids);
         $this->assertNotContains($course3->id, $courseids);
         $this->assertNotContains($this->course->id, $courseids);
     }
