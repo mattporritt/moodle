@@ -56,7 +56,6 @@ class process_generate_text extends abstract_processor {
 
         // Create message object.
         $messageobj = new \stdClass();
-        $messageobj->type = 'text';
         $messageobj->text = $this->action->get_configuration('prompttext');
 
         // Create the user object.
@@ -317,7 +316,11 @@ class process_generate_text extends abstract_processor {
         ];
 
         // Bedrock contains different response structures for different models.
-        if (str_contains($this->get_model(), 'amazon')) {
+        if (str_contains($this->get_model(), 'amazon.nova')) {
+            $response['generatedcontent'] = $bodyobj->output->message->content[0]->text;
+            $response['finishreason'] = $bodyobj->output->stopReason;
+            $response['model'] = $this->get_model();
+        } else if (str_contains($this->get_model(), 'amazon.titan')) {
             $response['generatedcontent'] = $bodyobj->results[0]->outputText;
             $response['finishreason'] = $bodyobj->results[0]->completionReason;
             $response['model'] = $this->get_model();
