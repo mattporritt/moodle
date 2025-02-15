@@ -575,13 +575,45 @@ final class process_generate_text_test extends \advanced_testcase {
     }
 
     /**
-     * Test create_amazon_request method.
+     * Test create_amazon_nova_request method.
+     */
+    public function test_create_amazon_nova_request(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_amazon_nova_request');
+
+        $requestobj = new \stdClass();
+        $systeminstruction = 'This is a test system instruction';
+        $modelsettings = [
+            'temperature' => 0.5,
+            'maxTokens' => 100,
+            'topP' => 0.9,
+            'topK' => 100,
+            'schemaVersion' => 'messages-v1',
+            'awsregion' => 'us-east-1',
+        ];
+
+        $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
+
+        $this->assertEquals('This is a test system instruction', $result->system[0]->text);
+        $this->assertEquals(0.5, $result->inferenceConfig->temperature);
+        $this->assertEquals(100, $result->inferenceConfig->maxTokens);
+        $this->assertEquals(0.9, $result->inferenceConfig->topP);
+        $this->assertEquals(100, $result->inferenceConfig->topK);
+        $this->assertEquals('messages-v1', $result->schemaVersion);
+        $this->assertEquals('This is a test prompt', $result->messages[0]->content[0]->text);
+
+    }
+
+    /**
+     * Test create_amazon_titan_request method.
      */
     public function test_create_amazon_titan_request(): void {
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_amazon_request');
+        $method = new \ReflectionMethod($processor, 'create_amazon_titan_request');
 
         $requestobj = new \stdClass();
         $systeminstruction = 'This is a test system instruction';

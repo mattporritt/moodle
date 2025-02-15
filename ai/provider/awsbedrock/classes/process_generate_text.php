@@ -49,8 +49,23 @@ class process_generate_text extends abstract_processor {
             array $modelsettings
     ): \stdClass {
         if (!empty($systeminstruction)) {
-            $requestobj->inputText = $systeminstruction. '\n\n' . $this->action->get_configuration('prompttext');
+            $systemobj = new \stdClass();
+            $systemobj->text = $systeminstruction;
+            $requestobj->system = [$systemobj];
         }
+
+        // Create message object.
+        $messageobj = new \stdClass();
+        $messageobj->type = 'text';
+        $messageobj->text = $this->action->get_configuration('prompttext');
+
+        // Create the user object.
+        $userobj = new \stdClass();
+        $userobj->role = 'user';
+        $userobj->content = [$messageobj];
+
+        $requestobj->messages = [$userobj];
+
         // Append the extra model settings.
         if (!empty($modelsettings)) {
             $modelobj = new \stdClass();
@@ -60,16 +75,17 @@ class process_generate_text extends abstract_processor {
                 if ($setting === 'awsregion') {
                     continue;
                 }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stopSequences') {
-                    $modelobj->$setting = [$value];
+                // Handle schema version.
+                if ($setting === 'schemaVersion') {
+                    $requestobj->schemaVersion = $value;
                 } else {
                     $modelobj->$setting = is_numeric($value) ? ($value + 0) : $value;
                 }
             }
+
             // Only add the model settings if we have any.
             if(!empty((array)$modelobj)) {
-                $requestobj->textGenerationConfig = $modelobj;
+                $requestobj->inferenceConfig = $modelobj;
             }
         }
 

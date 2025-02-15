@@ -20,7 +20,7 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Claude 3 Sonnet  AI model.
+ * Claude 3 Sonnet AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
