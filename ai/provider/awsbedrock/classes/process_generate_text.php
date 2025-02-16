@@ -183,6 +183,54 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
+     * Create the request object for the Cohere models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_cohere_request(
+            \stdClass $requestobj,
+            string $systeminstruction,
+            array $modelsettings
+    ): \stdClass {
+        
+        if (!empty($systeminstruction)) {
+            $requestobj->system = $systeminstruction;
+        }
+
+        // Create message object.
+        $messageobj = new \stdClass();
+        $messageobj->type = 'text';
+        $messageobj->text = $this->action->get_configuration('prompttext');
+
+        // Create the user object.
+        $userobj = new \stdClass();
+        $userobj->role = 'user';
+        $userobj->content = [$messageobj];
+
+        $requestobj->messages = [$userobj];
+
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stop_sequences') {
+                    $requestobj->$setting = [$value];
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
+        return $requestobj;
+    }
+
+    /**
      * Create the request object for the Mistral models.
      *
      * @param \stdClass $requestobj The base request object to extend.

@@ -665,6 +665,37 @@ final class process_generate_text_test extends \advanced_testcase {
     }
 
     /**
+     * Test create_cohere_request method.
+     */
+    public function test_create_cohere_request(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_cohere_request');
+
+        $requestobj = new \stdClass();
+        $systeminstruction = 'This is a test system instruction';
+        $modelsettings = [
+            'temperature' => 0.5,
+            'p' => 0.9,
+            'k' => 100,
+            'max_tokens' => 100,
+            'prompt_truncation' => 'OFF',
+            'frequency_penalty' => 0.5,
+            'presence_penalty' => 0.5,
+            'seed' => 123,
+            'return_prompt' => false,
+            'stop_sequences' => 'alpha beta gamma',
+            'raw_prompting' => false,
+            'awsregion' => 'us-east-1',
+        ];
+
+        $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
+
+        $this->assertEquals('This is a test system instruction', $result->system);
+    }
+
+    /**
      * Test create_mistral_request method.
      */
     public function test_create_mistral_request(): void {
