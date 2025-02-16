@@ -191,26 +191,14 @@ class process_generate_text extends abstract_processor {
      * @return \stdClass $requestobj The extended request object.
      */
     private function create_cohere_request(
-            \stdClass $requestobj,
-            string $systeminstruction,
-            array $modelsettings
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
     ): \stdClass {
-        
         if (!empty($systeminstruction)) {
-            $requestobj->system = $systeminstruction;
+            $requestobj->preamble = $systeminstruction;
         }
-
-        // Create message object.
-        $messageobj = new \stdClass();
-        $messageobj->type = 'text';
-        $messageobj->text = $this->action->get_configuration('prompttext');
-
-        // Create the user object.
-        $userobj = new \stdClass();
-        $userobj->role = 'user';
-        $userobj->content = [$messageobj];
-
-        $requestobj->messages = [$userobj];
+        $requestobj->message = $this->action->get_configuration('prompttext');
 
         // Append the extra model settings.
         if (!empty($modelsettings)) {
@@ -334,6 +322,8 @@ class process_generate_text extends abstract_processor {
             $requestobj = $this->create_amazon_titan_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'cohere')) {
+            $requestobj = $this->create_cohere_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'mistral')) {
             $requestobj = $this->create_mistral_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'ai21')) {
@@ -376,7 +366,10 @@ class process_generate_text extends abstract_processor {
             $response['generatedcontent'] = $bodyobj->content[0]->text;
             $response['finishreason'] = $bodyobj->stop_reason;
             $response['model'] = $bodyobj->model;
-
+        } else if (str_contains($this->get_model(), 'cohere')) {
+            $response['generatedcontent'] = $bodyobj->text;
+            $response['finishreason'] = $bodyobj->finish_reason;
+            $response['model'] = $this->get_model();
         } else if (str_contains($this->get_model(), 'mistral')) {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
             $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;

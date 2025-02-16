@@ -20,22 +20,22 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Claude 3 Sonnet AI model.
+ * Cohere Command R AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class anthropic_claude_3_sonnet_v1 extends base implements awsbedrock_base {
+class cohere_command_r_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
-        return 'anthropic.claude-3-sonnet-20240229-v1:0';
+        return 'cohere.command-r-v1:0';
     }
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Claude 3 Sonnet';
+        return 'Cohere Command R';
     }
 
     #[\Override]
@@ -57,21 +57,21 @@ class anthropic_claude_3_sonnet_v1 extends base implements awsbedrock_base {
         // Top_p – Use a lower value to ignore less probable options and decrease the diversity of responses.
         $mform->addElement(
                 'text',
-                'top_p',
+                'p',
                 get_string('settings_top_p', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('top_p', PARAM_FLOAT);
-        $mform->addHelpButton('top_p', 'settings_top_p', 'aiprovider_awsbedrock');
+        $mform->setType('p', PARAM_FLOAT);
+        $mform->addHelpButton('p', 'settings_top_p', 'aiprovider_awsbedrock');
 
         // Top_k – Only sample from the top K options for each subsequent token.
         // Use top_k to remove long tail low probability responses.
         $mform->addElement(
                 'text',
-                'top_k',
+                'k',
                 get_string('settings_top_k', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('top_k', PARAM_FLOAT);
-        $mform->addHelpButton('top_k', 'settings_top_k', 'aiprovider_awsbedrock');
+        $mform->setType('k', PARAM_FLOAT);
+        $mform->addHelpButton('k', 'settings_top_k', 'aiprovider_awsbedrock');
 
         // Max token count – The maximum number of tokens to generate in the response. Maximum token limits are strictly enforced.
         $mform->addElement(
@@ -83,6 +83,34 @@ class anthropic_claude_3_sonnet_v1 extends base implements awsbedrock_base {
         $mform->setType('max_tokens', PARAM_INT);
         $mform->addHelpButton('max_tokens', 'settings_max_tokens', 'aiprovider_awsbedrock');
 
+        // Frequency Penalty.
+        $mform->addElement(
+            'text',
+            'frequency_penalty',
+            get_string('settings_frequency_penalty', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('frequency_penalty', PARAM_FLOAT);
+        $mform->addHelpButton('frequency_penalty', 'settings_frequency_penalty', 'aiprovider_awsbedrock');
+
+        // Presence Penalty.
+        $mform->addElement(
+            'text',
+            'presence_penalty',
+            get_string('settings_presence_penalty', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('presence_penalty', PARAM_FLOAT);
+        $mform->addHelpButton('presence_penalty', 'settings_presence_penalty', 'aiprovider_awsbedrock');
+
+        // Seed.
+        $mform->addElement(
+            'text',
+            'seed',
+            get_string('settings_seed', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('seed', PARAM_INT);
+        $mform->addHelpButton('seed', 'settings_seed', 'aiprovider_awsbedrock');
+
+
         // Stop Sequences – Specify a character sequence to indicate where the model should stop.
         $mform->addElement(
                 'text',
@@ -91,6 +119,19 @@ class anthropic_claude_3_sonnet_v1 extends base implements awsbedrock_base {
         );
         $mform->setType('stop_sequences', PARAM_TEXT);
         $mform->addHelpButton('stop_sequences', 'settings_stop_sequences', 'aiprovider_awsbedrock');
+
+        // Prompt Truncation.
+        $mform->addElement(
+            'select',
+            'prompt_truncation',
+            get_string('settings_prompt_truncation', 'aiprovider_awsbedrock'),
+            [
+                'OFF' => get_string('settings_prompt_truncation_off', 'aiprovider_awsbedrock'),
+                'AUTO_PRESERVE_ORDER' => get_string('settings_prompt_truncation_auto', 'aiprovider_awsbedrock'),
+            ],
+        );
+        $mform->setDefault('prompt_truncation', 'OFF');
+        $mform->addHelpButton('prompt_truncation', 'settings_prompt_truncation', 'aiprovider_awsbedrock');
     }
 
     #[\Override]

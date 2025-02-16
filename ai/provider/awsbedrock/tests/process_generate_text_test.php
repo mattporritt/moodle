@@ -692,7 +692,19 @@ final class process_generate_text_test extends \advanced_testcase {
 
         $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
 
-        $this->assertEquals('This is a test system instruction', $result->system);
+        $this->assertEquals(0.5, $result->temperature);
+        $this->assertEquals(0.9, $result->p);
+        $this->assertEquals(100, $result->k);
+        $this->assertEquals(100, $result->max_tokens);
+        $this->assertEquals('OFF', $result->prompt_truncation);
+        $this->assertEquals(0.5, $result->frequency_penalty);
+        $this->assertEquals(0.5, $result->presence_penalty);
+        $this->assertEquals(123, $result->seed);
+        $this->assertFalse($result->return_prompt);
+        $this->assertEquals(['alpha beta gamma'], $result->stop_sequences);
+        $this->assertFalse($result->raw_prompting);
+        $this->assertEquals('This is a test system instruction', $result->preamble);
+        $this->assertEquals('This is a test prompt', $result->message);
     }
 
     /**
