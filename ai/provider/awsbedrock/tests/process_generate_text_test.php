@@ -82,15 +82,22 @@ final class process_generate_text_test extends \advanced_testcase {
      * Create a mocked Aws\Result.
      */
     private function get_mocked_aws_result(): Result {
-        // Mock JSON response body.
-        $mockresponsebody = json_encode([
-            'results' => [
-                [
-                    'outputText' => 'The capital of Australia is Canberra.',
-                    'completionReason' => 'FINISHED'
-                ]
-            ]
-        ]);
+        $mockresponsebody = '{
+            "output":{
+                "message":{
+                    "content":[{"text":"The capital of Australia is Canberra."}],
+                    "role":"assistant"
+                }
+            },
+            "stopReason":"end_turn",
+            "usage":{
+                "inputTokens":11,
+                "outputTokens":568,
+                "totalTokens":579,
+                "cacheReadInputTokenCount":0,
+                "cacheWriteInputTokenCount":0
+            }
+        }';
 
         // Create a PSR-7 Stream for the response body.
         $stream = Utils::streamFor($mockresponsebody);
@@ -127,7 +134,7 @@ final class process_generate_text_test extends \advanced_testcase {
             'fingerprint' => 'mock-request-id',
             'prompttokens' => '11',
             'completiontokens' => '568',
-            'model' => 'amazon.titan-text-lite-v1',
+            'model' => 'amazon.nova-pro-v1:0',
             'generatedcontent' => 'The capital of Australia is Canberra.',
             'finishreason' => 'FINISHED',
         ];
@@ -168,8 +175,8 @@ final class process_generate_text_test extends \advanced_testcase {
 
         $body = (object) json_decode($request['body']);
 
-        $this->assertStringContainsString('This is a test prompt', $body->inputText);
-        $this->assertStringContainsString('You will receive a text input from the user.', $body->inputText);
+        $this->assertStringContainsString('This is a test prompt', $body->messages[0]->content[0]->text);
+        $this->assertStringContainsString('You will receive a text input from the user.', $body->system[0]->text);
     }
 
     /**
@@ -192,14 +199,14 @@ final class process_generate_text_test extends \advanced_testcase {
 
         $body = (object) json_decode($request['body']);
 
-        $this->assertEquals('amazon.titan-text-lite-v1', $request['modelId']);
-        $this->assertEquals('0.5', $body->textGenerationConfig->temperature);
-        $this->assertEquals('100', $body->textGenerationConfig->max_tokens);
+        $this->assertEquals('amazon.nova-pro-v1:0', $request['modelId']);
+        $this->assertEquals('0.5', $body->inferenceConfig->temperature);
+        $this->assertEquals('100', $body->inferenceConfig->max_tokens);
 
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_text::class,
             actionconfig: [
-                'model' => 'amazon.titan-text-lite-v2',
+                'model' => 'amazon.nova-pro-v2',
                 'systeminstruction' => get_string('action_generate_text_instruction', 'core_ai'),
                 'modelextraparams' => '{"temperature": 0.5,"max_tokens": 100}',
             ],
@@ -212,9 +219,9 @@ final class process_generate_text_test extends \advanced_testcase {
 
         $body = (object) json_decode($request['body']);
 
-        $this->assertEquals('amazon.titan-text-lite-v2', $request['modelId']);
-        $this->assertEquals('0.5', $body->textGenerationConfig->temperature);
-        $this->assertEquals('100', $body->textGenerationConfig->max_tokens);
+        $this->assertEquals('amazon.nova-pro-v2', $request['modelId']);
+        $this->assertEquals('0.5', $body->inferenceConfig->temperature);
+        $this->assertEquals('100', $body->inferenceConfig->max_tokens);
     }
 
     /**
@@ -298,10 +305,10 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertTrue($result['success']);
         $this->assertEquals('mock-request-id', $result['fingerprint']);
         $this->assertEquals('The capital of Australia is Canberra.', $result['generatedcontent']);
-        $this->assertEquals('FINISHED', $result['finishreason']);
+        $this->assertEquals('end_turn', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
-        $this->assertEquals('amazon.titan-text-lite-v1', $result['model']);
+        $this->assertEquals('amazon.nova-pro-v1:0', $result['model']);
     }
 
     /**
@@ -349,7 +356,7 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertTrue($result['success']);
         $this->assertEquals('mock-request-id', $result['fingerprint']);
         $this->assertEquals('The capital of Australia is Canberra.', $result['generatedcontent']);
-        $this->assertEquals('FINISHED', $result['finishreason']);
+        $this->assertEquals('end_turn', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
     }
@@ -575,13 +582,13 @@ final class process_generate_text_test extends \advanced_testcase {
     }
 
     /**
-     * Test create_amazon_nova_request method.
+     * Test create_amazon_request method.
      */
-    public function test_create_amazon_nova_request(): void {
+    public function test_create_amazon_request(): void {
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_amazon_nova_request');
+        $method = new \ReflectionMethod($processor, 'create_amazon_request');
 
         $requestobj = new \stdClass();
         $systeminstruction = 'This is a test system instruction';
@@ -604,32 +611,6 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertEquals('messages-v1', $result->schemaVersion);
         $this->assertEquals('This is a test prompt', $result->messages[0]->content[0]->text);
 
-    }
-
-    /**
-     * Test create_amazon_titan_request method.
-     */
-    public function test_create_amazon_titan_request(): void {
-        $processor = new process_generate_text($this->provider, $this->action);
-
-        // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_amazon_titan_request');
-
-        $requestobj = new \stdClass();
-        $systeminstruction = 'This is a test system instruction';
-        $modelsettings = [
-            'temperature' => 0.5,
-            'max_tokens' => 100,
-            'stopSequences' => 'alpha beta gamma',
-            'awsregion' => 'us-east-1',
-        ];
-
-        $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
-
-        $this->assertEquals('This is a test system instruction\n\nThis is a test prompt', $result->inputText);
-        $this->assertEquals(0.5, $result->textGenerationConfig->temperature);
-        $this->assertEquals(100, $result->textGenerationConfig->max_tokens);
-        $this->assertEquals(['alpha beta gamma'], $result->textGenerationConfig->stopSequences);
     }
 
     /**

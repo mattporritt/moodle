@@ -47,7 +47,7 @@ trait testcase_helper_trait {
         $defaultactionconfig = [
             $actionclass => [
                 'settings' => [
-                    'model' => 'amazon.titan-text-lite-v1',
+                    'model' => 'amazon.nova-pro-v1:0',
                     'awsregion' => 'ap-southeast-2',
                 ],
             ],

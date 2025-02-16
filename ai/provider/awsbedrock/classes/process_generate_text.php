@@ -36,14 +36,63 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
-     * Create the request object for the Amazon Nova models.
+     * Create the request object for the AI21 models.
      *
      * @param \stdClass $requestobj The base request object to extend.
      * @param string $systeminstruction The system instruction to append to the request object.
      * @param array $modelsettings The model settings to append to the request object.
      * @return \stdClass $requestobj The extended request object.
      */
-    private function create_amazon_nova_request(
+    private function create_ai21_request(
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
+    ): \stdClass {
+        $requestobj->n = 1;
+
+        // Create user message object.
+        $messageobj = new \stdClass();
+        $messageobj->role = 'user';
+        $messageobj->content = $this->action->get_configuration('prompttext');
+
+        if (!empty($systeminstruction)) {
+            // Create system message object.
+            $systemobj = new \stdClass();
+            $systemobj->role = 'system';
+            $systemobj->content = $systeminstruction;
+
+            $requestobj->messages = [$systemobj, $messageobj];
+        } else {
+            $requestobj->messages = [$messageobj];
+        }
+
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stop') {
+                    $requestobj->$setting = [$value];
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
+
+        return $requestobj;
+    }
+    /**
+     * Create the request object for the Amazon models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_amazon_request(
             \stdClass $requestobj,
             string $systeminstruction,
             array $modelsettings
@@ -85,49 +134,6 @@ class process_generate_text extends abstract_processor {
             // Only add the model settings if we have any.
             if(!empty((array)$modelobj)) {
                 $requestobj->inferenceConfig = $modelobj;
-            }
-        }
-
-        return $requestobj;
-    }
-
-    /**
-     * Create the request object for the Amazon Titan models.
-     *
-     * @param \stdClass $requestobj The base request object to extend.
-     * @param string $systeminstruction The system instruction to append to the request object.
-     * @param array $modelsettings The model settings to append to the request object.
-     * @return \stdClass $requestobj The extended request object.
-     */
-    private function create_amazon_titan_request(
-        \stdClass $requestobj,
-        string $systeminstruction,
-        array $modelsettings
-    ): \stdClass {
-        if (!empty($systeminstruction)) {
-            $requestobj->inputText = $systeminstruction. '\n\n' . $this->action->get_configuration('prompttext');
-        } else {
-            $requestobj->inputText = $this->action->get_configuration('prompttext');
-        }
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            $modelobj = new \stdClass();
-
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stopSequences') {
-                    $modelobj->$setting = [$value];
-                } else {
-                    $modelobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
-            }
-            // Only add the model settings if we have any.
-            if(!empty((array)$modelobj)) {
-                $requestobj->textGenerationConfig = $modelobj;
             }
         }
 
@@ -219,6 +225,49 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
+     * Create the request object for the Meta models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_meta_request(
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
+    ): \stdClass {
+        $prompt = '';
+        if (!empty($systeminstruction)) {
+
+            $requestobj->prompt = '<s>[INST] '
+                . 'System: ' . $systeminstruction
+                . ' User: ' . $this->action->get_configuration('prompttext')
+                . ' [/INST]';
+        } else {
+            $requestobj->prompt = '<s>[INST] ' . $this->action->get_configuration('prompttext') . ' [/INST]';
+        }
+
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stop') {
+                    $requestobj->$setting = [$value];
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
+
+        return $requestobj;
+    }
+
+    /**
      * Create the request object for the Mistral models.
      *
      * @param \stdClass $requestobj The base request object to extend.
@@ -259,56 +308,6 @@ class process_generate_text extends abstract_processor {
         return $requestobj;
     }
 
-    /**
-     * Create the request object for the AI21 models.
-     *
-     * @param \stdClass $requestobj The base request object to extend.
-     * * @param string $systeminstruction The system instruction to append to the request object.
-     * * @param array $modelsettings The model settings to append to the request object.
-     * * @return \stdClass $requestobj The extended request object.
-     */
-    private function create_ai21_request(
-            \stdClass $requestobj,
-            string $systeminstruction,
-            array $modelsettings
-    ): \stdClass {
-        $requestobj->n = 1;
-
-        // Create user message object.
-        $messageobj = new \stdClass();
-        $messageobj->role = 'user';
-        $messageobj->content = $this->action->get_configuration('prompttext');
-
-        if (!empty($systeminstruction)) {
-            // Create system message object.
-            $systemobj = new \stdClass();
-            $systemobj->role = 'system';
-            $systemobj->content = $systeminstruction;
-
-            $requestobj->messages = [$systemobj, $messageobj];
-        } else {
-            $requestobj->messages = [$messageobj];
-        }
-
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stop') {
-                    $requestobj->$setting = [$value];
-                } else {
-                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
-            }
-        }
-
-        return $requestobj;
-    }
-
     #[\Override]
     protected function create_request(): array {
         $requestobj = new \stdClass();
@@ -316,14 +315,14 @@ class process_generate_text extends abstract_processor {
         $modelsettings = $this->get_model_settings();
 
         // Handle model family specific configuration.
-        if (str_contains($this->get_model(), 'amazon.nova')) {
-            $requestobj = $this->create_amazon_nova_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'amazon.titan')) {
-            $requestobj = $this->create_amazon_titan_request($requestobj, $systeminstruction, $modelsettings);
+        if (str_contains($this->get_model(), 'amazon')) {
+            $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'cohere')) {
             $requestobj = $this->create_cohere_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'meta')) {
+            $requestobj = $this->create_meta_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'mistral')) {
             $requestobj = $this->create_mistral_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'ai21')) {
@@ -354,13 +353,9 @@ class process_generate_text extends abstract_processor {
         ];
 
         // Bedrock contains different response structures for different models.
-        if (str_contains($this->get_model(), 'amazon.nova')) {
+        if (str_contains($this->get_model(), 'amazon')) {
             $response['generatedcontent'] = $bodyobj->output->message->content[0]->text;
-            $response['finishreason'] = $bodyobj->output->stopReason;
-            $response['model'] = $this->get_model();
-        } else if (str_contains($this->get_model(), 'amazon.titan')) {
-            $response['generatedcontent'] = $bodyobj->results[0]->outputText;
-            $response['finishreason'] = $bodyobj->results[0]->completionReason;
+            $response['finishreason'] = $bodyobj->stopReason;
             $response['model'] = $this->get_model();
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $response['generatedcontent'] = $bodyobj->content[0]->text;
@@ -369,6 +364,10 @@ class process_generate_text extends abstract_processor {
         } else if (str_contains($this->get_model(), 'cohere')) {
             $response['generatedcontent'] = $bodyobj->text;
             $response['finishreason'] = $bodyobj->finish_reason;
+            $response['model'] = $this->get_model();
+        } else if (str_contains($this->get_model(), 'meta')) {
+            $response['generatedcontent'] = $bodyobj->generation;
+            $response['finishreason'] = $bodyobj->stop_reason;
             $response['model'] = $this->get_model();
         } else if (str_contains($this->get_model(), 'mistral')) {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
