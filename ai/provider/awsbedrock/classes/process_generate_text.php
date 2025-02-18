@@ -237,16 +237,19 @@ class process_generate_text extends abstract_processor {
         string $systeminstruction,
         array $modelsettings
     ): \stdClass {
-        $prompt = '';
+        $prompt = '<|begin_of_text|>';
         if (!empty($systeminstruction)) {
 
-            $requestobj->prompt = '<s>[INST] '
-                . 'System: ' . $systeminstruction
-                . ' User: ' . $this->action->get_configuration('prompttext')
-                . ' [/INST]';
-        } else {
-            $requestobj->prompt = '<s>[INST] ' . $this->action->get_configuration('prompttext') . ' [/INST]';
+            $prompt .= '<|start_header_id|>system<|end_header_id|>'
+                . $systeminstruction
+                . '<|eot_id|>';
         }
+
+        $prompt .=  '<|start_header_id|>user<|end_header_id|>'
+            . $this->action->get_configuration('prompttext')
+            . '<|eot_id|><|start_header_id|>assistant<|end_header_id|>';
+
+        $requestobj->prompt = $prompt;
 
         // Append the extra model settings.
         if (!empty($modelsettings)) {
@@ -256,11 +259,7 @@ class process_generate_text extends abstract_processor {
                     continue;
                 }
                 // Correctly format the stopSequences setting.
-                if ($setting === 'stop') {
-                    $requestobj->$setting = [$value];
-                } else {
-                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
+                $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
             }
         }
 

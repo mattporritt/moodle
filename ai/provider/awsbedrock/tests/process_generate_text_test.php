@@ -581,6 +581,38 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertTrue($result->get_success());
     }
 
+
+    /**
+     * Test create_a21_request method.
+     */
+    public function test_create_a21_request(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_ai21_request');
+
+        $requestobj = new \stdClass();
+        $systeminstruction = 'This is a test system instruction';
+        $modelsettings = [
+                'frequency_penalty' => 0.5,
+                'presence_penalty' => 0.5,
+                'max_tokens' => 100,
+                'stop' => 'alpha beta gamma',
+                'awsregion' => 'us-east-1',
+        ];
+
+        $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
+
+        $this->assertEquals(0.5, $result->frequency_penalty);
+        $this->assertEquals(0.5, $result->presence_penalty);
+        $this->assertEquals(100, $result->max_tokens);
+        $this->assertEquals(['alpha beta gamma'], $result->stop);
+        $this->assertEquals('user', $result->messages[1]->role);
+        $this->assertEquals('This is a test prompt', $result->messages[1]->content);
+        $this->assertEquals('system', $result->messages[0]->role);
+        $this->assertEquals('This is a test system instruction', $result->messages[0]->content);
+    }
+
     /**
      * Test create_amazon_request method.
      */
@@ -721,33 +753,29 @@ final class process_generate_text_test extends \advanced_testcase {
     }
 
     /**
-     * Test create_a21_request method.
+     * Test create_meta_request method.
      */
-    public function test_create_a21_request(): void {
+    public function test_create_meta_request(): void {
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_ai21_request');
+        $method = new \ReflectionMethod($processor, 'create_meta_request');
 
         $requestobj = new \stdClass();
         $systeminstruction = 'This is a test system instruction';
         $modelsettings = [
-            'frequency_penalty' => 0.5,
-            'presence_penalty' => 0.5,
-            'max_tokens' => 100,
-            'stop' => 'alpha beta gamma',
+            'temperature' => 0.5,
+            'max_gen_len' => 100,
+            'top_p' => 0.9,
             'awsregion' => 'us-east-1',
         ];
 
         $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
 
-        $this->assertEquals(0.5, $result->frequency_penalty);
-        $this->assertEquals(0.5, $result->presence_penalty);
-        $this->assertEquals(100, $result->max_tokens);
-        $this->assertEquals(['alpha beta gamma'], $result->stop);
-        $this->assertEquals('user', $result->messages[1]->role);
-        $this->assertEquals('This is a test prompt', $result->messages[1]->content);
-        $this->assertEquals('system', $result->messages[0]->role);
-        $this->assertEquals('This is a test system instruction', $result->messages[0]->content);
+        $this->assertStringContainsString('This is a test system instruction', $result->prompt);
+        $this->assertEquals(0.5, $result->temperature);
+        $this->assertEquals(100, $result->max_gen_len);
+        $this->assertEquals(0.9, $result->top_p);
+        $this->assertStringContainsString('This is a test prompt', $result->prompt);
     }
 }
