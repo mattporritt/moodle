@@ -32,9 +32,4 @@ class cohere_command_r_plus_v1 extends cohere_command_r_v1 implements awsbedrock
     public function get_model_name(): string {
         return 'cohere.command-r-plus-v1:0';
     }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'Cohere Command R+';
-    }
 }

@@ -26,16 +26,10 @@ use MoodleQuickForm;
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class anthropic_claude_3_haiku_v1 extends anthropic_claude_3_sonnet_v1 implements awsbedrock_base {
+class anthropic_claude_3_haiku_v1 extends anthropic_claude_3_5_sonnet_v1 implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
         return 'anthropic.claude-3-haiku-20240307-v1:0';
     }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'Claude 3 Haiku';
-    }
-
 }

@@ -32,9 +32,4 @@ class amazon_nova_micro_v1 extends amazon_nova_pro_v1 implements awsbedrock_base
     public function get_model_name(): string {
         return 'amazon.nova-micro-v1:0';
     }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'Amazon Nova Micro';
-    }
 }

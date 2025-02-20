@@ -32,9 +32,4 @@ class meta_llama3_70b_instruct_v1 extends meta_llama3_8b_instruct_v1 implements 
     public function get_model_name(): string {
         return 'meta.llama3-70b-instruct-v1:0';
     }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'Meta Llama 3 70B Instruct ';
-    }
 }

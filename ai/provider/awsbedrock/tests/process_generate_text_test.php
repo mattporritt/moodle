@@ -581,24 +581,23 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertTrue($result->get_success());
     }
 
-
     /**
-     * Test create_a21_request method.
+     * Test create_a21_jamba_request method.
      */
-    public function test_create_a21_request(): void {
+    public function test_create_a21_jamba_request(): void {
         $processor = new process_generate_text($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_ai21_request');
+        $method = new \ReflectionMethod($processor, 'create_ai21_jamba_request');
 
         $requestobj = new \stdClass();
         $systeminstruction = 'This is a test system instruction';
         $modelsettings = [
-                'frequency_penalty' => 0.5,
-                'presence_penalty' => 0.5,
-                'max_tokens' => 100,
-                'stop' => 'alpha beta gamma',
-                'awsregion' => 'us-east-1',
+            'frequency_penalty' => 0.5,
+            'presence_penalty' => 0.5,
+            'max_tokens' => 100,
+            'stop' => 'alpha beta gamma',
+            'awsregion' => 'us-east-1',
         ];
 
         $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
@@ -611,6 +610,41 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertEquals('This is a test prompt', $result->messages[1]->content);
         $this->assertEquals('system', $result->messages[0]->role);
         $this->assertEquals('This is a test system instruction', $result->messages[0]->content);
+    }
+
+    /**
+     * Test create_a21_jurassic_request method.
+     */
+    public function test_create_a21_jurassic_request(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_ai21_jurassic_request');
+
+        $requestobj = new \stdClass();
+        $systeminstruction = 'This is a test system instruction';
+        $modelsettings = [
+            'temperature' => 0.5,
+            'topP' => 0.9,
+            'maxTokens' => 100,
+            'stopSequences' => 'alpha beta gamma',
+            'presencePenalty' => 0.5,
+            'countPenalty' => 0.5,
+            'frequencyPenalty' => 0.5,
+            'awsregion' => 'us-east-1',
+        ];
+
+        $result = $method->invoke($processor, $requestobj, $systeminstruction, $modelsettings);
+
+        $this->assertStringContainsString('This is a test system instruction', $result->prompt);
+        $this->assertStringContainsString('This is a test prompt', $result->prompt);
+        $this->assertEquals(0.5, $result->temperature);
+        $this->assertEquals(0.9, $result->topP);
+        $this->assertEquals(100, $result->maxTokens);
+        $this->assertEquals(['alpha beta gamma'], $result->stopSequences);
+        $this->assertEquals(0.5, $result->presencePenalty->scale);
+        $this->assertEquals(0.5, $result->countPenalty->scale);
+        $this->assertEquals(0.5, $result->frequencyPenalty->scale);
     }
 
     /**

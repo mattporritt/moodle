@@ -34,7 +34,17 @@ class meta_llama3_2_3b_instruct_v1 extends meta_llama3_8b_instruct_v1 implements
     }
 
     #[\Override]
-    public function get_model_display_name(): string {
-        return 'Meta Llama 3.2 3B Instruct ';
+    public function add_model_settings(MoodleQuickForm $mform): void {
+        parent::add_model_settings($mform);
+
+        // Add the cross region inference setting.
+        $mform->addElement(
+            'text',
+            'cross_region_inference',
+            get_string('settings_cross_region_inference', 'aiprovider_awsbedrock'),
+        );
+        $mform->setDefault('cross_region_inference', 'us.meta.llama3-2-3b-instruct-v1:0');
+        $mform->setType('cross_region_inference', PARAM_TEXT);
+        $mform->addHelpButton('cross_region_inference', 'settings_cross_region_inference', 'aiprovider_awsbedrock');
     }
 }

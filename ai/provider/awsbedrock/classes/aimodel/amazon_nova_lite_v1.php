@@ -32,9 +32,4 @@ class amazon_nova_lite_v1 extends amazon_nova_pro_v1 implements awsbedrock_base 
     public function get_model_name(): string {
         return 'amazon.nova-lite-v1:0';
     }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'Amazon Nova Lite';
-    }
 }

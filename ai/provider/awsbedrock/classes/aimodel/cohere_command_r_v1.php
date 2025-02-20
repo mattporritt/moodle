@@ -35,7 +35,7 @@ class cohere_command_r_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Cohere Command R';
+        return get_string("model_{$this->get_model_name()}", 'aiprovider_awsbedrock');
     }
 
     #[\Override]

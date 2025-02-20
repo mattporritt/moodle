@@ -35,7 +35,7 @@ class amazon_nova_pro_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Amazon Nova Pro';
+        return get_string("model_{$this->get_model_name()}", 'aiprovider_awsbedrock');
     }
 
     #[\Override]
@@ -46,7 +46,6 @@ class amazon_nova_pro_v1 extends base implements awsbedrock_base {
     #[\Override]
     public function add_model_settings(MoodleQuickForm $mform): void {
         // Temperature – Use a lower value to decrease randomness in responses.
-        // Default: 1, min: 0, max: 1.
         $mform->addElement(
                 'text',
                 'temperature',
@@ -56,7 +55,6 @@ class amazon_nova_pro_v1 extends base implements awsbedrock_base {
         $mform->addHelpButton('temperature', 'settings_temperature', 'aiprovider_awsbedrock');
 
         // Top_p – Use a lower value to ignore less probable options and decrease the diversity of responses.
-        // Default: 0.9999, min: 0, max: 1.
         $mform->addElement(
                 'text',
                 'topP',
@@ -67,7 +65,6 @@ class amazon_nova_pro_v1 extends base implements awsbedrock_base {
 
         // Top_k – Only sample from the top K options for each subsequent token.
         // Use top_k to remove long tail low probability responses.
-        // Default: null, min: 0, max: 500.
         $mform->addElement(
                 'text',
                 'topK',

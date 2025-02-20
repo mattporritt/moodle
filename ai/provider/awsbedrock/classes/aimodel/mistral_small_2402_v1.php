@@ -20,31 +20,16 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Meta Llama 3.1 8B Instruct  AI model.
+ * Mixtral Small AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class meta_llama3_1_8b_instruct_v1 extends meta_llama3_8b_instruct_v1 implements awsbedrock_base {
+class mistral_small_2402_v1 extends mistral_7b_instruct_v0 implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
-        return 'meta.llama3-1-8b-instruct-v1:0';
-    }
-
-    #[\Override]
-    public function add_model_settings(MoodleQuickForm $mform): void {
-        parent::add_model_settings($mform);
-
-        // Add the cross region inference setting.
-        $mform->addElement(
-            'text',
-            'cross_region_inference',
-            get_string('settings_cross_region_inference', 'aiprovider_awsbedrock'),
-        );
-        $mform->setDefault('cross_region_inference', 'us.meta.llama3-1-8b-instruct-v1:0');
-        $mform->setType('cross_region_inference', PARAM_TEXT);
-        $mform->addHelpButton('cross_region_inference', 'settings_cross_region_inference', 'aiprovider_awsbedrock');
+        return 'mistral.mistral-small-2402-v1:0';
     }
 }

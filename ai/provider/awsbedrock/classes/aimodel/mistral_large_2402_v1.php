@@ -32,9 +32,4 @@ class mistral_large_2402_v1 extends mistral_7b_instruct_v0 implements awsbedrock
     public function get_model_name(): string {
         return 'mistral.mistral-large-2402-v1:0';
     }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'Mixtral Large Instruct';
-    }
 }

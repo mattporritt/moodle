@@ -26,7 +26,7 @@ use MoodleQuickForm;
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class ai21_jamba_1_5_large_v1 extends ai21_jamba_instruct_v1 implements awsbedrock_base {
+class ai21_jamba_1_5_large_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
@@ -35,6 +35,55 @@ class ai21_jamba_1_5_large_v1 extends ai21_jamba_instruct_v1 implements awsbedro
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'AI21 Labs Jamba 1.5 Large ';
+        return get_string("model_{$this->get_model_name()}", 'aiprovider_awsbedrock');
+    }
+
+    #[\Override]
+    public function has_model_settings(): bool {
+        return true;
+    }
+
+    #[\Override]
+    public function add_model_settings(MoodleQuickForm $mform): void {
+
+        $mform->addElement(
+            'text',
+            'frequency_penalty',
+            get_string('settings_frequency_penalty', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('frequency_penalty', PARAM_FLOAT);
+        $mform->addHelpButton('frequency_penalty', 'settings_frequency_penalty', 'aiprovider_awsbedrock');
+
+        $mform->addElement(
+            'text',
+            'presence_penalty',
+            get_string('settings_presence_penalty', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('presence_penalty', PARAM_FLOAT);
+        $mform->addHelpButton('presence_penalty', 'settings_presence_penalty', 'aiprovider_awsbedrock');
+
+        // Max token count – The maximum number of tokens to generate in the response. Maximum token limits are strictly enforced.
+        $mform->addElement(
+            'text',
+            'max_tokens',
+            get_string('settings_max_tokens', 'aiprovider_awsbedrock'),
+        );
+        $mform->setDefault('max_tokens', 4096);
+        $mform->setType('max_tokens', PARAM_INT);
+        $mform->addHelpButton('max_tokens', 'settings_max_tokens', 'aiprovider_awsbedrock');
+
+        // Stop Sequences – Specify a character sequence to indicate where the model should stop.
+        $mform->addElement(
+            'text',
+            'stop',
+            get_string('settings_stop_sequences', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('stop', PARAM_TEXT);
+        $mform->addHelpButton('stop', 'settings_stop_sequences', 'aiprovider_awsbedrock');
+    }
+
+    #[\Override]
+    public function model_type(): int {
+        return self::MODEL_TYPE_TEXT;
     }
 }

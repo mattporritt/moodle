@@ -32,9 +32,4 @@ class mistral_8x7b_instruct_v0 extends mistral_7b_instruct_v0 implements awsbedr
     public function get_model_name(): string {
         return 'mistral.mixtral-8x7b-instruct-v0:1';
     }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'Mixtral 8X7B Instruct';
-    }
 }

@@ -20,17 +20,17 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Claude 3.5 Sonnet V1 AI model.
+ * AI21 Labs Jurassic 2 Ultra AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class anthropic_claude_3_5_sonnet_v1 extends base implements awsbedrock_base {
+class ai21_j2_ultra_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
-        return 'anthropic.claude-3-5-sonnet-20240620-v1:0';
+        return 'ai21.j2-ultra-v1';
     }
 
     #[\Override]
@@ -57,41 +57,58 @@ class anthropic_claude_3_5_sonnet_v1 extends base implements awsbedrock_base {
         // Top_p – Use a lower value to ignore less probable options and decrease the diversity of responses.
         $mform->addElement(
             'text',
-            'top_p',
+            'topP',
             get_string('settings_top_p', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('top_p', PARAM_FLOAT);
-        $mform->addHelpButton('top_p', 'settings_top_p', 'aiprovider_awsbedrock');
-
-        // Top_k – Only sample from the top K options for each subsequent token.
-        // Use top_k to remove long tail low probability responses.
-        $mform->addElement(
-            'text',
-            'top_k',
-            get_string('settings_top_k', 'aiprovider_awsbedrock'),
-        );
-        $mform->setType('top_k', PARAM_FLOAT);
-        $mform->addHelpButton('top_k', 'settings_top_k', 'aiprovider_awsbedrock');
+        $mform->setType('topP', PARAM_FLOAT);
+        $mform->addHelpButton('topP', 'settings_top_p', 'aiprovider_awsbedrock');
 
         // Max token count – The maximum number of tokens to generate in the response. Maximum token limits are strictly enforced.
         $mform->addElement(
             'text',
-            'max_tokens',
+            'maxTokens',
             get_string('settings_max_tokens', 'aiprovider_awsbedrock'),
         );
-        $mform->setDefault('max_tokens', 4096);
-        $mform->setType('max_tokens', PARAM_INT);
-        $mform->addHelpButton('max_tokens', 'settings_max_tokens', 'aiprovider_awsbedrock');
+        $mform->setDefault('maxTokens', 4096);
+        $mform->setType('maxTokens', PARAM_INT);
+        $mform->addHelpButton('maxTokens', 'settings_max_tokens', 'aiprovider_awsbedrock');
 
         // Stop Sequences – Specify a character sequence to indicate where the model should stop.
         $mform->addElement(
             'text',
-            'stop_sequences',
+            'stopSequences',
             get_string('settings_stop_sequences', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('stop_sequences', PARAM_TEXT);
-        $mform->addHelpButton('stop_sequences', 'settings_stop_sequences', 'aiprovider_awsbedrock');
-    }
+        $mform->setType('stopSequences', PARAM_TEXT);
+        $mform->addHelpButton('stopSequences', 'settings_stop_sequences', 'aiprovider_awsbedrock');
+
+        // Presence penalty – Reduce the frequency of repeated words within a single message by increasing this number.
+        $mform->addElement(
+            'text',
+            'presencePenalty',
+            get_string('settings_presence_penalty', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('presencePenalty', PARAM_FLOAT);
+        $mform->addHelpButton('presencePenalty', 'settings_presence_penalty', 'aiprovider_awsbedrock');
+
+        // Count Penalty –  Use a higher value to lower the probability of generating new tokens that already appear at least once.
+        $mform->addElement(
+            'text',
+            'countPenalty',
+            get_string('settings_count_penalty', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('countPenalty', PARAM_FLOAT);
+        $mform->addHelpButton('countPenalty', 'settings_count_penalty', 'aiprovider_awsbedrock');
+
+        // Frequency penalty – Penalizes new tokens based on their frequency in the text so far. Resulting in fewer repeated words.
+        $mform->addElement(
+            'text',
+            'frequencyPenalty',
+            get_string('settings_frequency_penalty', 'aiprovider_awsbedrock'),
+        );
+        $mform->setType('frequencyPenalty', PARAM_FLOAT);
+        $mform->addHelpButton('frequencyPenalty', 'settings_frequency_penalty', 'aiprovider_awsbedrock');
+       }
 
     #[\Override]
     public function model_type(): int {

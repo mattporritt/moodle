@@ -156,12 +156,12 @@ class action_form extends action_settings_form {
                 !empty($this->actionconfig['modelextraparams']))) {
             $defaultmodel = 'custom';
         } else {
-            $defaultmodel = $this->actionconfig['model'] ?? 'amazon.titan-text-lite-v1';
+            $defaultmodel = $this->actionconfig['model'] ?? 'amazon.nova-pro-v1:0';
         }
         $mform->setDefault('modeltemplate', $defaultmodel);
         $mform->addHelpButton('modeltemplate', "action:{$this->actionname}:model", 'aiprovider_awsbedrock');
 
-        $mform->addElement('hidden', 'model', $this->actionconfig['model'] ?? 'amazon.titan-text-lite-v1');
+        $mform->addElement('hidden', 'model', $this->actionconfig['model'] ?? 'amazon.nova-pro-v1:0');
         $mform->setType('model', PARAM_TEXT);
 
         $mform->addElement('text', 'custommodel', get_string('custom_model_name', 'aiprovider_awsbedrock'));

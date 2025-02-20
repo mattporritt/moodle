@@ -20,17 +20,17 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Meta Llama 3.1 8B Instruct  AI model.
+ * Claude 3.5 Haiku  AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class meta_llama3_1_8b_instruct_v1 extends meta_llama3_8b_instruct_v1 implements awsbedrock_base {
+class anthropic_claude_3_5_haiku_v1 extends anthropic_claude_3_5_sonnet_v1 implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
-        return 'meta.llama3-1-8b-instruct-v1:0';
+        return 'anthropic.claude-3-5-haiku-20241022-v1:0';
     }
 
     #[\Override]
@@ -43,7 +43,7 @@ class meta_llama3_1_8b_instruct_v1 extends meta_llama3_8b_instruct_v1 implements
             'cross_region_inference',
             get_string('settings_cross_region_inference', 'aiprovider_awsbedrock'),
         );
-        $mform->setDefault('cross_region_inference', 'us.meta.llama3-1-8b-instruct-v1:0');
+        $mform->setDefault('cross_region_inference', 'us.anthropic.claude-3-5-haiku-20241022-v1:0');
         $mform->setType('cross_region_inference', PARAM_TEXT);
         $mform->addHelpButton('cross_region_inference', 'settings_cross_region_inference', 'aiprovider_awsbedrock');
     }

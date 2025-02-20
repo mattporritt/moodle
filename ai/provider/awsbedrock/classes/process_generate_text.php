@@ -36,14 +36,14 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
-     * Create the request object for the AI21 models.
+     * Create the request object for the AI21 Jamba models.
      *
      * @param \stdClass $requestobj The base request object to extend.
      * @param string $systeminstruction The system instruction to append to the request object.
      * @param array $modelsettings The model settings to append to the request object.
      * @return \stdClass $requestobj The extended request object.
      */
-    private function create_ai21_request(
+    private function create_ai21_jamba_request(
         \stdClass $requestobj,
         string $systeminstruction,
         array $modelsettings
@@ -84,6 +84,49 @@ class process_generate_text extends abstract_processor {
 
         return $requestobj;
     }
+
+    /**
+     * Create the request object for the AI21 Jurassic models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param string $systeminstruction The system instruction to append to the request object.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_ai21_jurassic_request(
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
+    ): \stdClass {
+        if (!empty($systeminstruction)) {
+            $requestobj->prompt = $this->action->get_configuration('prompttext') . ' ' . $systeminstruction;
+        } else {
+            $requestobj->prompt = $this->action->get_configuration('prompttext');
+        }
+
+        // Append the extra model settings.
+        if (!empty($modelsettings)) {
+            foreach ($modelsettings as $setting => $value) {
+                // Skip if the setting is the aws region.
+                if ($setting === 'awsregion') {
+                    continue;
+                }
+                // Correctly format the stopSequences setting.
+                if ($setting === 'stopSequences') {
+                    $requestobj->$setting = [$value];
+                } else if (str_contains($setting, 'Penalty')) {
+                    $scale = new \stdClass();
+                    $scale->scale = $value + 0;
+                    $requestobj->$setting = $scale;
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
+
+        return $requestobj;
+    }
+
     /**
      * Create the request object for the Amazon models.
      *
@@ -314,7 +357,11 @@ class process_generate_text extends abstract_processor {
         $modelsettings = $this->get_model_settings();
 
         // Handle model family specific configuration.
-        if (str_contains($this->get_model(), 'amazon')) {
+        if (str_contains($this->get_model(), 'ai21.jamba')) {
+            $requestobj = $this->create_ai21_jamba_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'a21.j2')) {
+            $requestobj = $this->create_ai21_jurassic_request($requestobj, $systeminstruction, $modelsettings);
+        } else if (str_contains($this->get_model(), 'amazon')) {
             $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'anthropic')) {
             $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
@@ -324,8 +371,6 @@ class process_generate_text extends abstract_processor {
             $requestobj = $this->create_meta_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'mistral')) {
             $requestobj = $this->create_mistral_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'ai21')) {
-            $requestobj = $this->create_ai21_request($requestobj, $systeminstruction, $modelsettings);
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
@@ -352,7 +397,15 @@ class process_generate_text extends abstract_processor {
         ];
 
         // Bedrock contains different response structures for different models.
-        if (str_contains($this->get_model(), 'amazon')) {
+        if (str_contains($this->get_model(), 'ai21.jamba')) {
+            $response['generatedcontent'] = $bodyobj->choices[0]->message->content;
+            $response['finishreason'] = $bodyobj->choices[0]->finish_reason;
+            $response['model'] = $bodyobj->model;
+        } else if (str_contains($this->get_model(), 'a21.j2')) {
+            $response['generatedcontent'] = $bodyobj->completions[0]->data->text;
+            $response['finishreason'] = $bodyobj->completions[0]->finishReason->reason;
+            $response['model'] = $bodyobj->model;
+        } else if (str_contains($this->get_model(), 'amazon')) {
             $response['generatedcontent'] = $bodyobj->output->message->content[0]->text;
             $response['finishreason'] = $bodyobj->stopReason;
             $response['model'] = $this->get_model();
@@ -372,10 +425,6 @@ class process_generate_text extends abstract_processor {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
             $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;
             $response['model'] = $this->get_model();
-        } else if (str_contains($this->get_model(), 'ai21')) {
-            $response['generatedcontent'] = $bodyobj->choices[0]->message->content;
-            $response['finishreason'] = $bodyobj->choices[0]->finish_reason;
-            $response['model'] = $bodyobj->model;
         } else {
             throw new \coding_exception('Unknown model class type.');
         }

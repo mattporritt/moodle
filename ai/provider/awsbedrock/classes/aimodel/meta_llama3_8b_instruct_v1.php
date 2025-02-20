@@ -35,7 +35,7 @@ class meta_llama3_8b_instruct_v1 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Meta Llama 3 8B Instruct ';
+        return get_string("model_{$this->get_model_name()}", 'aiprovider_awsbedrock');
     }
 
     #[\Override]

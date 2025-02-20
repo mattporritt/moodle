@@ -26,15 +26,10 @@ use MoodleQuickForm;
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class ai21_jamba_1_5_mini_v1 extends ai21_jamba_instruct_v1 implements awsbedrock_base {
+class ai21_jamba_1_5_mini_v1 extends ai21_jamba_1_5_large_v1 implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
         return 'ai21.jamba-1-5-mini-v1:0';
-    }
-
-    #[\Override]
-    public function get_model_display_name(): string {
-        return 'AI21 Labs Jamba 1.5 Mini ';
     }
 }

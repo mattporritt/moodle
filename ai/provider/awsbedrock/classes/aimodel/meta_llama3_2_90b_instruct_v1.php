@@ -34,49 +34,18 @@ class meta_llama3_2_90b_instruct_v1 extends meta_llama3_8b_instruct_v1 implement
     }
 
     #[\Override]
-    public function get_model_display_name(): string {
-        return 'Meta Llama 3.2 90B Instruct ';
-    }
-
-    #[\Override]
-    public function has_model_settings(): bool {
-        return true;
-    }
-
-    #[\Override]
     public function add_model_settings(MoodleQuickForm $mform): void {
-        // Temperature – Use a lower value to decrease randomness in responses.
+        parent::add_model_settings($mform);
+
+        // Add the cross region inference setting.
         $mform->addElement(
-                'text',
-                'temperature',
-                get_string('settings_temperature', 'aiprovider_awsbedrock'),
+            'text',
+            'cross_region_inference',
+            get_string('settings_cross_region_inference', 'aiprovider_awsbedrock'),
         );
-        $mform->setType('temperature', PARAM_FLOAT);
-        $mform->addHelpButton('temperature', 'settings_temperature', 'aiprovider_awsbedrock');
-
-        // Top_p – Use a lower value to ignore less probable options and decrease the diversity of responses.
-        $mform->addElement(
-                'text',
-                'top_p',
-                get_string('settings_top_p', 'aiprovider_awsbedrock'),
-        );
-        $mform->setType('top_p', PARAM_FLOAT);
-        $mform->addHelpButton('top_p', 'settings_top_p', 'aiprovider_awsbedrock');
-
-        // Max token count – The maximum number of tokens to generate in the response. Maximum token limits are strictly enforced.
-        $mform->addElement(
-                'text',
-                'max_gen_len',
-                get_string('settings_max_tokens', 'aiprovider_awsbedrock'),
-        );
-        $mform->setDefault('max_gen_len', 4096);
-        $mform->setType('max_gen_len', PARAM_INT);
-        $mform->addHelpButton('max_gen_len', 'settings_max_tokens', 'aiprovider_awsbedrock');
-
-      }
-
-    #[\Override]
-    public function model_type(): int {
-        return self::MODEL_TYPE_TEXT;
+        $mform->setDefault('cross_region_inference', 'us.meta.llama3-2-90b-instruct-v1:0');
+        $mform->setType('cross_region_inference', PARAM_TEXT);
+        $mform->addHelpButton('cross_region_inference', 'settings_cross_region_inference', 'aiprovider_awsbedrock');
     }
+
 }

@@ -35,7 +35,7 @@ class mistral_7b_instruct_v0 extends base implements awsbedrock_base {
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Mistral 7B Instruct';
+        return get_string("model_{$this->get_model_name()}", 'aiprovider_awsbedrock');
     }
 
     #[\Override]

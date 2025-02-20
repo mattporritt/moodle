@@ -26,7 +26,7 @@ use MoodleQuickForm;
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class anthropic_claude_3_5_sonnet_v2 extends anthropic_claude_3_sonnet_v1 implements awsbedrock_base {
+class anthropic_claude_3_5_sonnet_v2 extends anthropic_claude_3_5_sonnet_v1 implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
@@ -34,8 +34,17 @@ class anthropic_claude_3_5_sonnet_v2 extends anthropic_claude_3_sonnet_v1 implem
     }
 
     #[\Override]
-    public function get_model_display_name(): string {
-        return 'Claude 3.5 Sonnet V2';
-    }
+    public function add_model_settings(MoodleQuickForm $mform): void {
+        parent::add_model_settings($mform);
 
+        // Add the cross region inference setting.
+        $mform->addElement(
+            'text',
+            'cross_region_inference',
+            get_string('settings_cross_region_inference', 'aiprovider_awsbedrock'),
+        );
+        $mform->setDefault('cross_region_inference', 'us.anthropic.claude-3-5-sonnet-20241022-v2:0');
+        $mform->setType('cross_region_inference', PARAM_TEXT);
+        $mform->addHelpButton('cross_region_inference', 'settings_cross_region_inference', 'aiprovider_awsbedrock');
+    }
 }
