@@ -359,7 +359,7 @@ class process_generate_text extends abstract_processor {
         // Handle model family specific configuration.
         if (str_contains($this->get_model(), 'ai21.jamba')) {
             $requestobj = $this->create_ai21_jamba_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'a21.j2')) {
+        } else if (str_contains($this->get_model(), 'ai21.j2')) {
             $requestobj = $this->create_ai21_jurassic_request($requestobj, $systeminstruction, $modelsettings);
         } else if (str_contains($this->get_model(), 'amazon')) {
             $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
@@ -401,7 +401,7 @@ class process_generate_text extends abstract_processor {
             $response['generatedcontent'] = $bodyobj->choices[0]->message->content;
             $response['finishreason'] = $bodyobj->choices[0]->finish_reason;
             $response['model'] = $bodyobj->model;
-        } else if (str_contains($this->get_model(), 'a21.j2')) {
+        } else if (str_contains($this->get_model(), 'ai21.j2')) {
             $response['generatedcontent'] = $bodyobj->completions[0]->data->text;
             $response['finishreason'] = $bodyobj->completions[0]->finishReason->reason;
             $response['model'] = $bodyobj->model;

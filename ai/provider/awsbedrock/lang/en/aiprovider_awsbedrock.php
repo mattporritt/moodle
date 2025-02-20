@@ -83,7 +83,7 @@ $string['extraparams_help'] = 'Extra parameters can be configured here. We suppo
 </pre>';
 $string['invalidjson'] = 'Invalid JSON string';
 $string['model_ai21.j2-mid-v1'] = 'AI21 Labs Jurassic 2 Mid';
-$string['model_ai21.j2-ultra-v1'] = 'AAI21 Labs Jurassic 2 Ultra';
+$string['model_ai21.j2-ultra-v1'] = 'AI21 Labs Jurassic 2 Ultra';
 $string['model_ai21.jamba-1-5-large-v1:0'] = 'AI21 Labs Jamba 1.5 Large';
 $string['model_ai21.jamba-1-5-mini-v1:0'] = 'AI21 Labs Jamba 1.5 Mini';
 $string['model_amazon.nova-lite-v1:0'] = 'Amazon Nova Lite';

@@ -20,7 +20,7 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * AI21 Labs Jurassic 2 Ultra AI model.
+ * AI21 Labs Jurassic 2 Mid AI model.
  *
  * @package    aiprovider_awsbedrock
  * @copyright  2025 Matt Porritt <matt.porritt@moodle.com>
@@ -30,6 +30,6 @@ class ai21_j2_mid_v1 extends ai21_j2_ultra_v1 implements awsbedrock_base {
 
     #[\Override]
     public function get_model_name(): string {
-        return 'ai21.j2-ultra-v1';
+        return 'ai21.j2-mid-v1';
     }
 }
