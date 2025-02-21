@@ -17,9 +17,6 @@
 namespace aiprovider_awsbedrock;
 
 use Aws\Result;
-use GuzzleHttp\Psr7\Request;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class process text generation.
@@ -36,7 +33,45 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
-     * Create the request object for the AI21 Jamba models.
+     * Helper to iterate over model settings.
+     *
+     * @param \stdClass $requestobj The request object to extend.
+     * @param array $modelsettings The model settings to append.
+     * @param array $stopKeys Keys for which the value should be wrapped in an array.
+     * @param bool $handlePenalty Whether to handle any keys containing "Penalty" specially.
+     * @param callable|null $processor Optional custom processor callback.
+     * @return \stdClass The extended request object.
+     */
+    private function apply_model_settings(
+        \stdClass $requestobj,
+        array $modelsettings,
+        array $stopKeys = [],
+        bool $handlePenalty = false,
+        callable $processor = null
+    ): \stdClass {
+        foreach ($modelsettings as $setting => $value) {
+            if (in_array($setting, ['awsregion', 'cross_region_inference'])) {
+                continue;
+            }
+            if ($processor !== null) {
+                $processor($requestobj, $setting, $value);
+            } else {
+                if (in_array($setting, $stopKeys)) {
+                    $requestobj->$setting = [$value];
+                } else if ($handlePenalty && str_contains($setting, 'Penalty')) {
+                    $scale = new \stdClass();
+                    $scale->scale = $value + 0;
+                    $requestobj->$setting = $scale;
+                } else {
+                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
+                }
+            }
+        }
+        return $requestobj;
+    }
+
+    /**
+     * Create the request object for the AI21 Jurassic models.
      *
      * @param \stdClass $requestobj The base request object to extend.
      * @param string $systeminstruction The system instruction to append to the request object.
@@ -60,27 +95,13 @@ class process_generate_text extends abstract_processor {
             $systemobj = new \stdClass();
             $systemobj->role = 'system';
             $systemobj->content = $systeminstruction;
-
             $requestobj->messages = [$systemobj, $messageobj];
         } else {
             $requestobj->messages = [$messageobj];
         }
 
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stop') {
-                    $requestobj->$setting = [$value];
-                } else {
-                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
-            }
-        }
+        // For AI21 Jamba, wrap 'stop' values.
+        $this->apply_model_settings($requestobj, $modelsettings, ['stop']);
 
         return $requestobj;
     }
@@ -98,31 +119,11 @@ class process_generate_text extends abstract_processor {
         string $systeminstruction,
         array $modelsettings
     ): \stdClass {
-        if (!empty($systeminstruction)) {
-            $requestobj->prompt = $this->action->get_configuration('prompttext') . ' ' . $systeminstruction;
-        } else {
-            $requestobj->prompt = $this->action->get_configuration('prompttext');
-        }
+        $prompttext = $this->action->get_configuration('prompttext');
+        $requestobj->prompt = !empty($systeminstruction) ? $prompttext . ' ' . $systeminstruction : $prompttext;
 
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stopSequences') {
-                    $requestobj->$setting = [$value];
-                } else if (str_contains($setting, 'Penalty')) {
-                    $scale = new \stdClass();
-                    $scale->scale = $value + 0;
-                    $requestobj->$setting = $scale;
-                } else {
-                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
-            }
-        }
+        // For AI21 Jurassic, wrap 'stopSequences' values and handle penalties.
+        $this->apply_model_settings($requestobj, $modelsettings, ['stopSequences'], true);
 
         return $requestobj;
     }
@@ -136,9 +137,9 @@ class process_generate_text extends abstract_processor {
      * @return \stdClass $requestobj The extended request object.
      */
     private function create_amazon_request(
-            \stdClass $requestobj,
-            string $systeminstruction,
-            array $modelsettings
+        \stdClass $requestobj,
+        string $systeminstruction,
+        array $modelsettings
     ): \stdClass {
         if (!empty($systeminstruction)) {
             $systemobj = new \stdClass();
@@ -157,27 +158,20 @@ class process_generate_text extends abstract_processor {
 
         $requestobj->messages = [$userobj];
 
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            $modelobj = new \stdClass();
-
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
-                    continue;
-                }
-                // Handle schema version.
-                if ($setting === 'schemaVersion') {
-                    $requestobj->schemaVersion = $value;
-                } else {
-                    $modelobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
+        // Amazon requires model settings to be grouped in a separate object.
+        $modelobj = new \stdClass();
+        foreach ($modelsettings as $setting => $value) {
+            if (in_array($setting, ['awsregion', 'cross_region_inference'])) {
+                continue;
             }
-
-            // Only add the model settings if we have any.
-            if(!empty((array)$modelobj)) {
-                $requestobj->inferenceConfig = $modelobj;
+            if ($setting === 'schemaVersion') {
+                $requestobj->schemaVersion = $value;
+            } else {
+                $modelobj->$setting = is_numeric($value) ? ($value + 0) : $value;
             }
+        }
+        if (!empty((array)$modelobj)) {
+            $requestobj->inferenceConfig = $modelobj;
         }
 
         return $requestobj;
@@ -213,21 +207,9 @@ class process_generate_text extends abstract_processor {
 
         $requestobj->messages = [$userobj];
 
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stop_sequences') {
-                    $requestobj->$setting = [$value];
-                } else {
-                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
-            }
-        }
+        // For Anthropic, wrap 'stop_sequences' values.
+        $this->apply_model_settings($requestobj, $modelsettings, ['stop_sequences']);
+
         return $requestobj;
     }
 
@@ -249,21 +231,9 @@ class process_generate_text extends abstract_processor {
         }
         $requestobj->message = $this->action->get_configuration('prompttext');
 
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stop_sequences') {
-                    $requestobj->$setting = [$value];
-                } else {
-                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
-            }
-        }
+        // For Cohere, wrap 'stop_sequences' values.
+        $this->apply_model_settings($requestobj, $modelsettings, ['stop_sequences']);
+
         return $requestobj;
     }
 
@@ -282,30 +252,15 @@ class process_generate_text extends abstract_processor {
     ): \stdClass {
         $prompt = '<|begin_of_text|>';
         if (!empty($systeminstruction)) {
-
-            $prompt .= '<|start_header_id|>system<|end_header_id|>'
-                . $systeminstruction
-                . '<|eot_id|>';
+            $prompt .= '<|start_header_id|>system<|end_header_id|>' . $systeminstruction . '<|eot_id|>';
         }
-
-        $prompt .=  '<|start_header_id|>user<|end_header_id|>'
+        $prompt .= '<|start_header_id|>user<|end_header_id|>'
             . $this->action->get_configuration('prompttext')
             . '<|eot_id|><|start_header_id|>assistant<|end_header_id|>';
-
         $requestobj->prompt = $prompt;
 
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-            }
-        }
-
+        // Default processing.
+        $this->apply_model_settings($requestobj, $modelsettings);
         return $requestobj;
     }
 
@@ -322,30 +277,15 @@ class process_generate_text extends abstract_processor {
         string $systeminstruction,
         array $modelsettings
     ): \stdClass {
+        $prompttext = $this->action->get_configuration('prompttext');
         if (!empty($systeminstruction)) {
-            $requestobj->prompt = '<s>[INST] '
-                . 'System: ' . $systeminstruction
-                . ' User: ' . $this->action->get_configuration('prompttext')
-                . ' [/INST]';
+            $requestobj->prompt = '<s>[INST] System: ' . $systeminstruction . ' User: ' . $prompttext . ' [/INST]';
         } else {
-            $requestobj->prompt = '<s>[INST] ' . $this->action->get_configuration('prompttext') . ' [/INST]';
+            $requestobj->prompt = '<s>[INST] ' . $prompttext . ' [/INST]';
         }
 
-        // Append the extra model settings.
-        if (!empty($modelsettings)) {
-            foreach ($modelsettings as $setting => $value) {
-                // Skip if the setting is the aws region.
-                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
-                    continue;
-                }
-                // Correctly format the stopSequences setting.
-                if ($setting === 'stop') {
-                    $requestobj->$setting = [$value];
-                } else {
-                    $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-                }
-            }
-        }
+        // For Mistral, wrap 'stop' values.
+        $this->apply_model_settings($requestobj, $modelsettings, ['stop']);
 
         return $requestobj;
     }
@@ -355,21 +295,21 @@ class process_generate_text extends abstract_processor {
         $requestobj = new \stdClass();
         $systeminstruction = $this->get_system_instruction();
         $modelsettings = $this->get_model_settings();
+        $model = $this->get_model();
 
-        // Handle model family specific configuration.
-        if (str_contains($this->get_model(), 'ai21.jamba')) {
+        if (str_contains($model, 'ai21.jamba')) {
             $requestobj = $this->create_ai21_jamba_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'ai21.j2')) {
+        } else if (str_contains($model, 'ai21.j2')) {
             $requestobj = $this->create_ai21_jurassic_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'amazon')) {
+        } else if (str_contains($model, 'amazon')) {
             $requestobj = $this->create_amazon_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'anthropic')) {
+        } else if (str_contains($model, 'anthropic')) {
             $requestobj = $this->create_anthropic_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'cohere')) {
+        } else if (str_contains($model, 'cohere')) {
             $requestobj = $this->create_cohere_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'meta')) {
+        } else if (str_contains($model, 'meta')) {
             $requestobj = $this->create_meta_request($requestobj, $systeminstruction, $modelsettings);
-        } else if (str_contains($this->get_model(), 'mistral')) {
+        } else if (str_contains($model, 'mistral')) {
             $requestobj = $this->create_mistral_request($requestobj, $systeminstruction, $modelsettings);
         } else {
             throw new \coding_exception('Unknown model class type.');
@@ -378,7 +318,7 @@ class process_generate_text extends abstract_processor {
         return [
             'ContentType' => 'application/json',
             'Accept' => 'application/json',
-            'modelId' => $modelsettings['cross_region_inference'] ?? $this->get_model(), // Handle cross region inference.
+            'modelId' => $modelsettings['cross_region_inference'] ?? $model,
             'body' => json_encode($requestobj),
         ];
     }
@@ -386,8 +326,6 @@ class process_generate_text extends abstract_processor {
     #[\Override]
     protected function handle_api_success(Result $result): array {
         $bodyobj = json_decode($result['body']->getContents());
-
-        // Bedrock contains token counts in the headers.
         $responseheaders = $result['@metadata']['headers'];
         $response = [
             'success' => true,
@@ -396,35 +334,35 @@ class process_generate_text extends abstract_processor {
             'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
         ];
 
-        // Bedrock contains different response structures for different models.
-        if (str_contains($this->get_model(), 'ai21.jamba')) {
+        $model = $this->get_model();
+        if (str_contains($model, 'ai21.jamba')) {
             $response['generatedcontent'] = $bodyobj->choices[0]->message->content;
             $response['finishreason'] = $bodyobj->choices[0]->finish_reason;
             $response['model'] = $bodyobj->model;
-        } else if (str_contains($this->get_model(), 'ai21.j2')) {
+        } else if (str_contains($model, 'ai21.j2')) {
             $response['generatedcontent'] = $bodyobj->completions[0]->data->text;
             $response['finishreason'] = $bodyobj->completions[0]->finishReason->reason;
             $response['model'] = $bodyobj->model;
-        } else if (str_contains($this->get_model(), 'amazon')) {
+        } else if (str_contains($model, 'amazon')) {
             $response['generatedcontent'] = $bodyobj->output->message->content[0]->text;
             $response['finishreason'] = $bodyobj->stopReason;
-            $response['model'] = $this->get_model();
-        } else if (str_contains($this->get_model(), 'anthropic')) {
+            $response['model'] = $model;
+        } else if (str_contains($model, 'anthropic')) {
             $response['generatedcontent'] = $bodyobj->content[0]->text;
             $response['finishreason'] = $bodyobj->stop_reason;
             $response['model'] = $bodyobj->model;
-        } else if (str_contains($this->get_model(), 'cohere')) {
+        } else if (str_contains($model, 'cohere')) {
             $response['generatedcontent'] = $bodyobj->text;
             $response['finishreason'] = $bodyobj->finish_reason;
-            $response['model'] = $this->get_model();
-        } else if (str_contains($this->get_model(), 'meta')) {
+            $response['model'] = $model;
+        } else if (str_contains($model, 'meta')) {
             $response['generatedcontent'] = $bodyobj->generation;
             $response['finishreason'] = $bodyobj->stop_reason;
-            $response['model'] = $this->get_model();
-        } else if (str_contains($this->get_model(), 'mistral')) {
+            $response['model'] = $model;
+        } else if (str_contains($model, 'mistral')) {
             $response['generatedcontent'] = $bodyobj->outputs[0]->text;
             $response['finishreason'] = $bodyobj->outputs[0]->stop_reason;
-            $response['model'] = $this->get_model();
+            $response['model'] = $model;
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
