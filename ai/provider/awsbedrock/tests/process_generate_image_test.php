@@ -59,7 +59,9 @@ final class process_generate_image_test extends \advanced_testcase {
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_image::class,
             actionconfig: [
-                'model' => 'dall-e-3',
+                'model' => 'amazon.nova-canvas-v1:0',
+                'cfgScale' => 6.5,
+                'seed' => 12,
             ],
         );
         $this->create_action();
@@ -82,38 +84,16 @@ final class process_generate_image_test extends \advanced_testcase {
     }
 
     /**
-     * Test calculate_size.
+     * Test create_request
      */
-    public function test_calculate_size(): void {
+    public function test_create_request(): void {
         $processor = new process_generate_image($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'calculate_size');
+        $method = new \ReflectionMethod($processor, 'create_request');
+        $request = $method->invoke($processor);
 
-        $ratio = 'square';
-        $size = $method->invoke($processor, $ratio);
-        $this->assertEquals('1024x1024', $size);
-
-        $ratio = 'portrait';
-        $size = $method->invoke($processor, $ratio);
-        $this->assertEquals('1024x1792', $size);
-
-        $ratio = 'landscape';
-        $size = $method->invoke($processor, $ratio);
-        $this->assertEquals('1792x1024', $size);
-    }
-
-    /**
-     * Test create_request_object
-     */
-    public function test_create_request_object(): void {
-        $processor = new process_generate_image($this->provider, $this->action);
-
-        // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_request_object');
-        $request = $method->invoke($processor, 1);
-
-        $requestdata = (object) json_decode($request->getBody()->getContents());
+        $body = (object) json_decode($request['body']);
 
         $this->assertEquals('This is a test prompt', $requestdata->prompt);
         $this->assertEquals('dall-e-3', $requestdata->model);

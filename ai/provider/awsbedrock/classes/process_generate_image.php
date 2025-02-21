@@ -16,6 +16,7 @@
 
 namespace aiprovider_awsbedrock;
 
+use Aws\Result;
 use core\http_client;
 use core_ai\ai_image;
 use GuzzleHttp\Psr7\Request;
@@ -30,80 +31,132 @@ use Psr\Http\Message\ResponseInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_generate_image extends abstract_processor {
-    /** @var int The number of images to generate dall-e-3 only supports 1. */
-    private int $numberimages = 1;
 
-    /** @var string Response format: url or b64_json. */
-    private string $responseformat = 'url';
+    /**
+     * Create the request object for the Amazon Nova models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_amazon_nova_request(\stdClass $requestobj, array $modelsettings): \stdClass {
+        //$requestobj->prompt = $this->action->get_configuration('prompttext');
+        //$requestobj->n = $this->numberimages;
+        //$requestobj->quality = $this->action->get_configuration('quality');
+        //$requestobj->size = $this->calculate_size($this->action->get_configuration('aspectratio'));
+        //$requestobj->style = $this->action->get_configuration('style');
 
-    #[\Override]
-    protected function query_ai_api(): array {
-        $response = parent::query_ai_api();
+        $requestobj->taskType = 'TEXT_IMAGE';
+        $aspectratio = $this->action->get_configuration('aspectratio');
+        $quality = $this->action->get_configuration('quality') == 'hd' ? 'premium' : 'standard';
 
-        // If the request was successful, save the URL to a file.
-        if ($response['success']) {
-            $fileobj = $this->url_to_file(
-                $this->action->get_configuration('userid'),
-                $response['sourceurl']
-            );
-            // Add the file to the response, so the calling placement can do whatever they want with it.
-            $response['draftfile'] = $fileobj;
+        if ($aspectratio == 'square' && $quality == 'premium') {
+            $width = 1792;
+            $height = 1792;
+        } else if ($aspectratio == 'portrait' && $quality == 'premium') {
+            $width = 1024;
+            $height = 1792;
+        } else if ($aspectratio == 'landscape' && $quality == 'premium') {
+            $width = 1792;
+            $height = 1024;
+        } else if ($aspectratio == 'square' && $quality == 'standard') {
+            $width = 1024;
+            $height = 1024;
+        } else if ($aspectratio == 'portrait' && $quality == 'standard') {
+            $width = 592;
+            $height = 1024;
+        } else if ($aspectratio == 'landscape' && $quality == 'standard') {
+            $width = 1024;
+            $height = 592;
+        } else {
+            throw new \coding_exception('Unknown aspect ratio.');
         }
 
-        return $response;
+        // Create the prompt object.
+        $promptobj = new \stdClass();
+        $promptobj->text = $this->action->get_configuration('prompttext');
+        $requestobj->textToImageParams = $promptobj;
+
+        // Create the image generation config object.
+        $imggenconfig = new \stdClass();
+        $imggenconfig->numberOfImages = $this->action->get_configuration('numimages');
+        $imggenconfig->width = $width;
+        $imggenconfig->height = $height;
+        $imggenconfig->quality = $quality;
+
+        // Add the model settings to the request object.
+        foreach ($modelsettings as $setting => $value) {
+            if (in_array($setting, ['awsregion', 'cross_region_inference'])) {
+                continue;
+            }
+
+            $imggenconfig->$setting = is_numeric($value) ? ($value + 0) : $value;
+        }
+
+        $requestobj->imageGenerationConfig = $imggenconfig;
+
+        return $requestobj;
     }
 
     /**
-     * Convert the given aspect ratio to an image size
-     * that is compatible with the OpenAI API.
+     * Create the request object for the Amazon Titan models.
      *
-     * @param string $ratio The aspect ratio of the image.
-     * @return string The size of the image.
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
      */
-    private function calculate_size(string $ratio): string {
-        if ($ratio === 'square') {
-            $size = '1024x1024';
-        } else if ($ratio === 'landscape') {
-            $size = '1792x1024';
-        } else if ($ratio === 'portrait') {
-            $size = '1024x1792';
-        } else {
-            throw new \coding_exception('Invalid aspect ratio: ' . $ratio);
-        }
-        return $size;
+    private function create_amazon_titan_request(\stdClass $requestobj, array $modelsettings): \stdClass {
+
+        return $requestobj;
+    }
+
+    /**
+     * Create the request object for Stability AI models.
+     *
+     * @param \stdClass $requestobj The base request object to extend.
+     * @param array $modelsettings The model settings to append to the request object.
+     * @return \stdClass $requestobj The extended request object.
+     */
+    private function create_stability_request(\stdClass $requestobj, array $modelsettings): \stdClass {
+
+        return $requestobj;
     }
 
     #[\Override]
-    protected function create_request_object(string $userid): RequestInterface {
-        // Create the request object.
+    protected function create_request(): array {
         $requestobj = new \stdClass();
-        $requestobj->model = $this->get_model();
-        $requestobj->user = $userid;
-        $requestobj->prompt = $this->action->get_configuration('prompttext');
-        $requestobj->n = $this->numberimages;
-        $requestobj->quality = $this->action->get_configuration('quality');
-        $requestobj->response_format = $this->responseformat;
-        $requestobj->size = $this->calculate_size($this->action->get_configuration('aspectratio'));
-        $requestobj->style = $this->action->get_configuration('style');
-        // Append the extra model settings.
         $modelsettings = $this->get_model_settings();
-        foreach ($modelsettings as $setting => $value) {
-            $requestobj->$setting = $value;
+        $model = $this->get_model();
+
+        if (str_contains($model, 'amazon.nova')) {
+            $requestobj = $this->create_amazon_nova_request($requestobj, $modelsettings);
+        } else if (str_contains($model, 'amazon.titan')) {
+            $requestobj = $this->create_amazon_titan_request($requestobj, $modelsettings);
+        } else if (str_contains($model, 'stability')) {
+            $requestobj = $this->create_stability_request($requestobj, $modelsettings);
+        } else {
+            throw new \coding_exception('Unknown model class type.');
         }
-        return new Request(
-            method: 'POST',
-            uri: '',
-            headers: [
-                'Content-Type' => 'application/json',
-            ],
-            body: json_encode($requestobj),
-        );
+
+        return [
+            'ContentType' => 'application/json',
+            'Accept' => 'application/json',
+            'modelId' => $model,
+            'body' => json_encode($requestobj),
+        ];
     }
 
     #[\Override]
-    protected function handle_api_success(ResponseInterface $response): array {
-        $responsebody = $response->getBody();
-        $bodyobj = json_decode($responsebody->getContents());
+    protected function handle_api_success(Result $result): array {
+        $bodyobj = json_decode($result['body']->getContents());
+        $responseheaders = $result['@metadata']['headers'];
+        $response = [
+            'success' => true,
+            'fingerprint' => $responseheaders['x-amzn-requestid'],
+            'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
+            'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
+        ];
+
 
         return [
             'success' => true,
