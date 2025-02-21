@@ -212,8 +212,6 @@ final class process_generate_text_test extends \advanced_testcase {
             ],
         );
         $processor = new process_generate_text($this->provider, $this->action);
-
-        // We're working with a protected method here, so we need to use reflection.
         $method = new \ReflectionMethod($processor, 'create_request');
         $request = $method->invoke($processor);
 
@@ -222,6 +220,34 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertEquals('amazon.nova-pro-v2', $request['modelId']);
         $this->assertEquals('0.5', $body->inferenceConfig->temperature);
         $this->assertEquals('100', $body->inferenceConfig->max_tokens);
+
+    }
+
+    /**
+     * Test create_request with cross region inference.
+     */
+    public function test_create_request_object_with_region_inference(): void {
+        $this->provider = $this->create_provider(
+            actionclass: \core_ai\aiactions\generate_text::class,
+            actionconfig: [
+                'systeminstruction' => get_string('action_generate_text_instruction', 'core_ai'),
+                'model' => 'meta.llama3-2-90b-instruct-v1:0',
+                'temperature' => '0.5',
+                'max_tokens' => '100',
+                'cross_region_inference' => 'us.meta.llama3-2-90b-instruct-v1:0',
+            ],
+        );
+        $processor = new process_generate_text($this->provider, $this->action);
+
+        // We're working with a protected method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_request');
+        $request = $method->invoke($processor);
+
+        $body = (object) json_decode($request['body']);
+
+        $this->assertEquals('us.meta.llama3-2-90b-instruct-v1:0', $request['modelId']);
+        $this->assertEquals('0.5', $body->temperature);
+        $this->assertEquals('100', $body->max_tokens);
     }
 
     /**

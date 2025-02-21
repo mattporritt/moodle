@@ -70,7 +70,7 @@ class process_generate_text extends abstract_processor {
         if (!empty($modelsettings)) {
             foreach ($modelsettings as $setting => $value) {
                 // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
+                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
                     continue;
                 }
                 // Correctly format the stopSequences setting.
@@ -108,7 +108,7 @@ class process_generate_text extends abstract_processor {
         if (!empty($modelsettings)) {
             foreach ($modelsettings as $setting => $value) {
                 // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
+                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
                     continue;
                 }
                 // Correctly format the stopSequences setting.
@@ -163,7 +163,7 @@ class process_generate_text extends abstract_processor {
 
             foreach ($modelsettings as $setting => $value) {
                 // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
+                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
                     continue;
                 }
                 // Handle schema version.
@@ -217,7 +217,7 @@ class process_generate_text extends abstract_processor {
         if (!empty($modelsettings)) {
             foreach ($modelsettings as $setting => $value) {
                 // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
+                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
                     continue;
                 }
                 // Correctly format the stopSequences setting.
@@ -253,7 +253,7 @@ class process_generate_text extends abstract_processor {
         if (!empty($modelsettings)) {
             foreach ($modelsettings as $setting => $value) {
                 // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
+                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
                     continue;
                 }
                 // Correctly format the stopSequences setting.
@@ -298,7 +298,7 @@ class process_generate_text extends abstract_processor {
         if (!empty($modelsettings)) {
             foreach ($modelsettings as $setting => $value) {
                 // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
+                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
                     continue;
                 }
                 // Correctly format the stopSequences setting.
@@ -335,7 +335,7 @@ class process_generate_text extends abstract_processor {
         if (!empty($modelsettings)) {
             foreach ($modelsettings as $setting => $value) {
                 // Skip if the setting is the aws region.
-                if ($setting === 'awsregion') {
+                if ($setting === 'awsregion' || $setting === 'cross_region_inference') {
                     continue;
                 }
                 // Correctly format the stopSequences setting.
@@ -378,7 +378,7 @@ class process_generate_text extends abstract_processor {
         return [
             'ContentType' => 'application/json',
             'Accept' => 'application/json',
-            'modelId' => $this->get_model(),
+            'modelId' => $modelsettings['cross_region_inference'] ?? $this->get_model(), // Handle cross region inference.
             'body' => json_encode($requestobj),
         ];
     }
