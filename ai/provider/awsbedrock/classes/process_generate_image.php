@@ -150,57 +150,62 @@ class process_generate_image extends abstract_processor {
     protected function handle_api_success(Result $result): array {
         $bodyobj = json_decode($result['body']->getContents());
         $responseheaders = $result['@metadata']['headers'];
+        $model = $this->get_model();
         $response = [
             'success' => true,
             'fingerprint' => $responseheaders['x-amzn-requestid'],
             'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
             'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
+            'revisedprompt' => $this->action->get_configuration('prompttext'), // No revised prompt in AWS Bedrock.
+            'model' => $model,
         ];
 
+        if (str_contains($model, 'amazon.nova')) {
+            $response['draftfile'] = $this->base64_to_file();
+        } else if (str_contains($model, 'amazon.titan')) {
+            $response['draftfile'] = $this->base64_to_file();
+        } else if (str_contains($model, 'stability')) {
+            $response['draftfile'] = $this->base64_to_file();
+        } else {
+            throw new \coding_exception('Unknown model class type.');
+        }
 
-        return [
-            'success' => true,
-            'sourceurl' => $bodyobj->data[0]->url,
-            'revisedprompt' => $bodyobj->data[0]->revised_prompt,
-            'model' => $this->get_model(), // There is no model in the response, use config.
-        ];
+
+        return $response;
     }
 
     /**
-     * Convert the url for the image to a file.
+     * Convert the base64 for the image to a file.
      *
      * Placements can't interact with the provider AI directly,
      * therefore we need to provide the image file in a format that can
      * be used by placements. So we use the file API.
      *
-     * @param int $userid The user id.
-     * @param string $url The URL to the image.
+     * @param string $base64 The base64 encoded image.
      * @return \stored_file The file object.
      */
-    private function url_to_file(int $userid, string $url): \stored_file {
-        global $CFG;
-
+    private function base64_to_file(string $base64): \stored_file {
+        global $CFG, $USER;
         require_once("{$CFG->libdir}/filelib.php");
 
-        $parsedurl = parse_url($url, PHP_URL_PATH); // Parse the URL to get the path.
-        $filename = basename($parsedurl); // Get the basename of the path.
+        // Decode the base64 image into a binary format we can use.
+        $binarydata = base64_decode($base64);
 
-        $client = \core\di::get(http_client::class);
+        // Construct a filename for the image, because we don't get one explicitly.
+        $imageinfo = getimagesizefromstring($binarydata);
+        $fileext = image_type_to_extension($imageinfo[2]);
+        $filename = substr(hash('sha512', ($base64)), 0, 16) . '.' . $fileext;
 
-        // Download the image and add the watermark.
+        // Save the image to a temp location and add the watermark.
         $tempdst = make_request_directory() . DIRECTORY_SEPARATOR . $filename;
-        $client->get($url, [
-            'sink' => $tempdst,
-            'timeout' => $CFG->repositorygetfiletimeout,
-        ]);
-
+        file_put_contents('saved_image' . $fileext, $binarydata);
         $image = new ai_image($tempdst);
         $image->add_watermark()->save();
 
         // We put the file in the user draft area initially.
         // Placements (on behalf of the user) can then move it to the correct location.
         $fileinfo = new \stdClass();
-        $fileinfo->contextid = \context_user::instance($userid)->id;
+        $fileinfo->contextid = \context_user::instance($USER->id)->id;
         $fileinfo->filearea = 'draft';
         $fileinfo->component = 'user';
         $fileinfo->itemid = file_get_unused_draft_itemid();

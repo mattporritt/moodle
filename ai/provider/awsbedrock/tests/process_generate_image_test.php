@@ -17,9 +17,13 @@
 namespace aiprovider_awsbedrock;
 
 use aiprovider_awsbedrock\test\testcase_helper_trait;
+use Aws\Command;
+use Aws\Exception\AwsException;
+use Aws\Result;
 use core_ai\aiactions\base;
 use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Utils;
 
 /**
  * Test response_base AWS Bedrock provider methods.
@@ -60,8 +64,6 @@ final class process_generate_image_test extends \advanced_testcase {
             actionclass: \core_ai\aiactions\generate_image::class,
             actionconfig: [
                 'model' => 'amazon.nova-canvas-v1:0',
-                'cfgScale' => 6.5,
-                'seed' => 12,
             ],
         );
         $this->create_action();
@@ -84,6 +86,44 @@ final class process_generate_image_test extends \advanced_testcase {
     }
 
     /**
+     * Create a mocked Aws\Result.
+     */
+    private function get_mocked_aws_result(): Result {
+        $mockresponsebody = '{
+            "output":{
+                "images":[
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2NgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg=="
+                ]
+            },
+            "stopReason":"end_turn",
+            "usage":{
+                "inputTokens":11,
+                "outputTokens":568,
+                "totalTokens":579,
+                "cacheReadInputTokenCount":0,
+                "cacheWriteInputTokenCount":0
+            }
+        }';
+
+        // Create a PSR-7 Stream for the response body.
+        $stream = Utils::streamFor($mockresponsebody);
+
+        // Create a mocked Aws\Result.
+        return new Result([
+            'body' => $stream,  // Simulate AWS SDK response body.
+            'contentType' => 'application/json',
+            '@metadata' => [
+                'statusCode' => 200,
+                'headers' => [
+                    'x-amzn-requestid' => 'mock-request-id',
+                    'x-amzn-bedrock-input-token-count' => '11',
+                    'x-amzn-bedrock-output-token-count' => '568',
+                ]
+            ]
+        ]);
+    }
+
+    /**
      * Test create_request
      */
     public function test_create_request(): void {
@@ -95,86 +135,100 @@ final class process_generate_image_test extends \advanced_testcase {
 
         $body = (object) json_decode($request['body']);
 
-        $this->assertEquals('This is a test prompt', $requestdata->prompt);
-        $this->assertEquals('dall-e-3', $requestdata->model);
-        $this->assertEquals('1', $requestdata->n);
-        $this->assertEquals('hd', $requestdata->quality);
-        $this->assertEquals('url', $requestdata->response_format);
-        $this->assertEquals('1024x1024', $requestdata->size);
+        $this->assertEquals('amazon.nova-canvas-v1:0', $request['modelId']);
+        $this->assertnotNull($body);
+
     }
 
     /**
-     * Test create_request_object with extra model settings.
+     * Test create_request with extra model settings.
      */
-    public function test_create_request_object_with_model_settings(): void {
+    public function test_create_request_with_model_settings(): void {
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_image::class,
             actionconfig: [
-                'model' => 'dall-e-3',
-                'temperature' => '0.5',
-                'max_tokens' => '100',
+                'model' => 'amazon.nova-canvas-v1:0',
+                'cfgScale' => 6.5,
+                'seed' => 12,
             ],
         );
         $processor = new process_generate_image($this->provider, $this->action);
 
         // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_request_object');
-        $request = $method->invoke($processor, 1);
+        $method = new \ReflectionMethod($processor, 'create_request');
+        $request = $method->invoke($processor);
 
-        $body = (object) json_decode($request->getBody()->getContents());
+        $body = (object) json_decode($request['body']);
 
-        $this->assertEquals('dall-e-3', $body->model);
-        $this->assertEquals('0.5', $body->temperature);
-        $this->assertEquals('100', $body->max_tokens);
-
-        $this->provider = $this->create_provider(
-            actionclass: \core_ai\aiactions\generate_image::class,
-            actionconfig: [
-                'model' => 'my-custom-gpt',
-                'modelextraparams' => '{"temperature": 0.5,"max_tokens": 100}',
-            ],
-        );
-        $processor = new process_generate_image($this->provider, $this->action);
-
-        // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_request_object');
-        $request = $method->invoke($processor, 1);
-
-        $body = (object) json_decode($request->getBody()->getContents());
-
-        $this->assertEquals('my-custom-gpt', $body->model);
-        $this->assertEquals('0.5', $body->temperature);
-        $this->assertEquals('100', $body->max_tokens);
+        $this->assertEquals('amazon.nova-canvas-v1:0', $request['modelId']);
+        $this->assertEquals('6.5', $body->imageGenerationConfig->cfgScale);
+        $this->assertEquals('12', $body->imageGenerationConfig->seed);
     }
 
     /**
      * Test the API error response handler method.
      */
     public function test_handle_api_error(): void {
+        // Mock an AWS Command
+        $command = new Command('InvokeModel');
+
+        // Define various error responses
         $responses = [
-            500 => new Response(500, ['Content-Type' => 'application/json']),
-            503 => new Response(503, ['Content-Type' => 'application/json']),
-            401 => new Response(401, ['Content-Type' => 'application/json'],
-                '{"error": {"message": "Invalid Authentication"}}'),
-            404 => new Response(404, ['Content-Type' => 'application/json'],
-                '{"error": {"message": "You must be a member of an organization to use the API"}}'),
-            429 => new Response(429, ['Content-Type' => 'application/json'],
-                '{"error": {"message": "Rate limit reached for requests"}}'),
+            400 => new AwsException(
+                'ValidationException: Invalid modelId',
+                $command,
+                [
+                    'code' => 'ValidationException',
+                    'response' => new Response(400, [], json_encode([
+                        'message' => 'Invalid modelId: invalid-model-id',
+                        'code' => 'ValidationException'
+                    ]))
+                ]
+            ),
+            403 => new AwsException(
+                'AccessDeniedException: You do not have permission to access this resource',
+                $command,
+                [
+                    'code' => 'AccessDeniedException',
+                    'response' => new Response(403, [], json_encode([
+                        'message' => 'You do not have permission to invoke this model',
+                        'code' => 'AccessDeniedException'
+                    ]))
+                ]
+            ),
+            429 => new AwsException(
+                'ThrottlingException: Too many requests',
+                $command,
+                [
+                    'code' => 'ThrottlingException',
+                    'response' => new Response(429, [], json_encode([
+                        'message' => 'Rate limit exceeded, please try again later',
+                        'code' => 'ThrottlingException'
+                    ]))
+                ]
+            ),
+            500 => new AwsException(
+                'InternalServerException: AWS Bedrock encountered an error',
+                $command,
+                [
+                    'code' => 'InternalServerException',
+                    'response' => new Response(500, [], json_encode([
+                        'message' => 'An internal server error occurred',
+                        'code' => 'InternalServerException'
+                    ]))
+                ]
+            )
         ];
 
+        // Create an instance of the class that processes API errors
         $processor = new process_generate_image($this->provider, $this->action);
         $method = new \ReflectionMethod($processor, 'handle_api_error');
 
-        foreach ($responses as $status => $response) {
-            $result = $method->invoke($processor, $response);
-            $this->assertEquals($status, $result['errorcode']);
-            if ($status == 500) {
-                $this->assertEquals('Internal Server Error', $result['errormessage']);
-            } else if ($status == 503) {
-                $this->assertEquals('Service Unavailable', $result['errormessage']);
-            } else {
-                $this->assertStringContainsString($response->getBody()->getContents(), $result['errormessage']);
-            }
+        foreach ($responses as $status => $exception) {
+            $result = $method->invoke($processor, $exception);
+
+            // Assert that the returned error code matches the expected HTTP status
+            $this->assertEquals($status, $result['errorcode'], "Failed asserting for status $status");
         }
     }
 
@@ -182,23 +236,25 @@ final class process_generate_image_test extends \advanced_testcase {
      * Test the API success response handler method.
      */
     public function test_handle_api_success(): void {
-        $response = new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        );
+        $processor = $this->getMockBuilder(process_generate_image::class)
+            ->setConstructorArgs([$this->provider, $this->action])
+            ->onlyMethods(['query_ai_api'])
+            ->getMock();
+        $processor->method('base64_to_file')
+            ->willReturn('');
 
-        // We're testing a private method, so we need to setup reflector magic.
-        $processor = new process_generate_image($this->provider, $this->action);
         $method = new \ReflectionMethod($processor, 'handle_api_success');
 
-        $result = $method->invoke($processor, $response);
+        $result = $method->invoke($processor, $this->get_mocked_aws_result());
 
-        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revisedprompt']);
-        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['sourceurl']);
-        $this->assertEquals('dall-e-3', $result['model']);
+        $this->assertTrue($result['success']);
+        $this->assertEquals('mock-request-id', $result['fingerprint']);
+        $this->assertEquals('The capital of Australia is Canberra.', $result['generatedcontent']);
+        $this->assertEquals('end_turn', $result['finishreason']);
+        $this->assertEquals('11', $result['prompttokens']);
+        $this->assertEquals('568', $result['completiontokens']);
+        $this->assertEquals('amazon.nova-canvas-v1:0', $result['model']);
     }
-
     /**
      * Test query_ai_api for a successful call.
      */
