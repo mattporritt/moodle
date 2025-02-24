@@ -17,6 +17,7 @@
 namespace aiprovider_awsbedrock;
 
 use aiprovider_awsbedrock\test\testcase_helper_trait;
+use Aws\BedrockRuntime\BedrockRuntimeClient;
 use Aws\Command;
 use Aws\Exception\AwsException;
 use Aws\Result;
@@ -40,7 +41,7 @@ final class process_generate_image_test extends \advanced_testcase {
     use testcase_helper_trait;
 
     /** @var string A successful response in JSON format. */
-    protected string $responsebodyjson;
+    //protected string $responsebodyjson;
 
     /** @var \core_ai\manager */
     private $manager;
@@ -58,7 +59,7 @@ final class process_generate_image_test extends \advanced_testcase {
         parent::setUp();
         $this->resetAfterTest();
         // Load a response body from a file.
-        $this->responsebodyjson = file_get_contents(self::get_fixture_path('aiprovider_awsbedrock', 'image_request_success.json'));
+        //$this->responsebodyjson = file_get_contents(self::get_fixture_path('aiprovider_awsbedrock', 'image_request_success.json'));
         $this->manager = \core\di::get(\core_ai\manager::class);
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_image::class,
@@ -90,19 +91,9 @@ final class process_generate_image_test extends \advanced_testcase {
      */
     private function get_mocked_aws_result(): Result {
         $mockresponsebody = '{
-            "output":{
-                "images":[
-                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2NgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg=="
-                ]
-            },
-            "stopReason":"end_turn",
-            "usage":{
-                "inputTokens":11,
-                "outputTokens":568,
-                "totalTokens":579,
-                "cacheReadInputTokenCount":0,
-                "cacheWriteInputTokenCount":0
-            }
+            "images":[
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2NgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg=="
+            ]
         }';
 
         // Create a PSR-7 Stream for the response body.
@@ -236,57 +227,109 @@ final class process_generate_image_test extends \advanced_testcase {
      * Test the API success response handler method.
      */
     public function test_handle_api_success(): void {
+        // Mock the response from the base64_to_file method.
+        $fs = get_file_storage();
+        $fileinfo = [
+            'contextid' => 1,
+            'component' => 'draft',
+            'filearea'  => 'user',
+            'itemid'    => 0,
+            'filepath'  => '/',
+            'filename'  => 'testfile.txt'
+        ];
+        $testfile = $fs->create_file_from_string($fileinfo, 'This is test file content.');
+
         $processor = $this->getMockBuilder(process_generate_image::class)
             ->setConstructorArgs([$this->provider, $this->action])
-            ->onlyMethods(['query_ai_api'])
+            ->onlyMethods(['base64_to_file'])
             ->getMock();
         $processor->method('base64_to_file')
-            ->willReturn('');
+            ->willReturn($testfile);
 
         $method = new \ReflectionMethod($processor, 'handle_api_success');
-
         $result = $method->invoke($processor, $this->get_mocked_aws_result());
 
+        $this->assertTrue($result['success']);
+        $this->assertEquals('mock-request-id', $result['fingerprint']);
+        $this->assertEquals('11', $result['prompttokens']);
+        $this->assertEquals('568', $result['completiontokens']);
+        $this->assertEquals('amazon.nova-canvas-v1:0', $result['model']);
+    }
+
+    /**
+     * Test base64_to_file.
+     */
+    public function test_base64_to_file(): void {
+        // Log in user.
+        $this->setUser($this->getDataGenerator()->create_user());
+        $base64 = file_get_contents(self::get_fixture_path('aiprovider_awsbedrock', 'test_image.base64'));
+
+        $processor = new process_generate_image($this->provider, $this->action);
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'base64_to_file');
+
+        $filenobj = $method->invoke($processor, $base64);
+
+        $this->assertEquals('40d86bd0181bd424.jpeg', $filenobj->get_filename());
+        $this->assertEquals('image/jpeg', $filenobj->get_mimetype());
+        $this->assertgreaterThan(0, $filenobj->get_filesize());
+    }
+
+    /**
+     * Test query_ai_api for a successful call.
+     */
+    public function test_query_ai_api_success(): void {
+        // Log in user.
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $actionconfig = $this->get_action_config(\core_ai\aiactions\generate_image::class);
+
+
+        // Create a mock of the Bedrock client.
+        $mockclient = $this->createMock(BedrockRuntimeClient::class);
+
+        // Properly mock the invokeModel call using __call.
+        $mockclient->expects($this->any())
+            ->method('__call')
+            ->with('invokeModel', $this->anything()) // AWS SDK calls are dynamic via __call
+            ->willReturn($this->get_mocked_aws_result());
+
+        // Now properly mock the provider while calling its constructor.
+        $mockprovider = $this->getMockBuilder(get_class($this->provider))
+            ->setConstructorArgs([
+                true, // Enable the provider.
+                'mockprovider', // Provider name.
+                '{}', // Empty config is ok here.
+                json_encode($actionconfig), // Action config.
+            ])
+            ->onlyMethods(['create_bedrock_client']) // Only mock this method.
+            ->getMock();
+
+        // Ensure the mock returns our fake client.
+        $mockprovider->method('create_bedrock_client')
+            ->willReturn($mockclient);
+
+        // Ensure the mock returns our fake client.
+        $mockprovider->method('create_bedrock_client')
+            ->willReturn($mockclient);
+
+        // Create an instance of the processor with the mocked provider.
+        $processor = new process_generate_image($mockprovider, $this->action);
+
+        // We're testing a protected method, so we need to setup reflector magic.
+        $method = new \ReflectionMethod($processor, 'query_ai_api');
+
+        // Invoke the query_ai_api method.
+        $result = $method->invoke($processor);
+
+        // Assertions.
+        $this->assertIsArray($result);
         $this->assertTrue($result['success']);
         $this->assertEquals('mock-request-id', $result['fingerprint']);
         $this->assertEquals('The capital of Australia is Canberra.', $result['generatedcontent']);
         $this->assertEquals('end_turn', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
-        $this->assertEquals('amazon.nova-canvas-v1:0', $result['model']);
-    }
-    /**
-     * Test query_ai_api for a successful call.
-     */
-    public function test_query_ai_api_success(): void {
-        // Mock the http client to return a successful response.
-        ['mock' => $mock] = $this->get_mocked_http_client();
-
-        // The response from OpenAI.
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'application/json'],
-            $this->responsebodyjson,
-        ));
-
-        $mock->append(new Response(
-            200,
-            ['Content-Type' => 'image/jpeg'],
-            \GuzzleHttp\Psr7\Utils::streamFor(fopen(
-                self::get_fixture_path('aiprovider_awsbedrock', 'test.jpg'),
-                'r',
-            )),
-        ));
-
-        $this->setAdminUser();
-
-        $processor = new process_generate_image($this->provider, $this->action);
-        $method = new \ReflectionMethod($processor, 'query_ai_api');
-        $result = $method->invoke($processor);
-
-        $this->stringContains('An image that represents the concept of a \'test\'.', $result['revisedprompt']);
-        $this->stringContains('oaidalleapiprodscus.blob.core.windows.net', $result['sourceurl']);
-        $this->assertEquals('dall-e-3', $result['model']);
     }
 
     /**
@@ -337,24 +380,6 @@ final class process_generate_image_test extends \advanced_testcase {
         $this->assertEquals('generate_image', $result->get_actionname());
         $this->assertEquals($response['errorcode'], $result->get_errorcode());
         $this->assertEquals($response['errormessage'], $result->get_errormessage());
-    }
-
-    /**
-     * Test url_to_file.
-     */
-    public function test_url_to_file(): void {
-        // Log in user.
-        $this->setUser($this->getDataGenerator()->create_user());
-
-        $processor = new process_generate_image($this->provider, $this->action);
-        // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'url_to_file');
-
-        $contextid = 1;
-        $url = $this->getExternalTestFileUrl('/test.jpg', false);
-        $filenobj = $method->invoke($processor, $contextid, $url);
-
-        $this->assertEquals('test.jpg', $filenobj->get_filename());
     }
 
     /**

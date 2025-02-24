@@ -161,11 +161,11 @@ class process_generate_image extends abstract_processor {
         ];
 
         if (str_contains($model, 'amazon.nova')) {
-            $response['draftfile'] = $this->base64_to_file();
+            $response['draftfile'] = $this->base64_to_file($bodyobj->images[0]);
         } else if (str_contains($model, 'amazon.titan')) {
-            $response['draftfile'] = $this->base64_to_file();
+            $response['draftfile'] = $this->base64_to_file('');
         } else if (str_contains($model, 'stability')) {
-            $response['draftfile'] = $this->base64_to_file();
+            $response['draftfile'] = $this->base64_to_file('');
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
@@ -184,7 +184,7 @@ class process_generate_image extends abstract_processor {
      * @param string $base64 The base64 encoded image.
      * @return \stored_file The file object.
      */
-    private function base64_to_file(string $base64): \stored_file {
+    protected function base64_to_file(string $base64): \stored_file {
         global $CFG, $USER;
         require_once("{$CFG->libdir}/filelib.php");
 
@@ -194,11 +194,11 @@ class process_generate_image extends abstract_processor {
         // Construct a filename for the image, because we don't get one explicitly.
         $imageinfo = getimagesizefromstring($binarydata);
         $fileext = image_type_to_extension($imageinfo[2]);
-        $filename = substr(hash('sha512', ($base64)), 0, 16) . '.' . $fileext;
+        $filename = substr(hash('sha512', ($base64)), 0, 16) . $fileext;
 
         // Save the image to a temp location and add the watermark.
         $tempdst = make_request_directory() . DIRECTORY_SEPARATOR . $filename;
-        file_put_contents('saved_image' . $fileext, $binarydata);
+        file_put_contents($tempdst, $binarydata);
         $image = new ai_image($tempdst);
         $image->add_watermark()->save();
 

@@ -26,6 +26,45 @@ namespace aiprovider_awsbedrock\test;
 trait testcase_helper_trait {
 
     /**
+     * Get the provider configuration.
+     *
+     * @return array The provider configuration.
+     */
+    public function get_provider_config(): array {
+        return [
+            'apikey' => '123',
+            'apisecret' => '456',
+            'enableuserratelimit' => true,
+            'userratelimit' => 1,
+            'enableglobalratelimit' => true,
+            'globalratelimit' => 1,
+        ];
+    }
+
+    /**
+     * Get the action configuration.
+     *
+     * @param string $actionclass The action class to use.
+     * @param array $actionconfig The action configuration to use.
+     * @return array The action configuration.
+     */
+    public function get_action_config(string $actionclass, array $actionconfig = []): array {
+        $defaultactionconfig = [
+            $actionclass => [
+                'settings' => [
+                    'model' => 'amazon.nova-pro-v1:0',
+                    'awsregion' => 'ap-southeast-2',
+                ],
+            ],
+        ];
+        foreach ($actionconfig as $key => $value) {
+            $defaultactionconfig[$actionclass]['settings'][$key] = $value;
+        }
+
+        return $defaultactionconfig;
+    }
+
+    /**
      * Create the provider object.
      *
      * @param string $actionclass The action class to use.
@@ -36,14 +75,7 @@ trait testcase_helper_trait {
         array $actionconfig = [],
     ): \core_ai\provider {
         $manager = \core\di::get(\core_ai\manager::class);
-        $config = [
-            'apikey' => '123',
-            'apisecret' => '456',
-            'enableuserratelimit' => true,
-            'userratelimit' => 1,
-            'enableglobalratelimit' => true,
-            'globalratelimit' => 1,
-        ];
+        $config = $this->get_provider_config();
         $defaultactionconfig = [
             $actionclass => [
                 'settings' => [
