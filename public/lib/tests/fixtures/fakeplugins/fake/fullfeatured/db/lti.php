@@ -25,6 +25,21 @@
 defined('MOODLE_INTERNAL') || die();
 
 $placementtypes = [
-    'fake_fullfeatured:myfirstplacementtype' => [],
+    // Valid type string and handler.
+    'fake_fullfeatured:myfirstplacementtype' => [
+        'handler' => \fake_fullfeatured\lti\placement\myfirstplacementtype::class
+    ],
+
+    // No handler specified, which is also a valid configuration.
     'fake_fullfeatured:anotherplacementtype' => [],
+
+    // Invalid type for a handler.
+    'fake_fullfeatured:thirdplacementtype' => [
+        'handler' => \stdClass::class,
+    ],
+
+    // Invalid format for the placement type string.
+    'fake/fullfeatured_invalidplacementtypestring' => [
+        'handler' => \fake_fullfeatured\lti\placement\myfirstplacementtype::class
+    ],
 ];
