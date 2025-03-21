@@ -4929,7 +4929,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="userid" TYPE="foreign-unique" FIELDS="userid" REFTABLE="user" REFFIELDS="id" COMMENT="Foreign key to user table"/>
+        <KEY NAME="userid" TYPE="unique" FIELDS="userid" COMMENT="Foreign key to user table"/>
       </KEYS>
     </TABLE>
     <TABLE NAME="ai_action_generate_image" COMMENT="Stores specific data about generate image actions">
@@ -4970,6 +4970,25 @@
         <INDEX NAME="action" UNIQUE="true" FIELDS="actionname, actionid" COMMENT="Unique index of actionname and actionid"/>
         <INDEX NAME="provider" UNIQUE="false" FIELDS="actionname, provider" COMMENT="Index of actionname and provider"/>
       </INDEXES>
+    </TABLE>
+    <TABLE NAME="ai_action_describe_image" COMMENT="Stores specific data about describe image actions">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the file to generate the description of"/>
+        <FIELD NAME="filesize" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The size of the file"/>
+        <FIELD NAME="mimetype" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="The mimetype of the file."/>
+        <FIELD NAME="width" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The width of the image"/>
+        <FIELD NAME="height" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The height of the image"/>
+        <FIELD NAME="responseid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="A unique identifier for the chat completion, returned by the AI."/>
+        <FIELD NAME="fingerprint" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="This fingerprint represents the backend configuration that the model runs with."/>
+        <FIELD NAME="generatedcontent" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The contents of the generated message."/>
+        <FIELD NAME="finishreason" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The reason the model stopped generating tokens."/>
+        <FIELD NAME="prompttokens" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Number of tokens in the prompt."/>
+        <FIELD NAME="completiontoken" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Number of tokens in the generated completion."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
     </TABLE>
     <TABLE NAME="ai_action_generate_text" COMMENT="Stores specific data about generate text actions.">
       <FIELDS>

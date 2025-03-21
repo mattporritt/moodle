@@ -24,6 +24,8 @@
  */
 $string['acceptai'] = 'Accept and continue';
 $string['action'] = 'Action';
+$string['action_describe_image'] = 'Describe image';
+$string['action_describe_image_desc'] = 'Describes the content of a provided image.';
 $string['action_explain_text'] = 'Explain text';
 $string['action_explain_text_desc'] = 'Explains the text content on a course page.';
 $string['action_explain_text_help'] = 'Provides an explanation that expands on key ideas, simplifies complex concepts, and adds context to make the text easier to understand.';

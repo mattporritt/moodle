@@ -2304,5 +2304,37 @@ function xmldb_main_upgrade($oldversion) {
     // Automatically generated Moodle v5.1.0 release upgrade line.
     // Put any upgrade step following this.
 
+    // Add AI describe image.
+    if ($oldversion < 2025100900.01) {
+
+        // Define table ai_action_describe_image to be created.
+        $table = new xmldb_table('ai_action_describe_image');
+
+        // Adding fields to table ai_action_describe_image.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('filename', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('filesize', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('mimetype', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('width', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('height', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('responseid', XMLDB_TYPE_CHAR, '128', null, null, null, null);
+        $table->add_field('fingerprint', XMLDB_TYPE_CHAR, '128', null, null, null, null);
+        $table->add_field('generatedcontent', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('finishreason', XMLDB_TYPE_CHAR, '128', null, null, null, null);
+        $table->add_field('prompttokens', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('completiontoken', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+
+        // Adding keys to table ai_action_describe_image.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for ai_action_describe_image.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2025031500.00);
+    }
+
     return true;
 }
