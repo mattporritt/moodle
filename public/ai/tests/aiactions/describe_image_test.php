@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiactions;
+namespace core_ai\aiactions;
 
 use core_ai\aiactions\responses\response_describe_image;
 use core_ai\aiactions\describe_image;
@@ -34,17 +34,28 @@ final class describe_image_test extends \advanced_testcase {
      * Test configure method.
      */
     public function test_configure(): void {
+        $this->resetAfterTest();
+
         $contextid = 1;
         $userid = 1;
-        $prompttext = 'This is a test prompt';
+        // Create a file to store.
+        $fs = get_file_storage();
+        $filerecord = new \stdClass();
+        $filerecord->contextid = 1;
+        $filerecord->component = 'core_ai';
+        $filerecord->filearea = 'draft';
+        $filerecord->itemid = 0;
+        $filerecord->filepath = '/';
+        $filerecord->filename = 'test.txt';
+        $file = $fs->create_file_from_string($filerecord, 'This is a test file');
 
         $action = new describe_image(
             contextid: $contextid,
             userid: $userid,
-            prompttext: $prompttext
+            image: $file
         );
         $this->assertEquals($userid, $action->get_configuration('userid'));
-        $this->assertEquals($prompttext, $action->get_configuration('prompttext'));
+        $this->assertEquals($file, $action->get_configuration('image'));
     }
 
     /**
@@ -52,11 +63,11 @@ final class describe_image_test extends \advanced_testcase {
      */
     public function test_store(): void {
         $this->resetAfterTest();
-        global $DB;
+        global $CFG, $DB;
 
         $contextid = 1;
         $userid = 1;
-        $imagepath = self::get_fixture_path(__NAMESPACE__, 'black.png'); // Get the test image from the fixtures file.
+        $imagepath = self::get_fixture_path('core_ai', 'black.png'); // Get the test image from the fixtures file.
         $fs = get_file_storage();
         $filerecord = [
             'contextid' => 1,
@@ -94,7 +105,6 @@ final class describe_image_test extends \advanced_testcase {
 
         // Check the stored record.
         $record = $DB->get_record('ai_action_describe_image', ['id' => $storeid]);
-        $this->assertEquals($prompttext, $record->prompt);
         $this->assertEquals($body['id'], $record->responseid);
         $this->assertEquals($body['fingerprint'], $record->fingerprint);
         $this->assertEquals($body['generatedcontent'], $record->generatedcontent);
