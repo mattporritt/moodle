@@ -22,6 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['action:describe_image:endpoint'] = 'API endpoint';
+$string['action:describe_image:model'] = 'AI model';
+$string['action:describe_image:model_help'] = 'The model used to describe the provided image.';
 $string['action:describe_image:systeminstruction'] = 'System instruction';
 $string['action:describe_image:systeminstruction_help'] = 'This instruction is sent to the AI model. Editing this instruction is not recommended unless absolutely required.';
 $string['action:explain_text:endpoint'] = 'API endpoint';
@@ -53,6 +56,8 @@ $string['extraparams_help'] = 'Extra parameters can be configured here. We suppo
     "max_completion_tokens": 100
 }
 </pre>';
+$string['image_high'] = 'High';
+$string['image_low'] = 'Low';
 $string['invalidjson'] = 'Invalid JSON string';
 $string['orgid'] = 'OpenAI organization ID';
 $string['orgid_help'] = 'Get your OpenAI organization ID from your <a href="https://platform.openai.com/account/org-settings" target="_blank">OpenAI account</a>.';
@@ -64,6 +69,8 @@ $string['privacy:metadata:aiprovider_openai:numberimages'] = 'When generating im
 $string['privacy:metadata:aiprovider_openai:prompttext'] = 'The user entered text prompt used to generate the response.';
 $string['privacy:metadata:aiprovider_openai:responseformat'] = 'The format of the response. When generating images.';
 $string['settings'] = 'Settings';
+$string['settings_detail'] = 'Image detail';
+$string['settings_detail_help'] = 'The detail parameter tells the model what level of detail to use when processing and understanding the image.';
 $string['settings_frequency_penalty'] = 'frequency_penalty';
 $string['settings_frequency_penalty_help'] = 'The frequency penalty adjusts how often words are repeated. The higher the penalty, the less repetitions in the generated text.';
 $string['settings_help'] = 'Adjust the settings below to customise how requests are sent to OpenAI.';

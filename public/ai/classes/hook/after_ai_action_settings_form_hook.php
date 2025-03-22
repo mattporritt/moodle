@@ -43,6 +43,9 @@ class after_ai_action_settings_form_hook {
 
         /** @var ?string The name of the plugin */
         public readonly ?string $plugin,
+
+        /** @var string The name of the action */
+        public readonly string $actionname,
     ) {
     }
 }

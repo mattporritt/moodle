@@ -46,6 +46,7 @@ class action_settings_form extends moodleform {
         $hook = new \core_ai\hook\after_ai_action_settings_form_hook(
             mform: $this->_form,
             plugin: $this->_customdata['providername'],
+            actionname: $this->_customdata['actionname'],
         );
         \core\di::get(\core\hook\manager::class)->dispatch($hook);
         // Add action buttons.
