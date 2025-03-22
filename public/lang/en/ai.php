@@ -26,6 +26,10 @@ $string['acceptai'] = 'Accept and continue';
 $string['action'] = 'Action';
 $string['action_describe_image'] = 'Describe image';
 $string['action_describe_image_desc'] = 'Describes the content of a provided image.';
+$string['action_describe_image_instruction'] = 'You will receive an image from the user. Your task is to describe the content of the image as if writing alt text for accessibility. Please follow these guidelines:
+	1.	Be Descriptive: Provide a detailed description of the image, including objects, people, actions, and the setting.
+	2.	Be Objective: Focus only on what is visible in the image; avoid personal opinions or interpretations.
+	3.	Be Clear: Use concise, clear language to ensure the description is easy to understand.';
 $string['action_explain_text'] = 'Explain text';
 $string['action_explain_text_desc'] = 'Explains the text content on a course page.';
 $string['action_explain_text_help'] = 'Provides an explanation that expands on key ideas, simplifies complex concepts, and adds context to make the text easier to understand.';

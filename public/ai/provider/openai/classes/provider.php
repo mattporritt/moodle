@@ -78,7 +78,10 @@ class provider extends \core_ai\provider {
             'action' => $action,
             'providername' => 'aiprovider_openai',
         ];
-        if ($actionname === 'generate_text' || $actionname === 'summarise_text' || $actionname === 'explain_text') {
+        if ($actionname === 'generate_text'
+            || $actionname === 'summarise_text'
+            || $actionname === 'explain_text'
+            || $actionname === 'describe_image') {
             $mform = new form\action_generate_text_form(customdata: $customdata);
             return $mform->get_defaults();
         } else if ($actionname === 'generate_image') {
