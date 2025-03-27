@@ -97,14 +97,9 @@ class hook_listener {
                 if ($targetmodel) {
                     if ($targetmodel->has_model_settings()) {
                         $mform->addElement('header', 'modelsettingsheader', get_string('settings', 'aiprovider_openai'));
-<<<<<<< HEAD:public/ai/provider/openai/classes/hook_listener.php
                         $settingshelp = \html_writer::tag('p', get_string('settings_help', 'aiprovider_openai'));
                         $mform->addElement('html', $settingshelp);
                         $targetmodel->add_model_settings($mform);
-=======
-                        $mform->addElement('html', get_string('settings_help', 'aiprovider_openai'));
-                        $targetmodel->add_model_settings($mform, $hook->actionname);
->>>>>>> 571a853cdf8 (update action settings to support different settings for the same model):ai/provider/openai/classes/hook_listener.php
                     }
                 }
             }

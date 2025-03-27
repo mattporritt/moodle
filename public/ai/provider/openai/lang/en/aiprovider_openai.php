@@ -56,8 +56,6 @@ $string['extraparams_help'] = 'Extra parameters can be configured here. We suppo
     "max_completion_tokens": 100
 }
 </pre>';
-$string['image_high'] = 'High';
-$string['image_low'] = 'Low';
 $string['invalidjson'] = 'Invalid JSON string';
 $string['orgid'] = 'OpenAI organization ID';
 $string['orgid_help'] = 'Get your OpenAI organization ID from your <a href="https://platform.openai.com/account/org-settings" target="_blank">OpenAI account</a>.';

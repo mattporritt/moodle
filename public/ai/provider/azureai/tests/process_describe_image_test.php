@@ -17,6 +17,7 @@
 
 use aiprovider_openai\test\testcase_helper_trait;
 use core_ai\aiactions\base;
+use core_ai\aiactions\describe_image;
 use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
 
@@ -69,10 +70,25 @@ final class process_describe_image_test extends \advanced_testcase {
      * @param int $userid The user id to use in the action.
      */
     private function create_action(int $userid = 1): void {
+        $contextid = 1;
+        $imagepath = self::get_fixture_path('core_ai', 'black.png'); // Get the test image from the fixtures file.
+        $fs = get_file_storage();
+        $filerecord = [
+            'contextid' => 1,
+            'component' => 'core_ai',
+            'filearea'  => 'testfiles',
+            'itemid'    => 0,
+            'filepath'  => '/',
+            'filename'  => 'black.png',
+        ];
+
+        // Create the stored file from the fixture
+        $image = $fs->create_file_from_pathname($filerecord, $imagepath);
+
         $this->action = new \core_ai\aiactions\describe_image(
-            contextid: 1,
+            contextid: $contextid,
             userid: $userid,
-            prompttext: 'This is a test prompt',
+            image: $image
         );
     }
 

@@ -4929,7 +4929,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="userid" TYPE="unique" FIELDS="userid" COMMENT="Foreign key to user table"/>
+        <KEY NAME="userid" TYPE="foreign-unique" FIELDS="userid" REFTABLE="user" REFFIELDS="id" COMMENT="Foreign key to user table"/>
       </KEYS>
     </TABLE>
     <TABLE NAME="ai_action_generate_image" COMMENT="Stores specific data about generate image actions">

@@ -46,9 +46,8 @@ abstract class base {
      * Add the model settings to the form.
      *
      * @param MoodleQuickForm $mform The form to add the model settings to.
-     * @param string $actionname The name of the action.
      */
-    public function add_model_settings(MoodleQuickForm $mform, string $actionname): void {
+    public function add_model_settings(MoodleQuickForm $mform): void {
     }
 
     /**

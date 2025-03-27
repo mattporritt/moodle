@@ -63,7 +63,7 @@ final class describe_image_test extends \advanced_testcase {
      */
     public function test_store(): void {
         $this->resetAfterTest();
-        global $CFG, $DB;
+        global $DB;
 
         $contextid = 1;
         $userid = 1;

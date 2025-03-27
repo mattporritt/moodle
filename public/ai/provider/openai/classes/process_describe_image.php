@@ -36,15 +36,19 @@ class process_describe_image extends abstract_processor {
 
     #[\Override]
     protected function create_request_object(string $userid): RequestInterface {
-        // Create the user object.
-        $userobj = new \stdClass();
-        $userobj->role = 'user';
-        $userobj->content = $this->action->get_configuration('prompttext');
-
         // Create the request object.
         $requestobj = new \stdClass();
         $requestobj->model = $this->get_model();
         $requestobj->user = $userid;
+
+        // Get the base64 encoded image.
+        $base64image = ''; // TODO: Implement the logic to get the base64 encoded image.
+        $immageurl = new \stdClass();
+        $immageurl->url = "data:image/png;base64,$base64image";
+
+        // Create the image object.
+        $imageobj = new \stdClass();
+        $imageobj->type = 'image';
 
         // If there is a system string available, use it.
         $systeminstruction = $this->get_system_instruction();
