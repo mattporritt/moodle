@@ -350,6 +350,7 @@ function lti_build_custom_parameters($toolproxy, $tool, $instance, $params, $cus
  * @param bool $canconfirm Flag for can_confirm parameter. False by default.
  * @param bool $copyadvice Indicates whether the TC is able and willing to make a local copy of a content item. False by default.
  * @param string $nonce
+ * @param string $launchid The unique launchid identifier that is stored as a session variable.
  * @deprecated since Moodle 6.0
  * @return stdClass The object containing the signed request parameters and the URL to the TP's Content-Item selection interface.
  * @throws moodle_exception When the LTI tool type does not exist.`
@@ -361,11 +362,11 @@ function lti_build_custom_parameters($toolproxy, $tool, $instance, $params, $cus
     mdl: 'MDL-79113',
 )]
 function lti_build_content_item_selection_request($id, $course, moodle_url $returnurl, $title = '', $text = '', $mediatypes = [],
-                                                  $presentationtargets = [], $autocreate = false, $multiple = true,
-                                                  $unsigned = false, $canconfirm = false, $copyadvice = false, $nonce = '') {
+        $presentationtargets = [], $autocreate = false, $multiple = true, $unsigned = false, $canconfirm = false,
+        $copyadvice = false, $nonce = '', $launchid = '') {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::build_content_item_selection_request($id, $course, $returnurl, $title, $text, $mediatypes,
-        $presentationtargets, $autocreate, $multiple, $unsigned, $canconfirm, $copyadvice, $nonce);
+    return \core_ltix\helper::build_content_item_selection_request($id, $course, $returnurl, $launchid, $title, $text,
+        $mediatypes, $presentationtargets, $autocreate, $multiple, $unsigned, $canconfirm, $copyadvice, $nonce);
 }
 
 /**
@@ -1526,6 +1527,7 @@ function lti_post_launch_html($newparms, $endpoint, $debug=false) {
  * @param string         $title     Title of content item
  * @param string         $text      Description of content item
  * @param int            $foruserid Id of the user targeted by the launch
+ * @param string         $placementtype The placement type string.
  * @return string
  */
 #[\core\attribute\deprecated(
@@ -1534,9 +1536,8 @@ function lti_post_launch_html($newparms, $endpoint, $debug=false) {
     mdl: 'MDL-79113',
 )]
 function lti_initiate_login($courseid, $cmid, $instance, $config, $messagetype = 'basic-lti-launch-request',
-        $title = '', $text = '', $foruserid = 0) {
-    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::initiate_login($courseid, $cmid, $instance, $config, $messagetype, $title,
+        $title = '', $text = '', $foruserid = 0, $placementtype = '') {    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
+    return \core_ltix\helper::initiate_login($courseid, $cmid, $instance, $config, $messagetype, $placementtype, $title,
         $text, $foruserid);
 }
 
@@ -1552,6 +1553,8 @@ function lti_initiate_login($courseid, $cmid, $instance, $config, $messagetype =
  * @param int            $foruserid Id of the user targeted by the launch
  * @param string         $title     Title of content item
  * @param string         $text      Description of content item
+ * @param string         $placementtype The placement type string
+
  * @return array Login request parameters
  */
 #[\core\attribute\deprecated(
@@ -1559,9 +1562,10 @@ function lti_initiate_login($courseid, $cmid, $instance, $config, $messagetype =
     reason: 'Use \\core_ltix\\helper::build_login_request() instead',
     mdl: 'MDL-79113',
 )]
-function lti_build_login_request($courseid, $cmid, $instance, $config, $messagetype, $foruserid=0, $title = '', $text = '') {
-    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::build_login_request($courseid, $cmid, $instance, $config, $messagetype, $foruserid, $title, $text);
+function lti_build_login_request($courseid, $cmid, $instance, $config, $messagetype, $foruserid = 0, $title = '', $text = '',
+        $placementtype = '') {    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
+    return \core_ltix\helper::build_login_request($courseid, $cmid, $instance, $config, $messagetype, $placementtype,
+        $foruserid, $title, $text);
 }
 
 /**
