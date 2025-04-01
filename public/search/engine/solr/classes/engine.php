@@ -1110,7 +1110,12 @@ class engine extends \core_search\engine {
                 debugging($message, DEBUG_DEVELOPER);
             } else if (isset($info['http_code']) && ($info['http_code'] !== 200)) {
                 // Unexpected HTTP response code.
-                $message = 'Error while indexing file with document id '.$filedoc['id'];
+                $message = sprintf(
+                    'HTTP Error %s while indexing file with document id %s, request url was %s',
+                    $info['http_code'],
+                    $filedoc['id'],
+                    $info['url']
+                );
                 // Try to get error message out of msg or title if it exists.
                 if (preg_match('|<str [^>]*name="msg"[^>]*>(.*?)</str>|i', $result, $matches)) {
                     $message .= ': '.$matches[1];
@@ -1119,7 +1124,7 @@ class engine extends \core_search\engine {
                 }
                 // This is a common error, happening whenever a file fails to index for any reason, so we will make it quieter.
                 if (CLI_SCRIPT && !PHPUNIT_TEST) {
-                    mtrace($message);
+                    mtrace(date('Y-m-d H:i:s') . ' ' . $message);
                 }
             } else {
                 // Check for the expected status field.
