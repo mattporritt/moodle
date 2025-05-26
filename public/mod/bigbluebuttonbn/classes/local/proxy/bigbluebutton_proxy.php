@@ -105,11 +105,17 @@ class bigbluebutton_proxy extends proxy_base {
             'role' => $instance->get_current_user_role()
         ];
 
-        if (!$isguestjoin) {
-            $data['userID'] = $instance->get_user_id();
-            $data['guest'] = "false";
+        // Check if guest access enabled before setting guest parameter.
+        if ($instance->is_guest_allowed()) {
+            if (!$isguestjoin) {
+                $data['userID'] = $instance->get_user_id();
+                $data['guest'] = "false";
+            } else {
+                $data['guest'] = "true";
+            }
         } else {
-            $data['guest'] = "true";
+            // Do not pass the guest parameter here to avoid conflicts with guestPolicy configuration in BBB.
+            $data['userID'] = $instance->get_user_id();
         }
 
         if (!is_null($jointime)) {
