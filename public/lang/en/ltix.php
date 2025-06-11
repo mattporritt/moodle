@@ -156,7 +156,7 @@ Tools listed on this page are separated into three categories:
 * **Rejected** - These tools providers are flagged as ones which an administrator has no intention of making available on the site. Teachers may still use tools from these providers if they have a consumer key and shared secret, or if none is required.';
 $string['manage_external_tools'] = 'Manage tools';
 $string['manage_tool_proxies'] = 'Manage external tool registrations';
-$string['manage_tools'] = 'Manage preconfigured tools';
+$string['manageplacements'] = 'Manage placements';
 $string['manuallyaddtype'] = 'Alternatively, you can <a href="{$a}">configure a tool manually</a>.';
 $string['miscellaneous'] = 'Miscellaneous';
 $string['name'] = 'Name';
@@ -206,6 +206,7 @@ along with the consumer key from the tool provider.
 Tools which do not require secure communication from Moodle and do not provide additional services (such as grade reporting)
 may not require a shared secret.';
 $string['pending'] = 'Pending';
+$string['placementstatussaved'] = 'Placement status saved.';
 $string['privacy'] = 'Privacy';
 $string['privacy:metadata:core_ltix'] = 'The LTI subsystem stores user data for LTI submissions and tools';
 $string['privacy:metadata:coursefullname'] = 'The fullname of the course the user is accessing the LTI Consumer from';
