@@ -70,7 +70,7 @@ class tool_types extends base {
             $this->get_entity_name()
         ))
             ->set_type(column::TYPE_TEXT)
-            ->add_fields("{$tablealias}.name, {$tablealias}.icon")
+            ->add_fields("{$tablealias}.name, {$tablealias}.icon, {$tablealias}.course")
             ->add_callback(static function(string $name, \stdClass $data) {
                 global $OUTPUT;
 
@@ -80,8 +80,28 @@ class tool_types extends base {
                 $name = $data->name;
                 $img = \html_writer::img($iconurl, get_string('courseexternaltooliconalt', 'core_ltix', $name),
                     ['class' => 'activityicon' . $iconclass]);
+                $sitetool = '';
+                // Warn user when the tool is a site-level tool.
+                if (get_site()->id == $data->course) {
+                    $sitetool = \html_writer::span(
+                        get_string('sitetool', 'core_ltix'),
+                        'badge bg-info'
+                    );
+                }
                 $name = \html_writer::span($name, 'align-self-center');
-                return \html_writer::div(\html_writer::div($img, 'me-2 '.$iconcontainerclass) . $name, 'd-flex');
+                $icon = \html_writer::div(
+                    $img,
+                    'me-2 align-self-center ' . $iconcontainerclass
+                );
+                $label = \html_writer::div(
+                    $name . $sitetool,
+                    'd-flex gap-2 align-items-center flex-wrap'
+                );
+
+                return \html_writer::div(
+                    $icon . $label,
+                    'd-flex'
+                );
             });
 
         // Description column.
