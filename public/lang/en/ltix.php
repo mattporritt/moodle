@@ -93,7 +93,6 @@ $string['delete_confirmation'] = 'Are you sure you want to delete this preconfig
 $string['deletecoursetool'] = 'Delete {$a}';
 $string['deletecoursetoolconfirm'] = 'This will delete {$a} from the available LTI tools in your course. If there are any activities using this tool, they will no longer work.<br><br>Are you sure you want to delete {$a}?';
 $string['delete_confirmation'] = 'Are you sure you want to delete this preconfigured tool?';
-$string['dontshowinactivitychooser'] = 'Don\'t show in activity chooser';
 $string['duplicateregurl'] = 'This registration URL is already in use';
 $string['dynreg_update_btn_new'] = 'Register as a new external tool';
 $string['dynreg_update_btn_update'] = 'Update';
