@@ -137,7 +137,7 @@ final class upgradelib_test extends \advanced_testcase {
             'description' => 'Another example description',
             'tooldomain' => 'example.com',
             'baseurl' => 'https://example.com/launch',
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            'coursevisible' => lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'lti_contentitem' => 1,
         ]);
        $tools[] = [
@@ -169,7 +169,7 @@ final class upgradelib_test extends \advanced_testcase {
         $ltigenerator->create_legacy_lti_coursevisible(
             $tool4id,
             $course2->id,
-            \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
         );
 
         $tools[] = [
@@ -208,7 +208,7 @@ final class upgradelib_test extends \advanced_testcase {
         $ltigenerator->create_legacy_lti_coursevisible(
             $tool5id,
             $course1->id,
-            \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
         );
         $tools[] = [
             'id' => $tool5id,
@@ -222,7 +222,7 @@ final class upgradelib_test extends \advanced_testcase {
             'name' => 'course tool defaulting to legacy "show in activity chooser"',
             'baseurl' => 'http://example2.com/tool/4',
             'course' => $course1->id,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            'coursevisible' => lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
         ]);
         $tools[] = [
             'id' => $tool6id,
@@ -259,7 +259,7 @@ final class upgradelib_test extends \advanced_testcase {
             'description' => 'Good example description',
             'tooldomain' => 'example.com',
             'baseurl' => 'https://example.com/launch',
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            'coursevisible' => lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'lti_contentitem' => 1,
             'lti_toolurl_ContentItemSelectionRequest' => 'https://example.com/deep_link_launch',
             'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
@@ -281,7 +281,7 @@ final class upgradelib_test extends \advanced_testcase {
             'description' => 'Good example description',
             'tooldomain' => 'example.com',
             'baseurl' => 'https://example.com/launch',
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            'coursevisible' => lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'lti_contentitem' => 1,
             'ltiversion' => \core_ltix\constants::LTI_VERSION_1P3,
         ]);
@@ -362,7 +362,7 @@ final class upgradelib_test extends \advanced_testcase {
             'description' => 'Good example description',
             'tooldomain' => 'example.com',
             'baseurl' => 'https://example.com/launch',
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            'coursevisible' => lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'lti_contentitem' => 1,
         ]);
 
@@ -377,7 +377,7 @@ final class upgradelib_test extends \advanced_testcase {
             'description' => 'Good example description',
             'tooldomain' => 'example2.com',
             'baseurl' => 'https://example2.com/launch',
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            'coursevisible' => lti_migration_upgrade_helper::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'lti_contentitem' => 1,
             'course' => $course2->id,
         ]);
