@@ -117,7 +117,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                 [
                     'name' => 'Tool name',
                     'baseurl' => 'http://example.com/tool/1',
-                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                     'lti_contentitem' => 1,
                 ],
@@ -144,7 +144,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                 [
                     'name' => 'Tool name',
                     'baseurl' => 'http://example.com/tool/1',
-                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                     'lti_contentitem' => 1,
                     'lti_acceptgrades' => \core_ltix\constants::LTI_SETTING_NEVER,
@@ -187,7 +187,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                 [
                     'name' => 'Tool name',
                     'baseurl' => 'http://example.com/tool/1',
-                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                     'lti_contentitem' => 1,
                     'lti_acceptgrades' => \core_ltix\constants::LTI_SETTING_ALWAYS,
@@ -240,7 +240,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                 [
                     'name' => 'Tool name',
                     'baseurl' => 'http://example.com/tool/1',
-                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                     'lti_contentitem' => 1,
                     'lti_acceptgrades' => \core_ltix\constants::LTI_SETTING_ALWAYS,
@@ -292,7 +292,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                 [
                     'name' => 'Tool name',
                     'baseurl' => 'http://example.com/tool/1',
-                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                     'lti_contentitem' => 1,
                     'lti_acceptgrades' => \core_ltix\constants::LTI_SETTING_ALWAYS,
@@ -381,7 +381,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                 [
                     'name' => 'Tool name',
                     'baseurl' => 'http://example.com/tool/1',
-                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                     'lti_contentitem' => 1,
                     'lti_acceptgrades' => \core_ltix\constants::LTI_SETTING_ALWAYS,
