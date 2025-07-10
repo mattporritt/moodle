@@ -72,8 +72,6 @@ class constants
     const LTI_COURSEVISIBLE_NO = 0;
     /** @var int Course visibility: the tool is available as a preconfigured tool. */
     const LTI_COURSEVISIBLE_PRECONFIGURED = 1;
-    /** @var int Course visibility: the tool is available in the activity chooser. */
-    const LTI_COURSEVISIBLE_ACTIVITYCHOOSER = 2;
 
     /** @var string LTI version 1.0 and 1.1. */
     const LTI_VERSION_1 = 'LTI-1p0';
