@@ -1425,6 +1425,7 @@ final class helper_test extends lti_testcase {
                         [
                             'placementtypeid' => 2,
                             'configdata' => [
+                                'default_usage' => 'enabled',
                                 'resource_linking_url' => 'http://resourcelink.example.com',
                                 'icon_url' => 'https://icon2.example.com',
                                 'text' => 'Example text',
@@ -1433,6 +1434,7 @@ final class helper_test extends lti_testcase {
                         [
                             'placementtypeid' => 3,
                             'configdata' => [
+                                'default_usage' => 'disabled',
                                 'deep_linking_url' => 'http://deeplink3.example.com',
                                 'resource_linking_url' => 'http://resourcelink3.example.com',
                                 'icon_url' => 'https://icon3.example.com',
@@ -1448,12 +1450,12 @@ final class helper_test extends lti_testcase {
                         'resource_linking_url_placementconfig2' => 'http://resourcelink.example.com',
                         'icon_url_placementconfig2' => 'https://icon2.example.com',
                         'text_placementconfig2' => 'Example text',
-                        'default_usage_placementconfig2' => 'enabled', // Set by create_tool_placements() generator function.
+                        'default_usage_placementconfig2' => 'enabled',
                         'deep_linking_url_placementconfig3' => 'http://deeplink3.example.com',
                         'resource_linking_url_placementconfig3' => 'http://resourcelink3.example.com',
                         'icon_url_placementconfig3' => 'https://icon3.example.com',
                         'text_placementconfig3' => 'Example text 3',
-                        'default_usage_placementconfig3' => 'enabled', // Set by create_tool_placements() generator function.
+                        'default_usage_placementconfig3' => 'disabled',
                     ],
                 ],
             'No tool placements' =>
@@ -1568,6 +1570,7 @@ final class helper_test extends lti_testcase {
                         [
                             'placementtypeid' => 3,
                             'configdata' => [
+                                'default_usage' => 'enabled',
                                 'deep_linking_url' => 'http://deeplink3.example.com',
                                 'resource_linking_url' => 'http://resourcelink3.example.com',
                                 'icon_url' => 'https://icon3.example.com',
@@ -1598,6 +1601,7 @@ final class helper_test extends lti_testcase {
                         [
                             'placementtypeid' => 3,
                             'configdata' => [
+                                'default_usage' => 'disabled',
                                 'deep_linking_url' => 'http://deeplink3.example.com',
                                 'resource_linking_url' => 'http://resourcelink3.example.com',
                                 'icon_url' => 'https://icon3.example.com',
