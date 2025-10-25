@@ -98,4 +98,37 @@ class process_describe_image extends abstract_processor {
             'model' => $bodyobj->model ?? $this->get_model(), // Fallback to config model.
         ];
     }
+
+    /**
+     * Convert an image in Moodle stored_file object format to a base64-encoded data URI string.
+     *
+     * @param \stored_file $image The Moodle stored_file object.
+     * @return string The data URI string.
+     * @throws \moodle_exception If the file type is not supported.
+     */
+    private function stored_file_to_data_uri(\stored_file $image): string {
+        $supportedtypes = [
+            'image/png' => 'png',
+            'image/jpeg' => 'jpeg',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+        ];
+        $mimetype = $image->get_mimetype();
+        if (!isset($supportedtypes[$mimetype])) {
+            throw new \moodle_exception('unsupportedfiletype', 'error', '', $mimetype);
+        }
+        // For GIF, check if animated (only allow non-animated).
+        if ($mimetype === 'image/gif') {
+            $content = $image->get_content();
+            // Check for animated GIF: more than one frame (look for multiple graphic control extensions).
+            if (preg_match_all('/\x21\xF9\x04.{4}\x00(\x2C|\x21)/s', $content, $matches) > 1) {
+                throw new \moodle_exception('animatedgifnotsupported', 'error');
+            }
+        } else {
+            $content = $image->get_content();
+        }
+        $base64 = base64_encode($content);
+        $ext = $supportedtypes[$mimetype];
+        return "data:image/{$ext};base64,{$base64}";
+    }
 }

@@ -22,7 +22,7 @@ use core_ai\provider;
 use GuzzleHttp\Psr7\Response;
 
 /**
- * Test response_base OpenAI provider methods.
+ * Test process_generate_image OpenAI provider methods.
  *
  * @package    aiprovider_openai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
