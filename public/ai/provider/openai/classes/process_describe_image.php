@@ -36,30 +36,40 @@ class process_describe_image extends abstract_processor {
 
     #[\Override]
     protected function create_request_object(string $userid): RequestInterface {
+        // Get the base64 encoded image.
+        $base64image = $this->stored_file_to_data_uri($this->action->get_configuration('image'));
+
+        // Get the system instruction.
+        $systeminstruction = $this->get_system_instruction();
+
+        // Throw an error if no system instruction is set. We need it to tell the model to describe the image.
+        if (empty($systeminstruction)) {
+            throw new \moodle_exception('nosysteminstruction', 'aiprovider_openai');
+        }
+
         // Create the request object.
         $requestobj = new \stdClass();
         $requestobj->model = $this->get_model();
         $requestobj->user = $userid;
+        $requestobj->messages = [];
 
-        // Get the base64 encoded image.
-        $base64image = ''; // TODO: Implement the logic to get the base64 encoded image.
-        $immageurl = new \stdClass();
-        $immageurl->url = "data:image/png;base64,$base64image";
+        $message = new \stdClass();
+        $message->role = 'user';
+        $message->content = [];
 
-        // Create the image object.
-        $imageobj = new \stdClass();
-        $imageobj->type = 'image';
+        $textContent = new \stdClass();
+        $textContent->type = 'text';
+        $textContent->text = $systeminstruction;
 
-        // If there is a system string available, use it.
-        $systeminstruction = $this->get_system_instruction();
-        if (!empty($systeminstruction)) {
-            $systemobj = new \stdClass();
-            $systemobj->role = 'system';
-            $systemobj->content = $systeminstruction;
-            $requestobj->messages = [$systemobj, $userobj];
-        } else {
-            $requestobj->messages = [$userobj];
-        }
+        $imageContent = new \stdClass();
+        $imageContent->type = 'image_url';
+        $imageContent->image_url = new \stdClass();
+        $imageContent->image_url->url = $base64image;
+
+        $message->content[] = $textContent;
+        $message->content[] = $imageContent;
+
+        $requestobj->messages[] = $message;
 
         // Append the extra model settings.
         $modelsettings = $this->get_model_settings();

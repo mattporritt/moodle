@@ -109,9 +109,65 @@ final class process_describe_image_test extends \advanced_testcase {
         $method = new \ReflectionMethod($processor, 'stored_file_to_data_uri');
         $image = (new \ReflectionProperty($this->action, 'image'))->getValue($this->action);
 
+        // Test for a valid JPEG image.
         $datauri = $method->invoke($processor, $image);
         $this->assertStringStartsWith('data:image/jpeg;base64,', $datauri);
         $this->assertStringContainsString(base64_encode("\xFF\xD8\xFF"), $datauri); // JPEG magic bytes.
+
+        // Test for a valid PNG image, just by mimetype change, not content. Do it by mocking the existing image object.
+        $imagepng = $this->getMockBuilder(\stored_file::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_mimetype', 'get_content'])
+            ->getMock();
+        $imagepng->method('get_mimetype')->willReturn('image/png');
+        $imagepng->method('get_content')->willReturn($image->get_content());
+        $datauripng = $method->invoke($processor, $imagepng);
+        $this->assertStringStartsWith('data:image/png;base64,', $datauripng);
+
+        // Test for unsupported mimetype.
+        $imageunsupported = $this->getMockBuilder(\stored_file::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_mimetype', 'get_content'])
+            ->getMock();
+        $imageunsupported->method('get_mimetype')->willReturn('image/svg+xml');
+        $imageunsupported->method('get_content')->willReturn($image->get_content());
+        $this->expectException(\moodle_exception::class);
+        $method->invoke($processor, $imageunsupported);
+    }
+
+    /**
+     * Test stored_file_to_data_uri with an animated GIF.
+     * This needs to be a separate test ad it throws an exception.
+     */
+    public function test_stored_file_to_data_uri_animated_gif(): void {
+        $processor = new process_describe_image($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'stored_file_to_data_uri');
+
+        // Create a mock stored_file representing an animated GIF.
+        $animatedgif = $this->getMockBuilder(\stored_file::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_mimetype', 'get_content'])
+            ->getMock();
+        $animatedgif->method('get_mimetype')->willReturn('image/gif');
+        // Animated GIFs have more than one frame (multiple graphic control extensions).
+        $animatedgif->method('get_content')->willReturn("\x47\x49\x46\x38\x39\x61" . // GIF89a header
+            "\x01\x00\x01\x00" . // Logical Screen Descriptor
+            "\x80\x00\x00" . // GCT Flag, Color Resolution, Sort Flag, Size of GCT
+            "\x00\x00\x00" . // Background Color Index, Pixel Aspect Ratio
+            "\x21\xF9\x04\x00\x00\x00\x00\x00" . // Graphic Control Extension (1st frame)
+            "\x2C" . // Image Descriptor
+            "\x00\x00\x00\x00\x01\x00\x01\x00" .
+            "\x00" .
+            "\x02\x02\x4C\x01\x00" .
+            "\x21\xF9\x04\x00\x00\x00\x00\x00" . // Graphic Control Extension (2nd frame)
+            "\x2C" . // Image Descriptor
+            "\x00\x00\x00\x00\x01\x00\x01\x00" .
+            "\x00" .
+            "\x02\x02\x4C\x01\x00" .
+            "\x3B"); // Trailer
+
+        $this->expectException(\moodle_exception::class);
+        $method->invoke($processor, $animatedgif);
     }
 
     /**
@@ -128,6 +184,9 @@ final class process_describe_image_test extends \advanced_testcase {
         $this->assertEquals(1, $body->user);
     }
 
+    /**
+     * Test the API success response handler method.
+     */
     public function test_handle_api_success(): void {
         $response = new Response(
             200,
