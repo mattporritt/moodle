@@ -39,6 +39,19 @@ class fields {
     /** @var int Field required by custom include list */
     const CUSTOM_INCLUDE = 3;
 
+    /**
+     * @var int The constant value when searching user that start with the keyword.
+     */
+    const USER_SEARCH_STARTS_WITH = 0;
+    /**
+     * @var int The constant value when searching user that contains the keyword .
+     */
+    const USER_SEARCH_CONTAINS = 1;
+    /**
+     * @var int The constant value when searching user with exact keyword.
+     */
+    const USER_SEARCH_EXACT_MATCH = 2;
+
     /** @var \context|null Context in use */
     protected $context;
 
@@ -567,6 +580,227 @@ class fields {
 
         return (object)['selects' => $selects, 'joins' => $joins, 'params' => $params,
                 'mappings' => $mappings];
+    }
+
+    /**
+     * Gets SQL fragments that can be used in a search user query
+     *
+     * The result of this function is an array contain 5 elements: $selectssql, $joinssql, $wheresql, $sortsql and
+     * $params.
+     * "SELECT (your existing fields), $selectssql
+     *   FROM {user} u
+     *   JOIN (your existing joins)
+     *        $joinssql
+     *  WHERE (your existing where) AND $wheresql
+     *        ORDER BY (your existing SORT), $sortsql"
+     *
+     * @param string $search the text to search for.
+     * @param string $tablealias Optional (but recommended) alias for user table in query, e.g. 'u'
+     * @param int $searchtype $searchtype If 0(default): searches at start, 1: searches in the middle of names
+     *      2: search exact match.
+     * @param array|null $excludeuserids Array of user ids to exclude (empty = don't exclude)
+     * @param array|null $includeuserids if specified, only returns users that have ids
+     *     included in this array (empty = don't restrict)
+     * @return array an array with 5 elements
+     *     selectsql: the list of user fields that will be in the SELECT clause
+     *     joinssql: in the JOIN clause
+     *     wheresql: list of conditions to go in the WHERE clause
+     *     sortsql: list of sorting conditions to go in the ORDER BY
+     *     params: an associative array containing any required
+     *     parameters (using named placeholders)
+     */
+    public function get_sql_part_for_user_searching(string $search, string $tablealias = 'u',
+        $searchtype = self::USER_SEARCH_STARTS_WITH, ?array $excludeuserids = null, ?array $includeuserids = null) {
+        global $DB;
+        $joinsql = '';
+        $fullparams = [];
+        if ($this->allowcustom) {
+            [
+                'selects' => $selectsql,
+                'joins' => $joinsql,
+                'params' => $fullparams,
+                'mappings' => $userfields,
+            ] = (array) $this->get_sql($tablealias, true, '', '', false);
+        } else {
+            $userfields = array_merge(['id'], self::get_name_fields(), $this->get_required_fields([self::PURPOSE_IDENTITY]));
+            // Build the user field array with correct format: fieldname => tablealias.fieldname . Ex: ['id' => 'u.id].
+            $userfields = array_combine($userfields, array_map(fn($field) => $tablealias . '.' . $field, $userfields));
+            // Build the SELECT fragment SQL if we don't have any.
+            $selectsql = implode(',', $userfields);
+        }
+        if ($tablealias) {
+            $tablealias .= '.';
+        }
+        $cpfields = [];
+        if ($search) {
+            // IF we have any search key, we want update the search query base on search type.
+            $userfieldsjoin = [];
+            foreach ($userfields as $fieldname => $userfield) {
+                if ($match = self::match_custom_field($fieldname)) {
+                    $shortname = $match;
+                    $cpfields[$shortname] = $userfield;
+                } else {
+                    $userfieldsjoin[$fieldname] = $userfield;
+                }
+            }
+            // Build custom profile JOIN fragment.
+            // The extra JOIN only exist if we have custom profile exist in the SELECT.
+            if ($cpfields) {
+                [$searchquery, $ufconditions, $ufparams] = $this->build_user_field_conditions($search, $userfieldsjoin, 'subu.',
+                    $searchtype, 'subu');
+                [$ufextraconditions, $ufextraparams] = $this->build_sensible_conditions('subu.',
+                    $excludeuserids, $includeuserids, 'subu');
+                $ufwhere = '(' . implode(' OR ', $ufconditions) . ') AND ';
+                $ufwhere .= implode(' AND ', $ufextraconditions);
+                // Create sql and params for user custom profile field.
+                $cpfwhere = $DB->sql_like('subuid.data', ":uidcondition", false, false);
+                $cpfjoinparams['uidcondition'] = $searchquery;
+
+                [$cpfinsql, $cpfinparams] = $DB->get_in_or_equal(array_keys($cpfields), SQL_PARAMS_NAMED);
+                $cpfjoinparams = array_merge($ufparams, $ufextraparams, $cpfjoinparams, $cpfinparams);
+
+                // Combine two sql into a single JOIN sql.
+                // where we can get a list user in advanced to improve performance.
+                $joinsql  .= "JOIN (SELECT subu.id as userid
+                                      FROM {user} subu
+                                     WHERE $ufwhere
+                                     UNION
+                                    SELECT subuid.userid
+                                      FROM {user_info_field} subuif
+                                      JOIN {user_info_data} subuid ON subuid.fieldid = subuif.id
+                                     WHERE subuif.shortname $cpfinsql
+                                           AND $cpfwhere
+                                   ) finduserids ON finduserids.userid = {$tablealias}id ";
+                $fullparams = array_merge($fullparams, $cpfjoinparams);
+            }
+        }
+        $whereparams = [];
+        $whereconditions = [];
+        // Build the WHERE sql fragment.
+        if ($search && !$cpfields) {
+            [, $conditions, $whereparams] = $this->build_user_field_conditions($search, $userfields, $tablealias,
+                $searchtype);
+            $whereconditions[] = '(' . implode(' OR ', $conditions) . ')';
+        }
+        [$extraconditions, $extraparams] = $this->build_sensible_conditions($tablealias, $excludeuserids, $includeuserids);
+        $wheresql = implode(' AND ', array_merge($whereconditions, $extraconditions));
+        $fullparams = array_merge($fullparams, $whereparams, $extraparams);
+
+        // Build SORT sql fragment.
+        $sortsql = "{$tablealias}lastname, {$tablealias}firstname, {$tablealias}id";
+        $sortparams = [];
+        if ($search) {
+            $fieldstocheck = array_merge([$tablealias . 'firstname', $tablealias . 'lastname'], array_values($userfields));
+
+            $exactconditions = [];
+            $paramkey = 'usersortexact1';
+
+            $exactconditions[] = $DB->sql_fullname($tablealias . 'firstname', $tablealias  . 'lastname') . ' = :' . $paramkey;
+            $sortparams[$paramkey] = $search;
+            $paramkey++;
+
+            foreach ($fieldstocheck as $field) {
+                $exactconditions[] = 'LOWER(' . $field . ') = LOWER(:' . $paramkey . ')';
+                $sortparams[$paramkey] = $search;
+                $paramkey++;
+            }
+            $sortsql = 'CASE WHEN ' . implode(' OR ', $exactconditions) . ' THEN 0 ELSE 1 END, ' . $sortsql;
+        }
+        $fullparams = array_merge($sortparams, $fullparams);
+        return [$selectsql, $joinsql, $wheresql, $sortsql, $fullparams];
+    }
+
+    /**
+     * Get SQL WHERE fragment to check a user is active. Can alse include or exclude a given list of user ids."
+     * Then, on a separate line "Include means that only user ids in this list will be included in the query results.
+     *
+     * @param string $tablealias alias for user table in query, e.g. 'u'
+     * @param array|null $excludeuserids Array of user ids to exclude (empty = don't exclude)
+     * @param array|null $includeuserids if specified, only returns users that have ids
+     *     included in this array (empty = don't restrict)
+     * @param string $prefix Optional prefix for all field names in result, e.g. 'u_'
+     * @return array an array with 2 elements:
+     *     An sql fragment string : list of conditions.
+     *     params: an associative array containing any required
+     *     parameters
+     */
+    private function build_sensible_conditions(string $tablealias = 'u', ?array $excludeuserids = null,
+        ?array $includeuserids = null, string $prefix = ''): array {
+        global $CFG, $DB;
+        // Add some additional sensible conditions(is not depend on search key).
+        $extraconditions = [];
+        $extraconditions[] = $tablealias . "id <> :{$prefix}guestid";
+        $extraparams[$prefix . 'guestid'] = $CFG->siteguest;
+        $extraconditions[] = $tablealias . 'deleted = 0';
+        $extraconditions[] = $tablealias . 'confirmed = 1';
+
+        // If we are being asked to exclude any users, do that.
+        if (!empty($excludeuserids)) {
+            [$usertest, $userparams] = $DB->get_in_or_equal($excludeuserids, SQL_PARAMS_NAMED, $prefix . 'ex', false);
+            $extraconditions[] = $tablealias . 'id ' . $usertest;
+            $extraparams = array_merge($extraparams, $userparams);
+        }
+
+        // If we are validating a set list of userids, add an id IN (...) test.
+        if (!empty($includeuserids)) {
+            [$usertest, $userparams] = $DB->get_in_or_equal($includeuserids, SQL_PARAMS_NAMED, $prefix . 'val');
+            $extraconditions[] = $tablealias . 'id ' . $usertest;
+            $extraparams = array_merge($extraparams, $userparams);
+        }
+        // In case there are no conditions, add one result (this makes it easier to combine
+        // this with an existing query as you can always add AND $sql).
+        if (empty($extraconditions)) {
+            $extraconditions[] = '1 = 1';
+        }
+        return [$extraconditions, $extraparams];
+    }
+
+    /**
+     * Build a SQL fragment conditions string base on user fields list.
+     *
+     * @param string $searchquery the text to search for.
+     * @param array $userfields the list of user fields
+     * @param string $tablealias alias for user table in query, e.g. 'u'
+     * @param int $searchtype If 0 (default): searches at start, 1: searches in the middle of names
+     *      2: search exact match.
+     * @param string $prefix Optional prefix for all field names in result, e.g. 'u_'
+     * @return array an array with 3 elements:
+     *     The search query that has been concat with % base on search type
+     *     An sql fragment string : list of conditions base on user fields.
+     *     params: an associative array containing any required
+     *     parameters
+     */
+    private function build_user_field_conditions(string $searchquery, array $userfields, string $tablealias = 'u',
+        int $searchtype = self::USER_SEARCH_STARTS_WITH, string $prefix = ''): array {
+        global $DB;
+        $i = 0;
+        $params = [];
+        if ($searchtype === self::USER_SEARCH_STARTS_WITH) {
+            $searchquery = $searchquery . '%';
+        } else if ($searchtype === self::USER_SEARCH_CONTAINS) {
+            $searchquery = '%' . $searchquery . '%';
+        }
+        $extrawhereconditions = [
+            $DB->sql_fullname($tablealias . 'firstname', $tablealias . 'lastname'),
+            $extrawhereconditions[] = $tablealias . 'lastname',
+        ];
+        foreach ($extrawhereconditions as $index => $condition) {
+            $userfieldconditions[$index] = $DB->sql_like($condition, ":{$prefix}con{$i}00", false, false);
+            if ($searchtype === self::USER_SEARCH_EXACT_MATCH) {
+                $userfieldconditions[$index] = "$condition = :{$prefix}con{$i}00";
+            }
+            $params["{$prefix}con{$i}00"] = $searchquery;
+            $i++;
+        }
+        foreach ($userfields as $fieldname => $condition) {
+            $userfieldconditions[$fieldname] = $DB->sql_like($tablealias . $fieldname, ":{$prefix}con{$i}00", false, false);
+            if ($searchtype === self::USER_SEARCH_EXACT_MATCH) {
+                $userfieldconditions[$fieldname] = "$tablealias$fieldname = :{$prefix}con{$i}00";
+            }
+            $params["{$prefix}con{$i}00"] = $searchquery;
+            $i++;
+        }
+        return [$searchquery, $userfieldconditions, $params];
     }
 
     /**

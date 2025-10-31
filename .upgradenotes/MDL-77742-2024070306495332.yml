@@ -1,0 +1,7 @@
+issueNumber: MDL-77742
+notes:
+  core_user:
+    - message: >
+        user_selector_base::search_sql_with_custom_field for getting the search sql fragment
+        core_user/fields::get_sql_part_for_user_searching for getting the search sql fragment
+      type: improved

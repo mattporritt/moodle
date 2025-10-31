@@ -26,6 +26,7 @@
  * The default size of a user selector.
  */
 define('USER_SELECTOR_DEFAULT_ROWS', 20);
+use core_user\fields;
 
 /**
  * Base class for user selectors.
@@ -95,6 +96,10 @@ abstract class user_selector_base {
     protected $userfieldsparams = [];
     /** @var array User fields mappings for custom fields. */
     protected $userfieldsmappings = [];
+    /**
+     * @var fields information about the profile fields being displayed and searched in this user selector.
+     */
+    protected fields $userfields;
 
     /**
      * Constructor. Each subclass must have a constructor with this signature.
@@ -134,16 +139,17 @@ abstract class user_selector_base {
 
         // Populate the list of additional user identifiers to display.
         if ($this->includecustomfields) {
-            $userfieldsapi = \core_user\fields::for_identity($this->accesscontext)->with_name();
-            $this->extrafields = $userfieldsapi->get_required_fields([\core_user\fields::PURPOSE_IDENTITY]);
+            $this->userfields = fields::for_identity($this->accesscontext)->with_name();
+            $this->extrafields = $this->userfields->get_required_fields([fields::PURPOSE_IDENTITY]);
             [
                 'selects' => $this->userfieldsselects,
                 'joins' => $this->userfieldsjoin,
                 'params' => $this->userfieldsparams,
                 'mappings' => $this->userfieldsmappings
-            ] = (array) $userfieldsapi->get_sql('u', true, '', '', false);
+            ] = (array) $this->userfields->get_sql('u', true, '', '', false);
         } else {
-            $this->extrafields = \core_user\fields::get_identity_fields($this->accesscontext, false);
+            $this->userfields = fields::for_identity($this->accesscontext, false);
+            $this->extrafields = fields::get_identity_fields($this->accesscontext, false);
         }
 
         if (isset($options['exclude']) && is_array($options['exclude'])) {
@@ -471,7 +477,7 @@ abstract class user_selector_base {
         // Raw list of fields.
         $fields = array('id');
         // Add additional name fields.
-        $fields = array_merge($fields, \core_user\fields::get_name_fields(), $this->extrafields);
+        $fields = array_merge($fields, fields::get_name_fields(), $this->extrafields);
 
         // Prepend the table alias.
         if ($u) {
@@ -480,6 +486,24 @@ abstract class user_selector_base {
             }
         }
         return implode(',', $fields);
+    }
+
+    /**
+     * Returns an array with SQL to perform a search and the params that go into it.
+     *
+     * @param string $search the text to search for.
+     * @param string $u the table alias for the user table in the query being
+     *      built. May be ''.
+     * @return array an array with four elements:
+     *      1: a fragment of SQL of SELECT user fields
+     *      2: a fragment of SQL to go in the JOIN of clause the query
+     *      3: a fragment of SQL to go in the WHERE clause of the query
+     *      4: a fragment of SQL sort to go in the ORDER BY clause of the query
+     *      5: an array containing any required parameters this uses ? style placeholders.
+     */
+    protected function search_sql_with_custom_field(string $search, string $u): array {
+        return $this->userfields->get_sql_part_for_user_searching($search,
+            $u, $this->searchtype, $this->exclude, $this->validatinguserids);
     }
 
     /**

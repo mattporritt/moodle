@@ -25,6 +25,14 @@ namespace core_user;
  * @covers \core_user\fields
  */
 final class fields_test extends \advanced_testcase {
+    /**
+     * @var object contain user that has custom field.
+     */
+    protected $user1;
+    /**
+     * @var object contain user that has custom field.
+     */
+    protected $user2;
 
     /**
      * Tests getting the user picture fields.
@@ -281,10 +289,10 @@ final class fields_test extends \advanced_testcase {
         $generator->create_custom_profile_field(['datatype' => 'text', 'shortname' => 'b', 'name' => 'B']);
 
         // Create a couple of users. One doesn't have a profile field set, so we can test that.
-        $generator->create_user(['profile_field_a' => 'A1', 'profile_field_b' => 'B1',
+        $this->user1 = $generator->create_user(['profile_field_a' => 'A1', 'profile_field_b' => 'B1',
                 'city' => 'C1', 'department' => 'D1', 'email' => 'e1@example.org',
                 'idnumber' => 'XXX1', 'username' => 'u1']);
-        $generator->create_user(['profile_field_a' => 'A2',
+        $this->user2 = $generator->create_user(['profile_field_a' => 'A2',
                 'city' => 'C2', 'department' => 'D2', 'email' => 'e2@example.org',
                 'idnumber' => 'XXX2', 'username' => 'u2']);
 
@@ -615,5 +623,70 @@ final class fields_test extends \advanced_testcase {
         ]);
 
         $this->assertEquals('FN LN ', $fullname);
+    }
+
+    /**
+     * Test search user with various case.
+     *
+     * @covers \core_user\fields::get_sql_part_for_user_searching
+     *
+     * @dataProvider get_sql_part_for_user_searching_variations_provider
+     * @param string $search
+     * @param int $searchtype
+     * @param bool $excludeuserids
+     * @param bool $includeuserids
+     * @param int $expecteduserscount
+     * @param string $expexectexistproperties
+     */
+    public function test_get_sql_part_for_user_searching_variations(string $search, int $searchtype,
+        bool $excludeuserids, bool $includeuserids, int $expecteduserscount, string $expexectexistproperties): void {
+        global $DB;
+        $this->resetAfterTest();
+        $alias = 'u';
+        $fields = $this->init_for_sql_tests();
+        $exuserid = [];
+        $inuserid = [];
+        if ($excludeuserids) {
+            $exuserid = [$this->user1->id];
+        }
+        if ($includeuserids) {
+            $user = $this->getDataGenerator()->create_user([
+                'firstname' => 'Adam',
+                'lastname' => 'Hull',
+            ]);
+            $inuserid = [$user->id];
+        }
+        [$selectsql, $joinsql, $wheresql, $sortsql, $fullparams] = $fields->get_sql_part_for_user_searching($search,
+            $alias, $searchtype, $exuserid, $inuserid);
+        // Combined query.
+        $sql = "SELECT $alias.id, $selectsql
+                  FROM {user} $alias
+                       $joinsql
+                 WHERE $wheresql
+              ORDER BY $sortsql";
+        $users = $DB->get_records_sql($sql, $fullparams);
+        $this->assertCount($expecteduserscount, $users);
+        foreach ($users as $user) {
+            $this->assertObjectHasProperty($expexectexistproperties, $user);
+        }
+
+    }
+
+    /**
+     * Data provider for {@see test_get_sql_part_for_user_searching_variations}
+     *
+     * @return array
+     */
+    public static function get_sql_part_for_user_searching_variations_provider(): array {
+        return [
+            'No searching' => ['', fields::USER_SEARCH_STARTS_WITH, false, false, 3, 'city'],
+            'Search with no custom fields' => ['', fields::USER_SEARCH_STARTS_WITH, false, false, 3, 'city'],
+            'Search normal fields' => ['C', fields::USER_SEARCH_STARTS_WITH, false, false, 2, 'city'],
+            'Search contain keyword' => ['Admin', fields::USER_SEARCH_CONTAINS, false, false, 1, 'city'],
+            'Search custom profile fields' => ['A', fields::USER_SEARCH_STARTS_WITH, false, false, 3, 'profile_field_a'],
+            'Search with included user ids' => ['A', fields::USER_SEARCH_STARTS_WITH, false, true, 1, 'profile_field_a'],
+            'Search with excluded user ids' => ['A', fields::USER_SEARCH_STARTS_WITH, true, false, 2, 'profile_field_a'],
+            'Search full match' => ['Adam Hull', fields::USER_SEARCH_EXACT_MATCH, false, true, 1, 'profile_field_a'],
+        ];
     }
 }
