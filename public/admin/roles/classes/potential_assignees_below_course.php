@@ -38,27 +38,25 @@ class core_role_potential_assignees_below_course extends core_role_assign_user_s
         list($enrolsql, $eparams) = get_enrolled_sql($this->context);
 
         // Now we have to go to the database.
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
-        $params = array_merge($params, $eparams, $this->userfieldsparams);
-
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
+        $params = array_merge($params, $eparams);
         if ($wherecondition) {
             $wherecondition = ' AND ' . $wherecondition;
         }
 
-        $fields      = 'SELECT u.id, ' . $this->userfieldsselects;
+        $fields      = 'SELECT u.id, ' . $select;
         $countfields = 'SELECT COUNT(u.id)';
 
         $sql   = " FROM ($enrolsql) enrolled_users_view
                    JOIN {user} u ON u.id = enrolled_users_view.id
               LEFT JOIN {role_assignments} ra ON (ra.userid = enrolled_users_view.id AND
                                             ra.roleid = :roleid AND ra.contextid = :contextid)
-                        $this->userfieldsjoin
+                        $joinsql
                   WHERE ra.id IS NULL
                         $wherecondition";
         $params['contextid'] = $this->context->id;
         $params['roleid'] = $this->roleid;
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
         $order = ' ORDER BY ' . $sort;
 
         // Check to see if there are too many to show sensibly.
@@ -70,7 +68,7 @@ class core_role_potential_assignees_below_course extends core_role_assign_user_s
         }
 
         // If not, show them.
-        $availableusers = $DB->get_records_sql($fields . $sql . $order, array_merge($params, $sortparams));
+        $availableusers = $DB->get_records_sql($fields . $sql . $order, $params);
 
         if (empty($availableusers)) {
             return array();

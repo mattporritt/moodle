@@ -208,6 +208,9 @@ function search_users($courseid, $groupid, $searchtext, $sort='', ?array $except
 }
 
 /**
+ * This method has been replaced by core_user/fields::get_sql_part_for_user_searching.
+ * Tt is recommend to use the new function instead.
+ *
  * Returns SQL used to search through user table to find users (in a query
  * which may also join and apply other conditions).
  *

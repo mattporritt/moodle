@@ -55,11 +55,11 @@ class service_user_selector extends user_selector_base {
         global $DB;
         //by default wherecondition retrieves all users except the deleted, not
         //confirmed and guest
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
+        [$select, , $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
         $params['serviceid'] = $this->serviceid;
 
 
-        $fields      = 'SELECT ' . $this->required_fields_sql('u');
+        $fields      = 'SELECT ' . $select;
         $countfields = 'SELECT COUNT(1)';
 
         if ($this->displayallowedusers) {
@@ -78,7 +78,6 @@ class service_user_selector extends user_selector_base {
                                                         AND esu.userid = u.id)";
         }
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext);
         $order = ' ORDER BY ' . $sort;
 
         if (!$this->is_validating()) {
@@ -88,7 +87,7 @@ class service_user_selector extends user_selector_base {
             }
         }
 
-        $availableusers = $DB->get_records_sql($fields . $sql . $order, array_merge($params, $sortparams));
+        $availableusers = $DB->get_records_sql($fields . $sql . $order, $params);
 
         if (empty($availableusers)) {
             return array();

@@ -501,9 +501,17 @@ abstract class user_selector_base {
      *      4: a fragment of SQL sort to go in the ORDER BY clause of the query
      *      5: an array containing any required parameters this uses ? style placeholders.
      */
-    protected function search_sql_with_custom_field(string $search, string $u): array {
-        return $this->userfields->get_sql_part_for_user_searching($search,
-            $u, $this->searchtype, $this->exclude, $this->validatinguserids);
+    protected function search_sql_with_custom_field(
+        string $search,
+        string $u
+    ): array {
+        return $this->userfields->get_sql_part_for_user_searching(
+            $search,
+            $u,
+            $this->searchtype,
+            $this->exclude,
+            $this->validatinguserids
+        );
     }
 
     /**
@@ -861,13 +869,20 @@ class group_members_selector extends groups_user_selector_base {
      * @return array
      */
     public function find_users($search) {
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field(
+            $search,
+            'u'
+        );
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
-
-        $roles = groups_get_members_by_role($this->groupid, $this->courseid,
-                $this->userfieldsselects . ', gm.component',
-                $sort, $wherecondition, array_merge($params, $sortparams, $this->userfieldsparams), $this->userfieldsjoin);
+        $roles = groups_get_members_by_role(
+            $this->groupid,
+            $this->courseid,
+            $select . ', gm.component',
+            $sort,
+            $wherecondition,
+            $params,
+            $joinsql
+        );
 
         return $this->convert_array_format($roles, $search);
     }
@@ -992,7 +1007,7 @@ class group_non_members_selector extends groups_user_selector_base {
             $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'relatedctx');
 
         // Get the search condition.
-        list($searchcondition, $searchparams) = $this->search_sql($search, 'u');
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
 
         // Build the SQL.
         $enrolledjoin = get_enrolled_join($context, 'u.id');
@@ -1002,10 +1017,10 @@ class group_non_members_selector extends groups_user_selector_base {
         $wheres[] = 'u.deleted = 0';
         $wheres[] = 'gm.id IS NULL';
         $wheres = implode(' AND ', $wheres);
-        $wheres .= ' AND ' . $searchcondition;
+        $wheres .= ' AND ' . $wherecondition;
 
         $fields = "SELECT r.id AS roleid, u.id AS userid,
-                          " . $this->userfieldsselects . ",
+                          " . $select . ",
                           (SELECT count(igm.groupid)
                              FROM {groups_members} igm
                              JOIN {groups} ig ON igm.groupid = ig.id
@@ -1015,13 +1030,12 @@ class group_non_members_selector extends groups_user_selector_base {
               LEFT JOIN {role_assignments} ra ON (ra.userid = u.id AND ra.contextid $relatedctxsql AND ra.roleid $roleids)
               LEFT JOIN {role} r ON r.id = ra.roleid
               LEFT JOIN {groups_members} gm ON (gm.userid = u.id AND gm.groupid = :groupid)
-              $this->userfieldsjoin
+              $joinsql
                   WHERE $wheres";
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
         $orderby = ' ORDER BY ' . $sort;
 
-        $params = array_merge($searchparams, $roleparams, $relatedctxparams, $enrolledjoin->params, $this->userfieldsparams);
+        $params = array_merge($params, $roleparams, $relatedctxparams, $enrolledjoin->params);
         $params['courseid'] = $this->courseid;
         $params['groupid']  = $this->groupid;
 
@@ -1032,7 +1046,7 @@ class group_non_members_selector extends groups_user_selector_base {
             }
         }
 
-        $rs = $DB->get_recordset_sql("$fields $sql $orderby", array_merge($params, $sortparams));
+        $rs = $DB->get_recordset_sql("$fields $sql $orderby", $params);
         $roles = groups_calculate_role_people($rs, $context);
 
         // Don't hold onto user IDs if we're doing validation.

@@ -61,10 +61,9 @@ class core_role_check_users_selector extends user_selector_base {
     public function find_users($search) {
         global $DB;
 
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
-        $params = array_merge($params, $this->userfieldsparams);
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
 
-        $fields      = 'SELECT u.id, ' . $this->userfieldsselects;
+        $fields      = 'SELECT u.id, ' . $select;
         $countfields = 'SELECT COUNT(1)';
 
         $coursecontext = $this->accesscontext->get_course_context(false);
@@ -76,7 +75,7 @@ class core_role_check_users_selector extends user_selector_base {
                               JOIN {user_enrolments} ue ON (ue.userid = subu.id)
                               JOIN {enrol} e ON (e.id = ue.enrolid AND e.courseid = :courseid1)
                            ) subq ON subq.id = u.id
-                           $this->userfieldsjoin
+                           $joinsql
                      WHERE $wherecondition";
             $params['courseid1'] = $coursecontext->instanceid;
 
@@ -86,7 +85,7 @@ class core_role_check_users_selector extends user_selector_base {
                 $sql2 = " FROM {user} u
                      LEFT JOIN ({user_enrolments} ue
                                 JOIN {enrol} e ON (e.id = ue.enrolid AND e.courseid = :courseid2)) ON (ue.userid = u.id)
-                               $this->userfieldsjoin
+                               $joinsql
                          WHERE $wherecondition
                                AND ue.id IS NULL";
                 $params['courseid2'] = $coursecontext->instanceid;
@@ -99,13 +98,12 @@ class core_role_check_users_selector extends user_selector_base {
             }
             $sql1 = null;
             $sql2 = " FROM {user} u
-                           $this->userfieldsjoin
+                           $joinsql
                      WHERE $wherecondition";
         }
 
         $params['contextid'] = $this->accesscontext->id;
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
         $order = ' ORDER BY ' . $sort;
 
         $result = array();
@@ -126,7 +124,7 @@ class core_role_check_users_selector extends user_selector_base {
                 $result[implode(' - ', array_keys($toomany))] = array();
 
             } else {
-                $enrolledusers = $DB->get_records_sql($fields . $sql1 . $order, array_merge($params, $sortparams));
+                $enrolledusers = $DB->get_records_sql($fields . $sql1 . $order, $params);
                 if ($enrolledusers) {
                     $result[$groupname1] = $enrolledusers;
                 }
@@ -142,7 +140,7 @@ class core_role_check_users_selector extends user_selector_base {
                 $toomany = $this->too_many_results($search, $otheruserscount);
                 $result[implode(' - ', array_keys($toomany))] = array();
             } else {
-                $otherusers = $DB->get_records_sql($fields . $sql2 . $order, array_merge($params, $sortparams));
+                $otherusers = $DB->get_records_sql($fields . $sql2 . $order, $params);
                 if ($otherusers) {
                     $result[$groupname2] = $otherusers;
                 }

@@ -44,10 +44,8 @@ class core_role_admins_existing_selector extends user_selector_base {
     public function find_users($search) {
         global $DB, $CFG;
 
-        [$wherecondition, $params] = $this->search_sql($search, 'u');
-        $params = array_merge($params, $this->userfieldsparams);
-
-        $fields = 'SELECT u.id, ' . $this->userfieldsselects;
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
+        $fields = 'SELECT u.id, ' . $select;
 
         if ($wherecondition) {
             $wherecondition = "$wherecondition AND u.id IN ($CFG->siteadmins)";
@@ -55,11 +53,8 @@ class core_role_admins_existing_selector extends user_selector_base {
             $wherecondition = "u.id IN ($CFG->siteadmins)";
         }
         $sql = " FROM {user} u
-                      $this->userfieldsjoin
+                      $joinsql
                 WHERE $wherecondition";
-
-        [$sort, $sortparams] = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
-        $params = array_merge($params, $sortparams);
 
         // Sort first by email domain and then by normal name order.
         $order = " ORDER BY " . $DB->sql_substr('email', $DB->sql_position("'@'", 'email'),

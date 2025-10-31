@@ -33,14 +33,13 @@ class core_role_potential_assignees_course_and_above extends core_role_assign_us
     public function find_users($search) {
         global $DB;
 
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
-        $params = array_merge($params, $this->userfieldsparams);
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
 
-        $fields      = 'SELECT u.id, ' . $this->userfieldsselects;
+        $fields      = 'SELECT u.id, ' . $select;
         $countfields = 'SELECT COUNT(1)';
 
         $sql = " FROM {user} u
-                      $this->userfieldsjoin
+                      $joinsql
                 WHERE $wherecondition
                       AND u.id NOT IN (
                          SELECT r.userid
@@ -48,7 +47,6 @@ class core_role_potential_assignees_course_and_above extends core_role_assign_us
                           WHERE r.contextid = :contextid
                                 AND r.roleid = :roleid)";
 
-        list($sort, $sortparams) = users_order_by_sql('', $search, $this->accesscontext, $this->userfieldsmappings);
         $order = ' ORDER BY ' . $sort;
 
         $params['contextid'] = $this->context->id;
@@ -61,7 +59,7 @@ class core_role_potential_assignees_course_and_above extends core_role_assign_us
             }
         }
 
-        $availableusers = $DB->get_records_sql($fields . $sql . $order, array_merge($params, $sortparams));
+        $availableusers = $DB->get_records_sql($fields . $sql . $order, $params);
 
         if (empty($availableusers)) {
             return array();

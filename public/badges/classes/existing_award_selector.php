@@ -29,17 +29,14 @@ class existing_award_selector extends award_selector_base {
     public function find_users($search): array {
         global $DB;
 
-        [$wherecondition, $params] = $this->search_sql($search, 'u');
+        [$fields, , $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
         [$esql, $eparams] = get_enrolled_sql($this->context, 'moodle/badges:earnbadge', 0, true);
         [$groupsql, $groupwheresql, $groupwheresqlparams] = $this->get_groups_sql();
-        [$sort, $sortparams] = users_order_by_sql('u', $search, $this->accesscontext);
 
-        $params = array_merge($params, $eparams, $sortparams, $groupwheresqlparams, [
+        $params = array_merge($params, $eparams, $groupwheresqlparams, [
             'badgeid' => $this->badgeid,
             'issuerrole' => $this->issuerrole,
         ]);
-
-        $fields = $this->required_fields_sql('u');
 
         $recipients = $DB->get_records_sql(
             "SELECT $fields

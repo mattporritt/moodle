@@ -609,8 +609,13 @@ class fields {
      *     params: an associative array containing any required
      *     parameters (using named placeholders)
      */
-    public function get_sql_part_for_user_searching(string $search, string $tablealias = 'u',
-        $searchtype = self::USER_SEARCH_STARTS_WITH, ?array $excludeuserids = null, ?array $includeuserids = null) {
+    public function get_sql_part_for_user_searching(
+        string $search,
+        string $tablealias = 'u',
+        $searchtype = self::USER_SEARCH_STARTS_WITH,
+        ?array $excludeuserids = null,
+        ?array $includeuserids = null
+    ) {
         global $DB;
         $joinsql = '';
         $fullparams = [];
@@ -646,10 +651,19 @@ class fields {
             // Build custom profile JOIN fragment.
             // The extra JOIN only exist if we have custom profile exist in the SELECT.
             if ($cpfields) {
-                [$searchquery, $ufconditions, $ufparams] = $this->build_user_field_conditions($search, $userfieldsjoin, 'subu.',
-                    $searchtype, 'subu');
-                [$ufextraconditions, $ufextraparams] = $this->build_sensible_conditions('subu.',
-                    $excludeuserids, $includeuserids, 'subu');
+                [$searchquery, $ufconditions, $ufparams] = $this->build_user_field_conditions(
+                    $search,
+                    $userfieldsjoin,
+                    'subu.',
+                    $searchtype,
+                    'subu'
+                );
+                [$ufextraconditions, $ufextraparams] = $this->build_sensible_conditions(
+                    'subu.',
+                    $excludeuserids,
+                    $includeuserids,
+                    'subu'
+                );
                 $ufwhere = '(' . implode(' OR ', $ufconditions) . ') AND ';
                 $ufwhere .= implode(' AND ', $ufextraconditions);
                 // Create sql and params for user custom profile field.
@@ -678,11 +692,19 @@ class fields {
         $whereconditions = [];
         // Build the WHERE sql fragment.
         if ($search && !$cpfields) {
-            [, $conditions, $whereparams] = $this->build_user_field_conditions($search, $userfields, $tablealias,
-                $searchtype);
+            [, $conditions, $whereparams] = $this->build_user_field_conditions(
+                $search,
+                $userfields,
+                $tablealias,
+                $searchtype
+            );
             $whereconditions[] = '(' . implode(' OR ', $conditions) . ')';
         }
-        [$extraconditions, $extraparams] = $this->build_sensible_conditions($tablealias, $excludeuserids, $includeuserids);
+        [$extraconditions, $extraparams] = $this->build_sensible_conditions(
+            $tablealias,
+            $excludeuserids,
+            $includeuserids
+        );
         $wheresql = implode(' AND ', array_merge($whereconditions, $extraconditions));
         $fullparams = array_merge($fullparams, $whereparams, $extraparams);
 
@@ -724,8 +746,12 @@ class fields {
      *     params: an associative array containing any required
      *     parameters
      */
-    private function build_sensible_conditions(string $tablealias = 'u', ?array $excludeuserids = null,
-        ?array $includeuserids = null, string $prefix = ''): array {
+    private function build_sensible_conditions(
+        string $tablealias = 'u',
+        ?array $excludeuserids = null,
+        ?array $includeuserids = null,
+        string $prefix = ''
+    ): array {
         global $CFG, $DB;
         // Add some additional sensible conditions(is not depend on search key).
         $extraconditions = [];
@@ -770,8 +796,13 @@ class fields {
      *     params: an associative array containing any required
      *     parameters
      */
-    private function build_user_field_conditions(string $searchquery, array $userfields, string $tablealias = 'u',
-        int $searchtype = self::USER_SEARCH_STARTS_WITH, string $prefix = ''): array {
+    private function build_user_field_conditions(
+        string $searchquery,
+        array $userfields,
+        string $tablealias = 'u',
+        int $searchtype = self::USER_SEARCH_STARTS_WITH,
+        string $prefix = ''
+    ): array {
         global $DB;
         $i = 0;
         $params = [];

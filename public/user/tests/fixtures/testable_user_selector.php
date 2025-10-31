@@ -43,13 +43,11 @@ class testable_user_selector extends user_selector_base {
     public function find_users($search) {
         global $DB;
 
-        list($wherecondition, $whereparams) = $this->search_sql($search, 'u');
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext);
-        $params = array_merge($whereparams, $sortparams);
-        $fields = $this->required_fields_sql('u');
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
 
-        $sql = "SELECT $fields
+        $sql = "SELECT $select
                   FROM {user} u
+                       $joinsql
                  WHERE $wherecondition
               ORDER BY $sort";
 

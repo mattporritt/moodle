@@ -46,20 +46,17 @@ class core_role_admins_potential_selector extends user_selector_base {
     public function find_users($search) {
         global $CFG, $DB;
 
-        [$wherecondition, $params] = $this->search_sql($search, 'u');
-        $params = array_merge($params, $this->userfieldsparams);
-
-        $fields = 'SELECT u.id, ' . $this->userfieldsselects;
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
+        $fields = 'SELECT u.id, ' . $select;
         $countfields = 'SELECT COUNT(1)';
 
         $sql = " FROM {user} u
-                      $this->userfieldsjoin
+                      $joinsql
                 WHERE $wherecondition AND mnethostid = :localmnet";
 
         // It could be dangerous to make remote users admins and also this could lead to other problems.
         $params['localmnet'] = $CFG->mnet_localhost_id;
 
-        [$sort, $sortparams] = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
         $order = ' ORDER BY ' . $sort;
 
         // Check to see if there are too many to show sensibly.
@@ -70,7 +67,7 @@ class core_role_admins_potential_selector extends user_selector_base {
             }
         }
 
-        $availableusers = $DB->get_records_sql($fields . $sql . $order, array_merge($params, $sortparams));
+        $availableusers = $DB->get_records_sql($fields . $sql . $order, $params);
 
         if (empty($availableusers)) {
             return array();

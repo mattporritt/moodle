@@ -33,20 +33,17 @@ class core_role_existing_role_holders extends core_role_assign_user_selector_bas
     public function find_users($search) {
         global $DB;
 
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
         list($ctxcondition, $ctxparams) = $DB->get_in_or_equal($this->context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'ctx');
-        $params = array_merge($params, $ctxparams, $this->userfieldsparams);
+        $params = array_merge($params, $ctxparams);
         $params['roleid'] = $this->roleid;
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
-        $params = array_merge($params, $sortparams);
-
-        $fields = "SELECT ra.id AS raid, u.id, " . $this->userfieldsselects . ", ra.contextid, ra.component ";
+        $fields = "SELECT ra.id AS raid, u.id, " . $select . ", ra.contextid, ra.component ";
         $countfields = "SELECT COUNT(1) ";
         $sql = "FROM {role_assignments} ra
                   JOIN {user} u ON u.id = ra.userid
                   JOIN {context} ctx ON ra.contextid = ctx.id
-                       $this->userfieldsjoin
+                       $joinsql
                  WHERE $wherecondition
                        AND ctx.id $ctxcondition
                        AND ra.roleid = :roleid";

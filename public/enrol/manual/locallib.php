@@ -49,21 +49,19 @@ class enrol_manual_potential_participant extends user_selector_base {
         global $DB;
 
         // By default wherecondition retrieves all users except the deleted, not confirmed and guest.
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
-        $params = array_merge($params, $this->userfieldsparams);
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
 
         $params['enrolid'] = $this->enrolid;
 
-        $fields      = 'SELECT u.id, ' . $this->userfieldsselects;
+        $fields      = 'SELECT u.id, ' . $select;
         $countfields = 'SELECT COUNT(1)';
 
         $sql = " FROM {user} u
             LEFT JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
-                      $this->userfieldsjoin
+                      $joinsql
                 WHERE $wherecondition
                       AND ue.id IS NULL";
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
         $order = ' ORDER BY ' . $sort;
 
         if (!$this->is_validating()) {
@@ -73,7 +71,7 @@ class enrol_manual_potential_participant extends user_selector_base {
             }
         }
 
-        $availableusers = $DB->get_records_sql($fields . $sql . $order, array_merge($params, $sortparams));
+        $availableusers = $DB->get_records_sql($fields . $sql . $order, $params);
 
         if (empty($availableusers)) {
             return array();
@@ -119,20 +117,18 @@ class enrol_manual_current_participant extends user_selector_base {
         global $DB;
 
         // By default wherecondition retrieves all users except the deleted, not confirmed and guest.
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
-        $params = array_merge($params, $this->userfieldsparams);
+        [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
 
         $params['enrolid'] = $this->enrolid;
 
-        $fields      = 'SELECT u.id, ' . $this->userfieldsselects;
+        $fields      = 'SELECT u.id, ' . $select;
         $countfields = 'SELECT COUNT(1)';
 
         $sql = " FROM {user} u
                  JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
-                      $this->userfieldsjoin
+                      $joinsql
                 WHERE $wherecondition";
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext, $this->userfieldsmappings);
         $order = ' ORDER BY ' . $sort;
 
         if (!$this->is_validating()) {
@@ -142,7 +138,7 @@ class enrol_manual_current_participant extends user_selector_base {
             }
         }
 
-        $availableusers = $DB->get_records_sql($fields . $sql . $order, array_merge($params, $sortparams));
+        $availableusers = $DB->get_records_sql($fields . $sql . $order, $params);
 
         if (empty($availableusers)) {
             return array();

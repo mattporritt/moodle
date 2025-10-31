@@ -36,7 +36,7 @@ class potential_award_selector extends award_selector_base {
         global $DB;
 
         $whereconditions = [];
-        [$wherecondition, $params] = $this->search_sql($search, 'u');
+        [$select, , $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
         if ($wherecondition) {
             $whereconditions[] = $wherecondition;
         }
@@ -73,7 +73,7 @@ class potential_award_selector extends award_selector_base {
         );
         $params = array_merge($params, $eparams, $groupwheresqlparams);
 
-        $fields = 'SELECT ' . $this->required_fields_sql('u');
+        $fields = 'SELECT ' . $select;
         $countfields = 'SELECT COUNT(u.id)';
 
         $params['badgeid'] = $this->badgeid;
@@ -86,7 +86,6 @@ class potential_award_selector extends award_selector_base {
                  $wherecondition AND bm.id IS NULL
                  $groupwheresql";
 
-        [$sort, $sortparams] = users_order_by_sql('u', $search, $this->accesscontext);
         $order = ' ORDER BY ' . $sort;
 
         if (!$this->is_validating()) {
@@ -98,7 +97,7 @@ class potential_award_selector extends award_selector_base {
 
         $availableusers = $DB->get_records_sql(
             $fields . $sql . $order,
-            array_merge($params, $sortparams)
+            $params
         );
 
         if (empty($availableusers)) {

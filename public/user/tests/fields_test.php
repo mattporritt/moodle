@@ -638,8 +638,14 @@ final class fields_test extends \advanced_testcase {
      * @param int $expecteduserscount
      * @param string $expexectexistproperties
      */
-    public function test_get_sql_part_for_user_searching_variations(string $search, int $searchtype,
-        bool $excludeuserids, bool $includeuserids, int $expecteduserscount, string $expexectexistproperties): void {
+    public function test_get_sql_part_for_user_searching_variations(
+        string $search,
+        int $searchtype,
+        bool $excludeuserids,
+        bool $includeuserids,
+        int $expecteduserscount,
+        string $expexectexistproperties
+    ): void {
         global $DB;
         $this->resetAfterTest();
         $alias = 'u';
@@ -656,8 +662,13 @@ final class fields_test extends \advanced_testcase {
             ]);
             $inuserid = [$user->id];
         }
-        [$selectsql, $joinsql, $wheresql, $sortsql, $fullparams] = $fields->get_sql_part_for_user_searching($search,
-            $alias, $searchtype, $exuserid, $inuserid);
+        [$selectsql, $joinsql, $wheresql, $sortsql, $fullparams] = $fields->get_sql_part_for_user_searching(
+            $search,
+            $alias,
+            $searchtype,
+            $exuserid,
+            $inuserid
+        );
         // Combined query.
         $sql = "SELECT $alias.id, $selectsql
                   FROM {user} $alias
@@ -669,7 +680,6 @@ final class fields_test extends \advanced_testcase {
         foreach ($users as $user) {
             $this->assertObjectHasProperty($expexectexistproperties, $user);
         }
-
     }
 
     /**

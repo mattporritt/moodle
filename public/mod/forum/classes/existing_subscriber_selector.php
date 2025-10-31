@@ -42,14 +42,12 @@ class mod_forum_existing_subscriber_selector extends mod_forum_subscriber_select
      */
     public function find_users($search) {
         global $DB;
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
+        [$fields, , $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
         $params['forumid'] = $this->forumid;
 
         // only active enrolled or everybody on the frontpage
         list($esql, $eparams) = get_enrolled_sql($this->context, '', $this->currentgroup, true);
-        $fields = $this->required_fields_sql('u');
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext);
-        $params = array_merge($params, $eparams, $sortparams);
+        $params = array_merge($params, $eparams);
 
         $subscribers = $DB->get_records_sql("SELECT $fields
                                                FROM {user} u

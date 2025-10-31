@@ -80,7 +80,7 @@ class mod_forum_potential_subscriber_selector extends mod_forum_subscriber_selec
         global $DB;
 
         $whereconditions = array();
-        list($wherecondition, $params) = $this->search_sql($search, 'u');
+        [$fields, , $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
         if ($wherecondition) {
             $whereconditions[] = $wherecondition;
         }
@@ -107,16 +107,15 @@ class mod_forum_potential_subscriber_selector extends mod_forum_subscriber_selec
         list($esql, $eparams) = get_enrolled_sql($this->context, '', $this->currentgroup, true);
         $params = array_merge($params, $eparams);
 
-        $fields      = 'SELECT ' . $this->required_fields_sql('u');
+        $fields      = 'SELECT ' . $fields;
 
         $sql = " FROM {user} u
                  JOIN ($esql) je ON je.id = u.id
                       $wherecondition";
 
-        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext);
         $order = ' ORDER BY ' . $sort;
 
-        $availableusers = $DB->get_records_sql($fields . $sql . $order, array_merge($params, $sortparams));
+        $availableusers = $DB->get_records_sql($fields . $sql . $order, $params);
 
         $cm = get_coursemodule_from_instance('forum', $this->forumid);
         $modinfo = get_fast_modinfo($cm->course);
