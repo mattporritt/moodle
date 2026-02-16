@@ -61,7 +61,7 @@ class provider implements
      * @return contextlist the list of contexts containing user info for the user.
      */
     public static function get_contexts_for_userid(int $userid): contextlist {
-        $joinsql = \core_ltix\privacy\provider::get_lti_submission_user_join_sql($userid);
+        $joinsql = \core_ltix\privacy\provider::get_context_join_sql($userid);
 
         // Fetch all LTI submissions.
         $sql = "SELECT c.id
@@ -100,7 +100,7 @@ class provider implements
             return;
         }
 
-        \core_ltix\privacy\provider::get_lti_submission_users_in_context_from_sql($userlist);
+        \core_ltix\privacy\provider::get_users_in_context_from_sql($userlist);
     }
 
     /**
@@ -119,7 +119,7 @@ class provider implements
 
         $user = $contextlist->get_user();
 
-        \core_ltix\privacy\provider::export_user_data_lti_submissions($user, $contextids);
+        \core_ltix\privacy\provider::export_lti_user_data($user, $contextids);
     }
 
     /**
@@ -132,7 +132,7 @@ class provider implements
             return;
         }
 
-        \core_ltix\privacy\provider::delete_lti_submission_data($context);
+        \core_ltix\privacy\provider::delete_lti_user_data($context);
     }
 
     /**
@@ -147,7 +147,7 @@ class provider implements
             if (!$context instanceof \context_module || !get_coursemodule_from_id('lti', $context->instanceid)) {
                 continue;
             }
-            \core_ltix\privacy\provider::delete_lti_submission_data($context, [$userid]);
+            \core_ltix\privacy\provider::delete_lti_user_data($context, [$userid]);
         }
     }
 
@@ -160,7 +160,7 @@ class provider implements
         $context = $userlist->get_context();
 
         if ($context instanceof \context_module && get_coursemodule_from_id('lti', $context->instanceid)) {
-            \core_ltix\privacy\provider::delete_lti_submission_data($context, $userlist->get_userids());
+            \core_ltix\privacy\provider::delete_lti_user_data($context, $userlist->get_userids());
         }
     }
 }
