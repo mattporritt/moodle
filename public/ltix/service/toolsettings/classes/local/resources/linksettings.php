@@ -25,6 +25,7 @@
 
 namespace ltixservice_toolsettings\local\resources;
 
+use core_ltix\local\lticore\message\context\collection\launch_context;
 use ltixservice_toolsettings\local\service\toolsettings;
 
 defined('MOODLE_INTERNAL') || die();
@@ -200,10 +201,10 @@ class linksettings extends \core_ltix\local\ltiservice\resource_base {
      * Parse a value for custom parameter substitution variables.
      *
      * @param string $value String to be parsed
-     *
+     * @param launch_context $launchcontext
      * @return string
      */
-    public function parse_value($value) {
+    public function parse_val(string $value, launch_context $launchcontext): string {
 
         if (strpos($value, '$LtiLink.custom.url') !== false) {
             $id = optional_param('id', 0, PARAM_INT); // Course Module ID.
@@ -214,7 +215,6 @@ class linksettings extends \core_ltix\local\ltiservice\resource_base {
             $value = str_replace('$LtiLink.custom.url', parent::get_endpoint(), $value);
         }
         return $value;
-
     }
 
 }
