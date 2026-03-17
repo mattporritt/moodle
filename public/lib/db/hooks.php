@@ -151,4 +151,8 @@ $callbacks = [
         'hook' => \core\hook\di_configuration::class,
         'callback' => [\core\hook\composer\composer_di::class, 'configure'],
     ],
+    [
+        'hook' => \core\hook\di_configuration::class,
+        'callback' => \core_ltix\hook_listener::class . '::inject_dependencies',
+    ],
 ];
