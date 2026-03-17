@@ -100,7 +100,7 @@ class helper {
     public static function get_domain_from_url($url) {
         $matches = [];
 
-        if (preg_match(\core_ltix\constants::LTI_URL_DOMAIN_REGEX, $url ?? '', $matches)) {
+        if (preg_match(constants::LTI_URL_DOMAIN_REGEX, $url ?? '', $matches)) {
             return $matches[1];
         }
     }
@@ -119,15 +119,7 @@ class helper {
         return self::get_tools_by_domain($domain, $state, $courseid);
     }
 
-    /**
-     * Get the tool whose base URL best matches a URL.
-     *
-     * @param string $url The tool URL.
-     * @param int|null $courseid The course the tool is wanted for.
-     * @param int $state Only consider tools in this state (LTI_TOOL_STATE_*).
-     * @return \stdClass|null The best matching lti_types record, or null when there is none.
-     */
-    public static function get_tool_by_url_match($url, $courseid = null, $state = \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED) {
+    public static function get_tool_by_url_match($url, $courseid = null, $state = constants::LTI_TOOL_STATE_CONFIGURED) {
         $possibletools = self::get_tools_by_url($url, $state, $courseid);
 
         return self::get_best_tool_by_url($url, $possibletools, $courseid);
@@ -258,14 +250,14 @@ class helper {
         }
         if (isset($config->toolproxyid) && !empty($config->toolproxyid)) {
             $toolproxy->id = $config->toolproxyid;
-            if (!isset($toolproxy->state) || ($toolproxy->state != \core_ltix\constants::LTI_TOOL_PROXY_STATE_ACCEPTED)) {
-                $toolproxy->state = \core_ltix\constants::LTI_TOOL_PROXY_STATE_CONFIGURED;
+            if (!isset($toolproxy->state) || ($toolproxy->state != constants::LTI_TOOL_PROXY_STATE_ACCEPTED)) {
+                $toolproxy->state = constants::LTI_TOOL_PROXY_STATE_CONFIGURED;
                 $toolproxy->guid = random_string();
                 $toolproxy->secret = random_string();
             }
             $id = self::update_tool_proxy($toolproxy);
         } else {
-            $toolproxy->state = \core_ltix\constants::LTI_TOOL_PROXY_STATE_CONFIGURED;
+            $toolproxy->state = constants::LTI_TOOL_PROXY_STATE_CONFIGURED;
             $toolproxy->timemodified = time();
             $toolproxy->timecreated = $toolproxy->timemodified;
             if (!isset($toolproxy->createdby)) {
@@ -583,9 +575,9 @@ class helper {
         foreach ($splitted as $key => $val) {
             $val = self::parse_custom_parameter($toolproxy, $tool, $params, $val, $islti2);
             $key2 = self::map_keyname($key);
-            $retval['custom_' . $key2] = $val;
-            if (($islti2 || ($tool?->ltiversion === \core_ltix\constants::LTI_VERSION_1P3)) && ($key != $key2)) {
-                $retval['custom_' . $key] = $val;
+            $retval['custom_'.$key2] = $val;
+            if (($islti2 || ($tool?->ltiversion === constants::LTI_VERSION_1P3)) && ($key != $key2)) {
+                $retval['custom_'.$key] = $val;
             }
         }
         return $retval;
@@ -1651,7 +1643,7 @@ class helper {
                     self::update_config($record);
                 }
             }
-            if (isset($type->toolproxyid) && $type->ltiversion === \core_ltix\constants::LTI_VERSION_1P3) {
+            if (isset($type->toolproxyid) && $type->ltiversion === constants::LTI_VERSION_1P3) {
                 // We need to remove the tool proxy for this tool to function under 1.3.
                 $toolproxyid = $type->toolproxyid;
                 $DB->delete_records('lti_tool_settings', ['toolproxyid' => $toolproxyid]);
@@ -1720,7 +1712,7 @@ class helper {
         if (isset($config->lti_clientid)) {
             $type->clientid = $config->lti_clientid;
         }
-        if ((!empty($type->ltiversion) && $type->ltiversion === \core_ltix\constants::LTI_VERSION_1P3) && empty($type->clientid)) {
+        if ((!empty($type->ltiversion) && $type->ltiversion === constants::LTI_VERSION_1P3) && empty($type->clientid)) {
             $type->clientid = registration_helper::get()->new_clientid();
         } else if (empty($type->clientid)) {
             $type->clientid = null;
@@ -1819,11 +1811,11 @@ class helper {
         self::prepare_type_for_save($type, $config);
 
         if (!isset($type->state)) {
-            $type->state = \core_ltix\constants::LTI_TOOL_STATE_PENDING;
+            $type->state = constants::LTI_TOOL_STATE_PENDING;
         }
 
         if (!isset($type->ltiversion)) {
-            $type->ltiversion = \core_ltix\constants::LTI_VERSION_1;
+            $type->ltiversion = constants::LTI_VERSION_1;
         }
 
         if (!isset($type->timecreated)) {
@@ -1899,7 +1891,7 @@ class helper {
         global $CFG;
         // Default the organizationid if not specified.
         if (empty($typeconfig['organizationid'])) {
-            if (($typeconfig['organizationid_default'] ?? \core_ltix\constants::LTI_DEFAULT_ORGID_SITEHOST) == \core_ltix\constants::LTI_DEFAULT_ORGID_SITEHOST) {
+            if (($typeconfig['organizationid_default'] ?? constants::LTI_DEFAULT_ORGID_SITEHOST) == constants::LTI_DEFAULT_ORGID_SITEHOST) {
                 $urlparts = parse_url($CFG->wwwroot);
                 return $urlparts['host'];
             } else {
@@ -2006,7 +1998,7 @@ class helper {
             $type->lti_organizationid_default = $config['organizationid_default'];
         } else {
             // Tool was configured before this option was available and the default then was host.
-            $type->lti_organizationid_default = \core_ltix\constants::LTI_DEFAULT_ORGID_SITEHOST;
+            $type->lti_organizationid_default = constants::LTI_DEFAULT_ORGID_SITEHOST;
         }
         if (isset($config['organizationid'])) {
             $type->lti_organizationid = $config['organizationid'];
@@ -2160,15 +2152,15 @@ class helper {
         $isrejected = false;
         $isunknown = false;
         switch ($type->state) {
-            case \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED:
+            case constants::LTI_TOOL_STATE_CONFIGURED:
                 $state = get_string('active', 'core_ltix');
                 $isconfigured = true;
                 break;
-            case \core_ltix\constants::LTI_TOOL_STATE_PENDING:
+            case constants::LTI_TOOL_STATE_PENDING:
                 $state = get_string('pending', 'core_ltix');
                 $ispending = true;
                 break;
-            case \core_ltix\constants::LTI_TOOL_STATE_REJECTED:
+            case constants::LTI_TOOL_STATE_REJECTED:
                 $state = get_string('rejected', 'core_ltix');
                 $isrejected = true;
                 break;
@@ -2252,7 +2244,7 @@ class helper {
         $newtoken->token = $generatedtoken;
 
         $newtoken->timecreated = time();
-        $newtoken->validuntil = $newtoken->timecreated + \core_ltix\constants::LTI_ACCESS_TOKEN_LIFE;
+        $newtoken->validuntil = $newtoken->timecreated + constants::LTI_ACCESS_TOKEN_LIFE;
         $newtoken->lastaccess = null;
 
         $DB->insert_record('lti_access_tokens', $newtoken);
@@ -2355,7 +2347,7 @@ class helper {
             $ltiversion = $tool->ltiversion;
         } else {
             $typeid = null;
-            $ltiversion = \core_ltix\constants::LTI_VERSION_1;
+            $ltiversion = constants::LTI_VERSION_1;
         }
 
         if ($typeid) {
@@ -2380,7 +2372,7 @@ class helper {
             $toolproxy = null;
             if (!empty($instance->resourcekey)) {
                 $key = $instance->resourcekey;
-            } else if ($ltiversion === \core_ltix\constants::LTI_VERSION_1P3) {
+            } else if ($ltiversion === constants::LTI_VERSION_1P3) {
                 $key = $tool->clientid;
             } else if (!empty($typeconfig['resourcekey'])) {
                 $key = $typeconfig['resourcekey'];
@@ -2467,15 +2459,15 @@ class helper {
         }
 
         $target = '';
-        switch ($launchcontainer) {
-            case \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED:
-            case \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS:
+        switch($launchcontainer) {
+            case constants::LTI_LAUNCH_CONTAINER_EMBED:
+            case constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS:
                 $target = 'iframe';
                 break;
-            case \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW:
+            case constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW:
                 $target = 'frame';
                 break;
-            case \core_ltix\constants::LTI_LAUNCH_CONTAINER_WINDOW:
+            case constants::LTI_LAUNCH_CONTAINER_WINDOW:
                 $target = 'window';
                 break;
         }
@@ -2523,8 +2515,8 @@ class helper {
             }
         }
 
-        if ((!empty($key) && !empty($secret)) || ($ltiversion === \core_ltix\constants::LTI_VERSION_1P3)) {
-            if ($ltiversion !== \core_ltix\constants::LTI_VERSION_1P3) {
+        if ((!empty($key) && !empty($secret)) || ($ltiversion === constants::LTI_VERSION_1P3)) {
+            if ($ltiversion !== constants::LTI_VERSION_1P3) {
                 $parms = \core_ltix\oauth_helper::sign_parameters($requestparams, $endpoint, 'POST', $key, $secret);
             } else {
                 $parms = \core_ltix\oauth_helper::sign_jwt($requestparams, $endpoint, $key, $typeid, $nonce);
@@ -2576,7 +2568,7 @@ class helper {
         $endpoint = $toolproxy->regurl;
 
         // Change the status to pending.
-        $toolproxy->state = \core_ltix\constants::LTI_TOOL_PROXY_STATE_PENDING;
+        $toolproxy->state = constants::LTI_TOOL_PROXY_STATE_PENDING;
         self::update_tool_proxy($toolproxy);
 
         $requestparams = self::build_registration_request($toolproxy);
@@ -2720,10 +2712,9 @@ class helper {
             $requestparams['lis_course_section_sourcedid'] = $course->idnumber;
         }
 
-        if (
-            !empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
-                $typeconfig['acceptgrades'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
-                ($typeconfig['acceptgrades'] == \core_ltix\constants::LTI_SETTING_DELEGATE && $instance->instructorchoiceacceptgrades == \core_ltix\constants::LTI_SETTING_ALWAYS))
+        if (!empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
+                $typeconfig['acceptgrades'] == constants::LTI_SETTING_ALWAYS ||
+                ($typeconfig['acceptgrades'] == constants::LTI_SETTING_DELEGATE && $instance->instructorchoiceacceptgrades == constants::LTI_SETTING_ALWAYS))
         ) {
             $placementsecret = $instance->servicesalt;
             $sourcedid = json_encode(self::build_sourcedid($instance->id, $USER->id, $placementsecret, $typeid));
@@ -2749,12 +2740,9 @@ class helper {
         }
 
         // Send user's name and email data if appropriate.
-        if (
-            $islti2 ||
-            $typeconfig['sendname'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendname'] == \core_ltix\constants::LTI_SETTING_DELEGATE &&
-            isset($instance->instructorchoicesendname) &&
-                $instance->instructorchoicesendname == \core_ltix\constants::LTI_SETTING_ALWAYS)
+        if ($islti2 || $typeconfig['sendname'] == constants::LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendname'] == constants::LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendname)
+                && $instance->instructorchoicesendname == constants::LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_name_given'] = $USER->firstname;
             $requestparams['lis_person_name_family'] = $USER->lastname;
@@ -2762,12 +2750,9 @@ class helper {
             $requestparams['ext_user_username'] = $USER->username;
         }
 
-        if (
-            $islti2 ||
-            $typeconfig['sendemailaddr'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendemailaddr'] == \core_ltix\constants::LTI_SETTING_DELEGATE &&
-            isset($instance->instructorchoicesendemailaddr) &&
-                $instance->instructorchoicesendemailaddr == \core_ltix\constants::LTI_SETTING_ALWAYS)
+        if ($islti2 || $typeconfig['sendemailaddr'] == constants::LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendemailaddr'] == constants::LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendemailaddr)
+                && $instance->instructorchoicesendemailaddr == constants::LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_contact_email_primary'] = $USER->email;
         }
@@ -2958,7 +2943,7 @@ class helper {
             $key = $toolproxy->guid;
             $secret = $toolproxy->secret;
         } else {
-            $islti13 = $tool->ltiversion === \core_ltix\constants::LTI_VERSION_1P3;
+            $islti13 = $tool->ltiversion === constants::LTI_VERSION_1P3;
             $toolproxy = null;
             if ($islti13 && !empty($tool->clientid)) {
                 $key = $tool->clientid;
@@ -3205,11 +3190,11 @@ class helper {
 
                 $deleteaction = 'delete';
 
-                if ($type->state == \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED) {
+                if ($type->state == constants::LTI_TOOL_STATE_CONFIGURED) {
                     $accepthtml = '';
                 }
 
-                if ($type->state != \core_ltix\constants::LTI_TOOL_STATE_REJECTED) {
+                if ($type->state != constants::LTI_TOOL_STATE_REJECTED) {
                     $deleteaction = 'reject';
                     $delete = get_string('reject', 'core_ltix');
                 }
@@ -3223,7 +3208,7 @@ class helper {
                     ['title' => $update, 'class' => 'editing_update']
                 );
 
-                if (($type->state != \core_ltix\constants::LTI_TOOL_STATE_REJECTED) || empty($type->toolproxyid)) {
+                if (($type->state != constants::LTI_TOOL_STATE_REJECTED) || empty($type->toolproxyid)) {
                     $deleteurl = clone($baseurl);
                     $deleteurl->param('action', $deleteaction);
                     $deletehtml = $OUTPUT->action_icon(
@@ -3317,11 +3302,11 @@ class helper {
 
                 $deleteaction = 'delete';
 
-                if ($toolproxy->state != \core_ltix\constants::LTI_TOOL_PROXY_STATE_CONFIGURED) {
+                if ($toolproxy->state != constants::LTI_TOOL_PROXY_STATE_CONFIGURED) {
                     $accepthtml = '';
                 }
 
-                if (($toolproxy->state == \core_ltix\constants::LTI_TOOL_PROXY_STATE_CONFIGURED) || ($toolproxy->state == \core_ltix\constants::LTI_TOOL_PROXY_STATE_PENDING)) {
+                if (($toolproxy->state == constants::LTI_TOOL_PROXY_STATE_CONFIGURED) || ($toolproxy->state == constants::LTI_TOOL_PROXY_STATE_PENDING)) {
                     $delete = get_string('cancel', 'core_ltix');
                 }
 
@@ -3457,7 +3442,7 @@ class helper {
 
         // Look up the shared secret for the specified key in both the types_config table (for configured tools)
         // And in the lti resource table for ad-hoc tools.
-        $lti13 = \core_ltix\constants::LTI_VERSION_1P3;
+        $lti13 = constants::LTI_VERSION_1P3;
         $query = "SELECT " . $DB->sql_compare_text('t2.value', 256) . " AS value
                     FROM {lti_types_config} t1
                     JOIN {lti_types_config} t2 ON t1.typeid = t2.typeid
@@ -3478,8 +3463,8 @@ class helper {
                    FROM {lti}
                   WHERE resourcekey = :key3";
 
-        $sharedsecrets = $DB->get_records_sql($query, ['configured1' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
-            'configured2' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key]);
+        $sharedsecrets = $DB->get_records_sql($query, array('configured1' => constants::LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
+            'configured2' => constants::LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key));
 
         $values = array_map(function ($item) {
             return $item->value;
@@ -3746,10 +3731,10 @@ class helper {
      */
     public static function get_launch_container($lti, $toolconfig) {
         if (empty($lti->launchcontainer)) {
-            $lti->launchcontainer = \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT;
+            $lti->launchcontainer = constants::LTI_LAUNCH_CONTAINER_DEFAULT;
         }
 
-        if ($lti->launchcontainer == \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT) {
+        if ($lti->launchcontainer == constants::LTI_LAUNCH_CONTAINER_DEFAULT) {
             if (isset($toolconfig['launchcontainer'])) {
                 $launchcontainer = $toolconfig['launchcontainer'];
             }
@@ -3757,8 +3742,8 @@ class helper {
             $launchcontainer = $lti->launchcontainer;
         }
 
-        if (empty($launchcontainer) || $launchcontainer == \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT) {
-            $launchcontainer = \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS;
+        if (empty($launchcontainer) || $launchcontainer == constants::LTI_LAUNCH_CONTAINER_DEFAULT) {
+            $launchcontainer = constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS;
         }
 
         $devicetype = core_useragent::get_device_type();
@@ -3766,8 +3751,8 @@ class helper {
         // Scrolling within the object element doesn't work on iOS or Android
         // Opening the popup window also had some issues in testing
         // For mobile devices, always take up the entire screen to ensure the best experience.
-        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET) {
-            $launchcontainer = \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW;
+        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET ) {
+            $launchcontainer = constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW;
         }
 
         return $launchcontainer;
@@ -3911,7 +3896,7 @@ class helper {
         ];
 
         foreach ($forced as $instanceparam => $typeconfigparam) {
-            if (array_key_exists($typeconfigparam, $typeconfig) && $typeconfig[$typeconfigparam] != \core_ltix\constants::LTI_SETTING_DELEGATE) {
+            if (array_key_exists($typeconfigparam, $typeconfig) && $typeconfig[$typeconfigparam] != constants::LTI_SETTING_DELEGATE) {
                 $instance->$instanceparam = $typeconfig[$typeconfigparam];
             }
         }
@@ -4509,7 +4494,7 @@ class helper {
 
         if ($ok) {
             $token = self::new_access_token($tool->id, $scopes);
-            $expiry = \core_ltix\constants::LTI_ACCESS_TOKEN_LIFE;
+            $expiry = constants::LTI_ACCESS_TOKEN_LIFE;
             $permittedscopes = implode(' ', $scopes);
             $body = <<< EOD
             {
