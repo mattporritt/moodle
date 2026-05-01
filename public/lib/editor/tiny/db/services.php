@@ -31,4 +31,11 @@ $functions = [
         'type' => 'read',
         'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'editor_tiny_set_standard_plugin_state' => [
+        'classname' => \editor_tiny\external\set_standard_plugin_state::class,
+        'description' => 'Set the enabled/disabled state of a native TinyMCE standard plugin.',
+        'type' => 'write',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
 ];

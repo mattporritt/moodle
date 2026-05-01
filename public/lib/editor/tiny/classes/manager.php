@@ -261,9 +261,40 @@ class manager {
         }
 
         $disabledplugins = $this->get_disabled_tinymce_plugins();
+
+        // Also exclude any native plugins disabled by the site administrator via admin settings.
+        // The enabled/disabled state is stored in site config and read from the bootstrap cache,
+        // so this does not introduce additional database reads per editor render.
+        foreach (array_keys($plugins) as $pluginname) {
+            if (in_array($pluginname, $disabledplugins)) {
+                continue;
+            }
+            $enabled = get_config('editor_tiny', 'standard_plugin_' . $pluginname);
+            if ($enabled !== false && !(bool)$enabled) {
+                $disabledplugins[] = $pluginname;
+            }
+        }
+
         return array_filter($plugins, function ($plugin) use ($disabledplugins) {
             return !in_array($plugin, $disabledplugins);
         }, ARRAY_FILTER_USE_KEY);
+    }
+
+    /**
+     * Return the list of native TinyMCE plugins that site administrators can enable or disable.
+     *
+     * This is the set of plugins active by default in Moodle, excluding those that are
+     * hardcoded as disabled for compatibility reasons (image, media, autosave, preview, link).
+     *
+     * @return string[] Plugin names sorted alphabetically.
+     */
+    public static function get_configurable_standard_plugins(): array {
+        $instance = new static();
+        $all = array_keys($instance->get_tinymce_plugins());
+        $hardcoded = $instance->get_disabled_tinymce_plugins();
+        $configurable = array_values(array_diff($all, $hardcoded));
+        sort($configurable);
+        return $configurable;
     }
 
     /**

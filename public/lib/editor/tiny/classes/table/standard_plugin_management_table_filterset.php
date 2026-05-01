@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace editor_tiny\table;
+
 /**
- * Tiny text editor version file.
+ * Filterset for the standard plugin management table.
  *
  * @package    editor_tiny
- * @copyright  2021 Andrew Lyons <andrew@nicols.co.uk>
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2026050101;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2026041000;
-$plugin->component = 'editor_tiny';     // Full name of the plugin (used for diagnostics).
+class standard_plugin_management_table_filterset extends \core_table\local\filter\filterset {
+}

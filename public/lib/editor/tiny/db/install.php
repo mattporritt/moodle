@@ -29,4 +29,16 @@
 function xmldb_editor_tiny_install(): void {
     $editormanager = \core_plugin_manager::resolve_plugininfo_class('editor');
     $editormanager::enable_plugin('tiny', true);
+
+    // Initialize standard native plugin settings to enabled.
+    // The list is inlined here to keep the install step self-contained.
+    $standardplugins = [
+        'anchor', 'charmap', 'code', 'codesample', 'directionality', 'emoticons',
+        'fullscreen', 'help', 'insertdatetime', 'lists', 'nonbreaking', 'pagebreak',
+        'quickbars', 'save', 'searchreplace', 'table', 'visualblocks', 'visualchars',
+        'wordcount',
+    ];
+    foreach ($standardplugins as $pluginname) {
+        set_config('standard_plugin_' . $pluginname, 1, 'editor_tiny');
+    }
 }

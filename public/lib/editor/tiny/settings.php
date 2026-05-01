@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use editor_tiny\admin\admin_setting_standard_plugin_manager;
 use editor_tiny\editor_tiny_admin_setting_package_source;
 use editor_tiny\manager;
 
@@ -30,6 +31,25 @@ defined('MOODLE_INTERNAL') || die;
 $ADMIN->add('editorsettings', new admin_category('editortiny', $editor->displayname, $editor->is_enabled() === false));
 
 $settings = new admin_settingpage('editorsettingstiny', new lang_string('settings', 'editor_tiny'));
+
+if ($ADMIN->fulltree) {
+    // Section: Manage TinyMCE standard features.
+    $settings->add(new admin_setting_heading(
+        'editor_tiny/standard_plugins_heading',
+        new lang_string('managestandard', 'editor_tiny'),
+        new lang_string('managestandard_desc', 'editor_tiny'),
+    ));
+
+    $settings->add(new admin_setting_standard_plugin_manager());
+
+    // Section: Manage TinyMCE Moodle plugins.
+    $settings->add(new admin_setting_heading(
+        'editor_tiny/moodle_plugins_heading',
+        new lang_string('managemoodle', 'editor_tiny'),
+        new lang_string('managemoodle_desc', 'editor_tiny'),
+    ));
+}
+
 $settings->add(new \core_admin\admin\admin_setting_plugin_manager(
     'tiny',
     \editor_tiny\table\plugin_management_table::class,
@@ -38,6 +58,13 @@ $settings->add(new \core_admin\admin\admin_setting_plugin_manager(
 ));
 
 if ($ADMIN->fulltree) {
+    // Section: Manage miscellaneous settings.
+    $settings->add(new admin_setting_heading(
+        'editor_tiny/misc_heading',
+        new lang_string('managemisc', 'editor_tiny'),
+        '',
+    ));
+
     $setting = new admin_setting_configcheckbox(
         'editor_tiny/branding',
         new lang_string('branding', 'editor_tiny'),
