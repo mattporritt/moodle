@@ -47,6 +47,7 @@
         "canloginbyemail": false,
         "cansignup": true,
         "showloginform": true,
+        "cankeeploggedin": true,
         "error": "",
         "errortitle": "",
         "hasauthinstructions": false,
@@ -117,7 +118,16 @@
                     !}}placeholder="{{#str}}loginenterpassword{{/str}}" {{!
                     !}}autocomplete="current-password">
             </div>
-            <div class="text-end mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                {{#cankeeploggedin}}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="keeploggedin" id="keeploggedin" value="1">
+                    <label class="form-check-label" for="keeploggedin">
+                        {{#str}}loginkeepmeloggedin{{/str}}
+                    </label>
+                </div>
+                {{/cankeeploggedin}}
+                {{^cankeeploggedin}}<div></div>{{/cankeeploggedin}}
                 <a href="{{forgotpasswordurl}}">{{#str}}loginforgotpassword{{/str}}</a>
             </div>
             {{#recaptcha}}

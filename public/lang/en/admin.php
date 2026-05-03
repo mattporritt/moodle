@@ -806,6 +806,10 @@ If a Google Maps API V3 key is provided, IP address location is displayed using 
 $string['iplookupmaxmindnote'] = 'This product includes GeoIP City data created by MaxMind, available from <a href="https://www.maxmind.com">https://www.maxmind.com</a>.';
 $string['iscustomadminwarnings'] = 'It has been detected that your site is using a custom admin directory. This feature is no longer supported and will be removed after Moodle 4.2.';
 $string['ishttpswarning'] = 'It has been detected that your site is not secured using HTTPS. It is strongly recommended to migrate your site to HTTPS for increased security and improved integration with other systems.';
+$string['keeploggedin'] = 'Enable keep me logged in';
+$string['keeploggedin_desc'] = 'Allow users to stay logged in across browser sessions by checking a "Keep me logged in" box on the login form. When enabled, a long-lived cookie is set on the user\'s device and a corresponding server-side token is stored. The token is rotated on every use. This feature does not bypass multi-factor authentication.';
+$string['keeploggedinexpire'] = 'Keep me logged in duration';
+$string['keeploggedinexpire_desc'] = 'The maximum duration for which a remember-me token remains valid. After this period the user must log in again with their credentials.';
 $string['keeptagnamecase'] = 'Keep tag name casing';
 $string['lang'] = 'Default language';
 $string['langcache'] = 'Cache language menu';

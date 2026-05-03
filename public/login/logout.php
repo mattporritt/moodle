@@ -59,6 +59,11 @@ foreach($authsequence as $authname) {
     $authplugin->logoutpage_hook();
 }
 
+// Revoke any active remember-me token so the user is not silently re-authenticated after logging out.
+if (!empty($CFG->keeploggedin)) {
+    \core_auth\remember_me_manager::revoke_current();
+}
+
 require_logout();
 
 redirect($redirect);

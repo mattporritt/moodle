@@ -49,6 +49,7 @@
         "canloginbyemail": false,
         "cansignup": true,
         "showloginform": true,
+        "cankeeploggedin": true,
         "cookieshelpicon": {
             "heading": "Cookies must be enabled in your browser",
             "text": "<div class=\"no-overflow\">Two cookies are used on this site. Both died..</div>",
@@ -153,11 +154,20 @@
                     {{{recaptcha}}}
                 </div>
             {{/recaptcha}}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                {{#cankeeploggedin}}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="keeploggedin" id="keeploggedin" value="1">
+                    <label class="form-check-label" for="keeploggedin">
+                        {{#str}}loginkeepmeloggedin{{/str}}
+                    </label>
+                </div>
+                {{/cankeeploggedin}}
+                {{^cankeeploggedin}}<div></div>{{/cankeeploggedin}}
+                <a href="{{forgotpasswordurl}}">{{#str}}forgotaccount{{/str}}</a>
+            </div>
             <div class="login-form-submit mb-3">
                 <button class="btn btn-primary btn-lg" type="submit" id="loginbtn">{{#str}}login{{/str}}</button>
-            </div>
-            <div class="login-form-forgotpassword mb-3">
-                <a href="{{forgotpasswordurl}}">{{#str}}forgotaccount{{/str}}</a>
             </div>
         </form>
     {{/showloginform}}

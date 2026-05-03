@@ -2355,6 +2355,17 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
                 }
             }
 
+            // Attempt silent re-authentication via a remember-me cookie before redirecting to the login page.
+            if (!isloggedin() && !empty($CFG->keeploggedin)) {
+                $rememberme = \core_auth\remember_me_manager::validate_and_rotate();
+                if ($rememberme !== false) {
+                    $remembermeuser = get_complete_user_data('id', $rememberme);
+                    if ($remembermeuser) {
+                        complete_user_login($remembermeuser);
+                    }
+                }
+            }
+
             // If we're still not logged in then go to the login page
             if (!isloggedin()) {
                 redirect(get_login_url());

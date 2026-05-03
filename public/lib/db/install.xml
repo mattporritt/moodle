@@ -3463,6 +3463,26 @@
         <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
+    <TABLE NAME="auth_remember_me" COMMENT="Stores remember-me tokens for the keep-me-logged-in feature. Uses a split-token scheme: the browser cookie holds selector:validator; only the SHA-256 hash of the validator is stored here.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to user.id"/>
+        <FIELD NAME="selector" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Random selector used to look up the token record"/>
+        <FIELD NAME="token" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="SHA-256 hash of the plaintext validator stored in the browser cookie"/>
+        <FIELD NAME="expiry" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp after which this token is invalid"/>
+        <FIELD NAME="useragent" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="User-Agent string recorded when the token was created"/>
+        <FIELD NAME="lastused" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Unix timestamp of the most recent successful use of this token"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp when this token was created"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="selector" TYPE="unique" FIELDS="selector"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid-expiry" UNIQUE="false" FIELDS="userid, expiry" COMMENT="Supports revoke-all and expiry cleanup queries"/>
+      </INDEXES>
+    </TABLE>
     <TABLE NAME="lock_db" COMMENT="Stores active and inactive lock types for db locking method.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>

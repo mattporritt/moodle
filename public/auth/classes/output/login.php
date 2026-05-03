@@ -81,6 +81,8 @@ class login implements renderable, templatable {
     public $togglepassword;
     /** @var bool Toggle the password visibility icon for small screens only. */
     public $smallscreensonly;
+    /** @var bool Whether to show the "Keep me logged in" checkbox on the login form. */
+    public $cankeeploggedin;
 
     /**
      * Constructor.
@@ -141,6 +143,10 @@ class login implements renderable, templatable {
         $this->togglepassword = get_config('core', 'loginpasswordtoggle') == TOGGLE_SENSITIVE_ENABLED ||
             get_config('core', 'loginpasswordtoggle') == TOGGLE_SENSITIVE_SMALL_SCREENS_ONLY;
         $this->smallscreensonly = get_config('core', 'loginpasswordtoggle') == TOGGLE_SENSITIVE_SMALL_SCREENS_ONLY;
+
+        // Keep me logged in: shown when the feature is enabled and the standard form is visible.
+        $showloginform = get_config('core', 'showloginform') === false || get_config('core', 'showloginform');
+        $this->cankeeploggedin = !empty($CFG->keeploggedin) && $showloginform;
     }
 
     /**
@@ -196,6 +202,7 @@ class login implements renderable, templatable {
         $data->togglepassword = $this->togglepassword;
         $data->smallscreensonly = $this->smallscreensonly;
         $data->showloginform = get_config('core', 'showloginform') === false || get_config('core', 'showloginform');
+        $data->cankeeploggedin = $this->cankeeploggedin;
 
         return $data;
     }

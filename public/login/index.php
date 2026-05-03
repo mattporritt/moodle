@@ -216,6 +216,16 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
 
         \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
 
+        // Issue a remember-me token when the feature is enabled and the user requested it.
+        if (!empty($CFG->keeploggedin) && !empty($frm->keeploggedin)) {
+            $expiryseconds = (int) get_config('core', 'keeploggedinexpire') ?: WEEKSECS;
+            \core_auth\remember_me_manager::create_token(
+                $USER->id,
+                $expiryseconds,
+                $_SERVER['HTTP_USER_AGENT'] ?? '',
+            );
+        }
+
         // sets the username cookie
         if (!empty($CFG->nolastloggedin)) {
             // do not store last logged in user in cookie

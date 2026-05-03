@@ -1868,5 +1868,39 @@ function xmldb_main_upgrade($oldversion) {
     // Automatically generated Moodle v5.2.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2026050300.01) {
+        // MDL-67066: Create the auth_remember_me table for the keep-me-logged-in feature.
+        $table = new xmldb_table('auth_remember_me');
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('selector', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL);
+        $table->add_field('token', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL);
+        $table->add_field('expiry', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('useragent', XMLDB_TYPE_TEXT, null, null, null);
+        $table->add_field('lastused', XMLDB_TYPE_INTEGER, '10', null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('selector', XMLDB_KEY_UNIQUE, ['selector']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+
+        $table->add_index('userid-expiry', XMLDB_INDEX_NOTUNIQUE, ['userid', 'expiry']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Enable the feature and set default duration (1 week) for both new and upgrading sites.
+        if (get_config('core', 'keeploggedin') === false) {
+            set_config('keeploggedin', 1);
+        }
+        if (get_config('core', 'keeploggedinexpire') === false) {
+            set_config('keeploggedinexpire', WEEKSECS);
+        }
+
+        upgrade_main_savepoint(true, 2026050300.01);
+    }
+
     return true;
 }

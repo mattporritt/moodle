@@ -151,5 +151,22 @@ if ($hassiteconfig) {
         ],
     ));
 
+    // Keep me logged in: enable/disable.
+    $temp->add(new admin_setting_configcheckbox(
+        'keeploggedin',
+        new lang_string('keeploggedin', 'admin'),
+        new lang_string('keeploggedin_desc', 'admin'),
+        1,
+    ));
+
+    // Keep me logged in: token lifetime.
+    $temp->add(new admin_setting_configduration(
+        'keeploggedinexpire',
+        new lang_string('keeploggedinexpire', 'admin'),
+        new lang_string('keeploggedinexpire_desc', 'admin'),
+        WEEKSECS,
+        HOURSECS,
+    ));
+
     $ADMIN->add('login', $temp);
 }
