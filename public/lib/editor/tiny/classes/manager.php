@@ -289,12 +289,16 @@ class manager {
      * @return string[] Plugin names sorted alphabetically.
      */
     public static function get_configurable_standard_plugins(): array {
-        $instance = new static();
-        $all = array_keys($instance->get_tinymce_plugins());
-        $hardcoded = $instance->get_disabled_tinymce_plugins();
-        $configurable = array_values(array_diff($all, $hardcoded));
-        sort($configurable);
-        return $configurable;
+        static $cache = null;
+        if ($cache === null) {
+            $instance = new static();
+            $all = array_keys($instance->get_tinymce_plugins());
+            $hardcoded = $instance->get_disabled_tinymce_plugins();
+            $configurable = array_values(array_diff($all, $hardcoded));
+            sort($configurable);
+            $cache = $configurable;
+        }
+        return $cache;
     }
 
     /**

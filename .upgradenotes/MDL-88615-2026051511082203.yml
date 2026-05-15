@@ -1,0 +1,11 @@
+issueNumber: MDL-88615
+notes:
+  editor_tiny:
+    - message: >-
+        The protected `manager::get_shipped_plugins()` method now excludes
+        native TinyMCE plugins that have been disabled by a site administrator
+        via the new admin settings controls. Any subclass that overrides
+        `get_shipped_plugins()` should call `parent::get_shipped_plugins()` or
+        apply the same exclusion logic to respect site administrator
+        configuration.
+      type: changed

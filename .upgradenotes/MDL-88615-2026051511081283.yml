@@ -1,0 +1,8 @@
+issueNumber: MDL-88615
+notes:
+  editor_tiny:
+    - message: >-
+        New public static method `manager::get_configurable_standard_plugins()`
+        returns the list of native TinyMCE plugins that site administrators can
+        enable or disable via the admin settings page.
+      type: improved

@@ -30,18 +30,6 @@ use advanced_testcase;
  */
 final class manager_test extends advanced_testcase {
     /**
-     * Return shipped plugins via reflection (method is protected).
-     *
-     * @param manager $manager The manager instance to reflect into.
-     * @return array The list of shipped plugin names.
-     */
-    private function get_shipped_plugins(manager $manager): array {
-        $method = new \ReflectionMethod($manager, 'get_shipped_plugins');
-        $method->setAccessible(true);
-        return $method->invoke($manager);
-    }
-
-    /**
      * get_configurable_standard_plugins returns a non-empty array of plugin names.
      *
      * @covers ::get_configurable_standard_plugins
@@ -81,52 +69,65 @@ final class manager_test extends advanced_testcase {
     }
 
     /**
-     * Disabling a plugin via admin config excludes it from shipped plugins.
+     * get_configurable_standard_plugins returns the same instance on repeated calls (static cache).
      *
-     * @covers ::get_shipped_plugins
+     * @covers ::get_configurable_standard_plugins
      */
-    public function test_admin_disabled_plugin_excluded_from_shipped(): void {
+    public function test_get_configurable_standard_plugins_returns_same_result_on_repeated_calls(): void {
+        $first = manager::get_configurable_standard_plugins();
+        $second = manager::get_configurable_standard_plugins();
+        $this->assertSame($first, $second);
+    }
+
+    /**
+     * Disabling a plugin via admin config excludes it from plugin configuration.
+     *
+     * @covers ::get_plugin_configuration
+     */
+    public function test_admin_disabled_plugin_excluded_from_plugin_configuration(): void {
         $this->resetAfterTest();
 
         $manager = new manager();
+        $context = \context_system::instance();
 
         // Charmap should be present by default.
-        $shipped = $this->get_shipped_plugins($manager);
-        $this->assertArrayHasKey('charmap', $shipped);
+        $config = $manager->get_plugin_configuration($context);
+        $this->assertArrayHasKey('charmap', $config);
 
         // Disable charmap via site config.
         set_config('standard_plugin_charmap', 0, 'editor_tiny');
 
-        $shipped = $this->get_shipped_plugins($manager);
-        $this->assertArrayNotHasKey('charmap', $shipped);
+        $config = $manager->get_plugin_configuration($context);
+        $this->assertArrayNotHasKey('charmap', $config);
     }
 
     /**
-     * Re-enabling a plugin via admin config restores it to shipped plugins.
+     * Re-enabling a plugin via admin config restores it to plugin configuration.
      *
-     * @covers ::get_shipped_plugins
+     * @covers ::get_plugin_configuration
      */
-    public function test_re_enabling_plugin_restores_it_to_shipped(): void {
+    public function test_re_enabling_plugin_restores_it_to_plugin_configuration(): void {
         $this->resetAfterTest();
 
         set_config('standard_plugin_table', 0, 'editor_tiny');
 
         $manager = new manager();
-        $shipped = $this->get_shipped_plugins($manager);
-        $this->assertArrayNotHasKey('table', $shipped);
+        $context = \context_system::instance();
+        $config = $manager->get_plugin_configuration($context);
+        $this->assertArrayNotHasKey('table', $config);
 
         set_config('standard_plugin_table', 1, 'editor_tiny');
 
-        $shipped = $this->get_shipped_plugins($manager);
-        $this->assertArrayHasKey('table', $shipped);
+        $config = $manager->get_plugin_configuration($context);
+        $this->assertArrayHasKey('table', $config);
     }
 
     /**
-     * Multiple plugins can be disabled simultaneously.
+     * Multiple plugins can be disabled simultaneously via admin config.
      *
-     * @covers ::get_shipped_plugins
+     * @covers ::get_plugin_configuration
      */
-    public function test_multiple_admin_disabled_plugins_excluded(): void {
+    public function test_multiple_admin_disabled_plugins_excluded_from_plugin_configuration(): void {
         $this->resetAfterTest();
 
         set_config('standard_plugin_charmap', 0, 'editor_tiny');
@@ -134,20 +135,21 @@ final class manager_test extends advanced_testcase {
         set_config('standard_plugin_fullscreen', 0, 'editor_tiny');
 
         $manager = new manager();
-        $shipped = $this->get_shipped_plugins($manager);
+        $context = \context_system::instance();
+        $config = $manager->get_plugin_configuration($context);
 
-        $this->assertArrayNotHasKey('charmap', $shipped);
-        $this->assertArrayNotHasKey('wordcount', $shipped);
-        $this->assertArrayNotHasKey('fullscreen', $shipped);
+        $this->assertArrayNotHasKey('charmap', $config);
+        $this->assertArrayNotHasKey('wordcount', $config);
+        $this->assertArrayNotHasKey('fullscreen', $config);
         // Other plugins should remain.
-        $this->assertArrayHasKey('table', $shipped);
-        $this->assertArrayHasKey('searchreplace', $shipped);
+        $this->assertArrayHasKey('table', $config);
+        $this->assertArrayHasKey('searchreplace', $config);
     }
 
     /**
      * Admin config cannot re-enable a hardcoded disabled plugin.
      *
-     * @covers ::get_shipped_plugins
+     * @covers ::get_plugin_configuration
      */
     public function test_hardcoded_disabled_plugin_stays_disabled_regardless_of_config(): void {
         $this->resetAfterTest();
@@ -156,25 +158,9 @@ final class manager_test extends advanced_testcase {
         set_config('standard_plugin_image', 1, 'editor_tiny');
 
         $manager = new manager();
-        $shipped = $this->get_shipped_plugins($manager);
-        $this->assertArrayNotHasKey('image', $shipped);
-    }
-
-    /**
-     * Admin-disabled plugin is excluded from get_plugin_configuration output.
-     *
-     * @covers ::get_plugin_configuration
-     */
-    public function test_admin_disabled_plugin_excluded_from_plugin_configuration(): void {
-        $this->resetAfterTest();
-
-        set_config('standard_plugin_table', 0, 'editor_tiny');
-
-        $manager = new manager();
         $context = \context_system::instance();
         $config = $manager->get_plugin_configuration($context);
-
-        $this->assertArrayNotHasKey('table', $config);
+        $this->assertArrayNotHasKey('image', $config);
     }
 
     /**
