@@ -16,6 +16,7 @@
 
 namespace core_ltix\external;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use core_external\external_api;
 use core_ltix\helper;
 use core_ltix\lti_testcase;
@@ -28,12 +29,11 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
 /**
  * PHPUnit tests for delete_course_tool_type external function.
  *
- * @coversDefaultClass \core_ltix\external\delete_course_tool_type
  * @package    core_ltix
  * @copyright  2023 Jake Dallimore <jrhdallimore@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(\core_ltix\external\delete_course_tool_type::class)]
+#[CoversClass(\core_ltix\external\delete_course_tool_type::class)]
 final class delete_course_tool_type_test extends lti_testcase {
 
     /**
