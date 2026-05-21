@@ -81,7 +81,6 @@ final class upgradelib_test extends \advanced_testcase {
     /**
      * Test covering the creation of placements for existing tools during upgrade.
      *
-     * @covers \mod_lti\lti_migration_upgrade_helper::create_default_placements
      * @return void
      */
     public function test_migration_helper_create_default_placements(): void {
@@ -348,7 +347,6 @@ final class upgradelib_test extends \advanced_testcase {
     /**
      * Test covering the creation of links for existing tools during upgrade.
      *
-     * @covers \mod_lti\lti_migration_upgrade_helper::create_resource_links
      * @return void
      */
     public function test_create_resource_links(): void {

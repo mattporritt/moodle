@@ -48,6 +48,7 @@
  */
 namespace mod_lti;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use core_ltix\helper;
 use core_ltix\oauth_helper;
 
@@ -65,7 +66,6 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  */
 final class locallib_test extends \advanced_testcase {
     /**
-     * @covers ::lti_split_parameters()
      *
      * Test the split parameters function
      */
@@ -675,11 +675,11 @@ final class locallib_test extends \advanced_testcase {
     /**
      * Test lti_get_best_tool_by_url.
      *
-     * @dataProvider lti_get_best_tool_by_url_provider
      * @param string $url The URL to test.
      * @param object $expected The expected tool matching the URL.
      * @param array $tools The pool of tools to match the URL with.
      */
+    #[DataProvider('lti_get_best_tool_by_url_provider')]
     public function test_lti_get_best_tool_by_url($url, $expected, $tools): void {
         $actual = lti_get_best_tool_by_url($url, $tools, null);
         $this->assertDebuggingCalled();
@@ -687,7 +687,6 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
-     * @covers ::lti_get_tools_by_domain()
      *
      * Test lti_get_tools_by_domain.
      */
@@ -725,7 +724,6 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
-     * @covers ::lti_get_tools_by_domain()
      *
      * Test test_lti_get_tools_by_domain_restrict_types_category.
      */
@@ -1576,7 +1574,6 @@ MwIDAQAB
     }
 
     /**
-     * @covers ::lti_tool_configuration_from_content_item()
      *
      * Test adding a single gradable item through content item with an empty subreview url.
      */
@@ -1623,7 +1620,6 @@ MwIDAQAB
     }
 
     /**
-     * @covers ::lti_tool_configuration_from_content_item()
      *
      * Test adding a single gradable item through content item.
      */
@@ -1974,7 +1970,6 @@ MwIDAQAB
     }
 
     /**
-     * @covers lti_get_launch_data
      *
      * Test for_user is passed as parameter when specified.
      */
@@ -2130,14 +2125,13 @@ MwIDAQAB
     /**
      * Test the lti_get_ims_role helper function.
      *
-     * @dataProvider lti_get_ims_role_provider
-     * @covers ::lti_get_ims_role
      *
      * @param bool $islti2 whether the method is called with LTI 2.0 role names or not.
      * @param string $rolename the name of the role (student, teacher, admin)
      * @param null|string $switchedto the role to switch to, or false if not using the 'switch to' functionality.
      * @param string $expected the expected role name.
      */
+    #[DataProvider('lti_get_ims_role_provider')]
     public function test_lti_get_ims_role(bool $islti2, string $rolename, ?string $switchedto, string $expected): void {
         global $DB;
         $this->resetAfterTest();
@@ -2340,7 +2334,6 @@ MwIDAQAB
     /**
      * Verify that empty curl responses lead to the proper moodle_exception, not to XML ValueError.
      *
-     * @covers ::lti_load_cartridge
      */
     public function test_empty_reponse_lti_load_cartridge(): void {
         // Mock the curl response to empty string, this is hardly
