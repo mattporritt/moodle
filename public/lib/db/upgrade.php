@@ -2501,27 +2501,28 @@ function xmldb_main_upgrade($oldversion) {
 
     if ($oldversion < 2026102100.04) {
 
-        // Define index ltiid (not unique) to be dropped form lti_submission.
         $table = new xmldb_table('lti_submission');
-        $index = new xmldb_index('ltiid', XMLDB_INDEX_NOTUNIQUE, ['ltiid']);
-
-        // Conditionally launch drop index ltiid.
-        if ($dbman->index_exists($table, $index)) {
-            $dbman->drop_index($table, $index);
-        }
-
-        // Rename field ltiid on table lti_submission to ltiresourcelinkid.
         $field = new xmldb_field('ltiid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'id');
+        if ($dbman->field_exists($table, $field)) {
 
-        // Launch rename field ltiresourcelinkid.
-        $dbman->rename_field($table, $field, 'ltiresourcelinkid');
+            // Define index ltiid (not unique) to be dropped form lti_submission.
+            $index = new xmldb_index('ltiid', XMLDB_INDEX_NOTUNIQUE, ['ltiid']);
 
-        // Define index ltiresourcelinkid (not unique) to be added to lti_submission.
-        $index = new xmldb_index('ltiresourcelinkid', XMLDB_INDEX_NOTUNIQUE, ['ltiresourcelinkid']);
+            // Conditionally launch drop index ltiid.
+            if ($dbman->index_exists($table, $index)) {
+                $dbman->drop_index($table, $index);
+            }
 
-        // Conditionally launch add index ltiresourcelinkid.
-        if (!$dbman->index_exists($table, $index)) {
-            $dbman->add_index($table, $index);
+            // Launch rename field ltiresourcelinkid.
+            $dbman->rename_field($table, $field, 'ltiresourcelinkid');
+
+            // Define index ltiresourcelinkid (not unique) to be added to lti_submission.
+            $index = new xmldb_index('ltiresourcelinkid', XMLDB_INDEX_NOTUNIQUE, ['ltiresourcelinkid']);
+
+            // Conditionally launch add index ltiresourcelinkid.
+            if (!$dbman->index_exists($table, $index)) {
+                $dbman->add_index($table, $index);
+            }
         }
 
         // Main savepoint reached.
