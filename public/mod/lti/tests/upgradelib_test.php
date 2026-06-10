@@ -97,7 +97,7 @@ final class upgradelib_test extends \advanced_testcase {
         // Create some tools configured in slightly different ways, representative of existing tool states.
         $tools = [];
 
-        // Hidden in courses and without deep linking support.
+        // Hidden in courses and without deep linking support. No placement expected.
         $tool1id = $ltigenerator->create_tool_types([
             'name' => 'Test tool 1',
             'description' => 'Good example description',
@@ -295,43 +295,50 @@ final class upgradelib_test extends \advanced_testcase {
             'expected_placement_statuses' => [],
         ];
 
-        $migrationhelper = new lti_migration_upgrade_helper();
-        $migrationhelper->create_default_placements();
+        // Anon helper to verify the task updated the relevant tools, creating a single placement and associated config for each.
+        $verifyplacements = function (array $tools) use ($DB) {
+            foreach ($tools as $tool) {
+                $placements = $this->get_tool_placements($tool['id']);
+                if (!$tool['expected_placement']) {
+                    $this->assertEmpty($placements);
+                    continue;
+                }
+                $this->assertCount(1, $placements);
+                $placement = array_pop($placements);
 
-        // Verify the task updated the relevant tools, creating a single placement and its associated config for each one.
-        foreach ($tools as $tool) {
-            $placements = $this->get_tool_placements($tool['id']);
-            if (!$tool['expected_placement']) {
-                $this->assertEmpty($placements);
-                continue;
-            }
-            $this->assertCount(1, $placements);
-            $placement = array_pop($placements);
+                // Verify correct placement.
+                $this->assertEquals($tool['id'], $placement->toolid);
+                $this->assertEquals('mod_lti:activityplacement', $placement->placementtype);
 
-            // Verify correct placement.
-            $this->assertEquals($tool['id'], $placement->toolid);
-            $this->assertEquals('mod_lti:activityplacement', $placement->placementtype);
+                // Verify correct placement config.
+                $this->assertEquals(count($tool['expected_placement_config']), count($placement->config));
+                foreach ($tool['expected_placement_config'] as $expectedconfigname => $expectedconfigvalue) {
+                    $this->assertEquals($expectedconfigvalue, $placement->config[$expectedconfigname]);
+                }
 
-            // Verify correct placement config.
-            $this->assertEquals(count($tool['expected_placement_config']), count($placement->config));
-            foreach($tool['expected_placement_config'] as $expectedconfigname => $expectedconfigvalue) {
-                $this->assertEquals($expectedconfigvalue, $placement->config[$expectedconfigname]);
-            }
-
-            // Verify correct placement statuses.
-            if (isset($tool['expected_placement_statuses'])) {
-                $placementstatuses = $DB->get_records_menu('lti_placement_status', ['placementid' => $placement->id], '',
-                    'contextid, status');
-                $this->assertEquals(count($tool['expected_placement_statuses']), count($placementstatuses));
-                foreach ($tool['expected_placement_statuses'] as $expectedplacementstatus) {
-                    $this->assertArrayHasKey($expectedplacementstatus['contextid'], $placementstatuses);
-                    $this->assertEquals(
-                        $expectedplacementstatus['status']->value,
-                        $placementstatuses[$expectedplacementstatus['contextid']]
-                    );
+                // Verify correct placement statuses.
+                if (isset($tool['expected_placement_statuses'])) {
+                    $placementstatuses = $DB->get_records_menu('lti_placement_status', ['placementid' => $placement->id], '',
+                        'contextid, status');
+                    $this->assertEquals(count($tool['expected_placement_statuses']), count($placementstatuses));
+                    foreach ($tool['expected_placement_statuses'] as $expectedplacementstatus) {
+                        $this->assertArrayHasKey($expectedplacementstatus['contextid'], $placementstatuses);
+                        $this->assertEquals(
+                            $expectedplacementstatus['status']->value,
+                            $placementstatuses[$expectedplacementstatus['contextid']]
+                        );
+                    }
                 }
             }
-        }
+        };
+
+        $migrationhelper = new lti_migration_upgrade_helper();
+        $migrationhelper->create_default_placements();
+        $verifyplacements($tools);
+
+        // Verify idempotence.
+        $migrationhelper->create_default_placements();
+        $verifyplacements($tools);
     }
 
     /**
@@ -413,6 +420,13 @@ final class upgradelib_test extends \advanced_testcase {
         ]);
         $newlink->save();
         $this->assertEquals(max($instanceids) + 1, $newlink->get('id'));
+
+        // Verify idempotence.
+        $migrationhelper->create_resource_links();
+        $links = $DB->get_records('lti_resource_link');
+        sort($links);
+        $linkids = array_column($links, 'id');
+        $this->assertEquals(array_merge($instanceids, [$newlink->get('id')]), $linkids);
     }
 
 

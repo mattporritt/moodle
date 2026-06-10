@@ -89,15 +89,24 @@ class lti_migration_upgrade_helper {
             ) SELECT
                 tool.id AS toolid,
                 :placementtypeid AS placementtypeid
-               FROM {lti_types} tool
-              WHERE tool.coursevisible != :coursevisiblehidden
+                FROM {lti_types} tool
+               WHERE tool.coursevisible != :coursevisiblehidden
+                 AND NOT EXISTS (
+                     SELECT 1
+                       FROM {lti_placement} p
+                      WHERE p.toolid = tool.id AND p.placementtypeid = :placementtypeid2
+                 )
         EOF;
         $DB->execute(
             $placementsql,
-            ['placementtypeid' => $placementtypeid, 'coursevisiblehidden' => \core_ltix\constants::LTI_COURSEVISIBLE_NO]
+            [
+                'placementtypeid' => $placementtypeid,
+                'coursevisiblehidden' => \core_ltix\constants::LTI_COURSEVISIBLE_NO,
+                'placementtypeid2' => $placementtypeid,
+            ]
         );
 
-        // Conditionally set 'default_usage config' config value.
+        // Conditionally set 'default_usage' config value.
         $defaultusageconfigsql = <<<EOF
             INSERT INTO {lti_placement_config} (
                 placementid,
@@ -110,11 +119,17 @@ class lti_migration_upgrade_helper {
                 FROM {lti_placement} p
                 JOIN {lti_types} tool ON (tool.id = p.toolid)
                WHERE p.placementtypeid = :placementtypeid
+                 AND NOT EXISTS (
+                     SELECT 1
+                       FROM {lti_placement_config} pc
+                      WHERE pc.placementid = p.id AND pc.name = :name2
+                 )
         EOF;
         $DB->execute($defaultusageconfigsql, [
             'name' => 'default_usage',
             'coursevisibleactchooser' => self::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
-            'placementtypeid' => $placementtypeid
+            'placementtypeid' => $placementtypeid,
+            'name2' => 'default_usage',
         ]);
 
         // Set 'supports_deep_linking' config value.
@@ -127,15 +142,21 @@ class lti_migration_upgrade_helper {
                 p.id AS placementid,
                 :name AS name,
                 tc.value AS value
-              FROM {lti_types} tool
-              JOIN {lti_types_config} tc ON (tc.typeid = tool.id AND tc.name = :contentitem)
-              JOIN {lti_placement} p ON (tool.id = p.toolid)
-              WHERE p.placementtypeid = :placementtypeid
+                FROM {lti_types} tool
+                JOIN {lti_types_config} tc ON (tc.typeid = tool.id AND tc.name = :contentitem)
+                JOIN {lti_placement} p ON (tool.id = p.toolid)
+               WHERE p.placementtypeid = :placementtypeid
+                 AND NOT EXISTS (
+                     SELECT 1
+                       FROM {lti_placement_config} pc
+                      WHERE pc.placementid = p.id AND pc.name = :name2
+                 )
         EOF;
         $DB->execute($supportsdeeplinkingconfigsql, [
             'name' => 'supports_deep_linking',
             'contentitem' => 'contentitem',
             'placementtypeid' => $placementtypeid,
+            'name2' => 'supports_deep_linking',
         ]);
 
         // Set 'deep_linking_url' config value.
@@ -154,11 +175,17 @@ class lti_migration_upgrade_helper {
               JOIN {lti_placement} p ON (tool.id = p.toolid)
               WHERE p.placementtypeid = :placementtypeid
                 AND $isnotempty
+                AND NOT EXISTS (
+                    SELECT 1
+                      FROM {lti_placement_config} pc
+                     WHERE pc.placementid = p.id AND pc.name = :name2
+                 )
         EOF;
         $DB->execute($deeplinkingurlconfigsql, [
             'name' => 'deep_linking_url',
             'contentitemurl' => 'toolurl_ContentItemSelectionRequest',
             'placementtypeid' => $placementtypeid,
+            'name2' => 'deep_linking_url',
         ]);
 
         // Set the context-specific status of the placement. Maps lti_coursevisible to lti_placement_status.
@@ -174,10 +201,15 @@ class lti_migration_upgrade_helper {
                 p.id AS placementid,
                 ctx.id AS contextid,
                 (CASE WHEN lcv.coursevisible = :coursevisibleactchooser THEN 1 ELSE 0 END) AS status
-              FROM {lti_types} tool
-              JOIN {lti_coursevisible} lcv ON (tool.id = lcv.typeid)
-              JOIN {context} ctx ON (ctx.contextlevel = :coursecontextlevel AND ctx.instanceid = lcv.courseid)
-              JOIN {lti_placement} p ON (p.toolid = tool.id)
+                FROM {lti_types} tool
+                JOIN {lti_coursevisible} lcv ON (tool.id = lcv.typeid)
+                JOIN {context} ctx ON (ctx.contextlevel = :coursecontextlevel AND ctx.instanceid = lcv.courseid)
+                JOIN {lti_placement} p ON (p.toolid = tool.id)
+               WHERE NOT EXISTS(
+                   SELECT 1
+                     FROM {lti_placement_status} ps
+                    WHERE ps.placementid = p.id AND ps.contextid = ctx.id
+               )
         EOF;
         $DB->execute($placementstatussql, [
             'coursevisibleactchooser' => self::LEGACY_LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
@@ -197,19 +229,26 @@ class lti_migration_upgrade_helper {
         // a) If the link is a legacy, manually-configured instance, typeid = 0.
         // b) if the link has been restored, cross-site, where the tool was not restored (site tools aren't), typeid = null.
         // All links created here will map BOTH nulls and 0s to 0, denoting a link that isn't directly associated with a tool.
-        $sql = "INSERT INTO {lti_resource_link} (id, typeid, component, itemtype, itemid, contextid, url, title, text,
-                             textformat, gradable, launchcontainer, customparams, icon, servicesalt)
-                     SELECT lti.id,
-                            (CASE WHEN lti.typeid IS NULL THEN 0 ELSE lti.typeid END) AS typeid,
-                            :component, :itemtype, cm.id, ctx.id, lti.toolurl, lti.name, lti.intro,
-                            lti.introformat, :gradable, lti.launchcontainer, lti.instructorcustomparameters, lti.icon,
-                            lti.servicesalt
-                       FROM {lti} lti
-                       JOIN {course_modules} cm ON (cm.instance = lti.id)
-                       JOIN {modules} m ON (m.id = cm.module)
-                       JOIN {context} ctx ON (ctx.instanceid = cm.id)
-                      WHERE m.name = :ltimodulename
-                        AND ctx.contextlevel = :contextlevel";
+        $sql = <<<EOF
+            INSERT INTO {lti_resource_link} (id, typeid, component, itemtype, itemid, contextid, url, title, text,
+                        textformat, gradable, launchcontainer, customparams, icon, servicesalt)
+                 SELECT lti.id,
+                    (CASE WHEN lti.typeid IS NULL THEN 0 ELSE lti.typeid END) AS typeid,
+                    :component, :itemtype, cm.id, ctx.id, lti.toolurl, lti.name, lti.intro,
+                    lti.introformat, :gradable, lti.launchcontainer, lti.instructorcustomparameters, lti.icon,
+                    lti.servicesalt
+                   FROM {lti} lti
+                   JOIN {course_modules} cm ON (cm.instance = lti.id)
+                   JOIN {modules} m ON (m.id = cm.module)
+                   JOIN {context} ctx ON (ctx.instanceid = cm.id)
+                  WHERE m.name = :ltimodulename
+                    AND ctx.contextlevel = :contextlevel
+                    AND NOT EXISTS (
+                        SELECT 1
+                          FROM {lti_resource_link} rl
+                         WHERE rl.id = lti.id
+                    )
+        EOF;
         $DB->execute($sql, [
             'component' => 'mod_lti',
             'itemtype' => 'mod_lti:activityplacement', // The placement type. See mod/lti/db/lti.php where this is defined.
