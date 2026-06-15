@@ -27,6 +27,7 @@
 namespace ltixservice_toolsettings\local\resources;
 
 use core_ltix\local\lticore\message\context\collection\launch_context;
+use core_ltix\local\lticore\message\context\item\course_context;
 use ltixservice_toolsettings\local\service\toolsettings;
 
 defined('MOODLE_INTERNAL') || die();
@@ -185,15 +186,14 @@ class contextsettings extends \core_ltix\local\ltiservice\resource_base {
      * @return string
      */
     public function parse_val(string $value, launch_context $launchcontext): string {
-        global $COURSE;
-
-        if (strpos($value, '$ToolProxyBinding.custom.url') !== false) {
-            if ($COURSE->format == 'site') {
+        $course = $launchcontext->require(course_context::class)->course;
+        if (str_contains($value, '$ToolProxyBinding.custom.url')) {
+            if ($course->format == 'site') {
                 $this->params['context_type'] = 'Group';
             } else {
                 $this->params['context_type'] = 'CourseSection';
             }
-            $this->params['context_id'] = $COURSE->id;
+            $this->params['context_id'] = $course->id;
             if (!empty($this->get_service()->get_tool_proxy())) {
                 $this->params['vendor_code'] = $this->get_service()->get_tool_proxy()->vendorcode;
                 $this->params['product_code'] = $this->get_service()->get_tool_proxy()->guid;
