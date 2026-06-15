@@ -48,16 +48,14 @@ use core_ltix\local\placement\service\resource_link_manager;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
+
     /**
-     * Get the tools matching a domain that are usable in a course.
+     * Get all LTI tools configured for a given domain.
      *
-     * Site tools and tools of the given course are returned, limited to those whose course category
-     * restrictions allow the course's category.
-     *
-     * @param string|null $domain The tool domain, as returned by {@see self::get_domain_from_url()}.
-     * @param int|null $state Only return tools in this state (LTI_TOOL_STATE_*), or any state when empty.
-     * @param int|null $courseid The course the tools are wanted for.
-     * @return \stdClass[] The matching lti_types records, indexed by id.
+     * @param string $domain The tool domain to search for
+     * @param int|null $state Optional tool state filter (e.g. LTI_TOOL_STATE_CONFIGURED)
+     * @param int|null $courseid Optional course ID to restrict results
+     * @return array Array of lti_types records matching the domain
      */
     public static function get_tools_by_domain($domain, $state = null, $courseid = null) {
         global $DB, $SITE;
@@ -92,10 +90,10 @@ class helper {
     }
 
     /**
-     * Get the domain part of a tool URL.
+     * Extract the domain from a URL string.
      *
-     * @param string|null $url The tool URL.
-     * @return string|null The domain, or null when the URL does not match.
+     * @param string|null $url The URL to parse
+     * @return string|null The domain portion of the URL, or null if not matched
      */
     public static function get_domain_from_url($url) {
         $matches = [];
@@ -106,12 +104,12 @@ class helper {
     }
 
     /**
-     * Get the tools that share the domain of a URL.
+     * Get all LTI tools whose domain matches the given URL.
      *
-     * @param string $url The tool URL.
-     * @param int|null $state Only return tools in this state (LTI_TOOL_STATE_*), or any state when empty.
-     * @param int|null $courseid The course the tools are wanted for.
-     * @return \stdClass[] The matching lti_types records, indexed by id.
+     * @param string $url The launch URL to match against
+     * @param int $state Tool state filter
+     * @param int|null $courseid Optional course ID to restrict results
+     * @return array Array of lti_types records
      */
     public static function get_tools_by_url($url, $state, $courseid = null) {
         $domain = self::get_domain_from_url($url);
@@ -119,6 +117,14 @@ class helper {
         return self::get_tools_by_domain($domain, $state, $courseid);
     }
 
+    /**
+     * Find the best-matching configured LTI tool for a given URL.
+     *
+     * @param string $url The launch URL to match
+     * @param int|null $courseid Optional course ID to restrict results
+     * @param int $state Tool state filter; defaults to LTI_TOOL_STATE_CONFIGURED
+     * @return object|null The best-matching tool record, or null if none found
+     */
     public static function get_tool_by_url_match($url, $courseid = null, $state = constants::LTI_TOOL_STATE_CONFIGURED) {
         $possibletools = self::get_tools_by_url($url, $state, $courseid);
 
@@ -126,12 +132,15 @@ class helper {
     }
 
     /**
-     * Pick the tool with the best matching base URL from a list of candidates.
+     * Select the best-matching LTI tool from a list of candidates for a given URL.
      *
-     * @param string $url The tool URL.
-     * @param \stdClass[] $tools The candidate lti_types records.
-     * @param int|null $courseid The course the tool is wanted for.
-     * @return \stdClass|null The best match, or null when no candidate matches.
+     * Scores each tool by how closely its base URL matches the given URL, preferring
+     * course-level tools over site-level tools when a course ID is provided.
+     *
+     * @param string $url The launch URL to match
+     * @param array $tools Array of candidate tool records
+     * @param int|null $courseid Optional course ID used to prefer course-level tools
+     * @return object|null The best-matching tool record, or null if no suitable tool found
      */
     public static function get_best_tool_by_url($url, $tools, $courseid = null) {
         if (count($tools) === 0) {
@@ -179,12 +188,13 @@ class helper {
     }
 
     /**
-     * Reduce a URL to host, path and query, so URLs can be compared.
+     * Generate a normalised URL thumbprint for comparison purposes.
      *
-     * The scheme and a leading "www." are ignored.
+     * Strips the scheme, lowercases, removes "www." prefix, and combines
+     * host, path and query to produce a canonical string for URL matching.
      *
-     * @param string $url The URL.
-     * @return string The thumbprint of the URL.
+     * @param string $url The URL to normalise
+     * @return string The normalised URL thumbprint
      */
     public static function get_url_thumbprint($url) {
         // Parse URL requires a schema otherwise everything goes into 'path'.  Fixed 5.4.7 or later.
@@ -924,10 +934,13 @@ class helper {
     }
 
     /**
-     * Make a URL use https.
+     * Ensure a URL uses the HTTPS scheme.
      *
-     * @param string $url The URL, with or without a scheme.
-     * @return string The URL, with the https scheme.
+     * If the URL has no scheme, https:// is prepended. If it starts with
+     * http://, that is replaced with https://.
+     *
+     * @param string $url The URL to convert
+     * @return string The URL with https:// scheme
      */
     public static function ensure_url_is_https($url) {
         if (!strstr($url, '://')) {
@@ -943,9 +956,9 @@ class helper {
     }
 
     /**
-     * Whether the site is served over https.
+     * Check whether the current Moodle installation is configured to use SSL.
      *
-     * @return bool True when $CFG->wwwroot starts with https://.
+     * @return bool True if the configured wwwroot uses https://, false otherwise
      */
     public static function request_is_using_ssl() {
         global $CFG;
@@ -1393,10 +1406,10 @@ class helper {
     }
 
     /**
-     * Get a tool type.
+     * Get a single LTI tool type record by ID.
      *
-     * @param int $typeid The id of the lti_types record.
-     * @return \stdClass|false The lti_types record, or false when it does not exist.
+     * @param int $typeid The tool type ID
+     * @return object|false The lti_types record, or false if not found
      */
     public static function get_type($typeid) {
         global $DB;
@@ -1442,10 +1455,11 @@ class helper {
     }
 
     /**
-     * Set the state of a tool type.
+     * Update the state of an LTI tool type.
      *
-     * @param int $id The id of the lti_types record.
-     * @param int $state The new state (LTI_TOOL_STATE_*).
+     * @param int $id The tool type ID
+     * @param int $state The new state value
+     * @return void
      */
     public static function set_state_for_type($id, $state) {
         global $DB;
@@ -1684,12 +1698,11 @@ class helper {
     }
 
     /**
-     * Prepare a tool type record from its configuration, before it is saved.
+     * Prepare a tool type record for saving by mapping config values onto the type object.
      *
-     * Settings that are stored in the type record are moved there and removed from the configuration.
-     *
-     * @param \stdClass $type The lti_types record, updated in place.
-     * @param \stdClass $config The type configuration, updated in place.
+     * @param object $type The tool type record to populate
+     * @param object $config The form configuration object
+     * @return void
      */
     public static function prepare_type_for_save($type, $config) {
         if (isset($config->lti_toolurl)) {
@@ -1798,11 +1811,14 @@ class helper {
     }
 
     /**
-     * Add a tool type and its configuration.
+     * Add a new LTI tool type and its configuration to the database.
      *
-     * @param \stdClass $type The lti_types record to add.
-     * @param \stdClass $config The type configuration, with settings keyed as lti_* and ltiservice_*.
-     * @return int The id of the new type.
+     * Sets default values for state, version, timestamps and creator, then inserts
+     * the type record and its associated configuration entries.
+     *
+     * @param object $type The tool type record to insert
+     * @param object $config The tool configuration object
+     * @return int The ID of the newly inserted tool type record
      */
     public static function add_type($type, $config) {
         global $USER, $SITE, $DB;
@@ -3128,11 +3144,11 @@ class helper {
     }
 
     /**
-     * Render the table of tools of a course or the site.
+     * Render an HTML table listing LTI tool types with accept/update/delete actions.
      *
-     * @param \stdClass[] $tools The lti_types records to show.
-     * @param string $id The id attribute of the table.
-     * @return string The HTML of the table.
+     * @param array $tools Array of lti_types records to display
+     * @param string $id The HTML element ID prefix for the container and table
+     * @return string HTML markup for the tools table, or an empty string if no tools
      */
     public static function get_tool_table($tools, $id) {
         global $OUTPUT;
@@ -3437,6 +3453,15 @@ class helper {
         return $roles;
     }
 
+    /**
+     * Get all OAuth shared secrets associated with a given consumer key.
+     *
+     * Searches both the lti_types_config table (for configured tools) and the lti
+     * resource table (for ad-hoc tools), excluding LTI 1.3 tools.
+     *
+     * @param string $key The OAuth consumer key
+     * @return array Array of shared secret strings
+     */
     public static function get_shared_secrets_by_key($key) {
         global $DB;
 
@@ -3720,14 +3745,15 @@ class helper {
     }
 
     /**
-     * Get the launch container to use for an instance.
+     * Determine the launch container to use for an LTI activity instance.
      *
-     * The container of the tool configuration is used when the instance has the default container.
-     * Phones and tablets always get the whole window.
+     * Resolves the container from the instance setting, falling back to the tool
+     * configuration, then the default. Always uses the full-window container on
+     * mobile and tablet devices.
      *
-     * @param \stdClass $lti The lti instance.
-     * @param array $toolconfig The tool configuration.
-     * @return int The launch container (LTI_LAUNCH_CONTAINER_*).
+     * @param object $lti The LTI activity instance record
+     * @param array $toolconfig The tool configuration array
+     * @return int The launch container constant value
      */
     public static function get_launch_container($lti, $toolconfig) {
         if (empty($lti->launchcontainer)) {

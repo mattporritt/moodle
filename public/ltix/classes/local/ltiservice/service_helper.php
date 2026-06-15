@@ -34,10 +34,10 @@ use core_ltix\local\lticore\models\resource_link;
  */
 class service_helper {
     /**
-     * Collect the term definitions of the object contexts of a JSON-LD document.
+     * Get LTI service context mappings from a JSON payload.
      *
-     * @param \stdClass $json The decoded JSON-LD document.
-     * @return array The definitions, keyed by term.
+     * @param object $json The JSON payload object
+     * @return array Array of context key/value pairs
      */
     public static function get_contexts($json) {
 
@@ -54,13 +54,13 @@ class service_helper {
     }
 
     /**
-     * Build a basic outcomes response.
+     * Build an IMS LTI Outcomes XML response envelope.
      *
-     * @param string $codemajor The imsx_codeMajor value.
-     * @param string $description The imsx_description value.
-     * @param string $messageref The identifier of the request message.
-     * @param string $messagetype The type of the request message, such as replaceResult.
-     * @return \SimpleXMLElement The response.
+     * @param string $codemajor The major status code (e.g. "success", "failure")
+     * @param string $description Human-readable description of the outcome
+     * @param string $messageref The message reference identifier from the request
+     * @param string $messagetype The type of the response message
+     * @return SimpleXMLElement The XML response envelope
      */
     public static function get_response_xml($codemajor, $description, $messageref, $messagetype) {
         $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><imsx_POXEnvelopeResponse />');
@@ -85,10 +85,10 @@ class service_helper {
     }
 
     /**
-     * Get the message identifier of a basic outcomes request.
+     * Extract the message identifier from an IMS LTI Outcomes XML request.
      *
-     * @param \SimpleXMLElement $xml The request.
-     * @return string The message identifier, or an empty string when there is no header.
+     * @param SimpleXMLElement $xml The XML request
+     * @return string The message identifier, or an empty string if not present
      */
     public static function parse_message_id($xml) {
         if (empty($xml->imsx_POXHeader)) {
@@ -102,11 +102,11 @@ class service_helper {
     }
 
     /**
-     * Parse a replaceResult request.
+     * Parse an IMS LTI Outcomes replaceResult message.
      *
-     * @param \SimpleXMLElement $xml The request.
-     * @return \stdClass The grade as a fraction, and the instance, user, launch, type and sourcedid hash of the request.
-     * @throws \Exception When the sourcedId or the score is not valid.
+     * @param SimpleXMLElement $xml The XML request
+     * @return stdClass Parsed grade data including gradeval, instanceid, userid, launchid, typeid, sourcedidhash, messageid
+     * @throws Exception If the sourcedId or score is invalid
      */
     public static function parse_grade_replace_message($xml) {
         $node = $xml->imsx_POXBody->replaceResultRequest->resultRecord->sourcedGUID->sourcedId;
@@ -140,11 +140,11 @@ class service_helper {
     }
 
     /**
-     * Parse a readResult request.
+     * Parse an IMS LTI Outcomes readResult message.
      *
-     * @param \SimpleXMLElement $xml The request.
-     * @return \stdClass The instance, user, launch, type and sourcedid hash of the request.
-     * @throws \Exception When the sourcedId is not valid.
+     * @param SimpleXMLElement $xml The XML request
+     * @return stdClass Parsed data including instanceid, userid, launchid, typeid, sourcedidhash, messageid
+     * @throws Exception If the sourcedId is invalid
      */
     public static function parse_grade_read_message($xml) {
         $node = $xml->imsx_POXBody->readResultRequest->resultRecord->sourcedGUID->sourcedId;
@@ -166,11 +166,11 @@ class service_helper {
     }
 
     /**
-     * Parse a deleteResult request.
+     * Parse an IMS LTI Outcomes deleteResult message.
      *
-     * @param \SimpleXMLElement $xml The request.
-     * @return \stdClass The instance, user, launch, type and sourcedid hash of the request.
-     * @throws \Exception When the sourcedId is not valid.
+     * @param SimpleXMLElement $xml The XML request
+     * @return stdClass Parsed data including instanceid, userid, launchid, typeid, sourcedidhash, messageid
+     * @throws Exception If the sourcedId is invalid
      */
     public static function parse_grade_delete_message($xml) {
         $node = $xml->imsx_POXBody->deleteResultRequest->resultRecord->sourcedGUID->sourcedId;
@@ -401,13 +401,13 @@ class service_helper {
     }
 
     /**
-     * Verify the signature of a message against the shared secrets of a key.
+     * Verify an OAuth-signed LTI message body against a list of shared secrets.
      *
-     * @param string $key The consumer key.
-     * @param string[] $sharedsecrets The shared secrets to try.
-     * @param string $body The request body.
-     * @param array|null $headers The request headers, or null to read them from the request.
-     * @return string|false The shared secret that verifies the message, or false when none does.
+     * @param string $key The OAuth consumer key
+     * @param array $sharedsecrets Array of shared secrets to try
+     * @param string $body The raw request body
+     * @param array|null $headers Optional HTTP headers; if null, headers are read from the current request
+     * @return string|false The matching shared secret on success, or false if verification fails
      */
     public static function verify_message($key, $sharedsecrets, $body, $headers = null) {
         foreach ($sharedsecrets as $secret) {

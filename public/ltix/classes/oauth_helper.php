@@ -844,13 +844,17 @@ class oauth_helper {
     }
 
     /**
-     * Verify the OAuth signature of a request with a signed body.
+     * Validate the OAuth body hash signature for an LTI request.
      *
-     * @param string $oauthconsumerkey The consumer key.
-     * @param string $oauthconsumersecret The shared secret.
-     * @param string $body The request body.
-     * @param array|null $requestheaders The request headers, or null to read them from the request.
-     * @throws \OAuthException When the request is not signed correctly.
+     * Verifies that the request body has not been tampered with using the
+     * OAuth body hash mechanism. Throws an OAuthException if validation fails.
+     *
+     * @param string $oauthconsumerkey The OAuth consumer key
+     * @param string $oauthconsumersecret The OAuth consumer secret
+     * @param string $body The raw HTTP request body
+     * @param array|null $requestheaders Optional HTTP headers; if null, reads from the current request
+     * @return void
+     * @throws OAuthException If the Content-Type is form-encoded, if the body hash is missing, or if signature verification fails
      */
     public static function handle_oauth_body_post($oauthconsumerkey, $oauthconsumersecret, $body, $requestheaders = null) {
 
