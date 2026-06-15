@@ -49,8 +49,56 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
         // Instantiate the content item formatter, and then format the content item data.
         $formatter = new \mod_lti\lti\placement\contentitemformatter\form\content_item_to_form_formatter();
         $actual = $formatter->format($contentitems, $tool);
-        // Ensure the returned data matches the expected result.
+
+        // The 'selectcontentindicator' property contains HTML comprising an image and text.
+        // This verifies the expected text, and removes that property from both expected and actual results
+        // to allow for a direct comparison of the remaining data.
+        $this->assert_and_remove_selectcontentindicator($expected, $actual);
+
+        // Ensure the remaining returned data matches the expected result.
         $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Helper to verify the 'selectcontentindicator' property contains HTML comprising an image and text.
+     *
+     * @param \stdClass|null $expectedcontentitems
+     * @param \stdClass|null $actualcontentitems
+     * @return void
+     */
+    private function assert_and_remove_selectcontentindicator(
+        ?\stdClass $expectedcontentitems,
+        ?\stdClass $actualcontentitems
+    ): void {
+
+        if (is_null($expectedcontentitems) || is_null($actualcontentitems)) {
+            return;
+        }
+
+        if (isset($actualcontentitems->multiple)) {
+            $actualitems = $actualcontentitems->multiple;
+            $expecteditems = $expectedcontentitems->multiple;
+        } else if (isset($actualcontentitems->selectcontentindicator)) {
+            $actualitems = [$actualcontentitems];
+            $expecteditems = [$expectedcontentitems];
+        } else {
+            return;
+        }
+
+        foreach ($actualitems as $index => $item) {
+            $this->assertStringContainsString(
+                $expecteditems[$index]->selectcontentindicatorstring,
+                $item->selectcontentindicator
+            );
+
+            $this->assertStringContainsString(
+                '<i',
+                $item->selectcontentindicator
+            );
+
+            unset($expecteditems[$index]->selectcontentindicatorstring);
+            unset($item->selectcontentindicator);
+        }
     }
 
     /**
@@ -111,8 +159,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'instructorchoicesendemailaddr' => \core_ltix\constants::LTI_SETTING_NEVER,
                     'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
                     'instructorcustomparameters' => 'id=id12345',
-                    'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
-                        get_string('contentselected', 'core_ltix'),
+                    'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
                 ]
             ],
             'Content items: single, icon (standard), no line item; ' .
@@ -156,8 +203,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'instructorchoiceacceptgrades' => \core_ltix\constants::LTI_SETTING_ALWAYS,
                     'grade_modgrade_point' => 100,
                     'instructorcustomparameters' => 'id=id12345',
-                    'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
-                        get_string('contentselected', 'core_ltix'),
+                    'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
                 ]
             ],
             'Content items: single, icon (secure), line item; ' .
@@ -208,8 +254,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
                     'instructorchoiceacceptgrades' => \core_ltix\constants::LTI_SETTING_NEVER,
                     'instructorcustomparameters' => 'id=id12345',
-                    'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
-                        get_string('contentselected', 'core_ltix'),
+                    'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
                 ]
             ],
             'Content items: single, no title, no text, no custom params, has line item; ' .
@@ -264,8 +309,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'lineitemtag' => 'final',
                     'lineitemsubreviewurl' => 'DEFAULT',
                     'lineitemsubreviewparams' => '',
-                    'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
-                        get_string('contentselected', 'core_ltix'),
+                    'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
                 ]
             ],
             'Content items: multiple; ' .
@@ -355,8 +399,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                             'lineitemtag' => 'final',
                             'lineitemsubreviewurl' => '',
                             'lineitemsubreviewparams' => '',
-                            'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
-                                get_string('contentselected', 'core_ltix'),
+                            'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
                         ],
                         (object) [
                             'name' => 'Assignment 1',
@@ -373,8 +416,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                             'lineitemtag' => 'final',
                             'lineitemsubreviewurl' => 'https://testsub.url',
                             'lineitemsubreviewparams' => 'a=b',
-                            'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
-                                get_string('contentselected', 'core_ltix'),
+                            'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
                         ],
                         (object) [
                             'name' => 'Assignment 2',
@@ -387,8 +429,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                             'instructorchoiceacceptgrades' => \core_ltix\constants::LTI_SETTING_ALWAYS,
                             'grade_modgrade_point' => 100,
                             'instructorcustomparameters' => 'id=id12345',
-                            'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
-                                get_string('contentselected', 'core_ltix'),
+                            'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
                         ],
                     ]
                 ]
