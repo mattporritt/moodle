@@ -1,0 +1,11 @@
+issueNumber: MDL-89060
+notes:
+  core_comment:
+    - message: >-
+        The `M.core_comment` YUI2 module (`comment/comment.js`) is deprecated
+        and will be removed in Moodle 6.0. Third-party code calling
+        `M.core_comment.init` via `js_init_call` should migrate to
+        `$PAGE->requires->js_call_amd('core_comment/comment', 'init',
+        [$options])` where `$options` includes `contextlevel` and `instanceid`
+        in addition to the existing fields.
+      type: deprecated

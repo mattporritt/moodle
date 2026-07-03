@@ -1,0 +1,7 @@
+issueNumber: MDL-89060
+notes:
+  core_comment:
+    - message: >-
+        `core_comment_get_comments` and `core_comment_add_comments` web services
+        now have `ajax: true` and can be called from JavaScript.
+      type: changed

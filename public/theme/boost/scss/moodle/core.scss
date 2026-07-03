@@ -664,6 +664,39 @@ table.mod_index {
 .jsenabled .comment-report-selectall {
     display: inline;
 }
+
+// Comment: new-comment highlight animation using design system tokens.
+// Replaces the legacy YUI2 ColorAnim approach. Fades in from transparent to
+// the highlight colour and holds that colour, matching the legacy behaviour
+// where the highlight persists after the animation completes.
+// Tokens defined in lib/bundles/design-system/scss/tokens/_index_css_vars.
+@keyframes comment-highlight {
+    from {
+        background-color: transparent;
+        color: inherit;
+    }
+
+    to {
+        background-color: var(--mds-bg-feedback-warning-subtle, #fcefdc);
+        color: var(--mds-text-feedback-warning, #60451f);
+    }
+}
+
+.comment-list li.comment-highlighted {
+    animation: comment-highlight 2s ease-out forwards;
+
+    a {
+        color: var(--mds-text-link-primary-default, #0f6cbf);
+        text-decoration: underline;
+    }
+}
+
+// Comment: accessible placeholder colour using the mds-text-subtle token.
+.comment-area textarea::placeholder {
+    color: var(--mds-text-subtle, #495057);
+    opacity: 1; // Override Firefox's default reduced opacity.
+}
+
 /**
 * Completion progress report
 */

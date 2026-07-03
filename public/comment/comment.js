@@ -15,6 +15,9 @@
 
 /**
  * Comment Helper
+ *
+ * @deprecated since Moodle 5.3. Use the core_comment/comment AMD module instead.
+ * TODO: Remove this file in Moodle 6.0. See MDL-89060.
  * @author Dongsheng Cai <dongsheng@moodle.com>
  */
 M.core_comment = {
@@ -22,6 +25,14 @@ M.core_comment = {
      * Initialize commenting system
      */
     init: function(Y, options) {
+        Y.log(
+            'M.core_comment (comment/comment.js) is deprecated.'
+            + ' Please use the core_comment/comment AMD module instead.'
+            + ' This file will be removed in Moodle 6.0.',
+            'warn',
+            'core_comment'
+        );
+
         var CommentHelper = function(args) {
             CommentHelper.superclass.constructor.apply(this, arguments);
         };

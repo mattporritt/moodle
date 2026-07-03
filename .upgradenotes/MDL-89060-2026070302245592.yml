@@ -1,0 +1,11 @@
+issueNumber: MDL-89060
+notes:
+  core_comment:
+    - message: >-
+        The `M.core_comment.init` YUI2 entry point in `comment/comment.js` has
+        been replaced by a modern ESM AMD module at `comment/amd/src/comment.js`
+        (`core_comment/comment`). The new module uses `core/fragment` for
+        server-side comment list loading, `core/ajax` for add/delete operations,
+        and implements accessible highlight animation using MDS design-system
+        tokens.
+      type: changed

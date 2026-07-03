@@ -42,7 +42,6 @@
     * linktext
     * notoggle
     * displaytotalcount
-    * template
     * uniqid
 
     // This template has no example context because it would trigger real updates to the DB.
@@ -51,7 +50,6 @@
     }
 
 }}
-<div style="display: none;" id="cmt-tmpl">{{{template}}}</div>
 <div class="mdl-left">
     {{^notoggle}}
         <a href="#" class="comment-link" id="comment-link-{{cid}}">
@@ -63,15 +61,23 @@
     {{/notoggle}}
 
     <div id="comment-ctrl-{{cid}}" class="comment-ctrl">
-        <ul id="comment-list-{{cid}}" class="comment-list">
-            <li class="first"></li>
-        </ul>
-        <div id="comment-pagination-{{cid}}" class="comment-pagination"></div>
+        <div id="comment-list-container-{{cid}}">
+            <ul id="comment-list-{{cid}}" class="comment-list">
+                <li class="first"></li>
+            </ul>
+            <div id="comment-pagination-{{cid}}" class="comment-pagination"></div>
+        </div>
 
         {{#canpost}}
             <div class="comment-area">
                 <div class="db">
-                    <textarea name="context" id="dlg-content-{{cid}}" rows="2" {{^fullwidth}}cols="20"{{/fullwidth}}{{#fullwidth}}class="fullwidth"{{/fullwidth}}></textarea>
+                    <label for="dlg-content-{{cid}}" class="visually-hidden">{{#str}}comment, comment{{/str}}</label>
+                    <textarea name="context"
+                              id="dlg-content-{{cid}}"
+                              rows="2"
+                              {{^fullwidth}}cols="20"{{/fullwidth}}
+                              {{#fullwidth}}class="fullwidth"{{/fullwidth}}
+                              placeholder="{{#str}}addcomment{{/str}}"></textarea>
                 </div>
                 <div class="fd" id="comment-action-{{cid}}">
                     <a href="#" id="comment-action-post-{{cid}}">{{#str}}savecomment{{/str}}</a>
@@ -86,29 +92,20 @@
     </div>
 </div>
 {{#js}}
-require(['core/str'], function(Str) {
-    // Preloading strings.
-    Str.get_strings([
-        { key: 'addcomment', component: 'moodle' },
-        { key: 'comments', component: 'moodle' },
-        { key: 'commentscount', component: 'moodle' },
-        { key: 'commentsrequirelogin', component: 'moodle' },
-        { key: 'deletecommentbyon', component: 'moodle' },
-    ]).then(function() {
-        // Kick off when strings are loaded.
-        Y.use('core_comment', function(Y) {
-            M.core_comment.init(Y, {
-                client_id: '{{cid}}',
-                commentarea: '{{commentarea}}',
-                itemid: {{itemid}},
-                page: 0,
-                courseid: {{courseid}},
-                contextid: {{contextid}},
-                component: '{{component}}',
-                notoggle: false, // {{notoggle}} True not supported just yet.
-                autostart: false // {{autostart}} True not supported just yet.
-            });
-        });
+require(['core_comment/comment'], function(Comment) {
+    Comment.init({
+        client_id: '{{cid}}',
+        commentarea: '{{commentarea}}',
+        itemid: {{itemid}},
+        page: 0,
+        courseid: {{courseid}},
+        contextid: {{contextid}},
+        contextlevel: '{{contextlevel}}',
+        instanceid: {{instanceid}},
+        component: '{{component}}',
+        notoggle: {{#notoggle}}true{{/notoggle}}{{^notoggle}}false{{/notoggle}},
+        autostart: {{#autostart}}true{{/autostart}}{{^autostart}}false{{/autostart}}
     });
-})
+});
 {{/js}}
+

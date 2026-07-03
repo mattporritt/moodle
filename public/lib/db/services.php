@@ -432,6 +432,7 @@ $functions = array(
         'methodname' => 'get_comments',
         'description' => 'Returns comments.',
         'type' => 'read',
+        'ajax' => true,
         'capabilities' => 'moodle/comment:view',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
@@ -440,6 +441,7 @@ $functions = array(
         'methodname' => 'add_comments',
         'description' => 'Adds a comment or comments.',
         'type' => 'write',
+        'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_comment_delete_comments' => array(

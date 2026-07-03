@@ -412,18 +412,20 @@ class manager {
     public function initialise_javascript(moodle_page $page) {
 
         $options = (object)[
-            'client_id' => $this->cid,
-            'commentarea' => $this->commentarea,
-            'itemid' => $this->itemid,
-            'page' => 0,
-            'courseid' => $this->courseid,
-            'contextid' => $this->contextid,
-            'component' => $this->component,
-            'notoggle' => $this->notoggle,
-            'autostart' => $this->autostart,
+            'client_id'    => $this->cid,
+            'commentarea'  => $this->commentarea,
+            'itemid'       => $this->itemid,
+            'page'         => 0,
+            'courseid'     => $this->courseid,
+            'contextid'    => $this->contextid,
+            'contextlevel' => $this->context::get_short_name(),
+            'instanceid'   => $this->context->instanceid,
+            'component'    => $this->component,
+            'notoggle'     => $this->notoggle,
+            'autostart'    => $this->autostart,
         ];
 
-        $page->requires->js_init_call('M.core_comment.init', [$options], true);
+        $page->requires->js_call_amd('core_comment/comment', 'init', [$options]);
 
         return true;
     }
@@ -435,7 +437,6 @@ class manager {
      */
     public function output($return = true) {
         global $PAGE, $OUTPUT;
-        static $templateprinted;
 
         $this->initialise_javascript($PAGE);
 
@@ -445,12 +446,6 @@ class manager {
         }
 
         $html = '';
-
-        // Javascript will use the template to render new comments.
-        if (empty($templateprinted) && $this->can_view()) {
-            $html .= html_writer::tag('div', $this->template, ['style' => 'display:none', 'id' => 'cmt-tmpl']);
-            $templateprinted = true;
-        }
 
         if ($this->can_view()) {
             // Print commenting icon and tooltip.
@@ -498,6 +493,12 @@ class manager {
                 'class' => 'comment-ctrl'],
             );
 
+            // Container for the comment list + pagination, replaced by the fragment on each load.
+            $html .= html_writer::start_tag(
+                'div',
+                ['id' => 'comment-list-container-' . $this->cid],
+            );
+
             if ($this->autostart) {
                 // If autostart has been enabled print the comments list immediatly.
                 $html .= html_writer::start_tag(
@@ -519,13 +520,15 @@ class manager {
                 );
             }
 
+            $html .= html_writer::end_tag('div'); // End #comment-list-container.
+
             if ($this->can_post()) {
                 // Print posting textarea.
                 $textareaattrs = [
-                    'name' => 'content',
-                    'rows' => 2,
-                    'id' => 'dlg-content-' . $this->cid,
-                    'aria-label' => get_string('addcomment'),
+                    'name'        => 'content',
+                    'rows'        => 2,
+                    'id'          => 'dlg-content-' . $this->cid,
+                    'placeholder' => get_string('addcomment'),
                 ];
                 if (!$this->fullwidth) {
                     $textareaattrs['cols'] = '20';
@@ -1198,6 +1201,14 @@ class manager {
 
     /**
      * Return the template.
+     *
+     * The web comment.js/comment_area.mustache render paths no longer use this value, but it is
+     * still built and exported via comment_area_exporter for tool_lp's plan_exporter and
+     * user_competency_summary_exporter, which back the mobile app's competency plan pages. The
+     * mobile app renders its own comment UI client-side and does not share Moodle web's ESM/YUI2
+     * code, so this field is very likely still live for that consumer. Do not remove without a
+     * separate mobile-app compatibility check and its own deprecation process (MDL-89060 is a web
+     * JS rewrite only, not an external API change).
      *
      * @since 3.1
      * @return string

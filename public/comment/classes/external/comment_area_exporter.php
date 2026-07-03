@@ -56,6 +56,8 @@ class comment_area_exporter extends \core\external\exporter {
         $data->itemid = $comment->get_itemid();
         $data->courseid = $comment->get_courseid();
         $data->contextid = $comment->get_context()->id;
+        $data->contextlevel = $comment->get_context()::get_short_name();
+        $data->instanceid = $comment->get_context()->instanceid;
         $data->cid = $comment->get_cid();
 
         parent::__construct($data, $related);
@@ -78,6 +80,12 @@ class comment_area_exporter extends \core\external\exporter {
             'contextid' => array(
                 'type' => PARAM_INT,
             ),
+            'contextlevel' => [
+                'type' => PARAM_ALPHA,
+            ],
+            'instanceid' => [
+                'type' => PARAM_INT,
+            ],
             'cid' => array(
                 'type' => PARAM_ALPHANUMEXT,
             ),
@@ -116,6 +124,10 @@ class comment_area_exporter extends \core\external\exporter {
             'notoggle' => array(
                 'type' => PARAM_BOOL,
             ),
+            // Retained for mobile app / tool_lp external API consumers (plan_exporter,
+            // user_competency_summary_exporter) — the mobile app renders its own comment UI
+            // client-side and does not use the web ESM/YUI2 code. Do not remove without a
+            // separate mobile-app compatibility check; see manager::get_template().
             'template' => array(
                 'type' => PARAM_RAW,
             ),
