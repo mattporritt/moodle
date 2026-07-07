@@ -114,6 +114,30 @@ Feature: Edit user enrolment
     And I should see "Not current" in the "Enrolment details" "dialogue"
     Then I should see "Manual enrolments enrol plugin is disabled" in the "Enrolment details" "dialogue"
 
+  @javascript
+  Scenario: The date time selector popup calendar is keyboard accessible inside a modal dialogue
+    Given I log in as "teacher1"
+    And I am on "Course 1" course homepage
+    And I navigate to course participants
+    And I click on "Edit enrolment" "icon" in the "student2" "table_row"
+    And I should see "Edit Student 2's enrolment"
+    # Enable the "Enrolment ends" date so that its fields, including the calendar toggle button,
+    # are not disabled. Clicking the checkbox itself avoids ever tabbing away from a native
+    # <select>, which some browsers intercept with their own dropdown-list keyboard handling.
+    When I click on "timeend[enabled]" "checkbox"
+    And I press the tab key
+    And I press the tab key
+    And I press the tab key
+    And I press the tab key
+    And I press the tab key
+    And I press the tab key
+    Then the focused element is "Date picker" "button" in the "#fitem_id_timeend" "css_element"
+    And I press the enter key
+    And I press the tab key
+    And the focused element is "Go to previous month" "button"
+    And I press the tab key
+    And the focused element is "Go to next month" "button"
+
   # Without JS, the user should be redirected to the original edit enrolment form.
   Scenario: Edit a user's enrolment without JavaScript
     Given I am on the "Course 1" "enrolled users" page logged in as "teacher1"
