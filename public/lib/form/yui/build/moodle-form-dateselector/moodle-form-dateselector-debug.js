@@ -141,6 +141,25 @@ M.form.dateselector = {
             ],
         });
     },
+    /**
+     * Move the shared calendar panel into (or out of) the modal dialogue that owns the given
+     * calendar trigger node so that Moodle's modal focus lock (which restricts tabbing to
+     * descendants of the modal root) includes the popup calendar.
+     *
+     * Without this, the calendar panel remains a child of `document.body` (where it was originally
+     * rendered), so it sits outside the modal's focus trap and cannot be reached or navigated
+     * with the keyboard while a modal dialogue is open.
+     *
+     * @param {Y.Node} triggernode The calendar toggle button that was used to open the panel.
+     */
+    movePanelForContext: function(triggernode) {
+        var panelnode = this.panel.get('boundingBox');
+        var modal = triggernode.ancestor('.modal');
+        var target = modal || Y.one(document.body);
+        if (panelnode.get('parentNode') !== target) {
+            target.append(panelnode);
+        }
+    },
     findZIndex: function(node) {
         // In most cases the zindex is set on the parent of the dialog.
         var zindex = node.getStyle('zIndex') || node.ancestor().getStyle('zIndex');
@@ -285,14 +304,6 @@ CALENDAR.prototype = {
                 this.toggle_calendar_image();
             }
         }, this);
-
-        // Get the calendarimage element by its ID and check if any of its parents have the modal-dialog class to
-        // know if the link is inside a modal, if so, set the aria-hidden and tabindex properties to the indicated values.
-        var calendarimageelement = document.getElementById(this.calendarimage.get('id'));
-        if (calendarimageelement.closest('.modal-dialog')) {
-            this.calendarimage.set('aria-hidden', true);
-            this.calendarimage.set('tabIndex', '-1');
-        }
     },
     focus_event: function(e) {
         M.form.dateselector.cancel_any_timeout();
@@ -329,6 +340,7 @@ CALENDAR.prototype = {
         M.form.dateselector.currentowner = this;
         M.form.dateselector.calendar.set('minimumDate', new Date(this.yearselect.firstOptionValue(), 0, 1));
         M.form.dateselector.calendar.set('maximumDate', new Date(this.yearselect.lastOptionValue(), 11, 31));
+        M.form.dateselector.movePanelForContext(this.calendarimage);
         M.form.dateselector.panel.show();
         M.form.dateselector.calendar.show();
         M.form.dateselector.fix_position();
@@ -397,6 +409,9 @@ CALENDAR.prototype = {
         M.form.dateselector.calendar.detach('selectionChange', this.set_selects_from_date);
         M.form.dateselector.calendar.hide();
         M.form.dateselector.currentowner = null;
+        // Move the panel back out of any modal dialogue so that it is not removed from the DOM
+        // if that modal is later destroyed.
+        M.form.dateselector.movePanelForContext(Y.one(document.body));
 
         // Put the focus back to the image calendar that we clicked, only if it was visible.
         if (wasOwner && (e === null || typeof e === "undefined" || e.type !== "click")) {

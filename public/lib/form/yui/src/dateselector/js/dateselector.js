@@ -137,6 +137,25 @@ M.form.dateselector = {
             ],
         });
     },
+    /**
+     * Move the shared calendar panel into (or out of) the modal dialogue that owns the given
+     * calendar trigger node so that Moodle's modal focus lock (which restricts tabbing to
+     * descendants of the modal root) includes the popup calendar.
+     *
+     * Without this, the calendar panel remains a child of `document.body` (where it was originally
+     * rendered), so it sits outside the modal's focus trap and cannot be reached or navigated
+     * with the keyboard while a modal dialogue is open.
+     *
+     * @param {Y.Node} triggernode The calendar toggle button that was used to open the panel.
+     */
+    movePanelForContext: function(triggernode) {
+        var panelnode = this.panel.get('boundingBox');
+        var modal = triggernode.ancestor('.modal');
+        var target = modal || Y.one(document.body);
+        if (panelnode.get('parentNode') !== target) {
+            target.append(panelnode);
+        }
+    },
     findZIndex: function(node) {
         // In most cases the zindex is set on the parent of the dialog.
         var zindex = node.getStyle('zIndex') || node.ancestor().getStyle('zIndex');
