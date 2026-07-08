@@ -76,5 +76,10 @@ if ($messagetype != "ToolProxyRegistrationRequest") {
 
 $toolprovider = new \enrol_lti\tool_provider($toolid);
 $toolprovider->handleRequest();
-echo $OUTPUT->header();
-echo $OUTPUT->footer();
+
+// A same-site cross-site launch bounce page (see tool_provider::onLaunch()) renders its own
+// header/footer, so this doesn't append a second, duplicated document after it.
+if (empty($toolprovider->fullpagerendered)) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->footer();
+}
