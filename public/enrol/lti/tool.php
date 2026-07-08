@@ -97,5 +97,9 @@ if ($ltiversion === \IMSGlobal\LTI\ToolProvider\ToolProvider::LTI_VERSION1) {
 // Handle the request.
 $toolprovider->handleRequest();
 
-echo $OUTPUT->header();
-echo $OUTPUT->footer();
+// A same-site cross-site launch bounce page (see tool_provider::onLaunch()) renders its own
+// header/footer, so this doesn't append a second, duplicated document after it.
+if (empty($toolprovider->fullpagerendered)) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->footer();
+}

@@ -57,6 +57,15 @@ class tool_provider extends ToolProvider {
     protected $tool;
 
     /**
+     * @var bool True once onLaunch() has echoed a complete themed page (header, content and
+     *      footer) itself, instead of leaving header()/footer() output to the caller.
+     *      Callers of handleRequest() (enrol/lti/tool.php, enrol/lti/proxy.php) must check this
+     *      and skip their own header()/footer() calls when it is true, otherwise the response
+     *      would contain a second, duplicated document appended after this one.
+     */
+    public bool $fullpagerendered = false;
+
+    /**
      * Remove $this->baseUrl (wwwroot) from a given url string and return it.
      *
      * @param string $url The url from which to remove the base url
@@ -394,8 +403,30 @@ class tool_provider extends ToolProvider {
             echo html_writer::tag('p', get_string('frameembeddingnotenabled', 'enrol_lti'));
             echo html_writer::link($urltogo, $stropentool, ['target' => '_blank']);
         } else {
-            // All done, redirect the user to where they want to go.
-            redirect($urltogo);
+            // A plain redirect() here would still be part of the original cross-site launch
+            // request/redirect chain, so the SameSite=Lax session cookie set by
+            // complete_user_login() moments earlier would not be sent on the follow-up request
+            // when the launch is presented in an iframe (Embed), showing a login screen instead
+            // of the resource. Render a same-site page first and navigate from there instead,
+            // mirroring the approach mod_lti already uses for LTI 1.3/OIDC launches
+            // (mod_lti\output\repost_crosssite_page, used from mod/lti/auth.php).
+            //
+            // The header and footer are rendered here, around the bounce page, rather than left
+            // to the caller (see $this->fullpagerendered), so the response is a single valid
+            // document instead of this content being appended ahead of the caller's own
+            // header() output.
+            global $OUTPUT, $PAGE;
+
+            // The redirect() this replaces closes the session write-lock before handing control
+            // back to the browser; do the same here.
+            \core\session\manager::write_close();
+
+            $output = $PAGE->get_renderer('enrol_lti');
+            $page = new \enrol_lti\output\cross_site_launch_page($urltogo->out(false));
+            echo $OUTPUT->header();
+            echo $output->render($page);
+            echo $OUTPUT->footer();
+            $this->fullpagerendered = true;
         }
     }
 
