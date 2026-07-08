@@ -265,6 +265,17 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
+     * Render the enrol_lti/cross_site_launch template.
+     *
+     * @param cross_site_launch_page $page The cross_site_launch_page renderable.
+     * @return string html for the page.
+     */
+    public function render_cross_site_launch_page(cross_site_launch_page $page): string {
+        $data = $page->export_for_template($this);
+        return parent::render_from_template('enrol_lti/cross_site_launch', $data);
+    }
+
+    /**
      * Render a warning, indicating to the user that cookies are require but couldn't be set.
      *
      * @return string the html.

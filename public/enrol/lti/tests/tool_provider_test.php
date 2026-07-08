@@ -290,19 +290,44 @@ final class tool_provider_test extends \advanced_testcase {
 
     /**
      * Test for tool_provider::onLaunch().
+     *
+     * When frame embedding is allowed, the launch must not perform a plain redirect() to the
+     * target resource, since that would still be part of the original cross-site launch request
+     * chain and would lose the SameSite=Lax session cookie when embedded in an iframe. Instead, a
+     * same-site page is rendered which navigates to the target resource. The page must render its
+     * own header/footer, in that order, so the response is a single valid document rather than
+     * bounce-page content appended ahead of a caller-rendered header.
      */
     public function test_on_launch_with_frame_embedding(): void {
-        global $CFG;
+        global $CFG, $PAGE;
         $CFG->allowframembedding = true;
+
+        // Mimic the $PAGE setup enrol/lti/tool.php performs before calling handleRequest(),
+        // since onLaunch() now renders a full header/footer itself.
+        $PAGE->set_context(\context_system::instance());
+        $PAGE->set_url(new \moodle_url('/enrol/lti/tool.php'));
+        $PAGE->set_pagelayout('popup');
+        $PAGE->set_heading('uniqueheadingmarker');
 
         $tp = $this->build_dummy_tp();
 
-        // If redirect was called here, we will encounter an 'unsupported redirect error'.
-        // We just want to verify that redirect() was called if frame embedding is allowed.
-        $this->expectException('moodle_exception');
-
+        // Capture output of onLaunch() method and save it as a string.
+        ob_start();
         // Suppress session header errors.
         @$tp->onLaunch();
+        $output = ob_get_clean();
+
+        $this->assertTrue($tp->ok);
+        $this->assertTrue($tp->fullpagerendered);
+        $this->assertStringContainsString('enrol-lti-launch-continue', $output);
+
+        // The page header must have run before the bounce page content is echoed, so the caller
+        // (tool.php/proxy.php) does not append its own header/footer around this content (see
+        // $this->fullpagerendered).
+        $headerpos = strpos($output, 'uniqueheadingmarker');
+        $continuepos = strpos($output, 'enrol-lti-launch-continue');
+        $this->assertNotFalse($headerpos);
+        $this->assertLessThan($continuepos, $headerpos);
     }
 
     /**

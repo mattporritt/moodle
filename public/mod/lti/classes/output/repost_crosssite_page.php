@@ -31,8 +31,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/mod/lti/locallib.php');
 
-use renderable;
-use templatable;
+use core\output\same_site_navigation_page;
 use renderer_base;
 use stdClass;
 
@@ -46,13 +45,9 @@ use stdClass;
  * @copyright  2021 Cengage
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class repost_crosssite_page implements renderable, templatable {
-
+class repost_crosssite_page extends same_site_navigation_page {
     /** @var array POST params. */
     protected $params;
-
-    /** @var string URL to repost to. */
-    protected string $url;
 
     /**
      * Constructor
@@ -61,10 +56,10 @@ class repost_crosssite_page implements renderable, templatable {
      * @param array $post the POST params to be re-posted
      */
     public function __construct(string $url, array $post) {
+        parent::__construct($url);
         $this->params = array_map(function($k) use ($post) {
             return ["key" => $k, "value" => $post[$k]];
         }, array_keys($post));
-        $this->url = $url;
     }
 
     /**
@@ -74,8 +69,7 @@ class repost_crosssite_page implements renderable, templatable {
      * @return stdClass Data to be used by the template
      */
     public function export_for_template(renderer_base $output) {
-        $renderdata = new stdClass();
-        $renderdata->url = $this->url;
+        $renderdata = parent::export_for_template($output);
         $renderdata->params = $this->params;
         return $renderdata;
     }
