@@ -84,8 +84,15 @@ trait core_behat_file_helper {
     protected function perform_on_element($action, ExpectationException $exception) {
 
         // Finds the button inside the DOM, is a modal window, so should be unique.
+        // Callers of this method are always in a filemanager context (see
+        // i_unzip_file_from_filemanager(), i_zip_folder_from_filemanager(),
+        // i_delete_file_from_filemanager() below), so the file-info dialog is
+        // always the core_form/filemanager AMD module's dialog (see MDL-89105).
+        // Scope to its distinctive '.fp-select' content root - itself wrapped in a
+        // core/modal - rather than matching the generic modal/dialogue wrapper,
+        // which can also match unrelated modals open elsewhere on the page.
         $classname = 'fp-file-' . $action;
-        $button = $this->find('css', '.moodle-dialogue-focused button.' . $classname, $exception);
+        $button = $this->find('css', '.fp-select button.' . $classname, $exception);
 
         $this->ensure_node_is_visible($button);
         $button->click();

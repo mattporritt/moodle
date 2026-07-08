@@ -1,0 +1,8 @@
+issueNumber: MDL-89105
+notes:
+  core_form:
+    - message: >-
+        The M.form_filemanager YUI2 module (lib/form/filemanager.js) is
+        deprecated. Use the core_form/filemanager AMD module instead. The legacy
+        module will be removed in Moodle 6.0.
+      type: deprecated

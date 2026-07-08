@@ -228,6 +228,7 @@ $string['search'] = 'Search';
 $string['searching'] = 'Search in';
 $string['searchrepo'] = 'Search repository';
 $string['select'] = 'Select';
+$string['selectfile'] = 'Select file \'{$a}\'';
 $string['settings'] = 'Settings';
 $string['setupdefaultplugins'] = 'Setting up default repository plugins';
 $string['setmainfile'] = 'Set main file';

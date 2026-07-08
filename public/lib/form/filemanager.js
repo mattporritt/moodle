@@ -36,6 +36,9 @@
  * =====
  * this.options.currentpath
  * this.options.itemid
+ *
+ * @deprecated since Moodle 5.3. Use the core_form/filemanager AMD module instead.
+ *     TODO: Remove this file in Moodle 6.0. See MDL-89105.
  */
 
 /* eslint camelcase: off */
@@ -56,8 +59,17 @@ M.form_filemanager.set_templates = function(Y, templates) {
 
 /**
  * This fucntion is called for each file picker on page.
+ *
+ * @deprecated since Moodle 5.3. Use the core_form/filemanager AMD module instead.
  */
 M.form_filemanager.init = function(Y, options) {
+    Y.log(
+        'M.form_filemanager (lib/form/filemanager.js) is deprecated.' +
+        ' Please use the core_form/filemanager AMD module instead.' +
+        ' This file will be removed in Moodle 6.0.',
+        'warn',
+        'core_form'
+    );
     var FileManagerHelper = function(options) {
         FileManagerHelper.superclass.constructor.apply(this, arguments);
     };

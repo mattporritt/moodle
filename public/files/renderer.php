@@ -103,34 +103,37 @@ class core_files_renderer extends plugin_renderer_base {
      */
     public function render_form_filemanager($fm) {
         $html = $this->fm_print_generallayout($fm);
-        $module = array(
-            'name'=>'form_filemanager',
-            'fullpath'=>'/lib/form/filemanager.js',
-            'requires' => array('moodle-core-notification-dialogue', 'core_filepicker', 'base', 'io-base', 'node', 'json', 'core_dndupload', 'panel', 'resize-plugin', 'dd-plugin'),
-            'strings' => array(
-                array('error', 'moodle'), array('info', 'moodle'), array('confirmdeletefile', 'repository'),
-                array('draftareanofiles', 'repository'), array('entername', 'repository'), array('enternewname', 'repository'),
-                array('invalidjson', 'repository'), array('popupblockeddownload', 'repository'),
-                array('unknownoriginal', 'repository'), array('confirmdeletefolder', 'repository'),
-                array('confirmdeletefilewithhref', 'repository'), array('confirmrenamefolder', 'repository'),
-                array('confirmrenamefile', 'repository'), array('newfolder', 'repository'), array('edit', 'moodle'),
-                ['edita', 'moodle'],
-                ['originalextensionremove', 'repository'],
-                array('aliaseschange', 'repository'), ['nofilesselected', 'repository'],
-                ['confirmdeleteselectedfile', 'repository'], ['selectall', 'moodle'], ['deselectall', 'moodle'],
-                ['selectallornone', 'form'],
-                ['updateinvalidfiletype', 'repository'],
-                ['updatefileextensiontitle', 'repository'],
-                ['originalextensionchange', 'repository'],
-                ['invalidfiletypetitle', 'repository'],
-            )
+
+        // The new core_form/filemanager AMD module still interoperates with the
+        // legacy (YUI2) repository/filepicker.js and lib/form/dndupload.js without
+        // modifying either. 'core_filepicker' is already registered on every page by
+        // page_requirements_manager, but 'core_dndupload' previously only got
+        // registered with the page's YUI loader as a side effect of the $module
+        // array passed to the js_init_call() this replaces. Register it explicitly
+        // so the module's own YUI().use('core_filepicker', 'core_dndupload', ...)
+        // interop bridge can still resolve it.
+        $this->page->requires->js_module([
+            'name' => 'core_dndupload',
+            'fullpath' => '/lib/form/dndupload.js',
+            'requires' => ['node', 'event', 'json', 'core_filepicker'],
+        ]);
+
+        $fm->options->templates = $this->filemanager_js_templates();
+        $fm->options->strings = $this->filemanager_js_strings();
+
+        // The full options payload (template HTML, strings, file list, licenses,
+        // ...) is too large to pass as a js_call_amd() argument - Moodle warns via
+        // debugging() once the encoded arguments exceed ~1KB (see
+        // page_requirements_manager::js_call_amd()). Embed it as a JSON <script>
+        // instead and pass only the small client_id to the AMD module's init().
+        $html .= html_writer::tag(
+            'script',
+            json_encode($fm->options, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+            ['type' => 'application/json', 'id' => 'filemanager-' . $fm->options->client_id . '-initdata'],
         );
-        if ($this->page->requires->should_create_one_time_item_now('core_file_managertemplate')) {
-            $this->page->requires->js_init_call('M.form_filemanager.set_templates',
-                    array($this->filemanager_js_templates()), true, $module);
-        }
+
         $this->page->requires->js_call_amd('core/checkbox-toggleall', 'init');
-        $this->page->requires->js_init_call('M.form_filemanager.init', array($fm->options), true, $module);
+        $this->page->requires->js_call_amd('core_form/filemanager', 'init', [$fm->options->client_id]);
 
         // non javascript file manager
         $html .= '<noscript>';
@@ -139,6 +142,59 @@ class core_files_renderer extends plugin_renderer_base {
 
 
         return $html;
+    }
+
+    /**
+     * Returns the flat map of pre-fetched language strings the core_form/filemanager
+     * AMD module needs, replacing the strings previously declared in the legacy
+     * js_init_call() $module['strings'] array (M.util.get_string relied on those
+     * being preloaded into M.str; the AMD module receives them directly instead).
+     *
+     * @return array
+     */
+    protected function filemanager_js_strings() {
+        return [
+            'confirmdeletefile' => get_string('confirmdeletefile', 'repository'),
+            'draftareanofiles' => get_string('draftareanofiles', 'repository'),
+            'entername' => get_string('entername', 'repository'),
+            'enternewname' => get_string('enternewname', 'repository'),
+            'invalidjson' => get_string('invalidjson', 'repository'),
+            'unknownsource' => get_string('unknownsource', 'repository'),
+            'confirmdeletefolder' => get_string('confirmdeletefolder', 'repository'),
+            // Strings below carry a real {$a} placeholder in the underlying lang
+            // string. Since get_string() substitutes {$a} immediately, passing the
+            // literal text '{$a}' (or '{$a->prop}' for object placeholders) as $a
+            // makes get_string() hand the placeholder straight back, so the string
+            // still carries a live {$a}/{$a->prop} token for the AMD module's own
+            // client-side substitution (see getStr() in core_form/filemanager) once
+            // the real runtime value (a count, filename, etc.) is known.
+            'confirmdeletefilewithhref' => get_string('confirmdeletefilewithhref', 'repository', '{$a}'),
+            'confirmrenamefolder' => get_string('confirmrenamefolder', 'repository'),
+            'confirmrenamefile' => get_string('confirmrenamefile', 'repository', '{$a}'),
+            'newfolder' => get_string('newfolder', 'repository'),
+            'edita' => get_string('edita', 'moodle', '{$a}'),
+            'originalextensionremove' => get_string('originalextensionremove', 'repository', '{$a}'),
+            'aliaseschange' => get_string('aliaseschange', 'repository', '{$a}'),
+            'nofilesselected' => get_string('nofilesselected', 'repository'),
+            'confirmdeleteselectedfile' => get_string('confirmdeleteselectedfile', 'repository', '{$a}'),
+            'selectallornone' => get_string('selectallornone', 'form'),
+            'selectfile' => get_string('selectfile', 'repository', '{$a}'),
+            'updateinvalidfiletype' => get_string('updateinvalidfiletype', 'repository', (object)[
+                'fileextension' => '{$a->fileextension}',
+                'acceptedfiletypes' => '{$a->acceptedfiletypes}',
+            ]),
+            'updatefileextensiontitle' => get_string('updatefileextensiontitle', 'repository'),
+            'originalextensionchange' => get_string('originalextensionchange', 'repository', (object)[
+                'originalextension' => '{$a->originalextension}',
+                'newextension' => '{$a->newextension}',
+            ]),
+            'name' => get_string('name'),
+            'lastmodified' => get_string('lastmodified'),
+            'size' => get_string('size', 'repository'),
+            'type' => get_string('type', 'repository'),
+            'complete' => get_string('complete'),
+            'referencesexist' => get_string('referencesexist', 'repository', '{$a}'),
+        ];
     }
 
     /**

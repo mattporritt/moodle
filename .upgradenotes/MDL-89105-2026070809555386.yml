@@ -1,0 +1,10 @@
+issueNumber: MDL-89105
+notes:
+  core_form:
+    - message: >-
+        The filemanager form element now loads its JavaScript via
+        $PAGE->requires->js_call_amd('core_form/filemanager', 'init', ...)
+        instead of js_init_call('M.form_filemanager.init', ...). Third-party
+        code that customised the file manager via the M.form_filemanager YUI2
+        global should migrate to the core_form/filemanager AMD module.
+      type: changed

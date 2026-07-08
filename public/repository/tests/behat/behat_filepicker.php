@@ -66,8 +66,13 @@ class behat_filepicker extends behat_base {
         $dialoginput->setValue($foldername);
 
         $exception = new ExpectationException('The button for the create folder dialog can not be located', $this->getSession());
-        $dialognode = $this->find('css', '.moodle-dialogue-focused');
-        $buttonnode = $this->find('css', '.fp-dlg-butcreate', $exception, $dialognode);
+        // Scope to the mkdir dialog's own distinctive content root ('.fp-mkdir-dlg')
+        // rather than a generic dialogue/modal wrapper selector, which can also
+        // match unrelated dialogs/modals open elsewhere on the page. This works
+        // whether the dialog is wrapped in a YUI moodle-dialogue (still the case
+        // when opened from the legacy repository/filepicker.js context) or a
+        // core/modal (opened from the core_form/filemanager AMD module, see MDL-89105).
+        $buttonnode = $this->find('css', '.fp-mkdir-dlg .fp-dlg-butcreate', $exception);
         $buttonnode->click();
     }
 
