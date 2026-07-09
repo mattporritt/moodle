@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace core_files;
+
 /**
  * Tests for core_files_renderer.
  *
  * @package    core_files
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \core_files_renderer
  */
-
-use core\context\system;
-
-/**
- * Tests for core_files_renderer.
- *
- * @covers \core_files_renderer
- */
-final class renderer_test extends advanced_testcase {
+final class renderer_test extends \advanced_testcase {
     /**
      * render_form_filemanager() must load the file manager via the
      * core_form/filemanager AMD module (MDL-89105), not the legacy
@@ -45,14 +40,14 @@ final class renderer_test extends advanced_testcase {
         $this->setAdminUser();
 
         $page = new \moodle_page();
-        $page->set_context(system::instance());
+        $page->set_context(\core\context\system::instance());
         $page->set_url('/files/index.php');
 
-        $options = new stdClass();
+        $options = new \stdClass();
         $options->itemid = 0;
-        $options->context = system::instance();
+        $options->context = \core\context\system::instance();
 
-        $fm = new form_filemanager($options);
+        $fm = new \form_filemanager($options);
         $renderer = $page->get_renderer('core', 'files');
         $html = $renderer->render_form_filemanager($fm);
 

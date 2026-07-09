@@ -39,6 +39,22 @@ defined('MOODLE_INTERNAL') || die();
  */
 class core_files_renderer extends plugin_renderer_base {
 
+    /**
+     * Cache of {@see filemanager_js_templates()}, computed once per page even
+     * when the page renders multiple filemanager instances.
+     *
+     * @var array|null
+     */
+    protected $filemanagerjstemplates = null;
+
+    /**
+     * Cache of {@see filemanager_js_strings()}, computed once per page even
+     * when the page renders multiple filemanager instances.
+     *
+     * @var array|null
+     */
+    protected $filemanagerjsstrings = null;
+
     public function files_tree_viewer(file_info $file_info, ?array $options = null) {
         $tree = new files_tree_viewer($file_info, $options);
         return $this->render($tree);
@@ -110,16 +126,24 @@ class core_files_renderer extends plugin_renderer_base {
         // page_requirements_manager, but 'core_dndupload' previously only got
         // registered with the page's YUI loader as a side effect of the $module
         // array passed to the js_init_call() this replaces. Register it explicitly
-        // so the module's own YUI().use('core_filepicker', 'core_dndupload', ...)
-        // interop bridge can still resolve it.
-        $this->page->requires->js_module([
-            'name' => 'core_dndupload',
-            'fullpath' => '/lib/form/dndupload.js',
-            'requires' => ['node', 'event', 'json', 'core_filepicker'],
-        ]);
+        // by name so the module's own YUI().use('core_filepicker', 'core_dndupload', ...)
+        // interop bridge can still resolve it. Passing the name (not a hand-built
+        // array) routes through page_requirements_manager::find_module(), which is
+        // the only place dndupload.js's own preloaded strings (maxfilesreached,
+        // fileexists, maxbytesfile, ...) are declared for M.util.get_string().
+        $this->page->requires->js_module('core_dndupload');
 
-        $fm->options->templates = $this->filemanager_js_templates();
-        $fm->options->strings = $this->filemanager_js_strings();
+        // Neither of these depends on the individual filemanager instance, so
+        // cache them once per page rather than recomputing (and re-embedding)
+        // them for every filemanager field a page renders.
+        if ($this->filemanagerjstemplates === null) {
+            $this->filemanagerjstemplates = $this->filemanager_js_templates();
+        }
+        if ($this->filemanagerjsstrings === null) {
+            $this->filemanagerjsstrings = $this->filemanager_js_strings();
+        }
+        $fm->options->templates = $this->filemanagerjstemplates;
+        $fm->options->strings = $this->filemanagerjsstrings;
 
         // The full options payload (template HTML, strings, file list, licenses,
         // ...) is too large to pass as a js_call_amd() argument - Moodle warns via

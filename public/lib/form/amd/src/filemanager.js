@@ -282,7 +282,7 @@ export const init = (clientId) => {
                     data = JSON.parse(text);
                 } catch (e) {
                     // Mirror the legacy 'invalidjson' handling: surface the raw response text.
-                    throw {message: getStr('invalidjson') + ':\n' + text};
+                    throw new Error(getStr('invalidjson') + ':\n' + text);
                 }
                 if (data.error) {
                     throw data;
@@ -325,6 +325,8 @@ export const init = (clientId) => {
             checkButtons();
             render(action);
             return data;
+        }).catch(() => {
+            // Error already surfaced by request(); callers fire-and-forget this.
         });
     };
 
@@ -1090,6 +1092,155 @@ export const init = (clientId) => {
     };
 
     /**
+     * Check for an extension change or a reference-count warning before a
+     * file rename/move is applied, showing a validation message or a
+     * confirmation dialog when one is needed.
+     *
+     * Split out of updateFile() to keep its cyclomatic complexity down; the
+     * onConfirm callbacks re-enter updateFile(..., true) once the user
+     * responds.
+     *
+     * @method checkRenameWarnings
+     * @param {Element} body The modal body element.
+     * @param {Object} node The file node.
+     * @param {Modal} modal The file-info modal.
+     * @param {String} newfilename The new file name.
+     * @return {Boolean} True if a message or confirmation dialog was shown
+     *     and the caller (updateFile) should stop for now.
+     */
+    const checkRenameWarnings = (body, node, modal, newfilename) => {
+        let warnings = '';
+        const originalArr = node.fullname.split('.');
+        const originalExtension = originalArr.length > 1 ? originalArr.pop() : '';
+        const newArr = newfilename.split('.');
+        const newExtension = newArr.length > 1 ? newArr.pop() : '';
+        const filetypesDesc = root.parentNode
+            ? root.parentNode.querySelector('.form-filetypes-descriptions') : null;
+        const acceptedTypes = filetypesDesc
+            ? filetypesDesc.getAttribute('data-all-allowed-extensions') : '';
+
+        if (newExtension !== originalExtension) {
+            if (newExtension === '') {
+                warnings += '<li>' + getStr('originalextensionremove', escapeHtml(originalExtension)) + '</li>';
+            } else if (!isValidFileType(`.${newExtension}`, acceptedTypes)) {
+                const stringVars = {
+                    fileextension: escapeHtml(newExtension),
+                    acceptedfiletypes: filetypesDesc ? filetypesDesc.innerHTML : '',
+                };
+                printMsg(getStr('updateinvalidfiletype', stringVars), 'error');
+                // Revert the filename input to the original value.
+                body.querySelector('.fp-saveas input').value = node.fullname;
+                return true;
+            } else {
+                const stringVars = {
+                    originalextension: escapeHtml(originalExtension),
+                    newextension: escapeHtml(newExtension),
+                };
+                showConfirmDialog({
+                    message: getStr('originalextensionchange', stringVars),
+                    titleKey: 'updatefileextensiontitle',
+                    titleComponent: 'repository',
+                    onConfirm: () => updateFile(body, node, modal, true),
+                });
+                return true;
+            }
+        }
+        if (node.refcount) {
+            warnings += '<li>' + getStr('aliaseschange', node.refcount) + '</li>';
+        }
+        if (warnings.length > 0) {
+            const confirmmsg = getStr('confirmrenamefile', node.refcount);
+            const message = '<p>' + confirmmsg + '</p><ul class="px-5">' + warnings + '</ul>';
+            showConfirmDialog({message: message, onConfirm: () => updateFile(body, node, modal, true)});
+            return true;
+        }
+        return false;
+    };
+
+    /**
+     * Determine the update action/params for a folder rename/move,
+     * prompting for confirmation first if needed.
+     *
+     * @method resolveFolderUpdate
+     * @param {Element} body The modal body element.
+     * @param {Object} node The file node.
+     * @param {Modal} modal The file-info modal.
+     * @param {Boolean} confirmed Whether a confirmation has been accepted.
+     * @param {String} newfilename The new folder name.
+     * @param {String} targetpath The new folder path.
+     * @param {Boolean} changed Whether the name or path changed.
+     * @return {Object|String|undefined} {action, params} to proceed with,
+     *     'handled' if the caller should just return (a message or
+     *     confirmation dialog was already shown), or undefined if nothing
+     *     changed and the caller should fall through to its own cleanup.
+     */
+    const resolveFolderUpdate = (body, node, modal, confirmed, newfilename, targetpath, changed) => {
+        if (!newfilename) {
+            printMsg(getStr('entername'), 'error');
+            return 'handled';
+        }
+        if (!changed) {
+            return undefined;
+        }
+        if (!confirmed) {
+            showConfirmDialog({
+                message: getStr('confirmrenamefolder'),
+                onConfirm: () => updateFile(body, node, modal, true),
+            });
+            modal.hide();
+            return 'handled';
+        }
+        return {
+            action: 'updatedir',
+            params: {filepath: node.filepath, newdirname: newfilename, newfilepath: targetpath},
+        };
+    };
+
+    /**
+     * Determine the update action/params for a file rename/move/license/
+     * author change, prompting for confirmation first if needed.
+     *
+     * @method resolveFileUpdate
+     * @param {Element} body The modal body element.
+     * @param {Object} node The file node.
+     * @param {Modal} modal The file-info modal.
+     * @param {Boolean} confirmed Whether a confirmation has been accepted.
+     * @param {String} newfilename The new file name.
+     * @param {String} targetpath The new file path.
+     * @param {Boolean} changed Whether the name or path changed.
+     * @param {Boolean} licensechanged Whether the license changed.
+     * @param {Boolean} authorchanged Whether the author changed.
+     * @param {String} newlicense The new license.
+     * @param {String} newauthor The new author.
+     * @return {Object|String|undefined} Same shape as resolveFolderUpdate().
+     */
+    const resolveFileUpdate = (
+        body, node, modal, confirmed, newfilename, targetpath, changed, licensechanged, authorchanged, newlicense, newauthor
+    ) => {
+        if (!newfilename) {
+            printMsg(getStr('enternewname'), 'error');
+            return 'handled';
+        }
+        if (changed && !confirmed && checkRenameWarnings(body, node, modal, newfilename)) {
+            return 'handled';
+        }
+        if (!(changed || licensechanged || authorchanged)) {
+            return undefined;
+        }
+        return {
+            action: 'updatefile',
+            params: {
+                filepath: node.filepath,
+                filename: node.fullname,
+                newfilename: newfilename,
+                newfilepath: targetpath,
+                newlicense: newlicense,
+                newauthor: newauthor,
+            },
+        };
+    };
+
+    /**
      * Apply a rename/move/license/author change to a file or folder.
      *
      * Reimplements the legacy `update_file()`, including extension-change and
@@ -1115,100 +1266,26 @@ export const init = (clientId) => {
         const newlicense = licenseSelect.options[licenseSelect.selectedIndex]
             ? licenseSelect.options[licenseSelect.selectedIndex].value : '';
         const licensechanged = (newlicense !== node.license);
+        const changed = filenamechanged || filepathchanged;
 
-        let params;
-        let action;
+        const result = node.type === 'folder'
+            ? resolveFolderUpdate(body, node, modal, confirmed, newfilename, targetpath, changed)
+            : resolveFileUpdate(
+                body, node, modal, confirmed, newfilename, targetpath, changed, licensechanged, authorchanged, newlicense, newauthor
+            );
 
-        if (node.type === 'folder') {
-            if (!newfilename) {
-                printMsg(getStr('entername'), 'error');
-                return;
-            }
-            if (filenamechanged || filepathchanged) {
-                if (!confirmed) {
-                    showConfirmDialog({
-                        message: getStr('confirmrenamefolder'),
-                        onConfirm: () => updateFile(body, node, modal, true),
-                    });
-                    modal.hide();
-                    return;
-                }
-                params = {filepath: node.filepath, newdirname: newfilename, newfilepath: targetpath};
-                action = 'updatedir';
-            }
-        } else {
-            if (!newfilename) {
-                printMsg(getStr('enternewname'), 'error');
-                return;
-            }
-            if ((filenamechanged || filepathchanged) && !confirmed) {
-                let warnings = '';
-                const originalArr = node.fullname.split('.');
-                const originalExtension = originalArr.length > 1 ? originalArr.pop() : '';
-                const newArr = newfilename.split('.');
-                const newExtension = newArr.length > 1 ? newArr.pop() : '';
-                const filetypesDesc = root.parentNode
-                    ? root.parentNode.querySelector('.form-filetypes-descriptions') : null;
-                const acceptedTypes = filetypesDesc
-                    ? filetypesDesc.getAttribute('data-all-allowed-extensions') : '';
-
-                if (newExtension !== originalExtension) {
-                    if (newExtension === '') {
-                        warnings += '<li>' + getStr('originalextensionremove', originalExtension) + '</li>';
-                    } else if (!isValidFileType(`.${newExtension}`, acceptedTypes)) {
-                        const stringVars = {
-                            fileextension: escapeHtml(newExtension),
-                            acceptedfiletypes: filetypesDesc ? filetypesDesc.innerHTML : '',
-                        };
-                        printMsg(getStr('updateinvalidfiletype', stringVars), 'error');
-                        // Revert the filename input to the original value.
-                        body.querySelector('.fp-saveas input').value = node.fullname;
-                        return;
-                    } else {
-                        const stringVars = {
-                            originalextension: escapeHtml(originalExtension),
-                            newextension: escapeHtml(newExtension),
-                        };
-                        showConfirmDialog({
-                            message: getStr('originalextensionchange', stringVars),
-                            titleKey: 'updatefileextensiontitle',
-                            titleComponent: 'repository',
-                            onConfirm: () => updateFile(body, node, modal, true),
-                        });
-                        return;
-                    }
-                }
-                if (node.refcount) {
-                    warnings += '<li>' + getStr('aliaseschange', node.refcount) + '</li>';
-                }
-                if (warnings.length > 0) {
-                    const confirmmsg = getStr('confirmrenamefile', node.refcount);
-                    const message = '<p>' + confirmmsg + '</p><ul class="px-5">' + warnings + '</ul>';
-                    showConfirmDialog({message: message, onConfirm: () => updateFile(body, node, modal, true)});
-                    return;
-                }
-            }
-            if (filenamechanged || filepathchanged || licensechanged || authorchanged) {
-                params = {
-                    filepath: node.filepath,
-                    filename: node.fullname,
-                    newfilename: newfilename,
-                    newfilepath: targetpath,
-                    newlicense: newlicense,
-                    newauthor: newauthor,
-                };
-                action = 'updatefile';
-            }
+        if (result === 'handled') {
+            return;
         }
-
-        if (!action) {
+        if (!result) {
             modal.hide();
             return;
         }
+
         selectRoot.classList.add('loading');
-        request(action, params).then((data) => {
+        request(result.action, result.params).then((data) => {
             modal.hide();
-            refresh((data && data.filepath) ? data.filepath : '/', {action: action, newfilename: newfilename});
+            refresh((data && data.filepath) ? data.filepath : '/', {action: result.action, newfilename: newfilename});
             FormChangeChecker.markFormChangedFromNode(root);
             return data;
         }).catch(() => selectRoot.classList.remove('loading'));
@@ -1278,6 +1355,8 @@ export const init = (clientId) => {
                             FormChangeChecker.markFormChangedFromNode(root);
                             FormEvent.notifyUploadChanged(root.id);
                             return data;
+                        }).catch(() => {
+                            // Error already surfaced by request().
                         });
                     },
                 });
@@ -1356,29 +1435,23 @@ export const init = (clientId) => {
     // for the action buttons each time (so re-wiring their listeners below never
     // accumulates duplicate handlers), while the modal/backdrop shell itself is
     // reused rather than duplicated.
-    let selectModal = null;
+    //
+    // The promise itself (not just its resolved value) is the singleton guard:
+    // it is assigned synchronously before the first await, so a second call
+    // arriving while creation is still in flight sees the promise already set
+    // and awaits that same promise instead of starting a second Modal.create().
+    let selectModalPromise = null;
 
     /**
-     * Open the file-info/edit dialog for a file (reimplements select_file()).
+     * Set the select-file dialog's type-specific classes and bind each
+     * field's label to its control with a real id/for pair.
      *
-     * @method selectFile
+     * @method prepareSelectFileLayout
+     * @param {Element} body The modal body element.
      * @param {Object} node The file node.
      */
-    const selectFile = async(node) => {
-        if (isDisabled()) {
-            return;
-        }
-        const pending = new Pending('core_form/filemanager:selectfile');
-        if (!selectModal) {
-            selectModal = await Modal.create({large: true});
-        }
-        selectModal.setTitle(getStr('edita', node.fullname));
-        selectModal.setBody(templates.fileselectlayout);
-        const modal = selectModal;
-        // core/modal returns a jQuery object; de-jQuery immediately.
-        const body = modal.getBody()[0];
+    const prepareSelectFileLayout = (body, node) => {
         const selectRoot = body.querySelector('.fp-select') || body;
-
         ['fp-folder', 'fp-file', 'fp-zip', 'fp-cansetmain', 'loading'].forEach((c) => selectRoot.classList.remove(c));
         if (node.type === 'folder' || node.type === 'zip') {
             selectRoot.classList.add('fp-' + node.type);
@@ -1400,7 +1473,17 @@ export const init = (clientId) => {
                 label.setAttribute('for', field.id);
             }
         });
+    };
 
+    /**
+     * Populate the select-file dialog's editable fields (name, author,
+     * license, target path) for the given node.
+     *
+     * @method populateSelectFileFields
+     * @param {Element} body The modal body element.
+     * @param {Object} node The file node.
+     */
+    const populateSelectFileFields = (body, node) => {
         body.querySelector('.fp-saveas input').value = node.fullname;
         const authorInput = body.querySelector('.fp-author input');
         authorInput.value = node.author ? node.author : '';
@@ -1425,19 +1508,29 @@ export const init = (clientId) => {
         if (licenseSelect) {
             licenseSelect.disabled = disable;
         }
+    };
 
+    /**
+     * Populate the select-file dialog's read-only static information
+     * (dates, size, dimensions, thumbnail, reference count).
+     *
+     * @method populateSelectFileStaticInfo
+     * @param {Element} body The modal body element.
+     * @param {Object} node The file node.
+     */
+    const populateSelectFileStaticInfo = (body, node) => {
         // Static file information (use server-formatted `_f` variants when present).
         ['datemodified', 'datecreated', 'size', 'dimensions', 'original', 'reflist'].forEach((attr) => {
             const el = body.querySelector('.fp-' + attr);
             if (!el) {
                 return;
             }
-            const raw = node[attr + '_f'] ? node[attr + '_f'] : (node[attr] ? node[attr] : '');
+            const raw = node[attr + '_f'] || node[attr] || '';
             el.classList.toggle('fp-unknown', ('' + raw) === '');
             const valueEl = el.querySelector('.fp-value');
             if (valueEl) {
                 if (attr === 'reflist') {
-                    // reflist is a server-built list of <li> items (HTML).
+                    // The reflist attribute is a server-built list of <li> items (HTML).
                     valueEl.innerHTML = raw;
                 } else {
                     valueEl.textContent = raw;
@@ -1462,67 +1555,120 @@ export const init = (clientId) => {
         if (refcountEl) {
             refcountEl.textContent = node.refcount ? getStr('referencesexist', node.refcount) : '';
         }
+    };
 
-        // Lazily fetch the original location for reference files.
-        if (node.isref && !node.original) {
-            const originalEl = body.querySelector('.fp-original');
+    /**
+     * Lazily fetch and render the original location of a reference file.
+     *
+     * @method fetchSelectFileOriginal
+     * @param {Element} body The modal body element.
+     * @param {Object} node The file node.
+     */
+    const fetchSelectFileOriginal = (body, node) => {
+        if (!node.isref || node.original) {
+            return;
+        }
+        const originalEl = body.querySelector('.fp-original');
+        if (originalEl) {
+            originalEl.classList.remove('fp-unknown');
+            originalEl.classList.add('fp-loading');
+        }
+        request('getoriginal', {filepath: node.filepath, filename: node.fullname}).then((data) => {
             if (originalEl) {
-                originalEl.classList.remove('fp-unknown');
-                originalEl.classList.add('fp-loading');
-            }
-            request('getoriginal', {filepath: node.filepath, filename: node.fullname}).then((data) => {
-                if (originalEl) {
-                    originalEl.classList.remove('fp-loading');
-                    const v = originalEl.querySelector('.fp-value');
-                    if (data.original) {
-                        node.original = data.original;
-                        if (v) {
-                            v.textContent = data.original;
-                        }
-                    } else if (v) {
-                        v.textContent = getStr('unknownsource');
-                    }
-                }
-                return data;
-            }).catch(() => {
-                // Error already surfaced by request().
-            });
-        }
-
-        // Lazily fetch the list of references.
-        if (node.refcount && !node.reflist) {
-            const reflistEl = body.querySelector('.fp-reflist');
-            if (reflistEl) {
-                reflistEl.classList.remove('fp-unknown');
-                reflistEl.classList.add('fp-loading');
-            }
-            request('getreferences', {filepath: node.filepath, filename: node.fullname}).then((data) => {
-                if (reflistEl) {
-                    reflistEl.classList.remove('fp-loading');
-                    const v = reflistEl.querySelector('.fp-value');
+                originalEl.classList.remove('fp-loading');
+                const v = originalEl.querySelector('.fp-value');
+                if (data.original) {
+                    node.original = data.original;
                     if (v) {
-                        if (data.references) {
-                            v.innerHTML = data.references.map((ref) => '<li>' + escapeHtml(ref) + '</li>').join('');
-                        } else {
-                            v.textContent = '';
-                        }
+                        v.textContent = data.original;
+                    }
+                } else if (v) {
+                    v.textContent = getStr('unknownsource');
+                }
+            }
+            return data;
+        }).catch(() => {
+            // Error already surfaced by request().
+        });
+    };
+
+    /**
+     * Lazily fetch and render the list of references to a file.
+     *
+     * @method fetchSelectFileReferences
+     * @param {Element} body The modal body element.
+     * @param {Object} node The file node.
+     */
+    const fetchSelectFileReferences = (body, node) => {
+        if (!node.refcount || node.reflist) {
+            return;
+        }
+        const reflistEl = body.querySelector('.fp-reflist');
+        if (reflistEl) {
+            reflistEl.classList.remove('fp-unknown');
+            reflistEl.classList.add('fp-loading');
+        }
+        request('getreferences', {filepath: node.filepath, filename: node.fullname}).then((data) => {
+            if (reflistEl) {
+                reflistEl.classList.remove('fp-loading');
+                const v = reflistEl.querySelector('.fp-value');
+                if (v) {
+                    if (data.references) {
+                        v.innerHTML = data.references.map((ref) => '<li>' + escapeHtml(ref) + '</li>').join('');
+                    } else {
+                        v.textContent = '';
                     }
                 }
-                return data;
-            }).catch(() => {
-                // Error already surfaced by request().
-            });
-        }
+            }
+            return data;
+        }).catch(() => {
+            // Error already surfaced by request().
+        });
+    };
 
-        // Enhance the help icons with popovers. Loaded dynamically (mirroring the
-        // legacy require) so this core module keeps only a soft, runtime dependency
-        // on the theme-provided Bootstrap popover.
-        import('theme_boost/bootstrap/popover').then(({default: Popover}) => {
+    /**
+     * Enhance the select-file dialog's help icons with popovers. Loaded
+     * dynamically (mirroring the legacy require) so this core module keeps
+     * only a soft, runtime dependency on the theme-provided Bootstrap popover.
+     *
+     * @method enhanceSelectFilePopovers
+     * @param {Element} body The modal body element.
+     */
+    const enhanceSelectFilePopovers = (body) => {
+        import('theme_boost/bootstrap/popover').then(({'default': Popover}) => {
             body.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => new Popover(el));
             return;
         }).catch(() => {
             // Popovers are a progressive enhancement; ignore if unavailable.
         });
+    };
+
+    /**
+     * Open the file-info/edit dialog for a file (reimplements select_file()).
+     *
+     * @method selectFile
+     * @param {Object} node The file node.
+     */
+    const selectFile = async(node) => {
+        if (isDisabled()) {
+            return;
+        }
+        const pending = new Pending('core_form/filemanager:selectfile');
+        if (!selectModalPromise) {
+            selectModalPromise = Modal.create({large: true});
+        }
+        const modal = await selectModalPromise;
+        modal.setTitle(getStr('edita', node.fullname));
+        modal.setBody(templates.fileselectlayout);
+        // The core/modal API returns a jQuery object; de-jQuery immediately.
+        const body = modal.getBody()[0];
+
+        prepareSelectFileLayout(body, node);
+        populateSelectFileFields(body, node);
+        populateSelectFileStaticInfo(body, node);
+        fetchSelectFileOriginal(body, node);
+        fetchSelectFileReferences(body, node);
+        enhanceSelectFilePopovers(body);
 
         setupSelectButtons(body, node, modal);
         modal.show();
@@ -1535,7 +1681,12 @@ export const init = (clientId) => {
     // element behind (core/modal's removeOnClose does not appear to guarantee
     // synchronous backdrop cleanup), which made a freshly-opened second dialog's
     // input unreachable to WebDriver ("not interactable") in Behat.
-    let mkdirModal = null;
+    //
+    // As with selectModalPromise above, the promise is the singleton guard: it
+    // is assigned before the first await so a second call arriving mid-creation
+    // awaits the same promise instead of creating a second modal.
+    let mkdirModalPromise = null;
+    let mkdirModalWired = false;
 
     /**
      * Open the "make a folder" dialog (reimplements the mkdir branch of setup_buttons).
@@ -1548,8 +1699,12 @@ export const init = (clientId) => {
         }
         const pending = new Pending('core_form/filemanager:mkdir');
 
-        if (!mkdirModal) {
-            mkdirModal = await Modal.create({body: templates.mkdir});
+        if (!mkdirModalPromise) {
+            mkdirModalPromise = Modal.create({body: templates.mkdir});
+        }
+        const mkdirModal = await mkdirModalPromise;
+
+        if (!mkdirModalWired) {
             const dialog = mkdirModal.getBody()[0];
             const input = dialog.querySelector('input');
             const label = dialog.querySelector('label');
@@ -1581,6 +1736,8 @@ export const init = (clientId) => {
                     refresh(data.filepath);
                     FormChangeChecker.markFormChangedFromNode(root);
                     return data;
+                }).catch(() => {
+                    // Error already surfaced by request().
                 });
             };
 
@@ -1602,6 +1759,9 @@ export const init = (clientId) => {
                 e.preventDefault();
                 mkdirModal.hide();
             }));
+
+            // Mark the modal as wired so a later re-open never re-attaches listeners.
+            mkdirModalWired = true;
         }
 
         const dialog = mkdirModal.getBody()[0];
@@ -1673,7 +1833,8 @@ export const init = (clientId) => {
         // internally by filepicker.js's own panels) and the other YUI pieces filepicker.js
         // needs, so requesting it here is what makes this interop bridge reliable
         // regardless of whether anything else on the page already loaded the filepicker.
-        // eslint-disable-next-line no-undef
+        // YUI is the legacy global YUI loader factory function, not a constructor.
+        // eslint-disable-next-line no-undef, @babel/new-cap
         YUI().use('core_filepicker', (Y) => {
             M.core_filepicker.show(Y, fpOptions);
         });
@@ -1685,7 +1846,7 @@ export const init = (clientId) => {
      * @method updateViewModeButtons
      */
     const updateViewModeButtons = () => {
-        const selectors = {1: '.fp-vb-icons', 2: '.fp-vb-tree', 3: '.fp-vb-details'};
+        const selectors = {'1': '.fp-vb-icons', '2': '.fp-vb-tree', '3': '.fp-vb-details'};
         root.querySelectorAll('.fp-vb-icons, .fp-vb-tree, .fp-vb-details').forEach((btn) => {
             btn.classList.remove('checked');
             btn.setAttribute('aria-pressed', 'false');
@@ -1778,6 +1939,8 @@ export const init = (clientId) => {
                             FormChangeChecker.markFormChangedFromNode(root);
                             FormEvent.notifyUploadChanged(root.id);
                             return data;
+                        }).catch(() => {
+                            // Error already surfaced by request().
                         });
                     },
                 });
@@ -1985,7 +2148,7 @@ export const init = (clientId) => {
         itemid: options.itemid,
         repositories: filepickerOptions.repositories,
         containerid: dndcontainerId,
-        contextid: options.context.id,
+        contextid: options.context ? options.context.id : 0,
     };
     // 'core_dndupload' (fullpath lib/form/dndupload.js) is only registered with the
     // page's YUI loader when something explicitly requires it - previously that was
@@ -1995,7 +2158,8 @@ export const init = (clientId) => {
     // $PAGE->requires->js_module(...) (see files/renderer.php) so this resolves here.
     // 'core_filepicker' pulls in 'moodle-core-notification-dialogue' for M.core.dialogue,
     // used internally by both filepicker.js and dndupload.js's own panels.
-    // eslint-disable-next-line no-undef
+    // YUI is the legacy global YUI loader factory function, not a constructor.
+    // eslint-disable-next-line no-undef, @babel/new-cap
     YUI().use('core_filepicker', 'core_dndupload', (Y) => {
         M.form_dndupload.init(Y, dndoptions);
     });
