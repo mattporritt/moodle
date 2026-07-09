@@ -523,7 +523,11 @@ export const init = (clientId) => {
                 imgdiv.style.height = height + 'px';
                 const img = document.createElement('img');
                 img.title = fileDescription(node);
-                img.alt = node.thumbnail_alt ? node.thumbnail_alt : fileName(node);
+                // SC 1.1.1 (Non-text Content, A) / image-redundant-alt: the filename is
+                // already shown as real text next to this icon (see .fp-filename below),
+                // so a non-empty alt here would have every screen reader announce it
+                // twice. Match the table/tree view icon renderers, which already use ''.
+                img.alt = '';
                 img.style.maxWidth = width + 'px';
                 img.style.maxHeight = height + 'px';
                 img.src = src;
@@ -1448,6 +1452,9 @@ export const init = (clientId) => {
             img.src = node.realthumbnail ? node.realthumbnail : node.thumbnail;
             img.style.maxHeight = (node.thumbnail_height ? node.thumbnail_height : 90) + 'px';
             img.style.maxWidth = (node.thumbnail_width ? node.thumbnail_width : 90) + 'px';
+            // SC 1.1.1 (Non-text Content, A): this thumbnail is decorative - the
+            // filename is already given as real text via the Name field above.
+            img.alt = '';
             thumb.appendChild(img);
         }
 

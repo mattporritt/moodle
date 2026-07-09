@@ -844,7 +844,15 @@ a.ygtvspacer:hover {
     height: 80px;
     position: absolute;
     top: 5px;
-    color: $gray-500;
+
+    // SC 1.4.11 (Non-text Contrast, AA) / SC 1.4.3 (Contrast Minimum, AA): $gray-500
+    // (#adb5bd) on the white upload-target background is 2.08:1, below both the
+    // 3:1 non-text and 4.5:1 text minimums. --mds-text-subtle (#495057) is 8.18:1
+    // on white and is the design-system token for this kind of secondary icon/text.
+    // Read as a CSS custom property (with a literal fallback) rather than the Sass
+    // variable, since this partial is shared with themes such as classic that do
+    // not import the design-system Sass tokens.
+    color: var(--mds-text-subtle, #495057);
 }
 
 .fitem.disabled .filepicker-container,

@@ -35929,7 +35929,7 @@ a.ygtvspacer:hover {
   height: 80px;
   position: absolute;
   top: 5px;
-  color: #8f959e;
+  color: var(--mds-text-subtle, #495057);
 }
 
 .fitem.disabled .filepicker-container,
