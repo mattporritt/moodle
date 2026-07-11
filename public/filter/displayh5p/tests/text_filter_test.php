@@ -124,4 +124,31 @@ final class text_filter_test extends \advanced_testcase {
             ],
         ];
     }
+
+    /**
+     * Tests that later phrase filters preserve the URL in a generated H5P iframe.
+     */
+    public function test_filter_url_with_activity_names_filter(): void {
+        global $CFG;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->create_module('page', [
+            'course' => $course->id,
+            'name' => 'PageName1',
+        ]);
+        filter_set_global_state('displayh5p', TEXTFILTER_ON);
+        filter_set_global_state('activitynames', TEXTFILTER_ON);
+
+        $context = \context_course::instance($course->id);
+        $contenturl = $CFG->wwwroot . '/pluginfile.php/5/user/private/interactive-video.h5p';
+        $text = '<p>H5P Activity:</p><div class="h5p-placeholder">' . $contenturl . '</div>';
+        $filteredtext = format_text($text, FORMAT_HTML, ['context' => $context]);
+
+        $expectedurl = $CFG->wwwroot . '/h5p/embed.php?url=' . rawurlencode($contenturl);
+        $this->assertStringContainsString('src="' . $expectedurl . '"', $filteredtext);
+        $this->assertStringNotContainsString($expectedurl . '</div>', $filteredtext);
+    }
 }

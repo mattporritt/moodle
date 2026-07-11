@@ -36,7 +36,7 @@ define('TEXTFILTER_DISABLED', -9999);
  *  keys. It must be something rare enough to avoid having matches with
  *  filterobjects. MDL-18165
  */
-define('TEXTFILTER_EXCL_SEPARATOR', chr(0x1F) . '%' . chr(0x1F));
+define('TEXTFILTER_EXCL_SEPARATOR', '*%*');
 
 
 /**
@@ -915,15 +915,41 @@ function filter_phrases($text, $linkarray, $ignoretagsopen = null, $ignoretagscl
             continue;
         }
 
-        // Do our highlighting.
-        $resulttext = preg_replace_callback($linkobject->workregexp,
-                function ($matches) use ($linkobject) {
-                    if ($linkobject->workreplacementphrase === null) {
-                        filter_prepare_phrase_for_replacement($linkobject);
-                    }
+        // Do our highlighting without allowing matches inside or across temporary placeholders.
+        $replacecallback = function ($matches) use ($linkobject) {
+            if ($linkobject->workreplacementphrase === null) {
+                filter_prepare_phrase_for_replacement($linkobject);
+            }
 
-                    return str_replace('$1', $matches[1], $linkobject->workreplacementphrase);
-                }, $text, $pregreplacelimit);
+            return str_replace('$1', $matches[1], $linkobject->workreplacementphrase);
+        };
+        $placeholderkeys = array_merge(array_keys($ignoretags), array_keys($tags));
+        if (empty($placeholderkeys)) {
+            $resulttext = preg_replace_callback($linkobject->workregexp, $replacecallback, $text, $pregreplacelimit);
+        } else {
+            $placeholderlookup = array_fill_keys($placeholderkeys, true);
+            $placeholderpattern = '~(' . implode('|', array_map(fn($key) => preg_quote($key, '~'), $placeholderkeys)) . ')~';
+            $textparts = preg_split($placeholderpattern, $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+            $remaininglimit = $pregreplacelimit;
+            foreach ($textparts as &$textpart) {
+                if (isset($placeholderlookup[$textpart]) || $remaininglimit === 0) {
+                    continue;
+                }
+                $replacementcount = 0;
+                $textpart = preg_replace_callback(
+                    $linkobject->workregexp,
+                    $replacecallback,
+                    $textpart,
+                    $remaininglimit,
+                    $replacementcount,
+                );
+                if ($remaininglimit > 0) {
+                    $remaininglimit -= $replacementcount;
+                }
+            }
+            unset($textpart);
+            $resulttext = implode('', $textparts);
+        }
 
         // If the text has changed we have to look for links again.
         if ($resulttext != $text) {
@@ -940,14 +966,8 @@ function filter_phrases($text, $linkarray, $ignoretagsopen = null, $ignoretagscl
     }
 
     // Rebuild the text with all the excluded areas.
-    if (!empty($tags)) {
-        $text = str_replace(array_keys($tags), $tags, $text);
-    }
-
-    if (!empty($ignoretags)) {
-        $ignoretags = array_reverse($ignoretags);     // Reversed so "progressive" str_replace() will solve some nesting problems.
-        $text = str_replace(array_keys($ignoretags), $ignoretags, $text);
-    }
+    filter_restore_saved_tags($text, $tags);
+    filter_restore_saved_tags($text, $ignoretags);
 
     // Remove the protective doubleups.
     $text = preg_replace('/([#*%])(\1)/', '\1', $text);
@@ -1077,18 +1097,24 @@ function filter_remove_duplicates($linkarray) {
 }
 
 /**
- * Extract open/lose tags and their contents to avoid being processed by filters.
+ * Extract open/close tags and their contents to avoid being processed by filters.
  * Useful to extract pieces of code like <a>...</a> tags. It returns the text
- * converted with some <#xTEXTFILTER_EXCL_SEPARATORx#> codes replacing the extracted text. Such extracted
- * texts are returned in the ignoretags array (as values), with codes as keys.
+ * converted with some {-{#xTEXTFILTER_EXCL_SEPARATORx#}-} codes replacing the
+ * extracted text. Such extracted texts are returned in the ignoretags array
+ * (as values), with codes as keys.
+ *
+ * Example saving tags and restoring them:
+ *     $ignoretags = [];
+ *     filter_save_ignore_tags($text, ['<a>', '<b>'], ['</a>', '</b>'], $ignoretags);
+ *     // ... process $text as needed
+ *     filter_restore_saved_tags($text, $ignoretags);
  *
  * @param string $text                  the text that we are filtering (in/out)
  * @param array $filterignoretagsopen  an array of open tags to start searching
  * @param array $filterignoretagsclose an array of close tags to end searching
  * @param array $ignoretags            an array of saved strings useful to rebuild the original text (in/out)
- **/
-function filter_save_ignore_tags(&$text, $filterignoretagsopen, $filterignoretagsclose, &$ignoretags) {
-
+ */
+function filter_save_ignore_tags(&$text, $filterignoretagsopen, $filterignoretagsclose, &$ignoretags): void {
     // Remove everything enclosed by the ignore tags from $text.
     foreach ($filterignoretagsopen as $ikey => $opentag) {
         $closetag = $filterignoretagsclose[$ikey];
@@ -1099,8 +1125,15 @@ function filter_save_ignore_tags(&$text, $filterignoretagsopen, $filterignoretag
 
         preg_match_all($pregexp, $text, $listofignores);
         foreach (array_unique($listofignores[0]) as $key => $value) {
-            $prefix = (string) (count($ignoretags) + 1);
-            $ignoretags['<#'.$prefix.TEXTFILTER_EXCL_SEPARATOR.$key.'#>'] = $value;
+            $prefix = count($ignoretags) + 1;
+            do {
+                $tagkey = '{-{#' . $prefix++ . TEXTFILTER_EXCL_SEPARATOR . $key . '#}-}';
+                $collision = str_contains($text, $tagkey) || array_key_exists($tagkey, $ignoretags);
+                foreach ($ignoretags as $savedtext) {
+                    $collision = $collision || str_contains($savedtext, $tagkey);
+                }
+            } while ($collision);
+            $ignoretags[$tagkey] = $value;
         }
         if (!empty($ignoretags)) {
             $text = str_replace($ignoretags, array_keys($ignoretags), $text);
@@ -1109,22 +1142,51 @@ function filter_save_ignore_tags(&$text, $filterignoretagsopen, $filterignoretag
 }
 
 /**
- * Extract tags (any text enclosed by < and > to avoid being processed by filters.
- * It returns the text converted with some <%xTEXTFILTER_EXCL_SEPARATORx%> codes replacing the extracted text. Such extracted
- * texts are returned in the tags array (as values), with codes as keys.
+ * Extract all tags (any text enclosed by < and > to avoid being processed by filters.
+ * It returns the text converted with some {-{%xTEXTFILTER_EXCL_SEPARATORx%}-}
+ * codes replacing the extracted text. Such extracted texts are returned in the
+ * tags array (as values), with codes as keys.
+ *
+ * Example saving tags and restoring them:
+ *     $extractedtags = [];
+ *     filter_save_tags($text, $extractedtags);
+ *     // ... process $text as needed
+ *     filter_restore_saved_tags($text, $extractedtags);
  *
  * @param string $text   the text that we are filtering (in/out)
  * @param array $tags   an array of saved strings useful to rebuild the original text (in/out)
- **/
-function filter_save_tags(&$text, &$tags) {
-
+ */
+function filter_save_tags(&$text, &$tags): void {
     preg_match_all('/<([^#%*].*?)>/is', $text, $listofnewtags);
     foreach (array_unique($listofnewtags[0]) as $ntkey => $value) {
-        $prefix = (string)(count($tags) + 1);
-        $tags['<%'.$prefix.TEXTFILTER_EXCL_SEPARATOR.$ntkey.'%>'] = $value;
+        $prefix = count($tags) + 1;
+        do {
+            $tagkey = '{-{%' . $prefix++ . TEXTFILTER_EXCL_SEPARATOR . $ntkey . '%}-}';
+            $collision = str_contains($text, $tagkey) || array_key_exists($tagkey, $tags);
+            foreach ($tags as $savedtext) {
+                $collision = $collision || str_contains($savedtext, $tagkey);
+            }
+        } while ($collision);
+        $tags[$tagkey] = $value;
     }
     if (!empty($tags)) {
         $text = str_replace($tags, array_keys($tags), $text);
+    }
+}
+
+/**
+ * Restores the tags or expressions extracted from text.
+ *
+ * To be used after {@see filter_save_ignore_tags()} or {@see filter_save_tags()}.
+ *
+ * @param string $text The text containing saved tag placeholders to restore.
+ * @param array|null $tags The placeholder keys and their original values.
+ * @since Moodle 5.3
+ */
+function filter_restore_saved_tags(string &$text, ?array $tags): void {
+    if (!empty($tags)) {
+        $tags = array_reverse($tags); // Reversed so "progressive" str_replace() will solve some nesting problems.
+        $text = str_replace(array_keys($tags), $tags, $text);
     }
 }
 

@@ -1,0 +1,9 @@
+issueNumber: MDL-80885
+notes:
+  core:
+    - message: >-
+        The filter_save_ignore_tags() and filter_save_tags() functions now use
+        forceclean-compatible placeholder keys. Code that restores saved tags
+        should call the new filter_restore_saved_tags() function instead of
+        depending on the placeholder key format.
+      type: changed
