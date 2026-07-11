@@ -343,7 +343,7 @@ final class automated_backup_test extends \advanced_testcase {
     /**
      * Test the course category filter for backup course selection.
      */
-    public function test_backup_course_in_categories() {
+    public function test_backup_course_in_categories(): void {
         global $DB;
 
         $category1 = \core_course_category::create(['name' => 'Cat1']);

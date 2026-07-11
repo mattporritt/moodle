@@ -542,9 +542,12 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
         1 => new lang_string('autoactiveenabled', 'backup'),
         2 => new lang_string('autoactivemanual', 'backup')
     )));
-    $temp->add(new admin_settings_coursecat_multiselect('backup/backup_courses_in_categories',
+    $temp->add(new admin_settings_coursecat_multiselect(
+        'backup/backup_courses_in_categories',
         new lang_string('backup_courses_in_categories', 'backup'),
-        new lang_string('backup_courses_in_categories_help', 'backup'), []));
+        new lang_string('backup_courses_in_categories_help', 'backup'),
+        []
+    ));
     $temp->add(new admin_setting_special_backupdays());
     $temp->add(new admin_setting_configtime('backup/backup_auto_hour', 'backup_auto_minute', new lang_string('executeat'),
             new lang_string('backupexecuteathelp'), array('h' => 0, 'm' => 0)));

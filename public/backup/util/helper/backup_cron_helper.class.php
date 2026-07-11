@@ -89,7 +89,7 @@ abstract class backup_cron_automated_helper {
             $insqlparams = [];
         } else {
             $categories = explode(',', $config->backup_courses_in_categories);
-            list($insql, $insqlparams) = $DB->get_in_or_equal($categories);
+            [$insql, $insqlparams] = $DB->get_in_or_equal($categories);
             $categorycondition = "AND c.category $insql";
         }
 
