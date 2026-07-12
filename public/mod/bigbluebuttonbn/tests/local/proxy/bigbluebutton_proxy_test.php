@@ -123,4 +123,23 @@ final class bigbluebutton_proxy_test extends \advanced_testcase {
         $this->assertArrayHasKey('guest', $params);
         $this->assertEquals('true', $params['guest']);
     }
+
+    /**
+     * A guest join url must never be built for an instance where guest access is disabled, since
+     * mod/bigbluebuttonbn/guest.php is the only caller and it already blocks that case; the proxy
+     * itself must fail loudly instead of silently building a URL that looks like an authenticated
+     * join (MDL-76880).
+     *
+     * @covers  \mod_bigbluebuttonbn\local\proxy\bigbluebutton_proxy::get_guest_join_url
+     * @return void
+     */
+    public function test_get_guest_join_url_throws_when_guest_access_disabled(): void {
+        $this->resetAfterTest();
+        $this->initialise_mock_server();
+        [, , $bbbactivity] = $this->create_instance(null, ['guestallowed' => 0]);
+        $instance = instance::get_from_instanceid($bbbactivity->id);
+
+        $this->expectException(\coding_exception::class);
+        bigbluebutton_proxy::get_guest_join_url($instance, null, 'Guest user');
+    }
 }
