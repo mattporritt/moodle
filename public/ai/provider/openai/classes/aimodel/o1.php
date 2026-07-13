@@ -50,15 +50,15 @@ class o1 extends gpt4o {
                     'component' => 'aiprovider_openai',
                 ],
             ],
-            'max_completion_tokens' => [
+            'max_output_tokens' => [
                 'elementtype' => 'text',
                 'label' => [
-                    'identifier' => 'settings_max_completion_tokens',
+                    'identifier' => 'settings_max_output_tokens',
                     'component' => 'aiprovider_openai',
                 ],
                 'type' => PARAM_INT,
                 'help' => [
-                    'identifier' => 'settings_max_completion_tokens',
+                    'identifier' => 'settings_max_output_tokens',
                     'component' => 'aiprovider_openai',
                 ],
             ],

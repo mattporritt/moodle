@@ -53,39 +53,15 @@ class gpt4o extends base implements openai_base {
                     'component' => 'aiprovider_openai',
                 ],
             ],
-            'max_completion_tokens' => [
+            'max_output_tokens' => [
                 'elementtype' => 'text',
                 'label' => [
-                    'identifier' => 'settings_max_completion_tokens',
+                    'identifier' => 'settings_max_output_tokens',
                     'component' => 'aiprovider_openai',
                 ],
                 'type' => PARAM_INT,
                 'help' => [
-                    'identifier' => 'settings_max_completion_tokens',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'frequency_penalty' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_frequency_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
-                'help' => [
-                    'identifier' => 'settings_frequency_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'presence_penalty' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_presence_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
-                'help' => [
-                    'identifier' => 'settings_presence_penalty',
+                    'identifier' => 'settings_max_output_tokens',
                     'component' => 'aiprovider_openai',
                 ],
             ],

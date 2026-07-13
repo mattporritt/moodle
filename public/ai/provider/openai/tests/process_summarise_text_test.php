@@ -89,10 +89,9 @@ final class process_summarise_text_test extends \advanced_testcase {
 
         $body = (object) json_decode($request->getBody()->getContents());
 
-        $this->assertEquals('system', $body->messages[0]->role);
-        $this->assertEquals(get_string('action_summarise_text_instruction', 'core_ai'), $body->messages[0]->content);
-        $this->assertEquals('This is a test prompt', $body->messages[1]->content);
-        $this->assertEquals('user', $body->messages[1]->role);
+        $this->assertEquals(get_string('action_summarise_text_instruction', 'core_ai'), $body->instructions);
+        $this->assertEquals('This is a test prompt', $body->input);
+        $this->assertFalse($body->store);
     }
 
     /**
@@ -104,7 +103,7 @@ final class process_summarise_text_test extends \advanced_testcase {
             actionconfig: [
                 'systeminstruction' => get_string('action_summarise_text_instruction', 'core_ai'),
                 'temperature' => '0.5',
-                'max_completion_tokens' => '100',
+                'max_output_tokens' => '100',
             ],
         );
         $processor = new process_summarise_text($this->provider, $this->action);
@@ -117,14 +116,14 @@ final class process_summarise_text_test extends \advanced_testcase {
 
         $this->assertEquals('gpt-4o', $body->model);
         $this->assertEquals('0.5', $body->temperature);
-        $this->assertEquals('100', $body->max_completion_tokens);
+        $this->assertEquals('100', $body->max_output_tokens);
 
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\summarise_text::class,
             actionconfig: [
                 'model' => 'my-custom-gpt',
                 'systeminstruction' => get_string('action_summarise_text_instruction', 'core_ai'),
-                'modelextraparams' => '{"temperature": 0.5,"max_completion_tokens": 100}',
+                'modelextraparams' => '{"temperature": 0.5,"max_output_tokens": 100}',
             ],
         );
         $processor = new process_summarise_text($this->provider, $this->action);
@@ -137,7 +136,7 @@ final class process_summarise_text_test extends \advanced_testcase {
 
         $this->assertEquals('my-custom-gpt', $body->model);
         $this->assertEquals('0.5', $body->temperature);
-        $this->assertEquals('100', $body->max_completion_tokens);
+        $this->assertEquals('100', $body->max_output_tokens);
     }
 
     /**
@@ -189,10 +188,10 @@ final class process_summarise_text_test extends \advanced_testcase {
         $result = $method->invoke($processor, $response);
 
         $this->assertTrue($result['success']);
-        $this->assertEquals('chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo', $result['id']);
-        $this->assertEquals('fp_c4e5b6fa31', $result['fingerprint']);
+        $this->assertEquals('resp_test123', $result['id']);
+        $this->assertNull($result['fingerprint']);
         $this->assertStringContainsString('Sure, here is some sample text', $result['generatedcontent']);
-        $this->assertEquals('stop', $result['finishreason']);
+        $this->assertEquals('completed', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
         $this->assertEquals('gpt-4o-2024-05-13', $result['model']);
@@ -217,10 +216,10 @@ final class process_summarise_text_test extends \advanced_testcase {
         $result = $method->invoke($processor);
 
         $this->assertTrue($result['success']);
-        $this->assertEquals('chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo', $result['id']);
-        $this->assertEquals('fp_c4e5b6fa31', $result['fingerprint']);
+        $this->assertEquals('resp_test123', $result['id']);
+        $this->assertNull($result['fingerprint']);
         $this->assertStringContainsString('Sure, here is some sample text', $result['generatedcontent']);
-        $this->assertEquals('stop', $result['finishreason']);
+        $this->assertEquals('completed', $result['finishreason']);
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
         $this->assertEquals('gpt-4o-2024-05-13', $result['model']);
@@ -237,10 +236,10 @@ final class process_summarise_text_test extends \advanced_testcase {
 
         $response = [
             'success' => true,
-            'id' => 'chatcmpl-9lkwPWOIiQEvI3nfcGofJcmS5lPYo',
-            'fingerprint' => 'fp_c4e5b6fa31',
+            'id' => 'resp_test123',
+            'fingerprint' => null,
             'generatedcontent' => 'Sure, here is some sample text',
-            'finishreason' => 'stop',
+            'finishreason' => 'completed',
             'prompttokens' => '11',
             'completiontokens' => '568',
             'model' => 'gpt-4o',
@@ -359,7 +358,7 @@ final class process_summarise_text_test extends \advanced_testcase {
                 \core_ai\aiactions\summarise_text::class => [
                     'settings' => [
                         'model' => 'gpt-4o',
-                        'endpoint' => "https://api.openai.com/v1/chat/completions",
+                        'endpoint' => "https://api.openai.com/v1/responses",
                         'systeminstruction' => get_string('action_summarise_text_instruction', 'core_ai'),
                     ],
                 ],
@@ -455,7 +454,7 @@ final class process_summarise_text_test extends \advanced_testcase {
                 \core_ai\aiactions\summarise_text::class => [
                     'settings' => [
                         'model' => 'gpt-4o',
-                        'endpoint' => "https://api.openai.com/v1/chat/completions",
+                        'endpoint' => "https://api.openai.com/v1/responses",
                         'systeminstruction' => get_string('action_summarise_text_instruction', 'core_ai'),
                     ],
                 ],

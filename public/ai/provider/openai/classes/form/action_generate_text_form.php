@@ -42,7 +42,7 @@ class action_generate_text_form extends action_form {
         );
         $mform->setType('endpoint', PARAM_URL);
         $mform->addRule('endpoint', null, 'required', null, 'client');
-        $mform->setDefault('endpoint', $actionconfig['endpoint'] ?? 'https://api.openai.com/v1/chat/completions');
+        $mform->setDefault('endpoint', $actionconfig['endpoint'] ?? 'https://api.openai.com/v1/responses');
 
         // System Instructions.
         $mform->addElement(
@@ -73,6 +73,28 @@ class action_generate_text_form extends action_form {
         $mform->setType('providerid', PARAM_INT);
 
         $this->set_data($this->actionconfig);
+    }
+
+    #[\Override]
+    public function set_data($data): void {
+        if (
+            ($data['endpoint'] ?? '') !== 'https://api.openai.com/v1/responses' &&
+                isset($data['max_completion_tokens'])
+        ) {
+            $data['max_output_tokens'] = $data['max_completion_tokens'];
+        }
+
+        parent::set_data($data);
+    }
+
+    #[\Override]
+    public function validation($data, $files): array {
+        $errors = parent::validation($data, $files);
+        if ($data['endpoint'] === 'https://api.openai.com/v1/responses' && !empty($data['modelextraparams'])) {
+            $errors['modelextraparams'] = get_string('responsesextraparamsunsupported', 'aiprovider_openai');
+        }
+
+        return $errors;
     }
 
 }

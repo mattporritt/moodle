@@ -47,7 +47,7 @@ trait testcase_helper_trait {
             $actionclass => [
                 'settings' => [
                     'model' => 'gpt-4o',
-                    'endpoint' => "https://api.openai.com/v1/chat/completions",
+                    'endpoint' => "https://api.openai.com/v1/responses",
                 ],
             ],
         ];

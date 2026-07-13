@@ -1942,5 +1942,72 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026061600.01);
     }
 
+    if ($oldversion < 2026071500.00) {
+        $records = $DB->get_records('ai_providers', ['provider' => 'aiprovider_openai\\provider']);
+        $textactions = [
+            'core_ai\\aiactions\\generate_text',
+            'core_ai\\aiactions\\summarise_text',
+            'core_ai\\aiactions\\explain_text',
+        ];
+
+        foreach ($records as $record) {
+            $actionconfig = json_decode($record->actionconfig, true, 512);
+            $originalactionconfig = $actionconfig;
+
+            foreach ($textactions as $actionclass) {
+                if (!isset($actionconfig[$actionclass]['settings'])) {
+                    continue;
+                }
+                $settings =& $actionconfig[$actionclass]['settings'];
+                if (($settings['endpoint'] ?? '') !== 'https://api.openai.com/v1/chat/completions') {
+                    continue;
+                }
+
+                if (isset($settings['modelextraparams'])) {
+                    mtrace("OpenAI {$actionclass} has custom extra parameters and remains on the Chat Completions API.");
+                    continue;
+                }
+
+                $settings['endpoint'] = 'https://api.openai.com/v1/responses';
+                if (isset($settings['max_completion_tokens'])) {
+                    $settings['max_output_tokens'] = $settings['max_completion_tokens'];
+                    unset($settings['max_completion_tokens']);
+                }
+                foreach (['frequency_penalty', 'presence_penalty'] as $setting) {
+                    if (isset($settings[$setting])) {
+                        mtrace("OpenAI {$actionclass} setting {$setting} is not supported by the Responses API and was removed.");
+                        unset($settings[$setting]);
+                    }
+                }
+
+                $model = $settings['model'] ?? null;
+                if ($model !== null && isset($actionconfig[$actionclass]['modelsettings'][$model])) {
+                    $modelsettings =& $actionconfig[$actionclass]['modelsettings'][$model];
+                    if (isset($modelsettings['max_completion_tokens'])) {
+                        $modelsettings['max_output_tokens'] = $modelsettings['max_completion_tokens'];
+                        unset($modelsettings['max_completion_tokens']);
+                    }
+                    foreach (['frequency_penalty', 'presence_penalty'] as $setting) {
+                        if (isset($modelsettings[$setting])) {
+                            mtrace(
+                                "OpenAI {$actionclass} setting {$setting} is not supported by the Responses API and was removed."
+                            );
+                            unset($modelsettings[$setting]);
+                        }
+                    }
+                    unset($modelsettings);
+                }
+                unset($settings);
+            }
+
+            if ($actionconfig !== $originalactionconfig) {
+                $record->actionconfig = json_encode($actionconfig);
+                $DB->update_record('ai_providers', $record);
+            }
+        }
+
+        upgrade_main_savepoint(true, 2026071500.00);
+    }
+
     return true;
 }

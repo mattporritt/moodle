@@ -28,6 +28,9 @@ use Psr\Http\Message\ResponseInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_generate_text extends abstract_processor {
+    /** The official OpenAI Responses endpoint. */
+    private const RESPONSES_ENDPOINT = 'https://api.openai.com/v1/responses';
+
 
     #[\Override]
     protected function get_system_instruction(): string {
@@ -36,6 +39,10 @@ class process_generate_text extends abstract_processor {
 
     #[\Override]
     protected function create_request_object(string $userid): RequestInterface {
+        if ($this->uses_responses_api()) {
+            return $this->create_responses_request_object();
+        }
+
         // Create the user object.
         $userobj = new \stdClass();
         $userobj->role = 'user';
@@ -83,6 +90,10 @@ class process_generate_text extends abstract_processor {
         $responsebody = $response->getBody();
         $bodyobj = json_decode($responsebody->getContents());
 
+        if ($this->uses_responses_api()) {
+            return $this->handle_responses_api_success($bodyobj);
+        }
+
         return [
             'success' => true,
             'id' => $bodyobj->id,
@@ -93,5 +104,123 @@ class process_generate_text extends abstract_processor {
             'completiontokens' => $bodyobj->usage->completion_tokens,
             'model' => $bodyobj->model ?? $this->get_model(), // Fallback to config model.
         ];
+    }
+
+    /**
+     * Whether this action uses the official Responses API endpoint.
+     *
+     * Non-official endpoints retain the Chat Completions contract so that a
+     * custom endpoint is never sent an incompatible request payload.
+     *
+     * @return bool
+     */
+    private function uses_responses_api(): bool {
+        return (string) $this->get_endpoint() === self::RESPONSES_ENDPOINT;
+    }
+
+    /**
+     * Create a request for the official OpenAI Responses API.
+     *
+     * @return RequestInterface
+     */
+    private function create_responses_request_object(): RequestInterface {
+        $requestobj = new \stdClass();
+        $requestobj->model = $this->get_model();
+        $requestobj->input = $this->action->get_configuration('prompttext');
+        $requestobj->store = false;
+
+        $systeminstruction = $this->get_system_instruction();
+        if (!empty($systeminstruction)) {
+            $requestobj->instructions = $systeminstruction;
+        }
+
+        foreach ($this->get_model_settings() as $setting => $value) {
+            $requestobj->$setting = $value;
+        }
+
+        return new Request(
+            method: 'POST',
+            uri: '',
+            headers: ['Content-Type' => 'application/json'],
+            body: json_encode($requestobj),
+        );
+    }
+
+    #[\Override]
+    protected function get_model_settings(): array {
+        $settings = parent::get_model_settings();
+
+        if (!$this->uses_responses_api() && isset($settings['max_output_tokens'])) {
+            $settings['max_completion_tokens'] = $settings['max_output_tokens'];
+            unset($settings['max_output_tokens']);
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Handle a successful response from the official OpenAI Responses API.
+     *
+     * @param \stdClass|null $bodyobj The decoded response body.
+     * @return array The response.
+     */
+    private function handle_responses_api_success(?\stdClass $bodyobj): array {
+        if ($bodyobj === null || ($bodyobj->status ?? null) !== 'completed' || empty($bodyobj->id)) {
+            $reason = $bodyobj->incomplete_details->reason ?? get_string('invalidresponsesresponse', 'aiprovider_openai');
+            return \core_ai\error\factory::create(500, $reason)->get_error_details();
+        }
+
+        $generatedcontent = '';
+        foreach ($bodyobj->output ?? [] as $outputitem) {
+            if (($outputitem->type ?? null) !== 'message') {
+                continue;
+            }
+            foreach ($outputitem->content ?? [] as $contentitem) {
+                if (($contentitem->type ?? null) === 'output_text') {
+                    $generatedcontent .= $contentitem->text ?? '';
+                }
+            }
+        }
+
+        if ($generatedcontent === '') {
+            return \core_ai\error\factory::create(500, get_string('invalidresponsesresponse', 'aiprovider_openai'))
+                ->get_error_details();
+        }
+
+        return [
+            'success' => true,
+            'id' => $bodyobj->id,
+            'fingerprint' => null,
+            'generatedcontent' => $generatedcontent,
+            'finishreason' => $bodyobj->status,
+            'prompttokens' => $bodyobj->usage->input_tokens ?? 0,
+            'completiontokens' => $bodyobj->usage->output_tokens ?? 0,
+            'model' => $bodyobj->model ?? $this->get_model(),
+        ];
+    }
+
+    #[\Override]
+    protected function validate_request_configuration(): ?array {
+        $settings = $this->provider->actionconfig[$this->action::class]['settings'];
+        if ($this->uses_responses_api() && !empty($settings['modelextraparams'])) {
+            return \core_ai\error\factory::create(
+                400,
+                get_string('responsesextraparamsunsupported', 'aiprovider_openai'),
+            )->get_error_details();
+        }
+
+        return null;
+    }
+
+    #[\Override]
+    protected function handle_api_error(ResponseInterface $response): array {
+        $status = $response->getStatusCode();
+        $errormessage = $response->getReasonPhrase();
+        if ($status < 500) {
+            $bodyobj = json_decode($response->getBody()->getContents());
+            $errormessage = $bodyobj->error->message ?? $errormessage;
+        }
+
+        return \core_ai\error\factory::create($status, $errormessage)->get_error_details();
     }
 }

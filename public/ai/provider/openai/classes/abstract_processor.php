@@ -108,8 +108,22 @@ abstract class abstract_processor extends process_base {
      */
     abstract protected function handle_api_success(ResponseInterface $response): array;
 
+    /**
+     * Validate the action configuration before sending a request.
+     *
+     * @return array|null Error details, or null when the configuration is valid.
+     */
+    protected function validate_request_configuration(): ?array {
+        return null;
+    }
+
     #[\Override]
     protected function query_ai_api(): array {
+        $configurationerror = $this->validate_request_configuration();
+        if ($configurationerror !== null) {
+            return $configurationerror;
+        }
+
         $request = $this->create_request_object(
             userid: $this->provider->generate_userid($this->action->get_configuration('userid')),
         );

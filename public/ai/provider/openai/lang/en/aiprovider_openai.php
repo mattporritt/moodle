@@ -52,6 +52,7 @@ $string['extraparams_help'] = 'Extra parameters can be configured here. We suppo
 }
 </pre>';
 $string['invalidjson'] = 'Invalid JSON string';
+$string['invalidresponsesresponse'] = 'The OpenAI Responses API returned an incomplete or invalid response.';
 $string['orgid'] = 'OpenAI organization ID';
 $string['orgid_help'] = 'Get your OpenAI organization ID from your <a href="https://platform.openai.com/account/org-settings" target="_blank">OpenAI account</a>.';
 $string['pluginname'] = 'OpenAI API provider';
@@ -61,12 +62,15 @@ $string['privacy:metadata:aiprovider_openai:model'] = 'The model used to generat
 $string['privacy:metadata:aiprovider_openai:numberimages'] = 'When generating images the number of images used in the response.';
 $string['privacy:metadata:aiprovider_openai:prompttext'] = 'The user entered text prompt used to generate the response.';
 $string['privacy:metadata:aiprovider_openai:responseformat'] = 'The format of the response. When generating images.';
+$string['responsesextraparamsunsupported'] = 'Custom extra parameters are not supported by the OpenAI Responses API. Use a custom Chat Completions endpoint instead.';
 $string['settings'] = 'Settings';
 $string['settings_frequency_penalty'] = 'frequency_penalty';
 $string['settings_frequency_penalty_help'] = 'The frequency penalty adjusts how often words are repeated. The higher the penalty, the less repetitions in the generated text.';
 $string['settings_help'] = 'Adjust the settings below to customise how requests are sent to OpenAI.';
 $string['settings_max_completion_tokens'] = 'max_completion_tokens';
 $string['settings_max_completion_tokens_help'] = 'The maximum number of tokens used in the generated text.';
+$string['settings_max_output_tokens'] = 'max_output_tokens';
+$string['settings_max_output_tokens_help'] = 'The maximum number of tokens used in the generated text.';
 $string['settings_presence_penalty'] = 'presence_penalty';
 $string['settings_presence_penalty_help'] = 'The presence penalty encourages the model to use new words by increasing the likelihood of choosing words it hasn\'t used before. A higher value makes the generated text more diverse, while a lower value allows more repetition.';
 $string['settings_top_p'] = 'top_p';
