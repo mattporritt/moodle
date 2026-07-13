@@ -1958,7 +1958,7 @@ function xmldb_main_upgrade($oldversion) {
                 if (!isset($actionconfig[$actionclass]['settings'])) {
                     continue;
                 }
-                $settings =& $actionconfig[$actionclass]['settings'];
+                $settings = $actionconfig[$actionclass]['settings'];
                 if (($settings['endpoint'] ?? '') !== 'https://api.openai.com/v1/chat/completions') {
                     continue;
                 }
@@ -1968,36 +1968,27 @@ function xmldb_main_upgrade($oldversion) {
                     continue;
                 }
 
-                $settings['endpoint'] = 'https://api.openai.com/v1/responses';
-                if (isset($settings['max_completion_tokens'])) {
-                    $settings['max_output_tokens'] = $settings['max_completion_tokens'];
-                    unset($settings['max_completion_tokens']);
-                }
                 foreach (['frequency_penalty', 'presence_penalty'] as $setting) {
                     if (isset($settings[$setting])) {
                         mtrace("OpenAI {$actionclass} setting {$setting} is not supported by the Responses API and was removed.");
-                        unset($settings[$setting]);
                     }
                 }
 
                 $model = $settings['model'] ?? null;
                 if ($model !== null && isset($actionconfig[$actionclass]['modelsettings'][$model])) {
-                    $modelsettings =& $actionconfig[$actionclass]['modelsettings'][$model];
-                    if (isset($modelsettings['max_completion_tokens'])) {
-                        $modelsettings['max_output_tokens'] = $modelsettings['max_completion_tokens'];
-                        unset($modelsettings['max_completion_tokens']);
-                    }
+                    $modelsettings = $actionconfig[$actionclass]['modelsettings'][$model];
                     foreach (['frequency_penalty', 'presence_penalty'] as $setting) {
                         if (isset($modelsettings[$setting])) {
                             mtrace(
                                 "OpenAI {$actionclass} setting {$setting} is not supported by the Responses API and was removed."
                             );
-                            unset($modelsettings[$setting]);
                         }
                     }
-                    unset($modelsettings);
                 }
-                unset($settings);
+
+                $actionconfig[$actionclass] = \aiprovider_openai\helper::migrate_text_action_config_to_responses(
+                    $actionconfig[$actionclass],
+                );
             }
 
             if ($actionconfig !== $originalactionconfig) {

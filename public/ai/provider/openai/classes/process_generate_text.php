@@ -165,17 +165,44 @@ class process_generate_text extends abstract_processor {
      * @return array The response.
      */
     private function handle_responses_api_success(?\stdClass $bodyobj): array {
-        if ($bodyobj === null || ($bodyobj->status ?? null) !== 'completed' || empty($bodyobj->id)) {
-            $reason = $bodyobj->incomplete_details->reason ?? get_string('invalidresponsesresponse', 'aiprovider_openai');
+        if ($bodyobj === null) {
+            return \core_ai\error\factory::create(
+                500,
+                get_string('invalidresponsesresponse', 'aiprovider_openai'),
+            )->get_error_details();
+        }
+
+        if (($bodyobj->status ?? null) !== 'completed' || empty($bodyobj->id)) {
+            $details = $bodyobj->incomplete_details ?? null;
+            $reason = is_object($details) ? ($details->reason ?? null) : null;
+            $reason ??= get_string('invalidresponsesresponse', 'aiprovider_openai');
             return \core_ai\error\factory::create(500, $reason)->get_error_details();
         }
 
         $generatedcontent = '';
-        foreach ($bodyobj->output ?? [] as $outputitem) {
+        $output = $bodyobj->output ?? null;
+        if (!is_array($output)) {
+            return \core_ai\error\factory::create(
+                500,
+                get_string('invalidresponsesresponse', 'aiprovider_openai'),
+            )->get_error_details();
+        }
+
+        foreach ($output as $outputitem) {
+            if (!is_object($outputitem)) {
+                continue;
+            }
             if (($outputitem->type ?? null) !== 'message') {
                 continue;
             }
-            foreach ($outputitem->content ?? [] as $contentitem) {
+            $content = $outputitem->content ?? null;
+            if (!is_array($content)) {
+                continue;
+            }
+            foreach ($content as $contentitem) {
+                if (!is_object($contentitem)) {
+                    continue;
+                }
                 if (($contentitem->type ?? null) === 'output_text') {
                     $generatedcontent .= $contentitem->text ?? '';
                 }

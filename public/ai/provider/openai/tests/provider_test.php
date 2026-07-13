@@ -72,6 +72,56 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * Test official Chat Completions text action settings are migrated to Responses.
+     */
+    public function test_migrate_text_action_config_to_responses(): void {
+        $actionconfig = [
+            'settings' => [
+                'endpoint' => 'https://api.openai.com/v1/chat/completions',
+                'model' => 'gpt-4o',
+                'max_completion_tokens' => 100,
+                'frequency_penalty' => 1,
+                'presence_penalty' => 2,
+            ],
+            'modelsettings' => [
+                'gpt-4o' => [
+                    'max_completion_tokens' => 200,
+                    'frequency_penalty' => 1,
+                    'presence_penalty' => 2,
+                ],
+            ],
+        ];
+
+        $result = helper::migrate_text_action_config_to_responses($actionconfig);
+
+        $this->assertEquals('https://api.openai.com/v1/responses', $result['settings']['endpoint']);
+        $this->assertEquals(100, $result['settings']['max_output_tokens']);
+        $this->assertArrayNotHasKey('max_completion_tokens', $result['settings']);
+        $this->assertArrayNotHasKey('frequency_penalty', $result['settings']);
+        $this->assertArrayNotHasKey('presence_penalty', $result['settings']);
+        $this->assertEquals(200, $result['modelsettings']['gpt-4o']['max_output_tokens']);
+        $this->assertArrayNotHasKey('max_completion_tokens', $result['modelsettings']['gpt-4o']);
+        $this->assertArrayNotHasKey('frequency_penalty', $result['modelsettings']['gpt-4o']);
+        $this->assertArrayNotHasKey('presence_penalty', $result['modelsettings']['gpt-4o']);
+    }
+
+    /**
+     * Test official Chat Completions settings with custom parameters are unchanged.
+     */
+    public function test_migrate_text_action_config_to_responses_with_custom_extra_parameters(): void {
+        $actionconfig = [
+            'settings' => [
+                'endpoint' => 'https://api.openai.com/v1/chat/completions',
+                'modelextraparams' => '{"temperature": 0.5}',
+            ],
+        ];
+
+        $result = helper::migrate_text_action_config_to_responses($actionconfig);
+
+        $this->assertEquals($actionconfig, $result);
+    }
+
+    /**
      * Test is_request_allowed.
      */
     public function test_is_request_allowed(): void {

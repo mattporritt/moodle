@@ -28,6 +28,52 @@ use core_ai\aimodel\base;
 class helper {
 
     /**
+     * Migrate an official Chat Completions text action configuration to Responses.
+     *
+     * Configurations with custom extra parameters are intentionally retained because
+     * their compatibility cannot be determined without changing their behaviour.
+     *
+     * @param array $actionconfig The action configuration to migrate.
+     * @return array The migrated action configuration.
+     */
+    public static function migrate_text_action_config_to_responses(array $actionconfig): array {
+        $settings = $actionconfig['settings'] ?? [];
+        if (
+            ($settings['endpoint'] ?? '') !== 'https://api.openai.com/v1/chat/completions' ||
+            isset($settings['modelextraparams'])
+        ) {
+            return $actionconfig;
+        }
+
+        $settings['endpoint'] = 'https://api.openai.com/v1/responses';
+        self::migrate_text_model_settings_to_responses($settings);
+        $actionconfig['settings'] = $settings;
+
+        $model = $settings['model'] ?? null;
+        if ($model !== null && isset($actionconfig['modelsettings'][$model])) {
+            $modelsettings = $actionconfig['modelsettings'][$model];
+            self::migrate_text_model_settings_to_responses($modelsettings);
+            $actionconfig['modelsettings'][$model] = $modelsettings;
+        }
+
+        return $actionconfig;
+    }
+
+    /**
+     * Migrate model settings that are compatible with the Responses API.
+     *
+     * @param array $settings The model settings to migrate.
+     */
+    private static function migrate_text_model_settings_to_responses(array &$settings): void {
+        if (isset($settings['max_completion_tokens'])) {
+            $settings['max_output_tokens'] = $settings['max_completion_tokens'];
+            unset($settings['max_completion_tokens']);
+        }
+
+        unset($settings['frequency_penalty'], $settings['presence_penalty']);
+    }
+
+    /**
      * Get all model classes.
      *
      * @return array Array of model classes.

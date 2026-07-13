@@ -225,6 +225,40 @@ final class process_generate_text_test extends \advanced_testcase {
     }
 
     /**
+     * Test malformed Responses API payloads are returned as Moodle errors.
+     *
+     * @dataProvider malformed_responses_api_payload_provider
+     * @param string $payload The malformed response payload.
+     */
+    public function test_handle_api_success_with_malformed_response(string $payload): void {
+        $response = new Response(200, ['Content-Type' => 'application/json'], $payload);
+        $processor = new process_generate_text($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'handle_api_success');
+
+        $result = $method->invoke($processor, $response);
+
+        $this->assertFalse($result['success']);
+        $this->assertEquals(500, $result['errorcode']);
+        $this->assertEquals(get_string('invalidresponsesresponse', 'aiprovider_openai'), $result['errormessage']);
+    }
+
+    /**
+     * Data provider for malformed Responses API payloads.
+     *
+     * @return array
+     */
+    public static function malformed_responses_api_payload_provider(): array {
+        return [
+            'invalid JSON' => ['{'],
+            'non-array output' => [json_encode([
+                'id' => 'resp_test123',
+                'status' => 'completed',
+                'output' => 'invalid',
+            ])],
+        ];
+    }
+
+    /**
      * Test custom endpoints retain the Chat Completions request contract.
      */
     public function test_create_request_object_with_custom_endpoint(): void {
