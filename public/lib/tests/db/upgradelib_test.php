@@ -573,4 +573,31 @@ final class upgradelib_test extends \advanced_testcase {
         $this->assertEquals(expected: 'type/subtype', actual: $customdata->mimetype);
         $this->assertEquals(expected: ['extension1', 'extension2'], actual: $customdata->extensions);
     }
+
+    /**
+     * Ensure the openai generate_image action is seeded with a currently supported
+     * default model when no explicit model override was configured pre-upgrade.
+     *
+     * @covers ::upgrade_convert_ai_providers_to_instances
+     */
+    public function test_upgrade_convert_ai_providers_to_instances_openai_image_model_default(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        set_config('enabled', 1, 'aiprovider_openai');
+        set_config('apikey', 'sometestkey', 'aiprovider_openai');
+
+        upgrade_convert_ai_providers_to_instances();
+
+        $record = $DB->get_record(
+            table: 'ai_providers',
+            conditions: ['provider' => \aiprovider_openai\provider::class],
+            strictness: MUST_EXIST,
+        );
+        $actionconfig = json_decode($record->actionconfig, true);
+        $imagemodel = $actionconfig['core_ai\aiactions\generate_image']['settings']['model'];
+
+        $this->assertNotEquals('dall-e-3', $imagemodel);
+        $this->assertEquals('gpt-image-2', $imagemodel);
+    }
 }

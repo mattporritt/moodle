@@ -44,7 +44,7 @@ final class aimodel_test extends \advanced_testcase {
         $this->assertSame('2026-10-23', $gpt4o->get_deprecation_eol());
         $this->assertStringContainsString('deprecated', $gpt4o->get_model_selector_label());
 
-        // O1 extends gpt4o and does not override the deprecation flags.
+        // O1 extends gpt4o and explicitly overrides the deprecation flags with a matching EOL date.
         $o1 = new o1();
         $this->assertTrue($o1->is_deprecated());
         $this->assertSame('2026-10-23', $o1->get_deprecation_eol());
