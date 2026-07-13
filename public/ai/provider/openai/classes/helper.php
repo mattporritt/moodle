@@ -17,6 +17,7 @@
 namespace aiprovider_openai;
 
 use core_ai\aimodel\base;
+use core_ai\aimodel\removed_models_trait;
 
 /**
  * Helper class for the OpenAI provider.
@@ -26,21 +27,12 @@ use core_ai\aimodel\base;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
+    use removed_models_trait;
 
     /** @var string[] Model names fully removed by the provider. */
     public const REMOVED_MODELS = [
         'dall-e-3',
     ];
-
-    /**
-     * Check whether a model name has been fully removed by the provider.
-     *
-     * @param string $modelname Model name.
-     * @return bool Whether the model has been removed.
-     */
-    public static function is_model_removed(string $modelname): bool {
-        return in_array($modelname, self::REMOVED_MODELS, true);
-    }
 
     /**
      * Get all model classes.

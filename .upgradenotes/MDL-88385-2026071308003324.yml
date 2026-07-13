@@ -1,0 +1,11 @@
+issueNumber: MDL-88385
+notes:
+  aiprovider_openai:
+    - message: >-
+        The aiprovider_openai\aimodel\dalle3 class has been removed. The
+        dall-e-3 model has been retired by OpenAI and is replaced by
+        aiprovider_openai\aimodel\gptimage2 (model id gpt-image-2). Any code
+        referencing the dalle3 class or the dall-e-3 model id directly must be
+        updated; a site with dall-e-3 still configured will now receive a hard
+        failure on next use instead of a silent fallback.
+      type: removed

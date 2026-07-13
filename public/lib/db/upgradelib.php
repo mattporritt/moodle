@@ -2003,7 +2003,9 @@ function upgrade_convert_ai_providers_to_instances() {
             'core_ai\aiactions\generate_image' => [
                 'enabled' => $openaiconfig->generate_image ?? true,
                 'settings' => [
-                    'model' => $openaiconfig->action_generate_text_model ?? 'dall-e-3',
+                    // Dall-e-3 was removed from the openai provider (MDL-88385); seed
+                    // upgrades with the current default image model instead.
+                    'model' => $openaiconfig->action_generate_text_model ?? 'gpt-image-2',
                     'endpoint' => $openaiconfig->action_generate_text_endpoint ?? 'https://api.openai.com/v1/images/generations',
                 ],
             ],

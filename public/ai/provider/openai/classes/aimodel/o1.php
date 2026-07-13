@@ -36,6 +36,19 @@ class o1 extends gpt4o {
     }
 
     #[\Override]
+    public function is_deprecated(): bool {
+        return true;
+    }
+
+    #[\Override]
+    public function get_deprecation_eol(): ?string {
+        // Confirmed against OpenAI's own deprecations page: o1 shares gpt-4o's
+        // 2026-10-23 retirement date, so this is a deliberate explicit match,
+        // not an accidental inheritance from the gpt4o parent class.
+        return '2026-10-23';
+    }
+
+    #[\Override]
     public function get_model_settings(): array {
         return [
             'top_p' => [
