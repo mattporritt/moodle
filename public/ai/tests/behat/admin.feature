@@ -196,3 +196,21 @@ Feature: An administrator can manage AI subsystem settings
     And the field "max_completion_tokens" matches value "12"
     And the field "frequency_penalty" matches value "13"
     And the field "presence_penalty" matches value "14"
+
+  @javascript
+  Scenario: A deprecated but still available model shows a deprecated indicator and EOL date
+    Given the following "core_ai > ai providers" exist:
+      | provider          | name            | enabled | apikey | orgid |
+      | aiprovider_openai | OpenAI API test | 1       | 123    | abc   |
+    And I am logged in as "admin"
+    And I navigate to "AI > AI providers" in site administration
+    And I click on the "Settings" link in the table row containing "OpenAI API test"
+    And I click on the "Settings" link in the table row containing "Generate text"
+    Then I should see "GPT-4o (deprecated, planned removal 2026-10-23)" in the "AI model" "field"
+    And I should see "O1 (deprecated, planned removal 2026-10-23)" in the "AI model" "field"
+    And I navigate to "AI > AI providers" in site administration
+    And I click on the "Settings" link in the table row containing "OpenAI API test"
+    And I click on the "Settings" link in the table row containing "Generate image"
+    And I should see "GPT Image 1.5 (deprecated, planned removal 2026-12-01)" in the "AI model" "field"
+    And I should see "GPT Image 2" in the "AI model" "field"
+    And I should not see "DALL-e-3" in the "AI model" "field"
