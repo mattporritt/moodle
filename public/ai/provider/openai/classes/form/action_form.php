@@ -222,7 +222,7 @@ class action_form extends action_settings_form {
         foreach (helper::get_model_classes() as $class) {
             $model = new $class();
             if (in_array($modeltype, $model->model_type())) {
-                $models[$model->get_model_name()] = $model->get_model_display_name();
+                $models[$model->get_model_name()] = $model->get_model_selector_label();
             }
         }
         return $models;
