@@ -38,11 +38,16 @@ class ai21 extends awsbedrock_base {
                 'ai21.jamba-1-5-large-v1:0',
                 model_definition::MODEL_TYPE_TEXT,
                 $settings,
+                deprecated: true,
+                // Confirmed by AWS Bedrock model lifecycle docs (model-lifecycle.html).
+                deprecationeol: '2026-11-26',
             ),
             'ai21.jamba-1-5-mini-v1:0' => self::create_model(
                 'ai21.jamba-1-5-mini-v1:0',
                 model_definition::MODEL_TYPE_TEXT,
                 $settings,
+                deprecated: true,
+                deprecationeol: '2026-11-26',
             ),
         ];
     }

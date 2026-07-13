@@ -111,6 +111,16 @@ abstract class abstract_processor extends process_base {
 
     #[\Override]
     protected function query_ai_api(): array {
+        $model = $this->get_model();
+        if (model_registry::is_model_removed($model)) {
+            return [
+                'success' => false,
+                'errorcode' => 410,
+                'error' => 'model_removed',
+                'errormessage' => get_string('error:modelremoved', 'aiprovider_awsbedrock', $model),
+            ];
+        }
+
         $request = $this->create_request();
         $client = $this->provider->create_bedrock_client(
             region: $this->get_region(),

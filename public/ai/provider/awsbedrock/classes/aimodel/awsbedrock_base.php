@@ -102,9 +102,17 @@ abstract class awsbedrock_base {
      * @param string $name Model id.
      * @param int $type Model type.
      * @param array $settings Model settings.
+     * @param bool $deprecated Whether the model is deprecated by the provider but still usable.
+     * @param string|null $deprecationeol Confirmed final removal/end-of-life date, when deprecated.
      * @return model_definition
      */
-    protected static function create_model(string $name, int $type, array $settings): model_definition {
-        return new model_definition($name, $type, $settings);
+    protected static function create_model(
+        string $name,
+        int $type,
+        array $settings,
+        bool $deprecated = false,
+        ?string $deprecationeol = null,
+    ): model_definition {
+        return new model_definition($name, $type, $settings, $deprecated, $deprecationeol);
     }
 }

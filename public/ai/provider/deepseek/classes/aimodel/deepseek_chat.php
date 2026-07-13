@@ -38,6 +38,17 @@ class deepseek_chat extends base implements deepseek_base {
     }
 
     #[\Override]
+    public function is_deprecated(): bool {
+        return true;
+    }
+
+    #[\Override]
+    public function get_deprecation_eol(): ?string {
+        // Confirmed by DeepSeek: https://api-docs.deepseek.com/news/news260424.
+        return '2026-07-24';
+    }
+
+    #[\Override]
     public function get_model_settings(): array {
         return [
             'temperature' => [

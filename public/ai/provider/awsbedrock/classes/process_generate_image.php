@@ -99,27 +99,6 @@ class process_generate_image extends abstract_processor {
         return $requestobj;
     }
 
-    /**
-     * Create the request object for Stability AI models.
-     *
-     * @param \stdClass $requestobj The base request object to extend.
-     * @param array $modelsettings The model settings to append to the request object.
-     * @return \stdClass $requestobj The extended request object.
-     */
-    private function create_stability_request(\stdClass $requestobj, array $modelsettings): \stdClass {
-        $requestobj->prompt = $this->action->get_configuration('prompttext');
-        $requestobj->aspect_ratio = $this->get_stability_aspect_ratio(
-            $this->action->get_configuration('aspectratio'),
-            $this->action->get_configuration('quality'),
-        );
-        // Add the model settings to the request object.
-        foreach ($modelsettings as $setting => $value) {
-            $requestobj->$setting = is_numeric($value) ? ($value + 0) : $value;
-        }
-
-        return $requestobj;
-    }
-
     #[\Override]
     protected function create_request(): array {
         $requestobj = new \stdClass();
@@ -128,8 +107,6 @@ class process_generate_image extends abstract_processor {
 
         if (str_contains($model, 'amazon')) {
             $requestobj = $this->create_amazon_request($requestobj, $modelsettings);
-        } else if (str_contains($model, 'stability')) {
-            $requestobj = $this->create_stability_request($requestobj, $modelsettings);
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
@@ -160,7 +137,7 @@ class process_generate_image extends abstract_processor {
         ];
 
         // Handle image generation models.
-        if (!str_contains($model, 'amazon') && !str_contains($model, 'stability')) {
+        if (!str_contains($model, 'amazon')) {
             throw new \coding_exception('Unknown model class type.');
         }
 
@@ -248,33 +225,4 @@ class process_generate_image extends abstract_processor {
         return $fs->create_file_from_string($fileinfo, $filecontent);
     }
 
-    /**
-     * Convert Moodle aspect ratio and quality to Stability AI compatible aspect ratio
-     *
-     * @param string $aspectratio The aspect ratio from Moodle form ('square', 'landscape', 'portrait')
-     * @param string $quality The quality level ('standard', 'high')
-     * @return string The aspect ratio string accepted by Stable Image Core
-     */
-    private function get_stability_aspect_ratio(string $aspectratio, string $quality) {
-        $mapping = [
-            'square' => [
-                'standard' => '1:1',
-                'hd' => '1:1',
-            ],
-            'landscape' => [
-                'standard' => '16:9', // Widescreen - good for standard.
-                'hd' => '3:2', // Classic photo ratio - better for high quality.
-            ],
-            'portrait' => [
-                'standard' => '9:16', // Standard portrait orientation.
-                'hd' => '4:5', // Better composition for high quality portraits.
-            ],
-        ];
-
-        if (!isset($mapping[$aspectratio][$quality])) {
-            return '1:1';
-        }
-
-        return $mapping[$aspectratio][$quality];
-    }
 }

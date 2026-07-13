@@ -218,7 +218,7 @@ class action_form extends action_settings_form {
         $models['custom'] = get_string('custom', 'core_form');
         foreach (helper::get_models() as $model) {
             if ($model->model_type() == $modeltype) {
-                $models[$model->get_model_name()] = $model->get_model_display_name();
+                $models[$model->get_model_name()] = $model->get_model_selector_label();
             }
         }
         return $models;

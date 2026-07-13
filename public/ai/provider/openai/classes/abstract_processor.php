@@ -110,6 +110,14 @@ abstract class abstract_processor extends process_base {
 
     #[\Override]
     protected function query_ai_api(): array {
+        $model = $this->get_model();
+        if (helper::is_model_removed($model)) {
+            return \core_ai\error\factory::create(
+                410,
+                get_string('error:modelremoved', 'aiprovider_openai', $model),
+            )->get_error_details();
+        }
+
         $request = $this->create_request_object(
             userid: $this->provider->generate_userid($this->action->get_configuration('userid')),
         );

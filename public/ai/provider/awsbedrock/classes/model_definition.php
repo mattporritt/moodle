@@ -37,6 +37,10 @@ class model_definition extends base {
     private readonly int $modeltype;
     /** @var array Model settings schema. */
     private readonly array $settings;
+    /** @var bool Whether the model is deprecated by the provider but still usable. */
+    private readonly bool $deprecated;
+    /** @var string|null Confirmed final removal/end-of-life date, when deprecated. */
+    private readonly ?string $deprecationeol;
 
     /**
      * Constructor.
@@ -44,15 +48,31 @@ class model_definition extends base {
      * @param string $modelname Model id.
      * @param int $modeltype Model type.
      * @param array $settings Model settings schema.
+     * @param bool $deprecated Whether the model is deprecated by the provider but still usable.
+     * @param string|null $deprecationeol Confirmed final removal/end-of-life date, when deprecated.
      */
     public function __construct(
         string $modelname,
         int $modeltype,
         array $settings = [],
+        bool $deprecated = false,
+        ?string $deprecationeol = null,
     ) {
         $this->modelname = $modelname;
         $this->modeltype = $modeltype;
         $this->settings = $settings;
+        $this->deprecated = $deprecated;
+        $this->deprecationeol = $deprecationeol;
+    }
+
+    #[\Override]
+    public function is_deprecated(): bool {
+        return $this->deprecated;
+    }
+
+    #[\Override]
+    public function get_deprecation_eol(): ?string {
+        return $this->deprecationeol;
     }
 
     #[\Override]
