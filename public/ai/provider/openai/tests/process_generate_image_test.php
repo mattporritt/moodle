@@ -124,6 +124,36 @@ final class process_generate_image_test extends \advanced_testcase {
     }
 
     /**
+     * Test create_request_object for the current gpt-image-2 model.
+     *
+     * Unlike gpt-image-1.5, gpt-image-2 does not set a response_format
+     * (it always returns b64 image data), so the request body must omit that key.
+     */
+    public function test_create_request_object_gptimage2(): void {
+        $this->provider = $this->create_provider(
+            actionclass: \core_ai\aiactions\generate_image::class,
+            actionconfig: [
+                'model' => 'gpt-image-2',
+            ],
+        );
+        $processor = new process_generate_image($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_request_object');
+        $request = $method->invoke($processor, 1);
+
+        $requestdata = (object) json_decode($request->getBody()->getContents());
+
+        $this->assertEquals('This is a test prompt', $requestdata->prompt);
+        $this->assertEquals('gpt-image-2', $requestdata->model);
+        $this->assertEquals('1', $requestdata->n);
+        $this->assertEquals('high', $requestdata->quality);
+        $this->assertEquals('png', $requestdata->output_format);
+        $this->assertEquals('1024x1024', $requestdata->size);
+        $this->assertObjectNotHasProperty('response_format', $requestdata);
+    }
+
+    /**
      * Test create_request_object with extra model settings.
      */
     public function test_create_request_object_with_model_settings(): void {

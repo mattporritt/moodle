@@ -1,0 +1,12 @@
+issueNumber: MDL-88385
+notes:
+  aiprovider_awsbedrock:
+    - message: >-
+        The aiprovider_awsbedrock\aimodel\stability class has been removed. AWS
+        Bedrock no longer lists the Stability AI models it previously covered
+        (stability.stable-image-core-v1:1, stability.stable-image-ultra-v1:1,
+        stability.sd3-5-large-v1:0). Any code referencing the stability class or
+        these model ids directly must be updated; a site with one of these
+        models still configured will now receive a hard failure on next use
+        instead of a silent fallback.
+      type: removed

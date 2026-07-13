@@ -22,6 +22,7 @@ use aiprovider_awsbedrock\aimodel\anthropic;
 use aiprovider_awsbedrock\aimodel\meta;
 use aiprovider_awsbedrock\aimodel\mistral;
 use aiprovider_awsbedrock\model_definition;
+use core_ai\aimodel\removed_models_trait;
 
 /**
  * AWS Bedrock model registry.
@@ -31,6 +32,8 @@ use aiprovider_awsbedrock\model_definition;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class model_registry {
+    use removed_models_trait;
+
     /** @var array<string, model_definition>|null Cached model map. */
     private static ?array $modelmap = null;
 
@@ -40,16 +43,6 @@ class model_registry {
         'stability.stable-image-ultra-v1:1',
         'stability.sd3-5-large-v1:0',
     ];
-
-    /**
-     * Check whether a model id has been fully removed from Bedrock's provider catalogues.
-     *
-     * @param string $modelname Model id.
-     * @return bool Whether the model has been removed.
-     */
-    public static function is_model_removed(string $modelname): bool {
-        return in_array($modelname, self::REMOVED_MODELS, true);
-    }
 
     /**
      * Get all registered models.
