@@ -32,7 +32,6 @@ use GuzzleHttp\Psr7\Response;
  * @covers     \aiprovider_openai\abstract_processor
  */
 final class process_generate_text_test extends \advanced_testcase {
-
     use testcase_helper_trait;
 
     /** @var string A successful response in JSON format. */
@@ -91,6 +90,7 @@ final class process_generate_text_test extends \advanced_testcase {
 
         $this->assertEquals('This is a test prompt', $body->input);
         $this->assertEquals(get_string('action_generate_text_instruction', 'core_ai'), $body->instructions);
+        $this->assertEquals('1', $body->safety_identifier);
         $this->assertFalse($body->store);
     }
 
@@ -254,6 +254,24 @@ final class process_generate_text_test extends \advanced_testcase {
                 'id' => 'resp_test123',
                 'status' => 'completed',
                 'output' => 'invalid',
+                'usage' => ['input_tokens' => 11, 'output_tokens' => 568],
+            ])],
+            'missing usage' => [json_encode([
+                'id' => 'resp_test123',
+                'status' => 'completed',
+                'output' => [],
+            ])],
+            'non-string output text' => [json_encode([
+                'id' => 'resp_test123',
+                'status' => 'completed',
+                'output' => [[
+                    'type' => 'message',
+                    'content' => [[
+                        'type' => 'output_text',
+                        'text' => [],
+                    ]],
+                ]],
+                'usage' => ['input_tokens' => 11, 'output_tokens' => 568],
             ])],
         ];
     }

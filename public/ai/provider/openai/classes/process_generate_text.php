@@ -40,7 +40,7 @@ class process_generate_text extends abstract_processor {
     #[\Override]
     protected function create_request_object(string $userid): RequestInterface {
         if ($this->uses_responses_api()) {
-            return $this->create_responses_request_object();
+            return $this->create_responses_request_object($userid);
         }
 
         // Create the user object.
@@ -121,12 +121,14 @@ class process_generate_text extends abstract_processor {
     /**
      * Create a request for the official OpenAI Responses API.
      *
+     * @param string $userid The pseudonymous user identifier.
      * @return RequestInterface
      */
-    private function create_responses_request_object(): RequestInterface {
+    private function create_responses_request_object(string $userid): RequestInterface {
         $requestobj = new \stdClass();
         $requestobj->model = $this->get_model();
         $requestobj->input = $this->action->get_configuration('prompttext');
+        $requestobj->safety_identifier = $userid;
         $requestobj->store = false;
 
         $systeminstruction = $this->get_system_instruction();
@@ -179,6 +181,22 @@ class process_generate_text extends abstract_processor {
             return \core_ai\error\factory::create(500, $reason)->get_error_details();
         }
 
+        $usage = $bodyobj->usage ?? null;
+        if (
+            !is_object($usage) ||
+            !isset($usage->input_tokens) ||
+            !is_int($usage->input_tokens) ||
+            $usage->input_tokens < 0 ||
+            !isset($usage->output_tokens) ||
+            !is_int($usage->output_tokens) ||
+            $usage->output_tokens < 0
+        ) {
+            return \core_ai\error\factory::create(
+                500,
+                get_string('invalidresponsesresponse', 'aiprovider_openai'),
+            )->get_error_details();
+        }
+
         $generatedcontent = '';
         $output = $bodyobj->output ?? null;
         if (!is_array($output)) {
@@ -204,7 +222,13 @@ class process_generate_text extends abstract_processor {
                     continue;
                 }
                 if (($contentitem->type ?? null) === 'output_text') {
-                    $generatedcontent .= $contentitem->text ?? '';
+                    if (!isset($contentitem->text) || !is_string($contentitem->text)) {
+                        return \core_ai\error\factory::create(
+                            500,
+                            get_string('invalidresponsesresponse', 'aiprovider_openai'),
+                        )->get_error_details();
+                    }
+                    $generatedcontent .= $contentitem->text;
                 }
             }
         }
@@ -220,8 +244,8 @@ class process_generate_text extends abstract_processor {
             'fingerprint' => null,
             'generatedcontent' => $generatedcontent,
             'finishreason' => $bodyobj->status,
-            'prompttokens' => $bodyobj->usage->input_tokens ?? 0,
-            'completiontokens' => $bodyobj->usage->output_tokens ?? 0,
+            'prompttokens' => $usage->input_tokens,
+            'completiontokens' => $usage->output_tokens,
             'model' => $bodyobj->model ?? $this->get_model(),
         ];
     }
