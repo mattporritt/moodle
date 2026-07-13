@@ -21,7 +21,6 @@ use aiprovider_awsbedrock\aimodel\amazon;
 use aiprovider_awsbedrock\aimodel\anthropic;
 use aiprovider_awsbedrock\aimodel\meta;
 use aiprovider_awsbedrock\aimodel\mistral;
-use aiprovider_awsbedrock\aimodel\stability;
 use aiprovider_awsbedrock\model_definition;
 
 /**
@@ -34,6 +33,23 @@ use aiprovider_awsbedrock\model_definition;
 class model_registry {
     /** @var array<string, model_definition>|null Cached model map. */
     private static ?array $modelmap = null;
+
+    /** @var string[] Model ids fully removed from Bedrock's provider catalogues. */
+    public const REMOVED_MODELS = [
+        'stability.stable-image-core-v1:1',
+        'stability.stable-image-ultra-v1:1',
+        'stability.sd3-5-large-v1:0',
+    ];
+
+    /**
+     * Check whether a model id has been fully removed from Bedrock's provider catalogues.
+     *
+     * @param string $modelname Model id.
+     * @return bool Whether the model has been removed.
+     */
+    public static function is_model_removed(string $modelname): bool {
+        return in_array($modelname, self::REMOVED_MODELS, true);
+    }
 
     /**
      * Get all registered models.
@@ -70,7 +86,6 @@ class model_registry {
             anthropic::class,
             meta::class,
             mistral::class,
-            stability::class,
         ];
 
         $modelmap = [];

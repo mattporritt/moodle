@@ -78,6 +78,7 @@ $string['awsregion:us-west-1'] = 'US West (N. California)';
 $string['awsregion:us-west-2'] = 'US West (Oregon)';
 $string['awsregion_help'] = 'The Amazon Web Services (AWS) region where the AI model is hosted.';
 $string['custom_model_name'] = 'Custom model name';
+$string['error:modelremoved'] = 'The configured model \'{$a}\' is no longer available from the provider. An administrator needs to reconfigure this action to use a currently supported model.';
 $string['extraparams'] = 'Extra parameters';
 $string['extraparams_help'] = 'Extra parameters can be configured here. We support JSON format. For example:
 <pre>
@@ -101,6 +102,7 @@ $string['model_anthropic.claude-3-haiku-20240307-v1:0'] = 'Claude 3 Haiku';
 $string['model_anthropic.claude-haiku-4-5-20251001-v1:0'] = 'Claude 4.5 Haiku';
 $string['model_anthropic.claude-sonnet-4-20250514-v1:0'] = 'Claude 4.0 Sonnet V1';
 $string['model_anthropic.claude-sonnet-4-5-20250929-v1:0'] = 'Claude 4.5 Sonnet V1';
+$string['model_anthropic.claude-sonnet-5'] = 'Claude Sonnet 5';
 $string['model_meta.llama3-1-405b-instruct-v1:0'] = 'Meta Llama 3.1 405B Instruct';
 $string['model_meta.llama3-1-70b-instruct-v1:0'] = 'Meta Llama 3.1 70B Instruct';
 $string['model_meta.llama3-1-8b-instruct-v1:0'] = 'Meta Llama 3.1 8B Instruct';

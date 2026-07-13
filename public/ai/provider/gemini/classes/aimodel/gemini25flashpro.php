@@ -38,6 +38,18 @@ class gemini25flashpro extends base implements gemini_base {
     }
 
     #[\Override]
+    public function is_deprecated(): bool {
+        return true;
+    }
+
+    #[\Override]
+    public function get_deprecation_eol(): ?string {
+        // Confirmed by Google: https://ai.google.dev/gemini-api/docs/deprecations.
+        // No stable GA replacement is available yet (gemini-3.1-pro is preview-only); follow up once GA.
+        return '2026-10-16';
+    }
+
+    #[\Override]
     public function get_model_settings(): array {
         return [
             // Temperature: controls how creative the AI responses are.

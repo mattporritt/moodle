@@ -37,6 +37,17 @@ class imagen40generate001 extends base implements gemini_base {
     }
 
     #[\Override]
+    public function is_deprecated(): bool {
+        return true;
+    }
+
+    #[\Override]
+    public function get_deprecation_eol(): ?string {
+        // Confirmed by Google: https://ai.google.dev/gemini-api/docs/deprecations.
+        return '2026-08-17';
+    }
+
+    #[\Override]
     public function has_model_settings(): bool {
         return false;
     }

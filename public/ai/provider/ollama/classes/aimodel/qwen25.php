@@ -14,90 +14,90 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_openai\aimodel;
+namespace aiprovider_ollama\aimodel;
 
 use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * GPT-4o AI model.
+ * Qwen 2.5 AI model.
  *
- * @package    aiprovider_openai
- * @copyright  2025 Huong Nguyen <huongnv13@gmail.com>
+ * @package    aiprovider_ollama
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class gpt4o extends base implements openai_base {
-
+class qwen25 extends base implements ollama_base {
     #[\Override]
     public function get_model_name(): string {
-        return 'gpt-4o';
+        return 'qwen2.5';
     }
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'GPT-4o';
-    }
-
-    #[\Override]
-    public function is_deprecated(): bool {
-        return true;
-    }
-
-    #[\Override]
-    public function get_deprecation_eol(): ?string {
-        // Tracks OpenAI's gpt-4o-2024-05-13 snapshot retirement: https://developers.openai.com/api/docs/deprecations.
-        return '2026-10-23';
+        return 'Qwen 2.5';
     }
 
     #[\Override]
     public function get_model_settings(): array {
         return [
+            'mirostat' => [
+                'elementtype' => 'text',
+                'label' => [
+                    'identifier' => 'settings_mirostat',
+                    'component' => 'aiprovider_ollama',
+                ],
+                'type' => PARAM_INT,
+                'help' => [
+                    'identifier' => 'settings_mirostat',
+                    'component' => 'aiprovider_ollama',
+                ],
+            ],
+            'temperature' => [
+                'elementtype' => 'text',
+                'label' => [
+                    'identifier' => 'settings_temperature',
+                    'component' => 'aiprovider_ollama',
+                ],
+                'type' => PARAM_FLOAT,
+                'help' => [
+                    'identifier' => 'settings_temperature',
+                    'component' => 'aiprovider_ollama',
+                ],
+            ],
+            'seed' => [
+                'elementtype' => 'text',
+                'label' => [
+                    'identifier' => 'settings_seed',
+                    'component' => 'aiprovider_ollama',
+                ],
+                'type' => PARAM_INT,
+                'help' => [
+                    'identifier' => 'settings_seed',
+                    'component' => 'aiprovider_ollama',
+                ],
+            ],
+            'top_k' => [
+                'elementtype' => 'text',
+                'label' => [
+                    'identifier' => 'settings_top_k',
+                    'component' => 'aiprovider_ollama',
+                ],
+                'type' => PARAM_FLOAT,
+                'help' => [
+                    'identifier' => 'settings_top_k',
+                    'component' => 'aiprovider_ollama',
+                ],
+            ],
             'top_p' => [
                 'elementtype' => 'text',
                 'label' => [
                     'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_openai',
+                    'component' => 'aiprovider_ollama',
                 ],
                 'type' => PARAM_FLOAT,
                 'help' => [
                     'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'max_completion_tokens' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_max_completion_tokens',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_max_completion_tokens',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'frequency_penalty' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_frequency_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
-                'help' => [
-                    'identifier' => 'settings_frequency_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'presence_penalty' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_presence_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
-                'help' => [
-                    'identifier' => 'settings_presence_penalty',
-                    'component' => 'aiprovider_openai',
+                    'component' => 'aiprovider_ollama',
                 ],
             ],
         ];
@@ -120,7 +120,7 @@ class gpt4o extends base implements openai_base {
     }
 
     #[\Override]
-    public function model_type(): array {
-        return [self::MODEL_TYPE_TEXT];
+    public function model_type(): int {
+        return self::MODEL_TYPE_TEXT;
     }
 }

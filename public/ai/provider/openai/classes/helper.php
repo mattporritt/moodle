@@ -27,6 +27,21 @@ use core_ai\aimodel\base;
  */
 class helper {
 
+    /** @var string[] Model names fully removed by the provider. */
+    public const REMOVED_MODELS = [
+        'dall-e-3',
+    ];
+
+    /**
+     * Check whether a model name has been fully removed by the provider.
+     *
+     * @param string $modelname Model name.
+     * @return bool Whether the model has been removed.
+     */
+    public static function is_model_removed(string $modelname): bool {
+        return in_array($modelname, self::REMOVED_MODELS, true);
+    }
+
     /**
      * Get all model classes.
      *

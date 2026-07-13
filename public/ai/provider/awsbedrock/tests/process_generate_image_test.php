@@ -702,65 +702,24 @@ final class process_generate_image_test extends \advanced_testcase {
     }
 
     /**
-     * Tests the create_stability_request() method.
-     *
-     * Verifies that the request object is correctly populated with the expected values based on the provided model settings.
+     * Test that a fully removed model hard-fails with a clear, actionable error
+     * instead of silently falling back to a different model.
      */
-    public function test_create_stability_request(): void {
+    public function test_query_ai_api_removed_model(): void {
+        $this->provider = $this->create_provider(
+            actionclass: \core_ai\aiactions\generate_image::class,
+            actionconfig: [
+                'model' => 'stability.stable-image-core-v1:1',
+            ],
+        );
+        $this->create_action();
+
         $processor = new process_generate_image($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'query_ai_api');
+        $result = $method->invoke($processor);
 
-        // We're working with a private method here, so we need to use reflection.
-        $method = new \ReflectionMethod($processor, 'create_stability_request');
-
-        $requestobj = new \stdClass();
-        $modelsettings = [
-            'model' => 'stability.stable-image-core-v1:1',
-            'seed' => 12,
-            'negative_prompt' => 'pink',
-        ];
-        $requestobj = $method->invoke($processor, $requestobj, $modelsettings);
-        $this->assertEquals('This is a test prompt', $requestobj->prompt);
-        $this->assertEquals('12', $requestobj->seed);
-        $this->assertEquals('1:1', $requestobj->aspect_ratio);
-        $this->assertEquals('pink', $requestobj->negative_prompt);
-    }
-
-    /**
-     * Tests the get_stability_aspect_ratio() method.
-     * Verifies that the correct aspect ratio value is returned for a given combination of aspect ratio and quality settings.
-     *
-     * @covers ::get_stability_aspect_ratio
-     * @dataProvider aspect_ratio_provider
-     *
-     * @param string $aspectratio The requested aspect ratio (e.g. square, landscape, portrait).
-     * @param string $quality     The requested quality setting (e.g. standard, hd).
-     * @param string $expected    The expected Stability aspect ratio value.
-     */
-    public function test_get_stability_aspect_ratio(string $aspectratio, string $quality, string $expected): void {
-        $processor = new process_generate_image($this->provider, $this->action);
-
-        $method = new \ReflectionMethod($processor, 'get_stability_aspect_ratio');
-
-        $result = $method->invoke($processor, $aspectratio, $quality);
-        $this->assertEquals($expected, $result);
-    }
-
-    /**
-     * Data provider for test_get_stability_aspect_ratio().
-     * Provides combinations of aspect ratio and quality values and their expected Stability aspect ratio outputs.
-     *
-     * @return array
-     */
-    public static function aspect_ratio_provider(): array {
-        return [
-            'square standard' => ['square', 'standard', '1:1'],
-            'square hd' => ['square', 'hd', '1:1'],
-            'landscape standard' => ['landscape', 'standard', '16:9'],
-            'landscape hd' => ['landscape', 'hd', '3:2'],
-            'portrait standard' => ['portrait', 'standard', '9:16'],
-            'portrait hd' => ['portrait', 'hd', '4:5'],
-            'invalid aspect falls back to square' => ['invalid', 'standard', '1:1'],
-            'invalid quality falls back to standard' => ['landscape', 'invalid', '1:1'],
-        ];
+        $this->assertFalse($result['success']);
+        $this->assertEquals(410, $result['errorcode']);
+        $this->assertStringContainsString('stability.stable-image-core-v1:1', $result['errormessage']);
     }
 }

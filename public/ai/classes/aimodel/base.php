@@ -67,4 +67,44 @@ abstract class base {
     public function get_model_settings(): array {
         return [];
     }
+
+    /**
+     * Whether this model is deprecated by its upstream provider but still usable.
+     *
+     * Deprecated models must not be removed while still usable. Fully removed
+     * models (no longer available from the provider at all) must instead be
+     * deleted from the codebase so their use hard-fails with an actionable error.
+     *
+     * @return bool Whether the model is deprecated.
+     */
+    public function is_deprecated(): bool {
+        return false;
+    }
+
+    /**
+     * Get the confirmed final removal/end-of-life date for a deprecated model.
+     *
+     * @return string|null The EOL date (for example '2026-10-23'), or null if not deprecated.
+     */
+    public function get_deprecation_eol(): ?string {
+        return null;
+    }
+
+    /**
+     * Get the label to display for this model in the admin model selector.
+     *
+     * Appends a deprecated indicator and EOL date to the display name when the
+     * model is deprecated.
+     *
+     * @return string The model selector label.
+     */
+    final public function get_model_selector_label(): string {
+        if (!$this->is_deprecated()) {
+            return $this->get_model_display_name();
+        }
+        return get_string('model_deprecated_label', 'core_ai', (object) [
+            'modelname' => $this->get_model_display_name(),
+            'eol' => $this->get_deprecation_eol(),
+        ]);
+    }
 }
