@@ -20,32 +20,21 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Gemini 2.5 Flash AI model.
+ * Gemini 3.5 Flash AI model.
  *
  * @package    aiprovider_gemini
- * @copyright  2026 Anupama Sarjoshi <anupama.sarjoshi@moodle.com>
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class gemini25flash extends base implements gemini_base {
+class gemini35flash extends base implements gemini_base {
     #[\Override]
     public function get_model_name(): string {
-        return 'gemini-2.5-flash';
+        return 'gemini-3.5-flash';
     }
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'Gemini 2.5 Flash';
-    }
-
-    #[\Override]
-    public function is_deprecated(): bool {
-        return true;
-    }
-
-    #[\Override]
-    public function get_deprecation_eol(): ?string {
-        // Confirmed by Google: https://ai.google.dev/gemini-api/docs/deprecations.
-        return '2026-10-16';
+        return 'Gemini 3.5 Flash';
     }
 
     #[\Override]
@@ -144,6 +133,6 @@ class gemini25flash extends base implements gemini_base {
 
     #[\Override]
     public function get_model_endpoint(): string {
-        return 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+        return 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
     }
 }

@@ -21,8 +21,8 @@ use aiprovider_awsbedrock\aimodel\amazon;
 use aiprovider_awsbedrock\aimodel\anthropic;
 use aiprovider_awsbedrock\aimodel\meta;
 use aiprovider_awsbedrock\aimodel\mistral;
-use aiprovider_awsbedrock\aimodel\stability;
 use aiprovider_awsbedrock\model_definition;
+use core_ai\aimodel\removed_models_trait;
 
 /**
  * AWS Bedrock model registry.
@@ -32,8 +32,17 @@ use aiprovider_awsbedrock\model_definition;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class model_registry {
+    use removed_models_trait;
+
     /** @var array<string, model_definition>|null Cached model map. */
     private static ?array $modelmap = null;
+
+    /** @var string[] Model ids fully removed from Bedrock's provider catalogues. */
+    public const REMOVED_MODELS = [
+        'stability.stable-image-core-v1:1',
+        'stability.stable-image-ultra-v1:1',
+        'stability.sd3-5-large-v1:0',
+    ];
 
     /**
      * Get all registered models.
@@ -70,7 +79,6 @@ class model_registry {
             anthropic::class,
             meta::class,
             mistral::class,
-            stability::class,
         ];
 
         $modelmap = [];

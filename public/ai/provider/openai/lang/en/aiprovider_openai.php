@@ -43,6 +43,7 @@ $string['action:summarise_text:systeminstruction_help'] = 'This instruction is s
 $string['apikey'] = 'OpenAI API key';
 $string['apikey_help'] = 'Get a key from your <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI API keys</a>.';
 $string['custom_model_name'] = 'Custom model name';
+$string['error:modelremoved'] = 'The configured model \'{$a}\' is no longer available from OpenAI. An administrator needs to reconfigure this action to use a currently supported model.';
 $string['extraparams'] = 'Extra parameters';
 $string['extraparams_help'] = 'Extra parameters can be configured here. We support JSON format. For example:
 <pre>

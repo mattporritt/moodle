@@ -20,32 +20,21 @@ use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * DeepSeek reasoner AI model.
+ * DeepSeek V4 Flash AI model.
  *
  * @package    aiprovider_deepseek
- * @copyright  2025 Yusuf Wibisono <yusuf.wibisono@moodle.com>
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class deepseek_reasoner extends base implements deepseek_base {
+class deepseek_v4_flash extends base implements deepseek_base {
     #[\Override]
     public function get_model_name(): string {
-        return 'deepseek-reasoner';
+        return 'deepseek-v4-flash';
     }
 
     #[\Override]
     public function get_model_display_name(): string {
-        return 'deepseek-reasoner';
-    }
-
-    #[\Override]
-    public function is_deprecated(): bool {
-        return true;
-    }
-
-    #[\Override]
-    public function get_deprecation_eol(): ?string {
-        // Confirmed by DeepSeek: https://api-docs.deepseek.com/news/news260424.
-        return '2026-07-24';
+        return 'deepseek-v4-flash';
     }
 
     #[\Override]

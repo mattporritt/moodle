@@ -37,6 +37,17 @@ class gptimage1 extends base implements openai_base, openai_image_base {
     }
 
     #[\Override]
+    public function is_deprecated(): bool {
+        return true;
+    }
+
+    #[\Override]
+    public function get_deprecation_eol(): ?string {
+        // Confirmed by OpenAI: https://developers.openai.com/api/docs/deprecations.
+        return '2026-12-01';
+    }
+
+    #[\Override]
     public function model_type(): array {
         return [self::MODEL_TYPE_IMAGE];
     }

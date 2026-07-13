@@ -40,11 +40,16 @@ class anthropic extends awsbedrock_base {
                 'anthropic.claude-3-5-sonnet-20240620-v1:0',
                 model_definition::MODEL_TYPE_TEXT,
                 self::with_cross_region($default, 'us.anthropic.claude-3-5-sonnet-20240620-v1:0'),
+                deprecated: true,
+                // Confirmed by AWS Bedrock model lifecycle docs (model-lifecycle.html).
+                deprecationeol: '2026-07-30',
             ),
             'anthropic.claude-3-5-sonnet-20241022-v2:0' => self::create_model(
                 'anthropic.claude-3-5-sonnet-20241022-v2:0',
                 model_definition::MODEL_TYPE_TEXT,
                 self::with_cross_region($default, 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'),
+                deprecated: true,
+                deprecationeol: '2026-07-30',
             ),
             'anthropic.claude-3-7-sonnet-20250219-v1:0' => self::create_model(
                 'anthropic.claude-3-7-sonnet-20250219-v1:0',
@@ -55,11 +60,15 @@ class anthropic extends awsbedrock_base {
                 'anthropic.claude-3-haiku-20240307-v1:0',
                 model_definition::MODEL_TYPE_TEXT,
                 $default,
+                deprecated: true,
+                deprecationeol: '2026-09-10',
             ),
             'anthropic.claude-sonnet-4-20250514-v1:0' => self::create_model(
                 'anthropic.claude-sonnet-4-20250514-v1:0',
                 model_definition::MODEL_TYPE_TEXT,
                 self::with_cross_region($default, 'global.anthropic.claude-sonnet-4-20250514-v1:0'),
+                deprecated: true,
+                deprecationeol: '2026-10-14',
             ),
             'anthropic.claude-haiku-4-5-20251001-v1:0' => self::create_model(
                 'anthropic.claude-haiku-4-5-20251001-v1:0',
@@ -70,6 +79,11 @@ class anthropic extends awsbedrock_base {
                 'anthropic.claude-sonnet-4-5-20250929-v1:0',
                 model_definition::MODEL_TYPE_TEXT,
                 self::with_cross_region($v45, 'global.anthropic.claude-sonnet-4-5-20250929-v1:0'),
+            ),
+            'anthropic.claude-sonnet-5' => self::create_model(
+                'anthropic.claude-sonnet-5',
+                model_definition::MODEL_TYPE_TEXT,
+                self::with_cross_region($v45, 'global.anthropic.claude-sonnet-5'),
             ),
         ];
     }

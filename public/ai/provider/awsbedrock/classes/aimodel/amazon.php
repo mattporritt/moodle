@@ -54,7 +54,10 @@ class amazon extends awsbedrock_base {
             'amazon.nova-canvas-v1:0' => self::create_model(
                 'amazon.nova-canvas-v1:0',
                 model_definition::MODEL_TYPE_IMAGE,
-                $image
+                $image,
+                deprecated: true,
+                // Confirmed by AWS Bedrock model lifecycle docs (model-lifecycle.html).
+                deprecationeol: '2026-09-30',
             ),
             'amazon.titan-image-generator-v2:0' => self::create_model(
                 'amazon.titan-image-generator-v2:0',

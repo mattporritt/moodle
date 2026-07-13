@@ -59,7 +59,7 @@ final class process_generate_image_test extends \advanced_testcase {
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_image::class,
             actionconfig: [
-                'model' => 'dall-e-3',
+                'model' => 'gpt-image-1.5',
             ],
         );
         $this->create_action();
@@ -96,11 +96,11 @@ final class process_generate_image_test extends \advanced_testcase {
 
         $ratio = 'portrait';
         $size = $method->invoke($processor, $ratio);
-        $this->assertEquals('1024x1792', $size);
+        $this->assertEquals('1024x1536', $size);
 
         $ratio = 'landscape';
         $size = $method->invoke($processor, $ratio);
-        $this->assertEquals('1792x1024', $size);
+        $this->assertEquals('1536x1024', $size);
     }
 
     /**
@@ -116,11 +116,41 @@ final class process_generate_image_test extends \advanced_testcase {
         $requestdata = (object) json_decode($request->getBody()->getContents());
 
         $this->assertEquals('This is a test prompt', $requestdata->prompt);
-        $this->assertEquals('dall-e-3', $requestdata->model);
+        $this->assertEquals('gpt-image-1.5', $requestdata->model);
         $this->assertEquals('1', $requestdata->n);
-        $this->assertEquals('hd', $requestdata->quality);
-        $this->assertEquals('b64_json', $requestdata->response_format);
+        $this->assertEquals('high', $requestdata->quality);
+        $this->assertEquals('png', $requestdata->output_format);
         $this->assertEquals('1024x1024', $requestdata->size);
+    }
+
+    /**
+     * Test create_request_object for the current gpt-image-2 model.
+     *
+     * Unlike gpt-image-1.5, gpt-image-2 does not set a response_format
+     * (it always returns b64 image data), so the request body must omit that key.
+     */
+    public function test_create_request_object_gptimage2(): void {
+        $this->provider = $this->create_provider(
+            actionclass: \core_ai\aiactions\generate_image::class,
+            actionconfig: [
+                'model' => 'gpt-image-2',
+            ],
+        );
+        $processor = new process_generate_image($this->provider, $this->action);
+
+        // We're working with a private method here, so we need to use reflection.
+        $method = new \ReflectionMethod($processor, 'create_request_object');
+        $request = $method->invoke($processor, 1);
+
+        $requestdata = (object) json_decode($request->getBody()->getContents());
+
+        $this->assertEquals('This is a test prompt', $requestdata->prompt);
+        $this->assertEquals('gpt-image-2', $requestdata->model);
+        $this->assertEquals('1', $requestdata->n);
+        $this->assertEquals('high', $requestdata->quality);
+        $this->assertEquals('png', $requestdata->output_format);
+        $this->assertEquals('1024x1024', $requestdata->size);
+        $this->assertObjectNotHasProperty('response_format', $requestdata);
     }
 
     /**
@@ -130,7 +160,7 @@ final class process_generate_image_test extends \advanced_testcase {
         $this->provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_image::class,
             actionconfig: [
-                'model' => 'dall-e-3',
+                'model' => 'gpt-image-1.5',
                 'temperature' => '0.5',
                 'max_completion_tokens' => '100',
             ],
@@ -143,7 +173,7 @@ final class process_generate_image_test extends \advanced_testcase {
 
         $body = (object) json_decode($request->getBody()->getContents());
 
-        $this->assertEquals('dall-e-3', $body->model);
+        $this->assertEquals('gpt-image-1.5', $body->model);
         $this->assertEquals('0.5', $body->temperature);
         $this->assertEquals('100', $body->max_completion_tokens);
 
@@ -216,7 +246,7 @@ final class process_generate_image_test extends \advanced_testcase {
 
         $this->assertStringContainsString('An image that represents the concept of a \'test\'.', $result['revisedprompt']);
         $this->assertNotEmpty($result['b64json']);
-        $this->assertEquals('dall-e-3', $result['model']);
+        $this->assertEquals('gpt-image-1.5', $result['model']);
     }
 
     /**
@@ -241,7 +271,7 @@ final class process_generate_image_test extends \advanced_testcase {
 
         $this->assertStringContainsString('An image that represents the concept of a \'test\'.', $result['revisedprompt']);
         $this->assertInstanceOf(\stored_file::class, $result['draftfile']);
-        $this->assertEquals('dall-e-3', $result['model']);
+        $this->assertEquals('gpt-image-1.5', $result['model']);
     }
 
     /**
@@ -257,7 +287,7 @@ final class process_generate_image_test extends \advanced_testcase {
             'success' => true,
             'revisedprompt' => 'An image that represents the concept of a \'test\'.',
             'imageurl' => 'oaidalleapiprodscus.blob.core.windows.net',
-            'model' => 'dall-e-3',
+            'model' => 'gpt-image-1.5',
         ];
 
         $result = $method->invoke($processor, $response);
@@ -422,7 +452,7 @@ final class process_generate_image_test extends \advanced_testcase {
             actionconfig: [
                 \core_ai\aiactions\generate_image::class => [
                     'settings' => [
-                        'model' => 'dall-e-3',
+                        'model' => 'gpt-image-1.5',
                         'endpoint' => "https://api.openai.com/v1/chat/completions",
                     ],
                 ],
@@ -525,6 +555,28 @@ final class process_generate_image_test extends \advanced_testcase {
     }
 
     /**
+     * Test that a fully removed model hard-fails with a clear, actionable error
+     * instead of silently falling back to a different model.
+     */
+    public function test_query_ai_api_removed_model(): void {
+        $this->provider = $this->create_provider(
+            actionclass: \core_ai\aiactions\generate_image::class,
+            actionconfig: [
+                'model' => 'dall-e-3',
+            ],
+        );
+        $this->create_action();
+
+        $processor = new process_generate_image($this->provider, $this->action);
+        $result = $processor->process();
+
+        $this->assertInstanceOf(\core_ai\aiactions\responses\response_base::class, $result);
+        $this->assertFalse($result->get_success());
+        $this->assertEquals(410, $result->get_errorcode());
+        $this->assertStringContainsString('dall-e-3', $result->get_errormessage());
+    }
+
+    /**
      * Test process method with global rate limiter.
      */
     public function test_process_with_global_rate_limiter(): void {
@@ -549,7 +601,7 @@ final class process_generate_image_test extends \advanced_testcase {
             actionconfig: [
                 \core_ai\aiactions\generate_image::class => [
                     'settings' => [
-                        'model' => 'dall-e-3',
+                        'model' => 'gpt-image-1.5',
                         'endpoint' => "https://api.openai.com/v1/chat/completions",
                     ],
                 ],

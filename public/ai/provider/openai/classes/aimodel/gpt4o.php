@@ -39,6 +39,17 @@ class gpt4o extends base implements openai_base {
     }
 
     #[\Override]
+    public function is_deprecated(): bool {
+        return true;
+    }
+
+    #[\Override]
+    public function get_deprecation_eol(): ?string {
+        // Tracks OpenAI's gpt-4o-2024-05-13 snapshot retirement: https://developers.openai.com/api/docs/deprecations.
+        return '2026-10-23';
+    }
+
+    #[\Override]
     public function get_model_settings(): array {
         return [
             'top_p' => [

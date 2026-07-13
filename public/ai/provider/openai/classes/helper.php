@@ -17,6 +17,7 @@
 namespace aiprovider_openai;
 
 use core_ai\aimodel\base;
+use core_ai\aimodel\removed_models_trait;
 
 /**
  * Helper class for the OpenAI provider.
@@ -26,6 +27,12 @@ use core_ai\aimodel\base;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
+    use removed_models_trait;
+
+    /** @var string[] Model names fully removed by the provider. */
+    public const REMOVED_MODELS = [
+        'dall-e-3',
+    ];
 
     /**
      * Migrate an official Chat Completions text action configuration to Responses.
