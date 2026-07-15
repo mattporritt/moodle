@@ -2449,27 +2449,12 @@ class file_storage {
      * Replace the content of an existing file with that from a given real file.
      *
      * @param stored_file $file The file to replace
-     * @param string $filepath The path to the file on disk
-     *
+     * @param string $pathname The path to the replacement file on disk
      * @return stored_file The new file
-     *
      * @throws moodle_exception
      */
-    public function replace_file_from_file(stored_file $file, string $filepath): stored_file {
-        global $DB;
-
-        $tx = $DB->start_delegated_transaction();
-        try {
-            $filerecord = $DB->get_record('files', ['id' => $file->get_id()], '*', MUST_EXIST);
-            $file->delete();
-            $newfile = $this->create_file_from_pathname($filerecord, $filepath);
-        } catch (file_exception $e) {
-            $tx->rollback($e);
-        }
-
-        $tx->allow_commit();
-
-        return $newfile;
+    public function replace_file_from_file(stored_file $file, string $pathname): stored_file {
+        return $this->replace_file($file, fn(stdClass $filerecord) => $this->create_file_from_pathname($filerecord, $pathname));
     }
 
     /**
@@ -2477,20 +2462,36 @@ class file_storage {
      *
      * @param stored_file $file The file to replace
      * @param string $content The new content
-     *
      * @return stored_file The new file
-     *
      * @throws moodle_exception
      */
     public function replace_file_from_string(stored_file $file, string $content): stored_file {
+        return $this->replace_file($file, fn(stdClass $filerecord) => $this->create_file_from_string($filerecord, $content));
+    }
+
+    /**
+     * Shared implementation for replacing the content of an existing file.
+     *
+     * Deletes the existing file and recreates it from the original file record so metadata such as
+     * license, author, source and timecreated are preserved. The mimetype is cleared so it is
+     * recalculated from the replacement content rather than being carried over from the old file.
+     *
+     * @param stored_file $file The file to replace
+     * @param callable $createcallback Callback that creates the replacement file from the original
+     *      file record, for example {@see self::create_file_from_pathname()}
+     * @return stored_file The new file
+     * @throws moodle_exception
+     */
+    private function replace_file(stored_file $file, callable $createcallback): stored_file {
         global $DB;
 
         $tx = $DB->start_delegated_transaction();
         try {
             $filerecord = $DB->get_record('files', ['id' => $file->get_id()], '*', MUST_EXIST);
+            unset($filerecord->mimetype);
             $file->delete();
-            $newfile = $this->create_file_from_string($filerecord, $content);
-        } catch (file_exception $e) {
+            $newfile = $createcallback($filerecord);
+        } catch (\Throwable $e) {
             $tx->rollback($e);
         }
 

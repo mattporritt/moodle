@@ -2407,6 +2407,33 @@ final class file_storage_test extends \advanced_testcase {
         $this->assertEquals('new text contents', $newfile1->get_content());
         $this->assertEquals($file1->get_timecreated(), $newfile1->get_timecreated());
     }
+
+    /**
+     * Tests that replacing a file recalculates the mimetype rather than carrying over a stale one.
+     *
+     * The original file is created with an explicit mimetype override that does not match its
+     * virtual filename. If the replacement methods carried the old file record straight through,
+     * that stale override would survive the replace instead of being recalculated for the new
+     * content.
+     *
+     * @covers \file_storage::replace_file_from_string
+     *
+     * @return void
+     */
+    public function test_replace_file_from_string_recalculates_mimetype(): void {
+        $this->resetAfterTest(true);
+        $fs = get_file_storage();
+
+        $record = $this->generate_file_record();
+        $record->mimetype = 'image/svg+xml';
+
+        $file1 = $fs->create_file_from_string($record, 'text contents');
+        $this->assertEquals('image/svg+xml', $file1->get_mimetype());
+
+        $newfile1 = $fs->replace_file_from_string($file1, 'new text contents');
+
+        $this->assertEquals('text/plain', $newfile1->get_mimetype());
+    }
 }
 
 class test_stored_file_inspection extends stored_file {
