@@ -266,7 +266,6 @@ class converter implements \core_files\converter_interface {
 
         if ($status === conversion::STATUS_FAILED) {
             throw new moodle_exception($this->errormsg, 'fileconverter_unoconv');
-            return;
         }
         readfile_accel($conversion->get_destfile(), 'application/pdf', true);
     }
