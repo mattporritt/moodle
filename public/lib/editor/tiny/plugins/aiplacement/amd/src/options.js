@@ -28,6 +28,7 @@ const contextIdName = getPluginOptionName(pluginName, 'contextid');
 const userIdName = getPluginOptionName(pluginName, 'userid');
 const textAllowedName = getPluginOptionName(pluginName, 'generate_text');
 const imageAllowedName = getPluginOptionName(pluginName, 'generate_image');
+const describeImageAllowedName = getPluginOptionName(pluginName, 'describe_image');
 const policyAgreedName = getPluginOptionName(pluginName, 'policyagreed');
 
 /**
@@ -54,6 +55,11 @@ export const register = (editor) => {
     });
 
     registerOption(imageAllowedName, {
+        processor: 'boolean',
+        "default": false,
+    });
+
+    registerOption(describeImageAllowedName, {
         processor: 'boolean',
         "default": false,
     });
@@ -95,5 +101,13 @@ export const isTextAllowed = (editor) => editor.options.get(textAllowedName);
  * @returns {boolean}
  */
 export const isImageAllowed = (editor) => editor.options.get(imageAllowedName);
+
+/**
+ * Whether image descriptions are allowed in this instance.
+ *
+ * @param {TinyMCE} editor
+ * @returns {boolean}
+ */
+export const isDescribeImageAllowed = (editor) => editor.options.get(describeImageAllowedName);
 
 export const isPolicyAgreed = (editor) => editor.options.get(policyAgreedName);
