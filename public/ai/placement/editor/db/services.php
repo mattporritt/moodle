@@ -25,6 +25,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
+    'aiplacement_editor_describe_image' => [
+        'classname' => \aiplacement_editor\external\describe_image::class,
+        'description' => 'Describe an image for the HTML Text editor AI Placement',
+        'type' => 'write',
+        'ajax' => true,
+        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
     'aiplacement_editor_generate_image' => [
         'classname' => \aiplacement_editor\external\generate_image::class,
         'description' => 'Generate image for the HTML Text editor AI Placement',

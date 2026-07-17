@@ -22,6 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['describeimage'] = 'Generate image descriptions using AI';
+$string['describeimagepurpose'] = 'Write concise, accurate alternative text for accessibility. Do not begin with “Image of”.';
+$string['describeimagesetting'] = 'Enable image description';
+$string['describeimagesetting_desc'] = 'Enable or disable AI-generated descriptions for images in the text editor.';
+$string['editor:describe_image'] = 'Generate AI image descriptions in text editor';
+$string['editor:generate_image'] = 'Generate AI images in text editor';
+$string['editor:generate_text'] = 'Generate AI text in text editor';
 $string['generatecontent'] = 'Generate AI content';
 $string['generateimage'] = 'AI generate image';
 $string['generateimagesetting'] = 'Enable generate image';
@@ -30,7 +37,6 @@ $string['generatetext'] = 'AI generate text';
 $string['generatetextsetting'] = 'Enable generate text';
 $string['generatetextsetting_desc'] = 'Enable or disable the generation of text from a text prompt.';
 $string['noeditor'] = 'Text editor placement is not available for this context.';
+$string['policyacceptancerequired'] = 'You must accept the AI usage policy before generating an image description.';
 $string['pluginname'] = 'Text editor placement';
 $string['privacy:metadata'] = 'The Text editor placement plugin does not store any personal data.';
-$string['editor:generate_image'] = 'Generate AI images in text editor';
-$string['editor:generate_text'] = 'Generate AI text in text editor';

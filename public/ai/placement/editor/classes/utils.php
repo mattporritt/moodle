@@ -18,6 +18,7 @@ namespace aiplacement_editor;
 
 use core_ai\aiactions\generate_image;
 use core_ai\aiactions\generate_text;
+use core_ai\aiactions\describe_image;
 use core_ai\manager;
 
 /**
@@ -101,6 +102,15 @@ class utils {
                 'action' => 'generate_image',
                 'buttontext' => get_string('action_generate_image', 'core_ai'),
                 'title' => get_string('action_generate_image_desc', 'core_ai'),
+            ];
+        }
+
+        // Action describe_image.
+        if (self::is_html_editor_placement_action_available($context, 'describe_image', describe_image::class, $checkcontext)) {
+            $actions[] = [
+                'action' => 'describe_image',
+                'buttontext' => get_string('action_describe_image', 'core_ai'),
+                'title' => get_string('action_describe_image_desc', 'core_ai'),
             ];
         }
 

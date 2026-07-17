@@ -35,7 +35,8 @@ import {
 } from './common';
 import GenerateImage from './generateimage';
 import GenerateText from './generatetext';
-import {isTextAllowed, isImageAllowed} from './options';
+import AltTextGenerator from './alttext';
+import {isTextAllowed, isImageAllowed, isDescribeImageAllowed} from './options';
 
 /**
  * Get the setup function for the buttons.
@@ -124,6 +125,10 @@ export const getSetup = async() => {
 
 
     return (editor) => {
+        if (isDescribeImageAllowed(editor)) {
+            new AltTextGenerator(editor).register();
+        }
+
         if (!isTextAllowed(editor) && !isImageAllowed(editor)) {
             return;
         }

@@ -19,6 +19,7 @@ namespace tiny_aiplacement;
 use core\context;
 use core_ai\aiactions\generate_image;
 use core_ai\aiactions\generate_text;
+use core_ai\aiactions\describe_image;
 use core_ai\manager;
 use editor_tiny\editor;
 use editor_tiny\plugin;
@@ -46,6 +47,7 @@ class plugininfo extends plugin implements
     protected static array $possibleactions = [
         'generate_text' => generate_text::class,
         'generate_image' => generate_image::class,
+        'describe_image' => describe_image::class,
     ];
 
     #[\Override]
@@ -67,12 +69,15 @@ class plugininfo extends plugin implements
 
     #[\Override]
     public static function get_available_buttons(): array {
-        return array_map(fn ($action) => "tiny_aiplacement/{$action}", self::$possibleactions);
+        return [
+            'tiny_aiplacement/generate_text',
+            'tiny_aiplacement/generate_image',
+        ];
     }
 
     #[\Override]
     public static function get_available_menuitems(): array {
-        return array_map(fn ($action) => "tiny_aiplacement/{$action}", self::$possibleactions);
+        return self::get_available_buttons();
     }
 
     #[\Override]

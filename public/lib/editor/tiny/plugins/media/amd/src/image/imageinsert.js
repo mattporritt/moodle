@@ -167,6 +167,7 @@ export class ImageInsert {
                         image,
                     );
                     imagedetails.init();
+                    this.editor.dispatch('TinyMediaImageDetailsReady', {imageDetails: imagedetails});
                     return;
                 }).then(() => {
                     this.stopImageLoading();

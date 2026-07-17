@@ -179,6 +179,7 @@ export default class MediaImage {
                         image,
                     );
                     imagedetails.init();
+                    this.editor.dispatch('TinyMediaImageDetailsReady', {imageDetails: imagedetails});
                     return;
                 })
                 .catch(error => {

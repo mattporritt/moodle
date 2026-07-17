@@ -53,6 +53,12 @@ final class plugininfo_test extends advanced_testcase {
         );
         $aimanager->set_action_state(
             plugin: $aiprovider->provider,
+            actionbasename: \core_ai\aiactions\describe_image::class::get_basename(),
+            enabled: 1,
+            instanceid: $aiprovider->id
+        );
+        $aimanager->set_action_state(
+            plugin: $aiprovider->provider,
             actionbasename: \core_ai\aiactions\generate_image::class::get_basename(),
             enabled: 1,
             instanceid: $aiprovider->id
@@ -102,6 +108,7 @@ final class plugininfo_test extends advanced_testcase {
                     'policyagreed' => '0',
                     'generate_text' => '0',
                     'generate_image' => '0',
+                    'describe_image' => '0',
                 ],
             ],
             [
@@ -112,6 +119,7 @@ final class plugininfo_test extends advanced_testcase {
                     'policyagreed' => '0',
                     'generate_text' => '0',
                     'generate_image' => '0',
+                    'describe_image' => '0',
                 ],
             ],
             [
@@ -122,6 +130,7 @@ final class plugininfo_test extends advanced_testcase {
                     'policyagreed' => '0',
                     'generate_text' => '1',
                     'generate_image' => '1',
+                    'describe_image' => '1',
                 ],
             ],
             [
@@ -132,6 +141,7 @@ final class plugininfo_test extends advanced_testcase {
                     'policyagreed' => '0',
                     'generate_text' => '1',
                     'generate_image' => '1',
+                    'describe_image' => '1',
                 ],
             ],
             [
@@ -142,6 +152,7 @@ final class plugininfo_test extends advanced_testcase {
                     'policyagreed' => '0',
                     'generate_text' => '0',
                     'generate_image' => '0',
+                    'describe_image' => '0',
                 ],
             ],
         ];

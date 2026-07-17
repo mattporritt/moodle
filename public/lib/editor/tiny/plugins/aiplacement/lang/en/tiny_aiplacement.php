@@ -24,6 +24,17 @@
 
 $string['aiplacement:generateimage'] = 'Generate image using AI';
 $string['aiplacement:generatetext'] = 'Generate text using AI';
+$string['alttextcancel'] = 'Cancel';
+$string['alttexterror'] = 'The image description could not be generated.';
+$string['alttextgenerate'] = 'Generate alt text with AI';
+$string['alttextgenerating'] = 'Generating a description of your image…';
+$string['alttextkeep'] = 'Keep mine';
+$string['alttextregenerate'] = 'Regenerate';
+$string['alttextreplace'] = 'Replace';
+$string['alttextreplaceconfirmation'] = 'This replaces the description you’ve already written. This can’t be undone.';
+$string['alttextreplacewithai'] = 'Replace with AI suggestion';
+$string['alttextreview'] = 'Review the AI-generated description for accuracy before saving.';
+$string['alttexttryagain'] = 'Try again';
 $string['aspectlandscape'] = 'Landscape';
 $string['aspectportrait'] = 'Portrait';
 $string['aspectratio'] = 'Image shape';

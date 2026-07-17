@@ -38,11 +38,12 @@ export default class ImageModal extends Modal {
     }
 
     configure(modalConfig) {
-        modalConfig.large = true;
+        modalConfig.large = false;
         modalConfig.removeOnClose = true;
         modalConfig.show = true;
 
         super.configure(modalConfig);
+        this.getModal().addClass('modal-xl');
     }
 }
 

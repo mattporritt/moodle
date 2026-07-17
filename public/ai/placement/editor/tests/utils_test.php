@@ -62,12 +62,13 @@ final class utils_test extends \advanced_testcase {
      */
     public static function html_editor_placement_actions_available_provider(): array {
         return [
-            'Two actions' => [
+            'All actions' => [
                 'actionstouse' => [
                     'generate_text',
                     'generate_image',
+                    'describe_image',
                 ],
-                'expectedcount' => 2,
+                'expectedcount' => 3,
             ],
             'Generate text only' => [
                 'actionstouse' => [
@@ -78,6 +79,12 @@ final class utils_test extends \advanced_testcase {
             'Generate image only' => [
                 'actionstouse' => [
                     'generate_image',
+                ],
+                'expectedcount' => 1,
+            ],
+            'Describe image only' => [
+                'actionstouse' => [
+                    'describe_image',
                 ],
                 'expectedcount' => 1,
             ],
