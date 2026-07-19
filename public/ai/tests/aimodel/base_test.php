@@ -57,6 +57,20 @@ final class base_test extends \advanced_testcase {
                         'core_ai',
                         PARAM_TEXT,
                     ),
+                    'min_only' => self::build_setting(
+                        'settings_temperature',
+                        'core_ai',
+                        PARAM_FLOAT,
+                        'settings_temperature',
+                        ['min' => 5],
+                    ),
+                    'max_only' => self::build_setting(
+                        'settings_temperature',
+                        'core_ai',
+                        PARAM_FLOAT,
+                        'settings_temperature',
+                        ['max' => 10],
+                    ),
                 ];
             }
         };
@@ -132,5 +146,64 @@ final class base_test extends \advanced_testcase {
         $model = $this->get_stub_model();
         $this->assertSame([], $model->validate_model_settings(['temperature' => '']));
         $this->assertSame([], $model->validate_model_settings([]));
+    }
+
+    /**
+     * Test that a min-only setting's error message only references the minimum,
+     * not a literal "{$a->max}" placeholder for a bound that was never documented.
+     */
+    public function test_validate_model_settings_min_only_error_message(): void {
+        $model = $this->get_stub_model();
+        $errors = $model->validate_model_settings(['min_only' => '1']);
+        $this->assertArrayHasKey('min_only', $errors);
+        $this->assertStringNotContainsString('{$a', $errors['min_only']);
+        $this->assertStringContainsString('5', $errors['min_only']);
+    }
+
+    /**
+     * Test that a max-only setting's error message only references the maximum,
+     * not a literal "{$a->min}" placeholder for a bound that was never documented.
+     */
+    public function test_validate_model_settings_max_only_error_message(): void {
+        $model = $this->get_stub_model();
+        $errors = $model->validate_model_settings(['max_only' => '20']);
+        $this->assertArrayHasKey('max_only', $errors);
+        $this->assertStringNotContainsString('{$a', $errors['max_only']);
+        $this->assertStringContainsString('10', $errors['max_only']);
+    }
+
+    /**
+     * Test that a locale-formatted decimal is still range-validated, instead of silently
+     * bypassing validation because is_numeric() rejects the localised value outright.
+     */
+    public function test_validate_model_settings_locale_float_is_validated(): void {
+        $this->define_local_decimal_separator();
+        $model = $this->get_stub_model();
+
+        // The value "3X5" is 3.5 with a localised decimal separator of "X"; out of the 0-2 range.
+        $errors = $model->validate_model_settings(['temperature' => '3X5']);
+        $this->assertArrayHasKey('temperature', $errors);
+
+        // The value "1X5" is 1.5 with the same separator; inside the 0-2 range.
+        $errors = $model->validate_model_settings(['temperature' => '1X5']);
+        $this->assertArrayNotHasKey('temperature', $errors);
+    }
+
+    /**
+     * Define a local decimal separator.
+     *
+     * It is not possible to directly change the result of get_string in a unit test. Instead,
+     * we create a language pack for language 'xx' in dataroot with the langconfig string we
+     * need to change. The separator used here is 'X'.
+     */
+    protected function define_local_decimal_separator(): void {
+        global $SESSION, $CFG;
+
+        $SESSION->lang = 'xx';
+        $langconfig = "<?php\n\$string['decsep'] = 'X';";
+        $langfolder = $CFG->dataroot . '/lang/xx';
+        check_dir_exists($langfolder);
+        file_put_contents($langfolder . '/langconfig.php', $langconfig);
+        get_string_manager()->reset_caches(true);
     }
 }

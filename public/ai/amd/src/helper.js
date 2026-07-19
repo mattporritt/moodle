@@ -86,6 +86,22 @@ export default class AIHelper {
     };
 
     /**
+     * Check whether a container currently shows a validation error.
+     *
+     * Used to avoid overwriting a server re-displayed (and possibly rejected) submitted value
+     * with a stale stored value when a model settings form is redisplayed after a failed
+     * validation.
+     *
+     * @param {String} containerId The target container.
+     * @returns {Boolean}
+     */
+    static formHasErrors = (containerId) => {
+        const container = document.getElementById(containerId);
+
+        return !!(container && container.querySelector('.has-danger'));
+    };
+
+    /**
      * Reset all fields in a container.
      *
      * @param {String} containerId The target container.

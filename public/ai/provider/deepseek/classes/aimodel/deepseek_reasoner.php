@@ -17,7 +17,6 @@
 namespace aiprovider_deepseek\aimodel;
 
 use core_ai\aimodel\base;
-use MoodleQuickForm;
 
 /**
  * DeepSeek reasoner AI model.
@@ -125,49 +124,6 @@ class deepseek_reasoner extends base implements deepseek_base {
                 ],
             ],
         ];
-    }
-
-    #[\Override]
-    public function add_model_settings(MoodleQuickForm $mform): void {
-        $settings = $this->get_model_settings();
-        foreach ($settings as $key => $setting) {
-            if ($setting['elementtype'] === 'checkbox') {
-                $groupname = $key . '_group';
-                $mform->addGroup([
-                        $mform->createElement(
-                            'checkbox',
-                            $key,
-                            get_string($setting['label']['identifier'] . '_label', $setting['label']['component']),
-                            '',
-                            ['class' => 'pt-1'],
-                        ),
-                    ], $groupname, get_string($setting['label']['identifier'], $setting['label']['component']));
-                $mform->setType($key, $setting['type']);
-                if (isset($setting['help'])) {
-                    $mform->addHelpButton(
-                        elementname: $groupname,
-                        identifier: $setting['help']['identifier'],
-                        component: $setting['help']['component'],
-                        a: $setting['help']['a'] ?? [],
-                    );
-                }
-            } else {
-                $mform->addElement(
-                    $setting['elementtype'],
-                    $key,
-                    get_string($setting['label']['identifier'], $setting['label']['component']),
-                );
-                $mform->setType($key, $setting['type']);
-                if (isset($setting['help'])) {
-                    $mform->addHelpButton(
-                        elementname: $key,
-                        identifier: $setting['help']['identifier'],
-                        component: $setting['help']['component'],
-                        a: $setting['help']['a'] ?? [],
-                    );
-                }
-            }
-        }
     }
 
     #[\Override]

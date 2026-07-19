@@ -47,7 +47,7 @@ final class model_settings_test extends \advanced_testcase {
             $settings['temperature']['help']['component'],
             (object) $settings['temperature']['help']['a'],
         );
-        $this->assertStringContainsString('2', $help);
+        $this->assertStringContainsString('Max: 2', $help);
     }
 
     /**

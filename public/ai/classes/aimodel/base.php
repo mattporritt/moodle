@@ -45,9 +45,51 @@ abstract class base {
     /**
      * Add the model settings to the form.
      *
+     * Renders each setting from {@see get_model_settings()}. A 'checkbox' elementtype is wrapped
+     * in its own group, so its help button attaches to the group rather than the bare checkbox;
+     * every other elementtype is added directly.
+     *
      * @param MoodleQuickForm $mform The form to add the model settings to.
      */
     public function add_model_settings(MoodleQuickForm $mform): void {
+        foreach ($this->get_model_settings() as $key => $setting) {
+            if ($setting['elementtype'] === 'checkbox') {
+                $groupname = $key . '_group';
+                $mform->addGroup([
+                    $mform->createElement(
+                        'checkbox',
+                        $key,
+                        get_string($setting['label']['identifier'] . '_label', $setting['label']['component']),
+                        '',
+                        ['class' => 'pt-1'],
+                    ),
+                ], $groupname, get_string($setting['label']['identifier'], $setting['label']['component']));
+                $mform->setType($key, $setting['type']);
+                if (isset($setting['help'])) {
+                    $mform->addHelpButton(
+                        elementname: $groupname,
+                        identifier: $setting['help']['identifier'],
+                        component: $setting['help']['component'],
+                        a: $setting['help']['a'] ?? [],
+                    );
+                }
+            } else {
+                $mform->addElement(
+                    $setting['elementtype'],
+                    $key,
+                    get_string($setting['label']['identifier'], $setting['label']['component']),
+                );
+                $mform->setType($key, $setting['type']);
+                if (isset($setting['help'])) {
+                    $mform->addHelpButton(
+                        elementname: $key,
+                        identifier: $setting['help']['identifier'],
+                        component: $setting['help']['component'],
+                        a: $setting['help']['a'] ?? [],
+                    );
+                }
+            }
+        }
     }
 
     /**
@@ -131,23 +173,50 @@ abstract class base {
             }
 
             $range = $setting['help']['a'] ?? [];
-            if (!array_key_exists('min', $range) && !array_key_exists('max', $range)) {
+            $min = array_key_exists('min', $range) ? $range['min'] : null;
+            $max = array_key_exists('max', $range) ? $range['max'] : null;
+            if ($min === null && $max === null) {
                 continue;
             }
 
-            if (!is_numeric($data[$key])) {
+            // PARAM_FLOAT/PARAM_RAW settings hold decimal values that may be submitted using the
+            // current language's decimal separator (for example "3,5"), which is_numeric() rejects
+            // outright. Normalise those the same way Moodle normally handles float form input, so
+            // a locale-formatted value cannot silently skip range validation.
+            if (in_array($setting['type'] ?? null, [PARAM_FLOAT, PARAM_RAW], true)) {
+                $value = unformat_float($data[$key], true);
+                if ($value === false) {
+                    continue;
+                }
+            } else if (is_numeric($data[$key])) {
+                $value = (float) $data[$key];
+            } else {
                 continue;
             }
-
-            $value = (float) $data[$key];
-            $min = $range['min'] ?? null;
-            $max = $range['max'] ?? null;
 
             if (($min !== null && $value < (float) $min) || ($max !== null && $value > (float) $max)) {
-                $errors[$key] = get_string('settings_rangeerror', 'core_ai', (object) ['min' => $min, 'max' => $max]);
+                $errors[$key] = $this->get_range_error($min, $max);
             }
         }
 
         return $errors;
+    }
+
+    /**
+     * Build the range-error message for a setting, selecting the string variant that matches
+     * which bounds are documented for it.
+     *
+     * @param mixed $min Documented minimum, if any.
+     * @param mixed $max Documented maximum, if any.
+     * @return string
+     */
+    protected function get_range_error(mixed $min, mixed $max): string {
+        if ($min !== null && $max !== null) {
+            return get_string('settings_rangeerror', 'core_ai', (object) ['min' => $min, 'max' => $max]);
+        } else if ($min !== null) {
+            return get_string('settings_rangeerror_min', 'core_ai', (object) ['min' => $min]);
+        }
+
+        return get_string('settings_rangeerror_max', 'core_ai', (object) ['max' => $max]);
     }
 }

@@ -1,0 +1,13 @@
+issueNumber: MDL-89213
+notes:
+  core_ai:
+    - message: >-
+        core_ai\aimodel\base gained two new overridable helpers for provider
+        AI model classes: build_setting(), a convenience for declaring a
+        settings label/help/PARAM_* descriptor, and validate_model_settings(),
+        which validates a submitted model settings form against a model's
+        documented min/max metadata and returns moodleform-compatible field
+        errors. Third-party AI provider model classes may call
+        validate_model_settings() from their action_form's validation() to opt
+        into the same documented-range checking used by the built-in providers.
+      type: improved

@@ -17,7 +17,6 @@
 namespace aiprovider_openai\aimodel;
 
 use core_ai\aimodel\base;
-use MoodleQuickForm;
 
 /**
  * GPT-4o AI model.
@@ -76,27 +75,6 @@ class gpt4o extends base implements openai_base {
                 ['min' => -2.0, 'max' => 2.0, 'default' => 0],
             ),
         ];
-    }
-
-    #[\Override]
-    public function add_model_settings(MoodleQuickForm $mform): void {
-        $settings = $this->get_model_settings();
-        foreach ($settings as $key => $setting) {
-            $mform->addElement(
-                $setting['elementtype'],
-                $key,
-                get_string($setting['label']['identifier'], $setting['label']['component']),
-            );
-            $mform->setType($key, $setting['type']);
-            if (isset($setting['help'])) {
-                $mform->addHelpButton(
-                    elementname: $key,
-                    identifier: $setting['help']['identifier'],
-                    component: $setting['help']['component'],
-                    a: $setting['help']['a'] ?? [],
-                );
-            }
-        }
     }
 
     #[\Override]

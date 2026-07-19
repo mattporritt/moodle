@@ -166,16 +166,16 @@ Feature: An administrator can manage AI subsystem settings
     And I click on the "Settings" link in the table row containing "Generate text"
     And I set the following fields to these values:
       | AI model              | GPT-4o |
-      | top_p                 | 11     |
+      | top_p                 | 0.9    |
       | max_completion_tokens | 12     |
-      | frequency_penalty     | 13     |
-      | presence_penalty      | 14     |
+      | frequency_penalty     | 1.3    |
+      | presence_penalty      | 1.4    |
     And I press "Save changes"
     And I click on the "Settings" link in the table row containing "Generate text"
-    And the field "top_p" matches value "11"
+    And the field "top_p" matches value "0.9"
     And the field "max_completion_tokens" matches value "12"
-    And the field "frequency_penalty" matches value "13"
-    And the field "presence_penalty" matches value "14"
+    And the field "frequency_penalty" matches value "1.3"
+    And the field "presence_penalty" matches value "1.4"
     # Change the model and check fields are empty.
     And I set the following fields to these values:
       | AI model | O1 |
@@ -192,7 +192,31 @@ Feature: An administrator can manage AI subsystem settings
     And the field "max_completion_tokens" matches value "22"
     And I set the following fields to these values:
       | AI model | GPT-4o |
-    And the field "top_p" matches value "11"
+    And the field "top_p" matches value "0.9"
     And the field "max_completion_tokens" matches value "12"
-    And the field "frequency_penalty" matches value "13"
-    And the field "presence_penalty" matches value "14"
+    And the field "frequency_penalty" matches value "1.3"
+    And the field "presence_penalty" matches value "1.4"
+
+  @javascript
+  Scenario: Submitting a model setting outside its documented range is rejected and not saved
+    Given the following "core_ai > ai providers" exist:
+      | provider          | name            | enabled | apikey | orgid |
+      | aiprovider_openai | OpenAI API test | 1       | 123    | abc   |
+    And I am logged in as "admin"
+    And I navigate to "AI > AI providers" in site administration
+    And I click on the "Settings" link in the table row containing "OpenAI API test"
+    And I click on the "Settings" link in the table row containing "Generate text"
+    And I set the following fields to these values:
+      | AI model              | GPT-4o |
+      | max_completion_tokens | 20000  |
+    And I press "Save changes"
+    Then I should see "Value must be between 1 and 16384 for this model."
+    And I should not see "Generate text action settings updated"
+    # The rejected value must still be shown, not silently replaced by a previously stored one.
+    And the field "max_completion_tokens" matches value "20000"
+    And I set the following fields to these values:
+      | max_completion_tokens | 12000 |
+    And I press "Save changes"
+    And I should see "Generate text action settings updated"
+    And I click on the "Settings" link in the table row containing "Generate text"
+    And the field "max_completion_tokens" matches value "12000"

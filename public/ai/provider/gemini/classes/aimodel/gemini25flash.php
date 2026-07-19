@@ -17,7 +17,6 @@
 namespace aiprovider_gemini\aimodel;
 
 use core_ai\aimodel\base;
-use MoodleQuickForm;
 
 /**
  * Gemini 2.5 Flash AI model.
@@ -87,27 +86,6 @@ class gemini25flash extends base implements gemini_base {
                 ],
             ],
         ];
-    }
-
-    #[\Override]
-    public function add_model_settings(MoodleQuickForm $mform): void {
-        $settings = $this->get_model_settings();
-        foreach ($settings as $key => $setting) {
-            $mform->addElement(
-                $setting['elementtype'],
-                $key,
-                get_string($setting['label']['identifier'], $setting['label']['component']),
-            );
-            $mform->setType($key, $setting['type']);
-            if (isset($setting['help'])) {
-                $mform->addHelpButton(
-                    elementname: $key,
-                    identifier: $setting['help']['identifier'],
-                    component: $setting['help']['component'],
-                    a: $setting['help']['a'] ?? [],
-                );
-            }
-        }
     }
 
     #[\Override]

@@ -20,7 +20,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {populateFields, clearFields} from 'core_ai/helper';
+import {populateFields, clearFields, formHasErrors} from 'core_ai/helper';
 const Selectors = {
     fields: {
         selector: '[data-modelchooser-field="selector"]',
@@ -35,15 +35,21 @@ const Selectors = {
 export const init = () => {
     const modelSelector = document.querySelector(Selectors.fields.selector);
     if (modelSelector) {
-        // If we have stored model settings, populate them in their respective fields.
-        const storedModelSettings = JSON.parse(modelSelector.getAttribute('data-storedmodelsettings'));
-        const modelSettings = storedModelSettings[modelSelector.value];
         const containerId = Selectors.fields.modelSettingsContainer;
 
-        if (modelSettings) {
-            populateFields(modelSettings, containerId);
-        } else {
-            clearFields(containerId);
+        // If the form is being redisplayed after a failed validation, its fields already show
+        // the submitted values (including the rejected one); do not overwrite them with the
+        // previously stored settings.
+        if (!formHasErrors(containerId)) {
+            // If we have stored model settings, populate them in their respective fields.
+            const storedModelSettings = JSON.parse(modelSelector.getAttribute('data-storedmodelsettings'));
+            const modelSettings = storedModelSettings[modelSelector.value];
+
+            if (modelSettings) {
+                populateFields(modelSettings, containerId);
+            } else {
+                clearFields(containerId);
+            }
         }
 
         modelSelector.addEventListener('change', e => {
