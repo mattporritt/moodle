@@ -40,18 +40,17 @@ class deepseek_chat extends base implements deepseek_base {
     #[\Override]
     public function get_model_settings(): array {
         return [
-            'temperature' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_temperature',
-                    'component' => 'aiprovider_deepseek',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_temperature',
-                    'component' => 'aiprovider_deepseek',
-                ],
-            ],
+            // Temperature – documented range: https://api-docs.deepseek.com/api/create-chat-completion.
+            // Uses the "_bounds" help string variant (with {$a->...} placeholders) because this
+            // model supplies documented values; deepseek-reasoner uses the plain "settings_temperature"
+            // help string instead, since DeepSeek ignores this parameter for that model.
+            'temperature' => self::build_setting(
+                'settings_temperature',
+                'aiprovider_deepseek',
+                PARAM_FLOAT,
+                'settings_temperature_bounds',
+                ['min' => 0, 'max' => 2.0, 'default' => 1.0],
+            ),
             'logprobs' => [
                 'elementtype' => 'checkbox',
                 'label' => [
@@ -64,42 +63,30 @@ class deepseek_chat extends base implements deepseek_base {
                     'component' => 'aiprovider_deepseek',
                 ],
             ],
-            'top_logprobs' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_top_logprobs',
-                    'component' => 'aiprovider_deepseek',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_top_logprobs',
-                    'component' => 'aiprovider_deepseek',
-                ],
-            ],
-            'top_p' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_deepseek',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_deepseek',
-                ],
-            ],
-            'max_tokens' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_max_tokens',
-                    'component' => 'aiprovider_deepseek',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_max_tokens',
-                    'component' => 'aiprovider_deepseek',
-                ],
-            ],
+            // Top logprobs – documented range: https://api-docs.deepseek.com/api/create-chat-completion.
+            'top_logprobs' => self::build_setting(
+                'settings_top_logprobs',
+                'aiprovider_deepseek',
+                PARAM_FLOAT,
+                'settings_top_logprobs_bounds',
+                ['min' => 0, 'max' => 20],
+            ),
+            // Top P – documented range: https://api-docs.deepseek.com/api/create-chat-completion.
+            'top_p' => self::build_setting(
+                'settings_top_p',
+                'aiprovider_deepseek',
+                PARAM_FLOAT,
+                'settings_top_p_bounds',
+                ['min' => 0, 'max' => 1.0, 'default' => 1.0],
+            ),
+            // Max tokens – deepseek-chat's documented default/maximum output token limit.
+            'max_tokens' => self::build_setting(
+                'settings_max_tokens',
+                'aiprovider_deepseek',
+                PARAM_INT,
+                'settings_max_tokens',
+                ['min' => 1, 'max' => 8192, 'default' => 4096],
+            ),
             'frequency_penalty' => [
                 'elementtype' => 'text',
                 'label' => [
@@ -144,7 +131,12 @@ class deepseek_chat extends base implements deepseek_base {
                     ], $groupname, get_string($setting['label']['identifier'], $setting['label']['component']));
                 $mform->setType($key, $setting['type']);
                 if (isset($setting['help'])) {
-                    $mform->addHelpButton($groupname, $setting['help']['identifier'], $setting['help']['component']);
+                    $mform->addHelpButton(
+                        elementname: $groupname,
+                        identifier: $setting['help']['identifier'],
+                        component: $setting['help']['component'],
+                        a: $setting['help']['a'] ?? [],
+                    );
                 }
             } else {
                 $mform->addElement(
@@ -154,7 +146,12 @@ class deepseek_chat extends base implements deepseek_base {
                 );
                 $mform->setType($key, $setting['type']);
                 if (isset($setting['help'])) {
-                    $mform->addHelpButton($key, $setting['help']['identifier'], $setting['help']['component']);
+                    $mform->addHelpButton(
+                        elementname: $key,
+                        identifier: $setting['help']['identifier'],
+                        component: $setting['help']['component'],
+                        a: $setting['help']['a'] ?? [],
+                    );
                 }
             }
         }

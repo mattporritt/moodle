@@ -130,6 +130,11 @@ class action_form extends action_settings_form {
         // Validate the model.
         if ($data['modeltemplate'] === 'custom' && empty($data['custommodel'])) {
             $errors['custommodel'] = get_string('required');
+        } else if ($data['modeltemplate'] !== 'custom') {
+            $modelclass = helper::get_model_class($data['modeltemplate']);
+            if ($modelclass) {
+                $errors += $modelclass->validate_model_settings($data);
+            }
         }
 
         return $errors;
@@ -159,9 +164,11 @@ class action_form extends action_settings_form {
         $mform = $this->_form;
 
         // Determine which model to use as the default.
-        if (!empty($this->actionconfig['model']) &&
+        if (
+            !empty($this->actionconfig['model']) &&
                 (!array_key_exists($this->actionconfig['model'], $this->get_model_list($modeltype)) ||
-                !empty($this->actionconfig['modelextraparams']))) {
+                !empty($this->actionconfig['modelextraparams']))
+        ) {
             $defaultmodel = 'custom';
         } else {
             $defaultmodel = $this->actionconfig['model'] ?? 'llama3.3';

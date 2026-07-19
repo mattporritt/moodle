@@ -27,7 +27,6 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class gpt4o extends base implements openai_base {
-
     #[\Override]
     public function get_model_name(): string {
         return 'gpt-4o';
@@ -41,54 +40,41 @@ class gpt4o extends base implements openai_base {
     #[\Override]
     public function get_model_settings(): array {
         return [
-            'top_p' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'max_completion_tokens' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_max_completion_tokens',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_max_completion_tokens',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'frequency_penalty' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_frequency_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
-                'help' => [
-                    'identifier' => 'settings_frequency_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
-            'presence_penalty' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_presence_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
-                'help' => [
-                    'identifier' => 'settings_presence_penalty',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
+            // Top P – nucleus sampling. Documented range: https://platform.openai.com/docs/api-reference/chat/create.
+            // Uses the "_bounds" help string variant (with {$a->...} placeholders) because this
+            // model supplies documented values; o1 uses the plain "settings_top_p" help string
+            // instead, since OpenAI fixes top_p for o1 and it has no effect.
+            'top_p' => self::build_setting(
+                'settings_top_p',
+                'aiprovider_openai',
+                PARAM_FLOAT,
+                'settings_top_p_bounds',
+                ['min' => 0, 'max' => 1.0, 'default' => 1.0],
+            ),
+            // Max completion tokens – gpt-4o's documented maximum output token limit.
+            'max_completion_tokens' => self::build_setting(
+                'settings_max_completion_tokens',
+                'aiprovider_openai',
+                PARAM_INT,
+                'settings_max_completion_tokens',
+                ['min' => 1, 'max' => 16384],
+            ),
+            // Frequency Penalty – documented range: https://platform.openai.com/docs/api-reference/chat/create.
+            'frequency_penalty' => self::build_setting(
+                'settings_frequency_penalty',
+                'aiprovider_openai',
+                PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
+                'settings_frequency_penalty',
+                ['min' => -2.0, 'max' => 2.0, 'default' => 0],
+            ),
+            // Presence Penalty – documented range: https://platform.openai.com/docs/api-reference/chat/create.
+            'presence_penalty' => self::build_setting(
+                'settings_presence_penalty',
+                'aiprovider_openai',
+                PARAM_RAW, // This is a raw value because it can be a float from -2.0 to 2.0.
+                'settings_presence_penalty',
+                ['min' => -2.0, 'max' => 2.0, 'default' => 0],
+            ),
         ];
     }
 
@@ -103,7 +89,12 @@ class gpt4o extends base implements openai_base {
             );
             $mform->setType($key, $setting['type']);
             if (isset($setting['help'])) {
-                $mform->addHelpButton($key, $setting['help']['identifier'], $setting['help']['component']);
+                $mform->addHelpButton(
+                    elementname: $key,
+                    identifier: $setting['help']['identifier'],
+                    component: $setting['help']['component'],
+                    a: $setting['help']['a'] ?? [],
+                );
             }
         }
     }

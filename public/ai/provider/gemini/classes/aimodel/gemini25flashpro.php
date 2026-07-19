@@ -41,59 +41,38 @@ class gemini25flashpro extends base implements gemini_base {
     public function get_model_settings(): array {
         return [
             // Temperature: controls how creative the AI responses are.
-            // 0.0 = very predictable, 2.0 = very creative.
-            'temperature' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_temperature',
-                    'component' => 'aiprovider_gemini',
-                ],
-                'type' => PARAM_FLOAT, // Float value from 0.0 to 2.0 controlling randomness/creativity.
-                'help' => [
-                    'identifier' => 'settings_temperature',
-                    'component' => 'aiprovider_gemini',
-                ],
-            ],
+            // Documented range: https://ai.google.dev/api/generate-content#v1beta.GenerationConfig.
+            'temperature' => self::build_setting(
+                'settings_temperature',
+                'aiprovider_gemini',
+                PARAM_FLOAT,
+                'settings_temperature',
+                ['min' => 0, 'max' => 2.0, 'default' => 1.0],
+            ),
             // Top‑p: controls randomness using nucleus sampling.
-            // 0.0 = most predictable, 1.0 = less restrictive.
-            'top_p' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_gemini',
-                ],
-                'type' => PARAM_FLOAT, // Float value from 0.0 to 1.0 controlling nucleus sampling.
-                'help' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_gemini',
-                ],
-            ],
+            'top_p' => self::build_setting(
+                'settings_top_p',
+                'aiprovider_gemini',
+                PARAM_FLOAT,
+                'settings_top_p',
+                ['min' => 0, 'max' => 1.0, 'default' => 0.95],
+            ),
             // Top‑k: maximum number of tokens considered when sampling.
-            'top_k' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_top_k',
-                    'component' => 'aiprovider_gemini',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_top_k',
-                    'component' => 'aiprovider_gemini',
-                ],
-            ],
+            'top_k' => self::build_setting(
+                'settings_top_k',
+                'aiprovider_gemini',
+                PARAM_FLOAT,
+                'settings_top_k',
+                ['min' => 0, 'max' => 100, 'default' => 40],
+            ),
             // Max output tokens: limits the number of tokens the model will generate.
-            'max_output_tokens' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_max_output_tokens',
-                    'component' => 'aiprovider_gemini',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_max_output_tokens',
-                    'component' => 'aiprovider_gemini',
-                ],
-            ],
+            'max_output_tokens' => self::build_setting(
+                'settings_max_output_tokens',
+                'aiprovider_gemini',
+                PARAM_INT,
+                'settings_max_output_tokens',
+                ['min' => 1, 'max' => 65536, 'default' => 65536],
+            ),
             // Stop sequences: character sequences where the AI should stop generating text.
             'stop_sequences' => [
                 'elementtype' => 'text',
@@ -121,7 +100,12 @@ class gemini25flashpro extends base implements gemini_base {
             );
             $mform->setType($key, $setting['type']);
             if (isset($setting['help'])) {
-                $mform->addHelpButton($key, $setting['help']['identifier'], $setting['help']['component']);
+                $mform->addHelpButton(
+                    elementname: $key,
+                    identifier: $setting['help']['identifier'],
+                    component: $setting['help']['component'],
+                    a: $setting['help']['a'] ?? [],
+                );
             }
         }
     }

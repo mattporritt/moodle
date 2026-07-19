@@ -27,7 +27,6 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class llama33 extends base implements ollama_base {
-
     #[\Override]
     public function get_model_name(): string {
         return 'llama3.3';
@@ -41,66 +40,46 @@ class llama33 extends base implements ollama_base {
     #[\Override]
     public function get_model_settings(): array {
         return [
-            'mirostat' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_mirostat',
-                    'component' => 'aiprovider_ollama',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_mirostat',
-                    'component' => 'aiprovider_ollama',
-                ],
-            ],
-            'temperature' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_temperature',
-                    'component' => 'aiprovider_ollama',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_temperature',
-                    'component' => 'aiprovider_ollama',
-                ],
-            ],
-            'seed' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_seed',
-                    'component' => 'aiprovider_ollama',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_seed',
-                    'component' => 'aiprovider_ollama',
-                ],
-            ],
-            'top_k' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_top_k',
-                    'component' => 'aiprovider_ollama',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_top_k',
-                    'component' => 'aiprovider_ollama',
-                ],
-            ],
-            'top_p' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_ollama',
-                ],
-                'type' => PARAM_FLOAT,
-                'help' => [
-                    'identifier' => 'settings_top_p',
-                    'component' => 'aiprovider_ollama',
-                ],
-            ],
+            // Mirostat – documented enum: https://docs.ollama.com/modelfile.
+            'mirostat' => self::build_setting(
+                'settings_mirostat',
+                'aiprovider_ollama',
+                PARAM_INT,
+                'settings_mirostat',
+                ['min' => 0, 'max' => 2, 'default' => 0],
+            ),
+            // Temperature – Ollama documents a default but does not enforce a strict min/max.
+            'temperature' => self::build_setting(
+                'settings_temperature',
+                'aiprovider_ollama',
+                PARAM_FLOAT,
+                'settings_temperature',
+                ['default' => 0.8],
+            ),
+            // Seed – Ollama documents a default but any integer is valid.
+            'seed' => self::build_setting(
+                'settings_seed',
+                'aiprovider_ollama',
+                PARAM_INT,
+                'settings_seed',
+                ['default' => 0],
+            ),
+            // Top k – Ollama documents a default but does not enforce a strict min/max.
+            'top_k' => self::build_setting(
+                'settings_top_k',
+                'aiprovider_ollama',
+                PARAM_FLOAT,
+                'settings_top_k',
+                ['default' => 40],
+            ),
+            // Top p – nucleus sampling probability, bounded between 0.0 and 1.0.
+            'top_p' => self::build_setting(
+                'settings_top_p',
+                'aiprovider_ollama',
+                PARAM_FLOAT,
+                'settings_top_p',
+                ['min' => 0, 'max' => 1.0, 'default' => 0.9],
+            ),
         ];
     }
 
@@ -115,7 +94,12 @@ class llama33 extends base implements ollama_base {
             );
             $mform->setType($key, $setting['type']);
             if (isset($setting['help'])) {
-                $mform->addHelpButton($key, $setting['help']['identifier'], $setting['help']['component']);
+                $mform->addHelpButton(
+                    elementname: $key,
+                    identifier: $setting['help']['identifier'],
+                    component: $setting['help']['component'],
+                    a: $setting['help']['a'] ?? [],
+                );
             }
         }
     }

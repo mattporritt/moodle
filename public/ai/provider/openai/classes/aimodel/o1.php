@@ -24,7 +24,6 @@ namespace aiprovider_openai\aimodel;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class o1 extends gpt4o {
-
     #[\Override]
     public function get_model_name(): string {
         return 'o1';
@@ -50,18 +49,14 @@ class o1 extends gpt4o {
                     'component' => 'aiprovider_openai',
                 ],
             ],
-            'max_completion_tokens' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_max_completion_tokens',
-                    'component' => 'aiprovider_openai',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_max_completion_tokens',
-                    'component' => 'aiprovider_openai',
-                ],
-            ],
+            // Max completion tokens – o1's documented maximum output token limit (includes reasoning tokens).
+            'max_completion_tokens' => self::build_setting(
+                'settings_max_completion_tokens',
+                'aiprovider_openai',
+                PARAM_INT,
+                'settings_max_completion_tokens',
+                ['min' => 1, 'max' => 100000],
+            ),
         ];
     }
 

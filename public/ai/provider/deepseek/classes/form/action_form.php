@@ -130,6 +130,11 @@ class action_form extends action_settings_form {
         // Validate the model.
         if ($data['modeltemplate'] === 'custom' && empty($data['custommodel'])) {
             $errors['custommodel'] = get_string('required');
+        } else if ($data['modeltemplate'] !== 'custom') {
+            $modelclass = helper::get_model_class($data['modeltemplate']);
+            if ($modelclass) {
+                $errors += $modelclass->validate_model_settings($data);
+            }
         }
 
         return $errors;

@@ -40,6 +40,9 @@ class deepseek_reasoner extends base implements deepseek_base {
     #[\Override]
     public function get_model_settings(): array {
         return [
+            // Temperature, logprobs, top_logprobs, and top_p are intentionally left without
+            // documented bounds here: DeepSeek's API silently ignores these parameters for
+            // deepseek-reasoner, so there is no provider-documented range to display or validate.
             'temperature' => [
                 'elementtype' => 'text',
                 'label' => [
@@ -88,18 +91,15 @@ class deepseek_reasoner extends base implements deepseek_base {
                     'component' => 'aiprovider_deepseek',
                 ],
             ],
-            'max_tokens' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_max_tokens',
-                    'component' => 'aiprovider_deepseek',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_max_tokens',
-                    'component' => 'aiprovider_deepseek',
-                ],
-            ],
+            // Max tokens – deepseek-reasoner's documented default/maximum output token limit
+            // (higher than deepseek-chat because reasoning tokens count towards the output).
+            'max_tokens' => self::build_setting(
+                'settings_max_tokens',
+                'aiprovider_deepseek',
+                PARAM_INT,
+                'settings_max_tokens',
+                ['min' => 1, 'max' => 32768, 'default' => 32768],
+            ),
             'frequency_penalty' => [
                 'elementtype' => 'text',
                 'label' => [
@@ -144,7 +144,12 @@ class deepseek_reasoner extends base implements deepseek_base {
                     ], $groupname, get_string($setting['label']['identifier'], $setting['label']['component']));
                 $mform->setType($key, $setting['type']);
                 if (isset($setting['help'])) {
-                    $mform->addHelpButton($groupname, $setting['help']['identifier'], $setting['help']['component']);
+                    $mform->addHelpButton(
+                        elementname: $groupname,
+                        identifier: $setting['help']['identifier'],
+                        component: $setting['help']['component'],
+                        a: $setting['help']['a'] ?? [],
+                    );
                 }
             } else {
                 $mform->addElement(
@@ -154,7 +159,12 @@ class deepseek_reasoner extends base implements deepseek_base {
                 );
                 $mform->setType($key, $setting['type']);
                 if (isset($setting['help'])) {
-                    $mform->addHelpButton($key, $setting['help']['identifier'], $setting['help']['component']);
+                    $mform->addHelpButton(
+                        elementname: $key,
+                        identifier: $setting['help']['identifier'],
+                        component: $setting['help']['component'],
+                        a: $setting['help']['a'] ?? [],
+                    );
                 }
             }
         }
