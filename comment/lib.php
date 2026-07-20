@@ -225,7 +225,7 @@ class comment {
         $this->template .= html_writer::start_tag('div', array('class' => 'comment-message-meta me-3'));
 
         $this->template .= html_writer::tag('span', '___picture___', array('class' => 'picture'));
-        $this->template .= html_writer::tag('span', '___name___', array('class' => 'user')) . ' - ';
+        $this->template .= html_writer::tag('span', '___name___', array('class' => 'user font-weight-bold')) . ' - ';
         $this->template .= html_writer::tag('span', '___time___', array('class' => 'time'));
 
         $this->template .= html_writer::end_tag('div'); // .comment-message-meta
