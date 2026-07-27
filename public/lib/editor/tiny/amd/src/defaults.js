@@ -111,6 +111,41 @@ export const getDefaultToolbar = () => {
 };
 
 /**
+ * The default font_family_formats configuration to use.
+ *
+ * TinyMCE falls back to displaying the raw computed font-family stack as the toolbar
+ * label/accessible name whenever the current selection does not match a named entry in
+ * this list. Moodle's baseline font stack (the Bootstrap default applied by the theme)
+ * is added as a "Default" entry so the control has a short, meaningful label before any
+ * user selection is made, instead of echoing the full computed font stack.
+ *
+ * The remaining entries preserve TinyMCE's own built-in default list unchanged.
+ *
+ * @returns {string}
+ */
+export const getDefaultFontFamilyFormats = () => [
+    'Default=system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",' +
+        '"Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
+    'Andale Mono=andale mono,monospace',
+    'Arial=arial,helvetica,sans-serif',
+    'Arial Black=arial black,sans-serif',
+    'Book Antiqua=book antiqua,palatino,serif',
+    'Comic Sans MS=comic sans ms,sans-serif',
+    'Courier New=courier new,courier,monospace',
+    'Georgia=georgia,palatino,serif',
+    'Helvetica=helvetica,arial,sans-serif',
+    'Impact=impact,sans-serif',
+    'Symbol=symbol',
+    'Tahoma=tahoma,arial,helvetica,sans-serif',
+    'Terminal=terminal,monaco,monospace',
+    'Times New Roman=times new roman,times,serif',
+    'Trebuchet MS=trebuchet ms,geneva,sans-serif',
+    'Verdana=verdana,geneva,sans-serif',
+    'Webdings=webdings',
+    'Wingdings=wingdings,zapf dingbats',
+].join(';');
+
+/**
  * The default quickbars_insert_toolbar configuration to use.
  *
  * This is based upon the default value used if no toolbar is specified.
@@ -171,6 +206,10 @@ export const getDefaultConfiguration = () => ({
     // eslint-disable-next-line camelcase
     quickbars_image_toolbar: getDefaultQuickbarsImageToolbar(),
 
+    // Font family formats configuration.
+    // https://www.tiny.cloud/docs/tinymce/6/user-formatting-options/#font_family_formats
+    // eslint-disable-next-line camelcase
+    font_family_formats: getDefaultFontFamilyFormats(),
 
     // Menu configuration.
     // https://www.tiny.cloud/docs/tinymce/6/menus-configuration-options/
