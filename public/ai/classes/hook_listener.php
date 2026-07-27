@@ -42,7 +42,7 @@ class hook_listener {
      * @param after_file_created $hook
      */
     public static function correlate_generated_image(after_file_created $hook): void {
-        global $DB;
+        global $DB, $USER;
 
         $file = $hook->storedfile;
 
@@ -55,19 +55,50 @@ class hook_listener {
         $contenthash = $file->get_contenthash();
 
         // Multiple rows could in principle share a contenthash if identical image bytes were generated
-        // more than once; the most recently created unresolved row is the most likely match.
-        $candidates = $DB->get_records_select(
-            'ai_action_generate_image',
-            'contenthash = :contenthash AND localpathnamehash IS NULL',
-            ['contenthash' => $contenthash],
-            'id DESC',
-            'id',
-            0,
-            1
-        );
+        // more than once (for example, an identical prompt regenerated, or a provider returning
+        // identical placeholder/error bytes). Scope candidates to the current session user: providers
+        // store the generated image as a 'user'/'draft' file without recording a files.userid (see
+        // process_generate_image::create_file_from_response() across providers), so the stored file
+        // itself carries no reliable owner to compare against. The user saving this permanent copy is,
+        // in the normal placement flow, the same user who generated the image, so $USER meaningfully
+        // narrows an otherwise recency-only match.
+        $params = ['contenthash' => $contenthash];
+        $select = 'contenthash = :contenthash AND localpathnamehash IS NULL';
 
+        if (!empty($USER->id)) {
+            $scopedid = $DB->get_field_sql(
+                "SELECT aagi.id
+                   FROM {ai_action_generate_image} aagi
+                   JOIN {ai_action_register} aar
+                     ON aar.actionname = 'generate_image' AND aar.actionid = aagi.id
+                  WHERE aagi.contenthash = :contenthash
+                        AND aagi.localpathnamehash IS NULL
+                        AND aar.userid = :userid
+               ORDER BY aagi.id DESC",
+                ['contenthash' => $contenthash, 'userid' => $USER->id],
+                IGNORE_MULTIPLE
+            );
+            if ($scopedid) {
+                $DB->set_field('ai_action_generate_image', 'localpathnamehash', $file->get_pathnamehash(), ['id' => $scopedid]);
+                return;
+            }
+        }
+
+        // No user-scoped match (or there is no known current user, for example a CLI/task context):
+        // fall back to the most recently created unresolved row, and log when more than one candidate
+        // exists so an ambiguous match is visible rather than silently attributing another user's row
+        // to this file.
+        $candidates = $DB->get_records_select('ai_action_generate_image', $select, $params, 'id DESC', 'id');
         if (!$candidates) {
             return;
+        }
+
+        if (count($candidates) > 1) {
+            debugging(
+                'core_ai: multiple unresolved ai_action_generate_image rows share contenthash ' . $contenthash .
+                    '; resolving the most recently created one by recency only.',
+                DEBUG_DEVELOPER
+            );
         }
 
         $id = array_key_first($candidates);

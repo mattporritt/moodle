@@ -122,6 +122,83 @@ final class hook_listener_test extends \advanced_testcase {
     }
 
     /**
+     * Insert a minimal ai_action_register row linking a generate_image action id to a generating user.
+     *
+     * @param int $actionid The ai_action_generate_image row id.
+     * @param int $userid The generating user id.
+     * @return int The id of the inserted row.
+     */
+    private function create_action_register_row(int $actionid, int $userid): int {
+        global $DB;
+
+        return $DB->insert_record('ai_action_register', (object) [
+            'actionname' => 'generate_image',
+            'actionid' => $actionid,
+            'success' => 1,
+            'userid' => $userid,
+            'contextid' => \context_system::instance()->id,
+            'provider' => 'aiprovider_openai',
+            'timecreated' => time(),
+            'timecompleted' => time(),
+            'courseid' => 0,
+        ]);
+    }
+
+    /**
+     * When more than one unresolved row shares a contenthash, the row belonging to the user who saved
+     * the permanent file must be resolved, not simply the most recently created row.
+     */
+    public function test_correlate_generated_image_scopes_to_generating_user_when_ambiguous(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $this->setUser($user2);
+
+        $fs = get_file_storage();
+        $draftfile = $fs->create_file_from_string(
+            [
+                'contextid' => \context_user::instance($user2->id)->id,
+                'component' => 'user',
+                'filearea' => 'draft',
+                'itemid' => file_get_unused_draft_itemid(),
+                'filepath' => '/',
+                'filename' => 'generated.png',
+            ],
+            'fake-image-bytes-shared',
+        );
+
+        // Two unresolved rows share the same contenthash: an older one belonging to user1, and a
+        // newer one belonging to user2. Recency alone would incorrectly resolve user1's row here,
+        // since it is not the newer row; scoping to the generating user must resolve the correct one
+        // regardless of creation order.
+        $olderid = $this->create_generate_image_row($draftfile->get_contenthash());
+        $this->create_action_register_row($olderid, $user1->id);
+
+        $newerid = $this->create_generate_image_row($draftfile->get_contenthash());
+        $this->create_action_register_row($newerid, $user2->id);
+
+        $coursecontext = \context_course::instance(get_course(SITEID)->id);
+        $permanentfile = $fs->create_file_from_storedfile(
+            [
+                'contextid' => $coursecontext->id,
+                'component' => 'mod_forum',
+                'filearea' => 'post',
+                'itemid' => 3,
+                'filepath' => '/',
+                'filename' => 'generated.png',
+            ],
+            $draftfile,
+        );
+
+        $resolved = $DB->get_record('ai_action_generate_image', ['id' => $newerid]);
+        $unresolved = $DB->get_record('ai_action_generate_image', ['id' => $olderid]);
+        $this->assertEquals($permanentfile->get_pathnamehash(), $resolved->localpathnamehash);
+        $this->assertNull($unresolved->localpathnamehash);
+    }
+
+    /**
      * A row that already has a durable reference must not be overwritten by a later, unrelated
      * file creation that happens to share the same content.
      */

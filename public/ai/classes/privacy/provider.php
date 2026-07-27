@@ -67,6 +67,8 @@ class provider implements
             'style' => 'privacy:metadata:ai_action_generate_image:style',
             'sourceurl' => 'privacy:metadata:ai_action_generate_image:sourceurl',
             'revisedprompt' => 'privacy:metadata:ai_action_generate_image:revisedprompt',
+            'contenthash' => 'privacy:metadata:ai_action_generate_image:contenthash',
+            'localpathnamehash' => 'privacy:metadata:ai_action_generate_image:localpathnamehash',
         ], 'privacy:metadata:ai_action_generate_image');
         $collection->add_database_table('ai_action_generate_text', [
             'prompt' => 'privacy:metadata:ai_action_generate_text:prompt',

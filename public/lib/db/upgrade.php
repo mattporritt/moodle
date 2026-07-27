@@ -1990,5 +1990,19 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026072200.02);
     }
 
+    if ($oldversion < 2026072200.03) {
+        // Define index contenthash to be added to ai_action_generate_image.
+        $table = new xmldb_table('ai_action_generate_image');
+        $index = new xmldb_index('contenthash', XMLDB_INDEX_NOTUNIQUE, ['contenthash']);
+
+        // Conditionally launch add index contenthash.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2026072200.03);
+    }
+
     return true;
 }
