@@ -3028,3 +3028,15 @@ blockquote {
         }
     }
 }
+
+/* AI action detail page (ai/detail.php). */
+.core-ai-action-detail-text {
+    white-space: pre-wrap;
+}
+
+.core-ai-action-detail-image {
+    // No Moodle Design System size token matches a thumbnail-scale image cap; sized off the
+    // spacer scale (rem) instead of a fixed pixel value so it still responds to text zoom.
+    max-width: map-get($spacers, 6) * 5;
+    max-height: map-get($spacers, 6) * 5;
+}

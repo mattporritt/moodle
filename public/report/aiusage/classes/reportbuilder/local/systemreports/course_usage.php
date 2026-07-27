@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_ai\reportbuilder\local\systemreports;
+namespace report_aiusage\reportbuilder\local\systemreports;
 
 use core_reportbuilder\system_report;
 use core_ai\reportbuilder\local\entities\ai_action_register;
@@ -22,14 +22,17 @@ use core\reportbuilder\local\entities\context;
 use core_reportbuilder\local\entities\user;
 
 /**
- * AI usage system report.
+ * Course-level AI usage system report.
  *
- * @package    core_ai
- * @copyright  2024 David Woloszyn <david.woloszyn@moodle.com>
+ * Reuses the core_ai reportbuilder entities used by the sitewide admin report
+ * ({@see \core_ai\reportbuilder\local\systemreports\usage}), restricted to a single course, and
+ * further restricted to a single user's own actions when the caller lacks the "view all" capability.
+ *
+ * @package    report_aiusage
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class usage extends system_report {
-
+class course_usage extends system_report {
     #[\Override]
     protected function initialise(): void {
         $entitymain = new ai_action_register();
@@ -38,43 +41,52 @@ class usage extends system_report {
         $this->set_main_table('ai_action_register', $entitymainalias);
         $this->add_entity($entitymain);
 
+        // Restrict to the course this report was created for.
+        $this->add_base_condition_simple(
+            "{$entitymainalias}.courseid",
+            $this->get_parameter('courseid', 0, PARAM_INT),
+        );
+
+        // Restrict to a single user's own actions when the caller cannot view the whole course.
+        $restricttouserid = $this->get_parameter('restricttouserid', 0, PARAM_INT);
+        if ($restricttouserid > 0) {
+            $this->add_base_condition_simple("{$entitymainalias}.userid", $restricttouserid);
+        }
+
         // Join the 'user' entity to our main entity.
         $entityuser = new user();
         $entituseralias = $entityuser->get_table_alias('user');
         $this->add_entity($entityuser->add_join(
-            "LEFT JOIN {user} {$entituseralias} ON {$entituseralias}.id = {$entitymainalias}.userid"
+            "LEFT JOIN {user} {$entituseralias} ON {$entituseralias}.id = {$entitymainalias}.userid",
         ));
 
         // Join the 'context' entity to our main entity.
         $entitycontext = new context();
         $entitycontextalias = $entitycontext->get_table_alias('context');
         $this->add_entity($entitycontext->add_join(
-            "LEFT JOIN {context} {$entitycontextalias} ON {$entitycontextalias}.id = {$entitymainalias}.contextid"
+            "LEFT JOIN {context} {$entitycontextalias} ON {$entitycontextalias}.id = {$entitymainalias}.contextid",
         ));
 
-        // Now we can call our helper methods to add the content we want to include in the report.
         $this->add_columns();
         $this->add_filters();
 
-        // Set if report can be downloaded.
-        $this->set_downloadable(true, get_string('aiusage', 'core_ai'));
+        $this->set_downloadable(true, get_string('pluginname', 'report_aiusage'));
     }
 
     #[\Override]
     protected function can_view(): bool {
-        return has_capability('moodle/ai:viewaiusagereport', $this->get_context());
+        $context = $this->get_context();
+
+        return has_capability('report/aiusage:view', $context) || has_capability('report/aiusage:viewown', $context);
     }
 
     #[\Override]
     public static function get_name(): string {
-        return get_string('aiusage', 'core_ai');
+        return get_string('pluginname', 'report_aiusage');
     }
 
     /**
      * Adds the columns we want to display in the report.
-     *
-     * They are all provided by the entities we previously added in the {@see initialise} method, referencing each by their
-     * unique identifier.
      */
     public function add_columns(): void {
         $this->add_columns_from_entities([
@@ -96,15 +108,11 @@ class usage extends system_report {
         // Link to the full detail of the action (full prompt, full generated response, etc), shown last.
         $this->add_column_from_entity('ai_action_register:detail');
 
-        // It's possible to set a default initial sort direction for one column.
         $this->set_initial_sort_column('ai_action_register:timecreated', SORT_DESC);
     }
 
     /**
      * Adds the filters we want to display in the report.
-     *
-     * They are all provided by the entities we previously added in the {@see initialise} method, referencing each by their
-     * unique identifier.
      */
     protected function add_filters(): void {
         $this->add_filters_from_entities([
