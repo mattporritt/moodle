@@ -472,12 +472,6 @@ const getEditorConfiguration = async(target, tinyMCE, options, pluginValues) => 
             .replace(/forecolor ?/, '')
             .replace(/backcolor ?/, '')
 
-            // Remove fontfamily for now.
-            .replace(/fontfamily ?/, '')
-
-            // Remove fontsize for now.
-            .replace(/fontsize ?/, '')
-
             // Remove styles - it just duplicates the format menu in a way which does not respect configuration
             .replace(/styles ?/, '')
 

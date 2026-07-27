@@ -70,6 +70,13 @@ export const getDefaultToolbar = () => {
             ],
         },
         {
+            name: 'fonts',
+            items: [
+                'fontfamily',
+                'fontsize',
+            ],
+        },
+        {
             name: 'view',
             items: ['fullscreen'],
         },
