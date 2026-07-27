@@ -73,6 +73,15 @@ class generate_image extends base {
         $record->sourceurl = $responsearr['sourceurl']; // Can be null.
         $record->revisedprompt = $responsearr['revisedprompt']; // Can be null.
 
+        // The draft file is present whenever generation succeeded, regardless of whether the provider
+        // originally returned base64 data or a hosted URL (both paths converge on a draft file, see
+        // response_generate_image::get_response_data()). Recording its contenthash now lets the
+        // core_ai\hook_listener correlate this row with wherever a placement later saves the image
+        // permanently, without needing to know which placement did the saving.
+        $draftfile = $responsearr['draftfile'] ?? null;
+        $record->contenthash = $draftfile ? $draftfile->get_contenthash() : null;
+        $record->localpathnamehash = null;
+
         return $DB->insert_record($this->get_tablename(), $record);
     }
 }

@@ -4937,8 +4937,10 @@
         <FIELD NAME="quality" TYPE="char" LENGTH="21" NOTNULL="true" SEQUENCE="false" COMMENT="The quality of the image, e.g. hd."/>
         <FIELD NAME="aspectratio" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The aspect ratio of the generate image, e.g landscape"/>
         <FIELD NAME="style" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The style of the image, e.g. vivid"/>
-        <FIELD NAME="sourceurl" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="URL of the generated response."/>
+        <FIELD NAME="sourceurl" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="URL of the generated response. Retained unchanged as historical/origin data only; may expire and is not used for display."/>
         <FIELD NAME="revisedprompt" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The actual prompt the AI used to generate the image"/>
+        <FIELD NAME="contenthash" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="Content hash of the generated image file, recorded at generation time. Used to correlate this row with its permanent copy when core_files\hook\after_file_created fires."/>
+        <FIELD NAME="localpathnamehash" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="Pathnamehash of the durable local copy of the image, once correlated by contenthash with the file a placement saved permanently. This is what the AI usage report uses to display the image."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

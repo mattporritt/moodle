@@ -129,6 +129,7 @@ $string['generatedimage'] = 'Generated image';
 $string['globalratelimit'] = 'Maximum number of site-wide requests';
 $string['globalratelimit_help'] = 'The number of site-wide requests allowed per hour.';
 $string['imageaspectratio'] = 'Aspect ratio';
+$string['imagenolongeravailable'] = 'The image used in content is no longer available.';
 $string['imagequality'] = 'Quality';
 $string['imagestyle'] = 'Style';
 $string['invaliddetailrecord'] = 'This AI action could not be found.';
@@ -141,6 +142,7 @@ $string['noproviderplugins'] = 'There are no provider plugins installed. Install
 $string['noproviders'] = 'This action is unavailable. No <a href="{$a}">AI providers</a> are configured for this action.';
 $string['off'] = 'Off';
 $string['on'] = 'On';
+$string['originalsourceurl'] = 'Original source URL';
 $string['placement'] = 'Placement';
 $string['placementactionsettings'] = 'Actions';
 $string['placementactionsettings_desc'] = 'The AI actions available for this placement.';

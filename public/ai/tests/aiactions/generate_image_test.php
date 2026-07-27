@@ -103,5 +103,58 @@ final class generate_image_test extends \advanced_testcase {
         $this->assertEquals($style, $record->style);
         $this->assertEquals($body['sourceurl'], $record->sourceurl);
         $this->assertEquals($body['revisedprompt'], $record->revisedprompt);
+        // No draftfile in the response (for example a provider that failed before creating one), so no
+        // contenthash is available to record.
+        $this->assertNull($record->contenthash);
+        $this->assertNull($record->localpathnamehash);
+    }
+
+    /**
+     * Test that the draft file's contenthash is recorded at generation time, ready for later
+     * correlation by core_ai\hook_listener::correlate_generated_image().
+     */
+    public function test_store_records_draftfile_contenthash(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        global $DB;
+
+        $action = new generate_image(
+            contextid: 1,
+            userid: 1,
+            prompttext: 'This is a test prompt',
+            quality: 'hd',
+            aspectratio: 'square',
+            numimages: 1,
+            style: 'vivid',
+        );
+
+        $user = $this->getDataGenerator()->create_user();
+        $fs = get_file_storage();
+        $draftfile = $fs->create_file_from_string(
+            [
+                'contextid' => \context_user::instance($user->id)->id,
+                'component' => 'user',
+                'filearea' => 'draft',
+                'itemid' => file_get_unused_draft_itemid(),
+                'filepath' => '/',
+                'filename' => 'generated.png',
+            ],
+            'fake-image-bytes',
+        );
+
+        $body = [
+            'draftfile' => $draftfile,
+            'revisedprompt' => 'This is a revised prompt',
+            'sourceurl' => null,
+            'model' => 'dall-e-3',
+        ];
+        $actionresponse = new response_generate_image(success: true);
+        $actionresponse->set_response_data($body);
+
+        $storeid = $action->store($actionresponse);
+
+        $record = $DB->get_record('ai_action_generate_image', ['id' => $storeid]);
+        $this->assertEquals($draftfile->get_contenthash(), $record->contenthash);
+        $this->assertNull($record->localpathnamehash);
     }
 }

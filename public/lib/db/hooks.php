@@ -135,6 +135,10 @@ $callbacks = [
         'callback' => [\core_files\redactor\hook_listener::class, 'file_redaction_handler'],
     ],
     [
+        'hook' => \core_files\hook\after_file_created::class,
+        'callback' => [\core_ai\hook_listener::class, 'correlate_generated_image'],
+    ],
+    [
         'hook' => \core_course\hook\before_course_viewed::class,
         'callback' => [\core_courseformat\hook_listener::class, 'before_course_viewed'],
         'priority' => 999,

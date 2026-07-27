@@ -40,7 +40,12 @@
     * prompttokens - The number of prompt tokens used (text actions only).
     * completiontokens - The number of completion tokens used (text actions only).
     * revisedprompt - The provider-revised prompt, if any (image actions only).
-    * sourceurl - The URL of the generated image, if any (image actions only).
+    * sourceurl - The provider's original source URL, kept as historical/origin data only; may no longer
+      resolve and is not used to display the image (image actions only).
+    * imageurl - The URL to the durable local copy of the image, if one has been resolved and still
+      exists (image actions only).
+    * imagenolongeravailable - Whether a local reference was resolved but the file has since been
+      deleted (image actions only).
     * quality - The requested image quality (image actions only).
     * aspectratio - The requested image aspect ratio, if any (image actions only).
     * style - The requested image style, if any (image actions only).
@@ -161,18 +166,29 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h3 class="card-title h5">{{#str}}generatedimage, core_ai{{/str}}</h3>
-                {{#sourceurl}}
-                    <img src="{{sourceurl}}" alt="{{#str}}generatedimage, core_ai{{/str}}"
+                {{#imageurl}}
+                    <img src="{{imageurl}}" alt="{{#str}}generatedimage, core_ai{{/str}}"
                         class="core-ai-action-detail-image img-fluid border rounded mb-2">
-                {{/sourceurl}}
-                {{^sourceurl}}
-                    <p>{{#str}}noimageavailable, core_ai{{/str}}</p>
-                {{/sourceurl}}
+                {{/imageurl}}
+                {{^imageurl}}
+                    {{#imagenolongeravailable}}
+                        <p>{{#str}}imagenolongeravailable, core_ai{{/str}}</p>
+                    {{/imagenolongeravailable}}
+                    {{^imagenolongeravailable}}
+                        <p>{{#str}}noimageavailable, core_ai{{/str}}</p>
+                    {{/imagenolongeravailable}}
+                {{/imageurl}}
                 <p class="text-muted small mb-0">
                     {{#str}}imagequality, core_ai{{/str}}: {{quality}}
                     {{#aspectratio}}&bull; {{#str}}imageaspectratio, core_ai{{/str}}: {{aspectratio}}{{/aspectratio}}
                     {{#style}}&bull; {{#str}}imagestyle, core_ai{{/str}}: {{style}}{{/style}}
                 </p>
+                {{#sourceurl}}
+                    <p class="text-muted small mb-0">
+                        {{#str}}originalsourceurl, core_ai{{/str}}:
+                        <a href="{{sourceurl}}" rel="noreferrer" target="_blank">{{sourceurl}}</a>
+                    </p>
+                {{/sourceurl}}
             </div>
         </div>
     {{/isimage}}

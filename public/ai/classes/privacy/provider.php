@@ -438,7 +438,9 @@ class provider implements
             $sql = "UPDATE {ai_action_generate_image}
                    SET prompt = '',
                        sourceurl = '',
-                       revisedprompt = ''
+                       revisedprompt = '',
+                       contenthash = NULL,
+                       localpathnamehash = NULL
                  WHERE id " . $aagiidsql;
             $DB->execute($sql, $aagiidparams);
         }
@@ -570,7 +572,9 @@ class provider implements
             $sql = "UPDATE {ai_action_generate_image}
                    SET prompt = '',
                        sourceurl = '',
-                       revisedprompt = ''
+                       revisedprompt = '',
+                       contenthash = NULL,
+                       localpathnamehash = NULL
                  WHERE id " . $aagiidsql;
             $DB->execute($sql, $aagiidparams);
         }
@@ -758,7 +762,9 @@ class provider implements
             $sql = "UPDATE {ai_action_generate_image}
                    SET prompt = '',
                        sourceurl = '',
-                       revisedprompt = ''
+                       revisedprompt = '',
+                       contenthash = NULL,
+                       localpathnamehash = NULL
                  WHERE id " . $aagiidsql;
             $DB->execute($sql, $aagiidparams);
         }

@@ -80,6 +80,35 @@ class action_detail implements \renderable, \templatable {
             $data['aspectratio'] = $typedata->aspectratio;
             $data['style'] = $typedata->style;
             $data['numberimages'] = $typedata->numberimages;
+
+            // The durable local reference, not sourceurl, is what the report displays from: sourceurl is
+            // retained only as historical/origin data and may no longer resolve.
+            //
+            // The URL is built as a standard pluginfile.php URL from the file's own real location, not
+            // served through a core_ai-owned endpoint. This is deliberate: the report's own capability
+            // only governs whether the viewer can see this log row, not whether they can see the file
+            // wherever it now lives (which may be a more restricted context, for example a private
+            // submission). Routing through the owning component's normal file-serving callback means the
+            // browser gets exactly the same access check as viewing the image in its original context,
+            // rather than this report silently granting broader file access than the viewer actually has.
+            $data['imageurl'] = null;
+            $data['imagenolongeravailable'] = false;
+            if (!empty($typedata->localpathnamehash)) {
+                $fs = get_file_storage();
+                $file = $fs->get_file_by_hash($typedata->localpathnamehash);
+                if ($file && !$file->is_directory()) {
+                    $data['imageurl'] = \moodle_url::make_pluginfile_url(
+                        $file->get_contextid(),
+                        $file->get_component(),
+                        $file->get_filearea(),
+                        $file->get_itemid(),
+                        $file->get_filepath(),
+                        $file->get_filename(),
+                    )->out(false);
+                } else {
+                    $data['imagenolongeravailable'] = true;
+                }
+            }
         }
 
         return $data;

@@ -1968,5 +1968,27 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026072200.01);
     }
 
+    if ($oldversion < 2026072200.02) {
+        // Define field contenthash to be added to ai_action_generate_image.
+        $table = new xmldb_table('ai_action_generate_image');
+        $field = new xmldb_field('contenthash', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'revisedprompt');
+
+        // Conditionally launch add field contenthash.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field localpathnamehash to be added to ai_action_generate_image.
+        $field = new xmldb_field('localpathnamehash', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'contenthash');
+
+        // Conditionally launch add field localpathnamehash.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2026072200.02);
+    }
+
     return true;
 }

@@ -1,0 +1,11 @@
+issueNumber: MDL-89269
+notes:
+  core_ai:
+    - message: >-
+        The ai_action_generate_image table now includes contenthash and
+        localpathnamehash columns. contenthash is recorded at generation time
+        and localpathnamehash is populated later by a core_ai hook listener on
+        core_files\hook\after_file_created once the generated image is saved
+        permanently by a placement, giving the AI usage report a durable local
+        reference to display from instead of the provider's sourceurl.
+      type: improved
