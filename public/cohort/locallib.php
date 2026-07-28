@@ -117,7 +117,6 @@ class cohort_existing_selector extends user_selector_base {
 
         // By default wherecondition retrieves all users except the deleted, not confirmed and guest.
         [$select, $joinsql, $wherecondition, $sort, $params] = $this->search_sql_with_custom_field($search, 'u');
-        $params = array_merge($params, $this->userfieldsparams);
 
         $params['cohortid'] = $this->cohortid;
 

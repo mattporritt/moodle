@@ -699,4 +699,44 @@ final class fields_test extends \advanced_testcase {
             'Search full match' => ['Adam Hull', fields::USER_SEARCH_EXACT_MATCH, false, true, 1, 'profile_field_a'],
         ];
     }
+
+    /**
+     * Regression test for MDL-77742.
+     *
+     * The id field must never be included in the text search conditions built by
+     * get_sql_part_for_user_searching(), because id is a numeric column and some DB
+     * drivers (e.g. Postgres) reject LIKE/ILIKE or LOWER() comparisons against it.
+     * This specifically exercises the non-custom-fields code path (as used by
+     * selectors such as the badges and forum subscriber selectors, which do not set
+     * includecustomfields), where id was previously merged into the searchable field
+     * set alongside the name and identity fields.
+     *
+     * @covers \core_user\fields::get_sql_part_for_user_searching
+     */
+    public function test_get_sql_part_for_user_searching_excludes_id(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $user = self::getDataGenerator()->create_user(['firstname' => 'Selena', 'lastname' => 'Searchable']);
+        $fields = fields::for_identity(null, false);
+
+        [$selectsql, $joinsql, $wheresql, $sortsql, $params] = $fields->get_sql_part_for_user_searching(
+            (string) $user->id,
+            'u',
+            fields::USER_SEARCH_CONTAINS
+        );
+
+        // Before the fix, this query would throw a dml_read_exception on Postgres
+        // (bigint id compared with ILIKE against a text pattern).
+        $sql = "SELECT u.id, $selectsql
+                  FROM {user} u
+                       $joinsql
+                 WHERE $wheresql
+              ORDER BY $sortsql";
+        $records = $DB->get_records_sql($sql, $params);
+
+        // Searching by the user's numeric id as text should not match them: id is
+        // excluded from the searchable fields, only name/identity fields are used.
+        $this->assertArrayNotHasKey($user->id, $records);
+    }
 }

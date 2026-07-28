@@ -90,44 +90,44 @@ abstract class user_selector_base {
     protected $includecustomfields = false;
     /**
      * @var string User fields selects for custom fields.
-     * @deprecated since 5.1. Get what you need from $userfields instead.
+     * @deprecated since 5.3. Get what you need from $userfields instead.
      */
     #[\core\attribute\deprecated(
         replacement: 'user_selector_base::$userfields',
-        since: '5.1',
+        since: '5.3',
         reason: 'No longer required',
         mdl: 'MDL-77742',
     )]
     protected $userfieldsselects = '';
     /**
      * @var string User fields join for custom fields.
-     * @deprecated since 5.1. Get what you need from $userfields instead.
+     * @deprecated since 5.3. Get what you need from $userfields instead.
      */
     #[\core\attribute\deprecated(
         replacement: 'user_selector_base::$userfields',
-        since: '5.1',
+        since: '5.3',
         reason: 'No longer required',
         mdl: 'MDL-77742',
     )]
     protected $userfieldsjoin = '';
     /**
      * @var array User fields params for custom fields.
-     * @deprecated since 5.1. Get what you need from $userfields instead.
+     * @deprecated since 5.3. Get what you need from $userfields instead.
      */
     #[\core\attribute\deprecated(
         replacement: 'user_selector_base::$userfields',
-        since: '5.1',
+        since: '5.3',
         reason: 'No longer required',
         mdl: 'MDL-77742',
     )]
     protected $userfieldsparams = [];
     /**
      * @var array User fields mappings for custom fields.
-     * @deprecated since 5.1. Get what you need from $userfields instead.
+     * @deprecated since 5.3. Get what you need from $userfields instead.
      */
     #[\core\attribute\deprecated(
         replacement: 'user_selector_base::$userfields',
-        since: '5.1',
+        since: '5.3',
         reason: 'No longer required',
         mdl: 'MDL-77742',
     )]
@@ -559,11 +559,11 @@ abstract class user_selector_base {
      * @return array an array with two elements, a fragment of SQL to go in the
      *      where clause the query, and an array containing any required parameters.
      *      this uses ? style placeholders.
-     * @deprecated since Moodle 5.1.
+     * @deprecated since Moodle 5.3.
      */
     #[\core\attribute\deprecated(
         replacement: 'search_sql_with_custom_field',
-        since: '5.1',
+        since: '5.3',
         mdl: 'MDL-77742',
     )]
     protected function search_sql(string $search, string $u): array {

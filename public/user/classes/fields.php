@@ -42,15 +42,15 @@ class fields {
     /**
      * @var int The constant value when searching user that start with the keyword.
      */
-    const USER_SEARCH_STARTS_WITH = 0;
+    public const USER_SEARCH_STARTS_WITH = 0;
     /**
      * @var int The constant value when searching user that contains the keyword .
      */
-    const USER_SEARCH_CONTAINS = 1;
+    public const USER_SEARCH_CONTAINS = 1;
     /**
      * @var int The constant value when searching user with exact keyword.
      */
-    const USER_SEARCH_EXACT_MATCH = 2;
+    public const USER_SEARCH_EXACT_MATCH = 2;
 
     /** @var \context|null Context in use */
     protected $context;
@@ -636,11 +636,16 @@ class fields {
         if ($tablealias) {
             $tablealias .= '.';
         }
+        // The id field belongs in the SELECT list but must never be used to build a text
+        // search condition: it is a numeric column and some DB drivers (e.g. pgsql) reject
+        // LIKE/ILIKE comparisons against non-text columns.
+        $searchablefields = $userfields;
+        unset($searchablefields['id']);
         $cpfields = [];
         if ($search) {
             // IF we have any search key, we want update the search query base on search type.
             $userfieldsjoin = [];
-            foreach ($userfields as $fieldname => $userfield) {
+            foreach ($searchablefields as $fieldname => $userfield) {
                 if ($match = self::match_custom_field($fieldname)) {
                     $shortname = $match;
                     $cpfields[$shortname] = $userfield;
@@ -694,7 +699,7 @@ class fields {
         if ($search && !$cpfields) {
             [, $conditions, $whereparams] = $this->build_user_field_conditions(
                 $search,
-                $userfields,
+                $searchablefields,
                 $tablealias,
                 $searchtype
             );
@@ -712,7 +717,10 @@ class fields {
         $sortsql = "{$tablealias}lastname, {$tablealias}firstname, {$tablealias}id";
         $sortparams = [];
         if ($search) {
-            $fieldstocheck = array_merge([$tablealias . 'firstname', $tablealias . 'lastname'], array_values($userfields));
+            $fieldstocheck = array_merge(
+                [$tablealias . 'firstname', $tablealias . 'lastname'],
+                array_values($searchablefields)
+            );
 
             $exactconditions = [];
             $paramkey = 'usersortexact1';
