@@ -1,0 +1,8 @@
+issueNumber: MDL-84698
+notes:
+  core_ai:
+    - message: >-
+        The new core_ai\aiactions\describe_image action lets placements request
+        a provider-independent description for a stored JPEG, PNG, or WebP
+        image, including its purpose, descriptive context, and output language.
+      type: improved

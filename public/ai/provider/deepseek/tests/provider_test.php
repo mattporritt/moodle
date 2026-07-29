@@ -55,10 +55,41 @@ final class provider_test extends \advanced_testcase {
     public function test_get_action_list(): void {
         $actionlist = $this->provider->get_action_list();
         $this->assertIsArray($actionlist);
-        $this->assertCount(3, $actionlist);
+        $this->assertCount(4, $actionlist);
+        $this->assertContains(\core_ai\aiactions\describe_image::class, $actionlist);
         $this->assertContains(\core_ai\aiactions\generate_text::class, $actionlist);
         $this->assertContains(\core_ai\aiactions\summarise_text::class, $actionlist);
         $this->assertContains(\core_ai\aiactions\explain_text::class, $actionlist);
+    }
+
+    /**
+     * Test image descriptions are only available for compatible endpoints.
+     */
+    public function test_describe_image_availability(): void {
+        $action = \core_ai\aiactions\describe_image::class;
+        $this->assertFalse($this->provider->is_action_available($action));
+        $this->assertTrue($this->provider->is_action_available(\core_ai\aiactions\generate_text::class));
+
+        $provider = $this->manager->create_provider_instance(
+            classname: provider::class,
+            name: 'vision',
+            config: ['apikey' => 'key'],
+            actionconfig: [$action => ['settings' => [
+                'model' => 'deepseek-vl2',
+                'endpoint' => 'https://vision.example.test/chat/completions',
+                'systeminstruction' => 'Describe the image.',
+            ]]],
+        );
+
+        $this->assertTrue($provider->is_action_available($action));
+
+        $provider = $this->manager->create_provider_instance(
+            classname: provider::class,
+            name: 'missing endpoint',
+            config: ['apikey' => 'key'],
+            actionconfig: [$action => ['settings' => []]],
+        );
+        $this->assertFalse($provider->is_action_available($action));
     }
 
     /**

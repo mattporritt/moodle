@@ -16,6 +16,7 @@
 
 namespace core_ai;
 
+use core_ai\aiactions\describe_image;
 use core_ai\aiactions\generate_image;
 use core_ai\aiactions\generate_text;
 use core_ai\aiactions\summarise_text;
@@ -86,6 +87,7 @@ final class manager_test extends \advanced_testcase {
 
         // Assert array keys match the expected actions.
         $this->assertEquals([
+            describe_image::class,
             generate_text::class,
             generate_image::class,
             summarise_text::class,
@@ -350,6 +352,7 @@ final class manager_test extends \advanced_testcase {
         $this->resetAfterTest();
         $manager = \core\di::get(manager::class);
         $actions = [
+            describe_image::class,
             generate_text::class,
             summarise_text::class,
             explain_text::class,
@@ -382,6 +385,7 @@ final class manager_test extends \advanced_testcase {
         $this->assertEquals($actions, array_keys($providers));
 
         // Assert that there is only one provider for each action.
+        $this->assertCount(2, $providers[describe_image::class]);
         $this->assertCount(2, $providers[generate_text::class]);
         $this->assertCount(2, $providers[summarise_text::class]);
         $this->assertCount(2, $providers[explain_text::class]);
@@ -460,6 +464,106 @@ final class manager_test extends \advanced_testcase {
         // Success should be false as there are no enabled providers.
         $result = $managermock->process_action($action);
         $this->assertFalse($result->get_success());
+    }
+
+    /**
+     * Test describe image returns its standard response when no provider is available.
+     */
+    public function test_process_describe_image_without_provider(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $image = get_file_storage()->create_file_from_pathname([
+            'contextid' => 1,
+            'component' => 'core_ai',
+            'filearea' => 'unittest',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'black.png',
+        ], $CFG->dirroot . '/ai/tests/fixtures/black.png');
+        $action = new describe_image(1, 1, $image, 'Be concise', 'A test image', 'English');
+
+        $result = \core\di::get(manager::class)->process_action($action);
+
+        $this->assertInstanceOf(aiactions\responses\response_describe_image::class, $result);
+        $this->assertFalse($result->get_success());
+        $this->assertEquals(-1, $result->get_errorcode());
+        $this->assertEquals('describe_image', $result->get_actionname());
+    }
+
+    /**
+     * Test the official DeepSeek endpoint is not eligible for image descriptions.
+     */
+    public function test_official_deepseek_is_not_available_for_describe_image(): void {
+        $this->resetAfterTest();
+        $manager = \core\di::get(manager::class);
+        $manager->create_provider_instance(
+            classname: '\aiprovider_deepseek\provider',
+            name: 'deepseek',
+            enabled: true,
+            config: ['apikey' => 'goeshere'],
+            actionconfig: [describe_image::class => ['enabled' => true, 'settings' => [
+                'model' => 'deepseek-chat',
+                'endpoint' => 'https://api.deepseek.com/chat/completions',
+                'systeminstruction' => 'Describe the image.',
+            ]]],
+        );
+
+        $providers = $manager->get_providers_for_actions([describe_image::class], true);
+
+        $this->assertEmpty($providers[describe_image::class]);
+        $this->assertFalse($manager->is_action_available(describe_image::class));
+    }
+
+    /**
+     * Test a failed image-description provider response allows provider fallback.
+     */
+    public function test_process_describe_image_falls_back_after_failure(): void {
+        global $CFG, $DB;
+
+        $this->resetAfterTest();
+        $manager = \core\di::get(manager::class);
+        $manager->create_provider_instance(
+            classname: '\aiprovider_openai\provider',
+            name: 'first',
+            enabled: true,
+            config: ['apikey' => 'goeshere'],
+        );
+        $manager->create_provider_instance(
+            classname: '\aiprovider_azureai\provider',
+            name: 'second',
+            enabled: true,
+            config: ['apikey' => 'goeshere', 'endpoint' => 'https://example.com'],
+        );
+        $managermock = $this->getMockBuilder(manager::class)
+            ->setConstructorArgs([$DB])
+            ->onlyMethods(['call_action_provider'])
+            ->getMock();
+        $failure = new aiactions\responses\response_describe_image(
+            success: false,
+            errorcode: 500,
+            error: 'Invalid response',
+            errormessage: 'The AI service did not return a usable response.',
+        );
+        $success = new aiactions\responses\response_describe_image(success: true);
+        $success->set_response_data(['generatedcontent' => 'A black square.']);
+        $managermock->expects($this->exactly(2))
+            ->method('call_action_provider')
+            ->willReturnOnConsecutiveCalls($failure, $success);
+        $image = get_file_storage()->create_file_from_pathname([
+            'contextid' => 1,
+            'component' => 'core_ai',
+            'filearea' => 'unittest',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'black.png',
+        ], $CFG->dirroot . '/ai/tests/fixtures/black.png');
+        $action = new describe_image(1, 1, $image, 'Be concise', 'A test image', 'English');
+
+        $result = $managermock->process_action($action);
+
+        $this->assertSame($success, $result);
+        $this->assertCount(2, $DB->get_records('ai_action_register', ['actionname' => 'describe_image']));
     }
 
     /**

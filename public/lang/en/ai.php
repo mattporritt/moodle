@@ -24,6 +24,13 @@
  */
 $string['acceptai'] = 'Accept and continue';
 $string['action'] = 'Action';
+$string['action_describe_image'] = 'Describe image';
+$string['action_describe_image_desc'] = 'Creates a general-purpose text description of an existing image.';
+$string['action_describe_image_help'] = 'Creates a text description of an image.';
+$string['action_describe_image_instruction'] = 'Describe the supplied image accurately. Use the purpose, context and requested language from the user. Do not infer details that are not visible.';
+$string['action_describe_image_prompt'] = 'Purpose and required detail: {$a->purpose}
+Relevant context: {$a->context}
+Write the description in: {$a->language}';
 $string['action_explain_text'] = 'Explain text';
 $string['action_explain_text_desc'] = 'Explains the text content on a course page.';
 $string['action_explain_text_help'] = 'Provides an explanation that expands on key ideas, simplifies complex concepts, and adds context to make the text easier to understand.';
@@ -116,6 +123,9 @@ $string['error:actionnotfound'] = 'Action \'{$a}\' is not supported.';
 $string['error:defaultmessage'] = 'There was an error processing your request. Try again later.';
 $string['error:defaultmessageshort'] = 'Try again later.';
 $string['error:defaultname'] = 'Something went wrong';
+$string['error:imagedimensionstoolarge'] = 'The image width and height must each be no more than {$a} pixels for the selected provider.';
+$string['error:imagetoolarge'] = 'The image must be no larger than {$a} for the selected provider.';
+$string['error:invalidresponse'] = 'The AI service did not return a usable response.';
 $string['error:noproviders'] = 'No providers available to process the action.';
 $string['error:providernotfound'] = 'The AI provider instance is not found.';
 $string['error:unknown'] = 'Unknown error';
@@ -132,6 +142,21 @@ $string['placementactionsettings'] = 'Actions';
 $string['placementactionsettings_desc'] = 'The AI actions available for this placement.';
 $string['placementsettings'] = 'Placement-specific settings';
 $string['placementsettings_desc'] = 'These settings control how this AI placement connects to the AI service, and related operations.';
+$string['privacy:metadata:ai_action_describe_image'] = 'Information about image description requests.';
+$string['privacy:metadata:ai_action_describe_image:completiontoken'] = 'The number of tokens in the generated description.';
+$string['privacy:metadata:ai_action_describe_image:context'] = 'The descriptive context supplied with the image.';
+$string['privacy:metadata:ai_action_describe_image:filename'] = 'The filename of the supplied image.';
+$string['privacy:metadata:ai_action_describe_image:filesize'] = 'The size of the supplied image.';
+$string['privacy:metadata:ai_action_describe_image:fingerprint'] = 'The provider backend configuration fingerprint.';
+$string['privacy:metadata:ai_action_describe_image:finishreason'] = 'The reason the provider stopped generating the description.';
+$string['privacy:metadata:ai_action_describe_image:generatedcontent'] = 'The generated image description.';
+$string['privacy:metadata:ai_action_describe_image:height'] = 'The height of the supplied image.';
+$string['privacy:metadata:ai_action_describe_image:language'] = 'The requested output language.';
+$string['privacy:metadata:ai_action_describe_image:mimetype'] = 'The MIME type of the supplied image.';
+$string['privacy:metadata:ai_action_describe_image:prompttokens'] = 'The number of tokens in the request.';
+$string['privacy:metadata:ai_action_describe_image:purpose'] = 'The intended use and required level of detail.';
+$string['privacy:metadata:ai_action_describe_image:responseid'] = 'The response identifier returned by the provider.';
+$string['privacy:metadata:ai_action_describe_image:width'] = 'The width of the supplied image.';
 $string['privacy:metadata:ai_action_explain_text'] = 'A table storing the explain text requests made by users.';
 $string['privacy:metadata:ai_action_explain_text:completiontoken'] = 'The completion tokens used to explain the text.';
 $string['privacy:metadata:ai_action_explain_text:fingerprint'] = 'The unique hash representing the state/version of the model and content.';

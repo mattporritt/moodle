@@ -16,8 +16,10 @@
 
 namespace core_ai\provider;
 
+use core_ai\aiactions\describe_image;
 use core_ai\aiactions\generate_image;
 use core_ai\aiactions\generate_text;
+use core_ai\aiactions\responses\response_describe_image;
 use core_ai\aiactions\responses\response_generate_image;
 use core_ai\aiactions\responses\response_generate_text;
 use core_ai\aiactions\responses\response_summarise_text;
@@ -1538,6 +1540,79 @@ final class provider_test extends \advanced_testcase {
         $this->assertNotEquals('', $record->responseid);
         $this->assertNotEquals('', $record->fingerprint);
         $this->assertNotEquals('', $record->generatedcontent);
+    }
+
+    /**
+     * Test the privacy lifecycle for an image description action.
+     */
+    public function test_privacy_lifecycle_for_describe_image(): void {
+        global $DB;
+
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+        $context = \context_course::instance($course->id);
+        $clock = $this->mock_clock_with_frozen();
+        $file = get_file_storage()->create_file_from_pathname([
+            'contextid' => $context->id,
+            'component' => 'core_ai',
+            'filearea' => 'unittest',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'black.png',
+        ], __DIR__ . '/../fixtures/black.png');
+        $action = new describe_image(
+            contextid: $context->id,
+            userid: $user->id,
+            image: $file,
+            purpose: 'Concise alternative text',
+            context: 'A course activity header',
+            language: 'English',
+        );
+        $response = new response_describe_image(success: true);
+        $response->set_response_data([
+            'id' => 'response-1',
+            'fingerprint' => 'fingerprint-1',
+            'generatedcontent' => 'A black square.',
+            'finishreason' => 'stop',
+            'prompttokens' => 10,
+            'completiontokens' => 4,
+            'model' => 'vision-model',
+        ]);
+        $method = new \ReflectionMethod($this->manager, 'store_action_result');
+        $registerid = $method->invoke($this->manager, $this->provider, $action, $response);
+        $register = $DB->get_record('ai_action_register', ['id' => $registerid], '*', MUST_EXIST);
+        $this->assertEquals('describe_image', $register->actionname);
+        $this->assertEquals($user->id, $register->userid);
+        $this->assertEquals($context->id, $register->contextid);
+
+        $contextlist = provider::get_contexts_for_userid($user->id);
+        $this->assertEquals([$context->id], $contextlist->get_contextids());
+
+        $userlist = new \core_privacy\local\request\userlist($context, 'core_ai');
+        provider::get_users_in_context($userlist);
+        $this->assertTrue(in_array($user->id, $userlist->get_userids()));
+
+        $approvedcontextlist = new approved_contextlist($user, 'core_ai', [$context->id]);
+        provider::export_user_data($approvedcontextlist);
+        $subcontexts = [
+            get_string('ai', 'core_ai'),
+            get_string('action_describe_image', 'core_ai'),
+            date('c', $clock->time()),
+        ];
+        $exported = writer::with_context($context)->get_related_data($subcontexts, 'action_describe_image');
+        $this->assertEquals('black.png', $exported->filename);
+        $this->assertEquals('Concise alternative text', $exported->purpose);
+        $this->assertEquals('A black square.', $exported->generatedcontent);
+        $this->assertEquals('stop', $exported->finishreason);
+
+        provider::delete_data_for_user($approvedcontextlist);
+        $actionid = $DB->get_field('ai_action_register', 'actionid', ['id' => $registerid], MUST_EXIST);
+        $record = $DB->get_record('ai_action_describe_image', ['id' => $actionid], '*', MUST_EXIST);
+        $this->assertEquals('', $record->filename);
+        $this->assertEquals('', $record->purpose);
+        $this->assertEquals('', $record->context);
+        $this->assertEquals('', $record->language);
+        $this->assertEquals('', $record->generatedcontent);
     }
 
     /**

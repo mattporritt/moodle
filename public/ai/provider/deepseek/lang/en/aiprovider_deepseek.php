@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['action:describe_image:endpoint'] = 'API endpoint';
+$string['action:describe_image:model'] = 'Image description model';
+$string['action:describe_image:model_help'] = 'A multimodal model at an OpenAI-compatible endpoint. Official DeepSeek models are text-only.';
+$string['action:describe_image:systeminstruction'] = 'System instruction';
+$string['action:describe_image:systeminstruction_help'] = 'This instruction tells the AI model how to produce a general image description. Editing it is not recommended unless required.';
 $string['action:explain_text:endpoint'] = 'API endpoint';
 $string['action:explain_text:model'] = 'Text explanation model';
 $string['action:explain_text:model_help'] = 'The model used to explain the provided text.';
@@ -37,6 +42,7 @@ $string['action:summarise_text:model'] = 'AI model';
 $string['action:summarise_text:model_help'] = 'The model used to summarise the provided text.';
 $string['action:summarise_text:systeminstruction'] = 'System instruction';
 $string['action:summarise_text:systeminstruction_help'] = 'This instruction is sent to the AI model along with the user\'s prompt. Editing this instruction is not recommended unless absolutely required.';
+$string['error:visionnotsupported'] = 'The configured official DeepSeek model does not support image input. Configure a compatible multimodal endpoint and model, or enable another provider for this action.';
 $string['apikey'] = 'DeepSeek API key';
 $string['apikey_help'] = 'Get a key from your <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek API keys</a>.';
 $string['custom_model_name'] = 'Custom model name';

@@ -22,6 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['action:describe_image:model'] = 'Image description model';
+$string['action:describe_image:model_help'] = 'A multimodal Amazon Nova or Anthropic Claude model used to describe the supplied image.';
+$string['action:describe_image:systeminstruction'] = 'System instruction';
+$string['action:describe_image:systeminstruction_help'] = 'This instruction tells the AI model how to produce a general image description. Editing it is not recommended unless required.';
 $string['action:explain_text:model'] = 'AI model';
 $string['action:explain_text:model_help'] = 'The model used to explain the provided text.';
 $string['action:explain_text:systeminstruction'] = 'System instruction';
@@ -36,6 +40,7 @@ $string['action:summarise_text:model'] = 'AI model';
 $string['action:summarise_text:model_help'] = 'The model used to summarise the provided text.';
 $string['action:summarise_text:systeminstruction'] = 'System instruction';
 $string['action:summarise_text:systeminstruction_help'] = 'This instruction is sent to the AI model along with the user\'s prompt. Editing this instruction is not recommended unless absolutely required.';
+$string['error:visionnotsupported'] = 'The configured AWS Bedrock model "{$a}" does not support this image description request. Configure a multimodal Amazon Nova or Anthropic Claude model.';
 $string['apikey'] = 'Amazon API key credential';
 $string['apikey_help'] = 'Generate a key using Identity and Access Management (IAM) in the Amazon Web Services (AWS) console or using the AWS  Command Line Interface (CLI).';
 $string['apisecret'] = 'Amazon API secret credential';
