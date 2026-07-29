@@ -68,7 +68,7 @@ class response_describe_image extends response_base {
         $this->fingerprint = $response['fingerprint'] ?? null;
         $generatedcontent = $response['generatedcontent'] ?? null;
         $this->generatedcontent = $generatedcontent !== null
-            ? helper::strip_reasoning_tags($generatedcontent)
+            ? helper::strip_code_fences(helper::strip_reasoning_tags($generatedcontent))
             : null;
         $this->finishreason = $response['finishreason'] ?? null;
         $this->prompttokens = $response['prompttokens'] ?? null;

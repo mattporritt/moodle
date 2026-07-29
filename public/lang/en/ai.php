@@ -27,7 +27,7 @@ $string['action'] = 'Action';
 $string['action_describe_image'] = 'Describe image';
 $string['action_describe_image_desc'] = 'Creates a general-purpose text description of an existing image.';
 $string['action_describe_image_help'] = 'Creates a text description of an image.';
-$string['action_describe_image_instruction'] = 'Describe the supplied image accurately. Use the purpose, context and requested language from the user. Do not infer details that are not visible.';
+$string['action_describe_image_instruction'] = 'Describe the supplied image accurately. Use the purpose, context and requested language from the user. Do not infer details that are not visible. Return only the description itself, as plain text, with no label, prefix, preamble, or trailing commentary.';
 $string['action_describe_image_prompt'] = 'Purpose and required detail: {$a->purpose}
 Relevant context: {$a->context}
 Write the description in: {$a->language}';

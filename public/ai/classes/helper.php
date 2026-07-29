@@ -50,4 +50,24 @@ class helper {
         $pattern = implode('|', array_map('preg_quote', self::REASONING_TAGS));
         return trim(preg_replace('/<(' . $pattern . ')>.*?<\/\1>\s*/is', '', $content) ?? $content);
     }
+
+    /**
+     * Strip a markdown code fence wrapping the whole of an AI-generated response.
+     *
+     * Some AI models wrap their entire response in a markdown code fence (with
+     * an optional language hint) even when instructed to return plain text.
+     * Only a fence wrapping the complete response is stripped, so a response
+     * that legitimately contains an inline code sample is left unchanged.
+     *
+     * @param string $content The AI-generated content.
+     * @return string The content with a wrapping code fence removed.
+     */
+    public static function strip_code_fences(string $content): string {
+        $trimmed = trim($content);
+        $fence = str_repeat("\x60", 3);
+        if (preg_match('/^' . $fence . '[^\S\r\n]*[a-zA-Z0-9_+-]*\r?\n(.*)\r?\n' . $fence . '$/s', $trimmed, $matches)) {
+            return trim($matches[1]);
+        }
+        return $content;
+    }
 }
