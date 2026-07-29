@@ -77,6 +77,19 @@ abstract class provider {
     abstract public static function get_action_list(): array;
 
     /**
+     * Check whether this provider instance can currently process an action.
+     *
+     * Providers may override this when action support depends on instance-specific
+     * configuration, such as the configured endpoint or model.
+     *
+     * @param string $action The action class name.
+     * @return bool
+     */
+    public function is_action_available(string $action): bool {
+        return in_array($action, static::get_action_list(), true);
+    }
+
+    /**
      * Initialise the action settings array.
      *
      * @return array The initialised action settings.

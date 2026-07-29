@@ -146,7 +146,7 @@ class manager {
                         || $enabledonly && !$instance->is_provider_configured()) {
                     continue;
                 }
-                if (in_array($action, $instance->get_action_list())) {
+                if ($instance->is_action_available($action)) {
                     $providers[$action][] = $instance;
                 }
             }

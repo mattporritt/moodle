@@ -33,9 +33,8 @@ use core_privacy\local\request\writer;
  */
 class provider implements
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\subsystem\provider,
-    \core_privacy\local\request\core_userlist_provider {
-
+    \core_privacy\local\request\core_userlist_provider,
+    \core_privacy\local\request\subsystem\provider {
     /**
      * Returns meta data about this system.
      *
@@ -67,6 +66,22 @@ class provider implements
             'sourceurl' => 'privacy:metadata:ai_action_generate_image:sourceurl',
             'revisedprompt' => 'privacy:metadata:ai_action_generate_image:revisedprompt',
         ], 'privacy:metadata:ai_action_generate_image');
+        $collection->add_database_table('ai_action_describe_image', [
+            'filename' => 'privacy:metadata:ai_action_describe_image:filename',
+            'filesize' => 'privacy:metadata:ai_action_describe_image:filesize',
+            'mimetype' => 'privacy:metadata:ai_action_describe_image:mimetype',
+            'width' => 'privacy:metadata:ai_action_describe_image:width',
+            'height' => 'privacy:metadata:ai_action_describe_image:height',
+            'purpose' => 'privacy:metadata:ai_action_describe_image:purpose',
+            'context' => 'privacy:metadata:ai_action_describe_image:context',
+            'language' => 'privacy:metadata:ai_action_describe_image:language',
+            'responseid' => 'privacy:metadata:ai_action_describe_image:responseid',
+            'fingerprint' => 'privacy:metadata:ai_action_describe_image:fingerprint',
+            'generatedcontent' => 'privacy:metadata:ai_action_describe_image:generatedcontent',
+            'finishreason' => 'privacy:metadata:ai_action_describe_image:finishreason',
+            'prompttokens' => 'privacy:metadata:ai_action_describe_image:prompttokens',
+            'completiontoken' => 'privacy:metadata:ai_action_describe_image:completiontoken',
+        ], 'privacy:metadata:ai_action_describe_image');
         $collection->add_database_table('ai_action_generate_text', [
             'prompt' => 'privacy:metadata:ai_action_generate_text:prompt',
             'responseid' => 'privacy:metadata:ai_action_generate_text:responseid',
@@ -120,6 +135,17 @@ class provider implements
                   JOIN {ai_action_generate_text} aagt
                     ON aagt.id = aar.actionid
                  WHERE aar.actionname = 'generate_text'
+                       AND aar.userid = :userid";
+        $contextlist->add_from_sql($sql, ['userid' => $userid]);
+
+        // AI action describe image.
+        $sql = "SELECT DISTINCT ctx.id
+                  FROM {context} ctx
+                  JOIN {ai_action_register} aar
+                    ON aar.contextid = ctx.id
+                  JOIN {ai_action_describe_image} aadi
+                    ON aadi.id = aar.actionid
+                 WHERE aar.actionname = 'describe_image'
                        AND aar.userid = :userid";
         $contextlist->add_from_sql($sql, ['userid' => $userid]);
 
@@ -238,6 +264,54 @@ class provider implements
             writer::with_context($context)->export_related_data($subcontexts, $name, $details);
         }
         $textgeneratedetails->close();
+
+        // AI action describe image.
+        $sql = "SELECT aar.actionname, aar.success, aar.provider, aar.timecreated, aar.timecompleted, aar.contextid,
+                       aadi.filename, aadi.filesize, aadi.mimetype, aadi.width, aadi.height, aadi.purpose,
+                       aadi.context, aadi.language, aadi.responseid, aadi.fingerprint, aadi.generatedcontent,
+                       aadi.finishreason, aadi.prompttokens, aadi.completiontoken, aar.model
+                  FROM {ai_action_register} aar
+                  JOIN {ai_action_describe_image} aadi
+                    ON aar.actionid = aadi.id
+                  JOIN {context} ctx
+                    ON aar.contextid = ctx.id
+                 WHERE aar.actionname = 'describe_image'
+                       AND aar.userid = :userid
+                       AND ctx.id " . $contextsql;
+        $imagedescribedetails = $DB->get_recordset_sql($sql, $params);
+        foreach ($imagedescribedetails as $imagedescribedetail) {
+            $subcontexts = [
+                get_string('ai', 'core_ai'),
+                get_string('action_describe_image', 'core_ai'),
+                date('c', $imagedescribedetail->timecreated),
+            ];
+            $details = (object) [
+                'actionname' => $imagedescribedetail->actionname,
+                'contextid' => $imagedescribedetail->contextid,
+                'filename' => $imagedescribedetail->filename,
+                'filesize' => $imagedescribedetail->filesize,
+                'mimetype' => $imagedescribedetail->mimetype,
+                'width' => $imagedescribedetail->width,
+                'height' => $imagedescribedetail->height,
+                'purpose' => $imagedescribedetail->purpose,
+                'context' => $imagedescribedetail->context,
+                'language' => $imagedescribedetail->language,
+                'responseid' => $imagedescribedetail->responseid,
+                'fingerprint' => $imagedescribedetail->fingerprint,
+                'generatedcontent' => $imagedescribedetail->generatedcontent,
+                'finishreason' => $imagedescribedetail->finishreason,
+                'prompttokens' => $imagedescribedetail->prompttokens,
+                'completiontoken' => $imagedescribedetail->completiontoken,
+                'model' => $imagedescribedetail->model,
+                'success' => transform::yesno($imagedescribedetail->success),
+                'provider' => $imagedescribedetail->provider,
+                'timecreated' => transform::datetime($imagedescribedetail->timecreated),
+                'timecompleted' => transform::datetime($imagedescribedetail->timecompleted),
+            ];
+            writer::with_context(\context::instance_by_id($imagedescribedetail->contextid))
+                ->export_related_data($subcontexts, 'action_describe_image', $details);
+        }
+        $imagedescribedetails->close();
 
         // AI action generate image.
         $sql = "SELECT aar.actionname, aar.success, aar.provider, aar.timecreated, aar.timecompleted, aar.contextid,
@@ -374,12 +448,54 @@ class provider implements
     }
 
     /**
+     * Anonymise image description action data for a context.
+     *
+     * @param int $contextid Context id.
+     * @param int[]|null $userids User ids, or null for every user in the context.
+     */
+    private static function anonymise_describe_image_data(int $contextid, ?array $userids = null): void {
+        global $DB;
+
+        $params = ['contextid' => $contextid];
+        $userwhere = '';
+        if ($userids !== null) {
+            [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'describeuserid');
+            $userwhere = ' AND aar.userid ' . $usersql;
+            $params += $userparams;
+        }
+        $sql = "SELECT DISTINCT aadi.id
+                  FROM {ai_action_register} aar
+                  JOIN {ai_action_describe_image} aadi
+                    ON aar.actionid = aadi.id
+                 WHERE aar.actionname = 'describe_image'
+                       AND aar.contextid = :contextid" . $userwhere;
+        $actionids = $DB->get_fieldset_sql($sql, $params);
+        if (!$actionids) {
+            return;
+        }
+
+        [$actionsql, $actionparams] = $DB->get_in_or_equal($actionids, SQL_PARAMS_NAMED, 'describeactionid');
+        $sql = "UPDATE {ai_action_describe_image}
+                   SET filename = '',
+                       purpose = '',
+                       context = '',
+                       language = '',
+                       responseid = '',
+                       fingerprint = '',
+                       generatedcontent = ''
+                 WHERE id " . $actionsql;
+        $DB->execute($sql, $actionparams);
+    }
+
+    /**
      * Delete all data for all users in the specified context.
      *
      * @param \context $context The specific context to delete data for.
      */
     public static function delete_data_for_all_users_in_context(\context $context): void {
         global $DB;
+
+        self::anonymise_describe_image_data($context->id);
 
         // Policy.
         $sql = 'SELECT DISTINCT apr.id
@@ -501,6 +617,9 @@ class provider implements
 
         // Policy.
         $userid = $contextlist->get_user()->id;
+        foreach ($contextlist->get_contextids() as $contextid) {
+            self::anonymise_describe_image_data($contextid, [$userid]);
+        }
         [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
 
         $sql = "SELECT DISTINCT apr.id AS policyid
@@ -656,6 +775,17 @@ class provider implements
                        AND aar.contextid = :contextid";
         $userlist->add_from_sql('userid', $sql, ['contextid' => $context->id]);
 
+        // AI action describe image.
+        $sql = "SELECT DISTINCT aar.userid
+                  FROM {context} ctx
+                  JOIN {ai_action_register} aar
+                    ON aar.contextid = ctx.id
+                  JOIN {ai_action_describe_image} aadi
+                    ON aadi.id = aar.actionid
+                 WHERE aar.actionname = 'describe_image'
+                       AND aar.contextid = :contextid";
+        $userlist->add_from_sql('userid', $sql, ['contextid' => $context->id]);
+
         // AI action generate image.
         $sql = "SELECT DISTINCT aar.userid
                   FROM {context} ctx
@@ -699,6 +829,8 @@ class provider implements
         global $DB;
         $context = $userlist->get_context();
         $userids = $userlist->get_userids();
+
+        self::anonymise_describe_image_data($context->id, $userids);
 
         [$useridssql, $useridsparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
 

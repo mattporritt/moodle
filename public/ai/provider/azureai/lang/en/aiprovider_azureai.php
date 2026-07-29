@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['action:describe_image:apiversion'] = 'API version';
+$string['action:describe_image:deployment'] = 'Deployment ID';
+$string['action:describe_image:deployment_help'] = 'The deployment ID for a vision-capable model used to describe the supplied image.';
+$string['action:describe_image:systeminstruction'] = 'System instruction';
+$string['action:describe_image:systeminstruction_help'] = 'This instruction tells the AI model how to produce a general image description. Editing it is not recommended unless required.';
 $string['action:explain_text:apiversion'] = 'API version';
 $string['action:explain_text:deployment'] = 'Deployment ID';
 $string['action:explain_text:deployment_help'] = 'The deployment ID that relates to the API endpoint the provider uses for this action.';

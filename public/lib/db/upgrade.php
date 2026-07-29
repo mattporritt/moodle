@@ -2164,5 +2164,34 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026080300.00);
     }
 
+    if ($oldversion < 2026080700.01) {
+        // Define table ai_action_describe_image to be created.
+        $table = new xmldb_table('ai_action_describe_image');
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('filename', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL);
+        $table->add_field('filesize', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('mimetype', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL);
+        $table->add_field('width', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('height', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('purpose', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL);
+        $table->add_field('context', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL);
+        $table->add_field('language', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL);
+        $table->add_field('responseid', XMLDB_TYPE_CHAR, '128');
+        $table->add_field('fingerprint', XMLDB_TYPE_CHAR, '128');
+        $table->add_field('generatedcontent', XMLDB_TYPE_TEXT);
+        $table->add_field('finishreason', XMLDB_TYPE_CHAR, '128');
+        $table->add_field('prompttokens', XMLDB_TYPE_INTEGER, '10');
+        $table->add_field('completiontoken', XMLDB_TYPE_INTEGER, '10');
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_main_savepoint(true, 2026080700.01);
+    }
+
     return true;
 }

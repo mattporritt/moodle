@@ -4968,6 +4968,28 @@
         <INDEX NAME="provider" UNIQUE="false" FIELDS="actionname, provider" COMMENT="Index of actionname and provider"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="ai_action_describe_image" COMMENT="Stores specific data about describe image actions.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the image supplied to the action."/>
+        <FIELD NAME="filesize" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Size of the supplied image in bytes."/>
+        <FIELD NAME="mimetype" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="MIME type of the supplied image."/>
+        <FIELD NAME="width" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Width of the supplied image in pixels."/>
+        <FIELD NAME="height" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Height of the supplied image in pixels."/>
+        <FIELD NAME="purpose" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Intended use and required level of detail."/>
+        <FIELD NAME="context" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Descriptive context supplied by the placement."/>
+        <FIELD NAME="language" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Requested output language."/>
+        <FIELD NAME="responseid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Unique completion identifier returned by the provider."/>
+        <FIELD NAME="fingerprint" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Provider backend configuration fingerprint."/>
+        <FIELD NAME="generatedcontent" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Generated image description."/>
+        <FIELD NAME="finishreason" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Reason the provider stopped generating tokens."/>
+        <FIELD NAME="prompttokens" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Number of tokens in the prompt."/>
+        <FIELD NAME="completiontoken" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Number of tokens in the generated completion."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
     <TABLE NAME="ai_action_generate_text" COMMENT="Stores specific data about generate text actions.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>

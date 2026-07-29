@@ -34,6 +34,7 @@ class provider extends \core_ai\provider {
      */
     public static function get_action_list(): array {
         return [
+            \core_ai\aiactions\describe_image::class,
             \core_ai\aiactions\generate_text::class,
             \core_ai\aiactions\generate_image::class,
             \core_ai\aiactions\summarise_text::class,
@@ -55,7 +56,10 @@ class provider extends \core_ai\provider {
         $actionname = substr($action, (strrpos($action, '\\') + 1));
         $customdata['actionname'] = $actionname;
         $customdata['action'] = $action;
-        if ($actionname === 'generate_text' || $actionname === 'summarise_text' || $actionname === 'explain_text') {
+        if (
+            $actionname === 'describe_image' || $actionname === 'generate_text'
+                || $actionname === 'summarise_text' || $actionname === 'explain_text'
+        ) {
             return new form\action_generate_text_form(customdata: $customdata);
         } else if ($actionname === 'generate_image') {
             return new form\action_generate_image_form(customdata: $customdata);
@@ -71,7 +75,10 @@ class provider extends \core_ai\provider {
                 'actionname' => $actionname,
                 'action' => $action,
         ];
-        if ($actionname === 'generate_text' || $actionname === 'summarise_text' || $actionname === 'explain_text') {
+        if (
+            $actionname === 'describe_image' || $actionname === 'generate_text'
+                || $actionname === 'summarise_text' || $actionname === 'explain_text'
+        ) {
             $mform = new form\action_generate_text_form(customdata: $customdata);
             return $mform->get_defaults();
         } else if ($actionname === 'generate_image') {
