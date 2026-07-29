@@ -940,6 +940,38 @@ final class manager_test extends \advanced_testcase {
     }
 
     /**
+     * Test is_action_available does not require a page context.
+     *
+     * is_action_available() re-checks each candidate provider with
+     * is_action_enabled() called without an instance id, which resolves
+     * defaults via the provider type rather than the persisted instance.
+     * That default lookup must not construct an action settings form, since
+     * building a form requires $PAGE to have a context, which is not
+     * guaranteed outside a normal page request, for example a web service call.
+     */
+    public function test_is_action_available_with_no_page_context(): void {
+        $this->resetAfterTest();
+        $action = describe_image::class;
+        $manager = \core\di::get(manager::class);
+
+        $config = ['apikey' => 'goeshere'];
+        $manager->create_provider_instance(
+            classname: '\aiprovider_openai\provider',
+            name: 'dummy',
+            enabled: true,
+            config: $config,
+        );
+
+        global $PAGE;
+        $PAGE = new \moodle_page();
+
+        $result = $manager->is_action_available($action);
+
+        $this->assertTrue($result);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
      * Test is_ai_tools_enabled_in_course method.
      *
      * @return void

@@ -355,14 +355,13 @@ class manager {
      */
     private function is_provider_action_enabled(string $plugin, string $actionclass, int $instanceid): bool {
         // If there is no instance id, we are checking the provider itself.
-        // So get the defaults.
+        // Actions are enabled by default, so it is enough to check the action is
+        // supported by the provider type. Avoid initialise_action_settings(), which
+        // builds action setting forms and therefore requires a page context; this
+        // path also runs from contexts with no page, such as web service requests.
         if ($instanceid === 0) {
-            // Get the defaults for this provider type.
             $classname = "\\{$plugin}\\provider";
-            $defaultconfig = $classname::initialise_action_settings();
-
-            // Return the default value.
-            return array_key_exists($actionclass, $defaultconfig) && $defaultconfig[$actionclass]['enabled'];
+            return in_array($actionclass, $classname::get_action_list(), true);
 
         } else {
             // Get the provider instance.
