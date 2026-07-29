@@ -42,6 +42,33 @@ final class response_describe_image_test extends \advanced_testcase {
     }
 
     /**
+     * Test a markdown code fence wrapping the whole response is stripped.
+     */
+    public function test_response_data_strips_wrapping_code_fence(): void {
+        $fence = str_repeat("\x60", 3);
+        $response = new response_describe_image(success: true);
+        $response->set_response_data([
+            'generatedcontent' => "{$fence}plaintext\nA black square.\n{$fence}",
+        ]);
+
+        $this->assertEquals('A black square.', $response->get_response_data()['generatedcontent']);
+    }
+
+    /**
+     * Test a response containing an inline code sample is left unchanged.
+     */
+    public function test_response_data_keeps_inline_code_sample(): void {
+        $inlinecode = str_repeat("\x60", 1);
+        $content = "A screenshot showing the code {$inlinecode}echo 'hi';{$inlinecode} on screen.";
+        $response = new response_describe_image(success: true);
+        $response->set_response_data([
+            'generatedcontent' => $content,
+        ]);
+
+        $this->assertEquals($content, $response->get_response_data()['generatedcontent']);
+    }
+
+    /**
      * Test invalid error responses are rejected.
      */
     public function test_invalid_error_response(): void {
