@@ -65,7 +65,8 @@ class helper {
     public static function strip_code_fences(string $content): string {
         $trimmed = trim($content);
         $fence = str_repeat("\x60", 3);
-        if (preg_match('/^' . $fence . '[^\S\r\n]*[a-zA-Z0-9_+-]*\r?\n(.*)\r?\n' . $fence . '$/s', $trimmed, $matches)) {
+        $pattern = '/^' . $fence . '(?:[^\S\r\n]*[a-zA-Z0-9_+-]+\r?\n|\r?\n)?(.*)' . $fence . '$/s';
+        if (preg_match($pattern, $trimmed, $matches)) {
             return trim($matches[1]);
         }
         return $content;

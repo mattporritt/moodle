@@ -55,6 +55,19 @@ final class response_describe_image_test extends \advanced_testcase {
     }
 
     /**
+     * Test a single-line markdown code fence with no internal newlines is stripped.
+     */
+    public function test_response_data_strips_single_line_code_fence(): void {
+        $fence = str_repeat("\x60", 3);
+        $response = new response_describe_image(success: true);
+        $response->set_response_data([
+            'generatedcontent' => "{$fence}A black square.{$fence}",
+        ]);
+
+        $this->assertEquals('A black square.', $response->get_response_data()['generatedcontent']);
+    }
+
+    /**
      * Test a response containing an inline code sample is left unchanged.
      */
     public function test_response_data_keeps_inline_code_sample(): void {
