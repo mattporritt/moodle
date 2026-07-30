@@ -26,6 +26,9 @@ use Aws\Result;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_describe_image extends abstract_processor {
+    /** @var string[] Finish reasons indicating a guardrail or content-filter refusal rather than a usable description. */
+    private const REFUSAL_FINISH_REASONS = ['guardrail_intervened', 'content_filtered', 'refusal'];
+
     #[\Override]
     protected function get_system_instruction(): string {
         return $this->provider->actionconfig[$this->action::class]['settings']['systeminstruction'];
@@ -120,13 +123,26 @@ class process_describe_image extends abstract_processor {
         $model = $this->get_model();
         $isanthropic = str_contains($model, 'anthropic');
 
+        $finishreason = $isanthropic ? ($bodyobj->stop_reason ?? null) : ($bodyobj->stopReason ?? null);
+        $generatedcontent = $isanthropic
+            ? ($bodyobj->content[0]->text ?? null)
+            : ($bodyobj->output->message->content[0]->text ?? null);
+
+        if (
+            !is_string($generatedcontent) || trim($generatedcontent) === ''
+            || in_array($finishreason, self::REFUSAL_FINISH_REASONS, true)
+        ) {
+            return \core_ai\error\factory::create(
+                500,
+                get_string('error:invalidresponse', 'core_ai'),
+            )->get_error_details();
+        }
+
         return [
             'success' => true,
             'fingerprint' => $headers['x-amzn-requestid'] ?? null,
-            'generatedcontent' => $isanthropic
-                ? $bodyobj->content[0]->text
-                : $bodyobj->output->message->content[0]->text,
-            'finishreason' => $isanthropic ? $bodyobj->stop_reason : $bodyobj->stopReason,
+            'generatedcontent' => $generatedcontent,
+            'finishreason' => $finishreason,
             'prompttokens' => $isanthropic
                 ? ($bodyobj->usage->input_tokens ?? $headers['x-amzn-bedrock-input-token-count'] ?? null)
                 : ($bodyobj->usage->inputTokens ?? $headers['x-amzn-bedrock-input-token-count'] ?? null),

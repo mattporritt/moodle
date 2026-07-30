@@ -116,4 +116,67 @@ final class process_describe_image_test extends \advanced_testcase {
         $this->assertEquals('A black square.', $result['generatedcontent']);
         $this->assertEquals('amazon.nova-pro-v1:0', $result['model']);
     }
+
+    /**
+     * Test unusable successful HTTP responses become provider failures.
+     *
+     * @param string $model The configured model.
+     * @param array $responsebody Response body to test.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalid_response_provider')]
+    public function test_invalid_response_is_failure(string $model, array $responsebody): void {
+        $this->resetAfterTest();
+        $actionclass = \core_ai\aiactions\describe_image::class;
+        $provider = $this->create_provider($actionclass, [
+            'model' => $model,
+            'systeminstruction' => 'Describe the image.',
+        ]);
+        $image = $this->createMock(\stored_file::class);
+        $image->method('get_mimetype')->willReturn('image/png');
+        $image->method('get_imageinfo')->willReturn(['width' => 100, 'height' => 100]);
+        $action = new $actionclass(1, 2, $image, 'Be concise', 'A colour sample', 'English');
+        $response = new Result([
+            'body' => Utils::streamFor(json_encode($responsebody)),
+            '@metadata' => ['headers' => ['x-amzn-requestid' => 'response-1']],
+        ]);
+
+        $method = new \ReflectionMethod(process_describe_image::class, 'handle_api_success');
+        $result = $method->invoke(new process_describe_image($provider, $action), $response);
+
+        $this->assertFalse($result['success']);
+        $this->assertEquals(500, $result['errorcode']);
+    }
+
+    /**
+     * Provide unusable successful HTTP responses for both Nova and Anthropic model families.
+     *
+     * @return array
+     */
+    public static function invalid_response_provider(): array {
+        return [
+            'nova empty content' => [
+                'amazon.nova-pro-v1:0',
+                ['output' => ['message' => ['content' => []]], 'stopReason' => 'end_turn'],
+            ],
+            'nova content filtered with placeholder text' => [
+                'amazon.nova-pro-v1:0',
+                [
+                    'output' => ['message' => ['content' => [['text' => 'Content filtered.']]]],
+                    'stopReason' => 'content_filtered',
+                ],
+            ],
+            'nova blank text' => [
+                'amazon.nova-pro-v1:0',
+                ['output' => ['message' => ['content' => [['text' => '   ']]]], 'stopReason' => 'end_turn'],
+            ],
+            'anthropic empty content' => [
+                'anthropic.claude-3-5-sonnet-20240620-v1:0',
+                ['content' => [], 'stop_reason' => 'end_turn'],
+            ],
+            'anthropic guardrail intervened' => [
+                'anthropic.claude-3-5-sonnet-20240620-v1:0',
+                ['content' => [['text' => 'A black square.']], 'stop_reason' => 'guardrail_intervened'],
+            ],
+        ];
+    }
 }
