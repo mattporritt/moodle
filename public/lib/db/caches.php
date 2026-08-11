@@ -650,4 +650,10 @@ $definitions = array(
         'staticacceleration' => true,
         'staticaccelerationsize' => 1,
     ],
+
+    'capability_cache' => [
+        'mode' => cache_store::MODE_REQUEST,
+        'simpledata' => true,
+        'staticacceleration' => true,
+    ],
 );

@@ -57,4 +57,45 @@ final class capability_checker_test extends \advanced_testcase {
         $this->assertEquals(array($teacher->id), $result);
         $this->assertEquals($before, $DB->perf_get_queries());
     }
+
+    /**
+     * Tests that the results cache used by get_users_by_capability() is
+     * scoped per context. A capability_checker is constructed per context
+     * (for example once per restricted activity), so a shared cache keyed
+     * only on the capability would incorrectly return one context's users
+     * for a different context checking the same capability.
+     *
+     * @covers \core_availability\capability_checker::get_users_by_capability
+     */
+    public function test_capability_checker_cache_is_scoped_per_context(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+
+        // Course A: only its own teacher has the capability.
+        $coursea = $generator->create_course();
+        $teachera = $generator->create_user();
+        $generator->enrol_user($teachera->id, $coursea->id, $roleids['teacher']);
+
+        // Course B: only its own, different teacher has the capability.
+        $courseb = $generator->create_course();
+        $teacherb = $generator->create_user();
+        $generator->enrol_user($teacherb->id, $courseb->id, $roleids['teacher']);
+
+        $contexta = \context_course::instance($coursea->id);
+        $contextb = \context_course::instance($courseb->id);
+
+        // Simulate two restricted activities in different contexts, each
+        // creating their own capability_checker, checking the same
+        // capability within a single request.
+        $checkera = new capability_checker($contexta);
+        $resulta = array_keys($checkera->get_users_by_capability('mod/forum:deleteanypost'));
+        $this->assertEquals([$teachera->id], $resulta);
+
+        $checkerb = new capability_checker($contextb);
+        $resultb = array_keys($checkerb->get_users_by_capability('mod/forum:deleteanypost'));
+        $this->assertEquals([$teacherb->id], $resultb);
+    }
 }

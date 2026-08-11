@@ -27,6 +27,8 @@
 
 namespace core_availability;
 
+use core_cache\cache;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -42,9 +44,6 @@ defined('MOODLE_INTERNAL') || die();
 class capability_checker {
     /** @var \context Course or module context */
     protected $context;
-
-    /** @var array Associative array of capability => result */
-    protected $cache = array();
 
     /**
      * Constructs for given context.
@@ -68,10 +67,19 @@ class capability_checker {
      * @return array Associative array of user id => objects containing only id
      */
     public function get_users_by_capability($capability) {
-        if (!array_key_exists($capability, $this->cache)) {
-            $this->cache[$capability] = get_users_by_capability(
-                    $this->context, $capability, 'u.id');
+        // Get the cached value. The cache key must include the context id, not
+        // just the capability, otherwise results for one context (e.g. one
+        // restricted activity's module context) would incorrectly be reused
+        // for a different context checking the same capability.
+        $cache = cache::make('core', 'capability_cache');
+        $key = $this->context->id . '_' . $capability;
+        $data = $cache->get($key);
+
+        if ($data === false) {
+            $data = get_users_by_capability($this->context, $capability, 'u.id');
+            $cache->set($key, $data);
         }
-        return $this->cache[$capability];
+
+        return $data;
     }
 }
