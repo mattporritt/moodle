@@ -714,12 +714,14 @@ class auth_plugin_ldap extends auth_plugin_base {
         }
 
         $ldappagedresults = ldap_paged_results_supported($this->config->ldap_version, $ldapconnection);
-        $ldapcookie = '';
         foreach ($contexts as $context) {
             $context = trim($context);
             if (empty($context)) {
                 continue;
             }
+
+            // The paged results cookie is only valid for the searches within the current context.
+            $ldapcookie = '';
 
             do {
                 if ($ldappagedresults) {
@@ -737,7 +739,20 @@ class auth_plugin_ldap extends auth_plugin_base {
                         0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
                 }
                 if (!$ldapresult) {
-                    continue;
+                    // The LDAP search failed, for example because the LDAP server has become unreachable in the
+                    // middle of the synchronisation.
+                    // We must not continue with the next loop iteration here:
+                    // Firstly, if paged results are used, the paged results cookie from the previous page would
+                    // still be set and we would repeat the very same failing search endlessly.
+                    // Secondly, and even more important, continuing would leave us with an incomplete list of LDAP
+                    // users which would result in a mass suspension or deletion of user accounts below.
+                    // Thus, we clean up and abort the synchronisation completely.
+                    print_string('ldapsearcherror', 'auth_ldap',
+                        (object) ['context' => $context, 'error' => ldap_error($ldapconnection)]);
+                    print_string('syncabortedldapsearcherror', 'auth_ldap');
+                    $dbman->drop_table($table);
+                    $this->ldap_close();
+                    return false;
                 }
                 if ($ldappagedresults) {
                     // Get next server cookie to know if we'll need to continue searching.
@@ -1553,13 +1568,15 @@ class auth_plugin_ldap extends auth_plugin_base {
             array_push($contexts, $this->config->create_context);
         }
 
-        $ldap_cookie = '';
         $ldap_pagedresults = ldap_paged_results_supported($this->config->ldap_version, $ldapconnection);
         foreach ($contexts as $context) {
             $context = trim($context);
             if (empty($context)) {
                 continue;
             }
+
+            // The paged results cookie is only valid for the searches within the current context.
+            $ldap_cookie = '';
 
             do {
                 if ($ldap_pagedresults) {
@@ -1576,8 +1593,17 @@ class auth_plugin_ldap extends auth_plugin_base {
                     $ldap_result = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute),
                         0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
                 }
-                if(!$ldap_result) {
-                    continue;
+                if (!$ldap_result) {
+                    // The LDAP search failed, for example because the LDAP server has become unreachable.
+                    // We must not continue with the next loop iteration here:
+                    // Firstly, if paged results are used, the paged results cookie from the previous page would
+                    // still be set and we would repeat the very same failing search endlessly.
+                    // Secondly, this function has no way to tell its callers that the returned list of users is
+                    // incomplete. An empty result is indistinguishable from 'this user does not exist in LDAP',
+                    // so silently ignoring the error would make user_exists() return a wrong answer.
+                    $this->ldap_close($ldap_pagedresults);
+                    throw new \moodle_exception('ldapsearcherror', 'auth_ldap', '',
+                        (object) ['context' => $context, 'error' => ldap_error($ldapconnection)]);
                 }
                 if ($ldap_pagedresults) {
                     // Get next server cookie to know if we'll need to continue searching.
