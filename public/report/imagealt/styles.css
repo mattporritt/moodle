@@ -1,0 +1,69 @@
+.report-imagealt-sparkles-icon {
+    display: inline-block;
+    inline-size: var(--mds-icons-md);
+    block-size: var(--mds-icons-md);
+    flex-shrink: 0;
+    vertical-align: middle;
+    background-color: currentColor;
+    mask: url('[[pix:aiplacement_courseassist|sparkles]]') no-repeat center / contain;
+    -webkit-mask: url('[[pix:aiplacement_courseassist|sparkles]]') no-repeat center / contain;
+}
+
+/*
+ * The suggestion state badge doubles as the only route from the report to the batch a description was written in.
+ * Boost removes the underline from every link and styles no hover state at all, so wrapping a badge in a plain
+ * anchor produces something that reads as a static label: the pointer changes over it, but nothing on the page
+ * confirms it once it is there. Pointing at the badge outlines it and lifts its colour.
+ */
+.report-imagealt-statelink:hover .badge,
+.report-imagealt-statelink:focus-visible .badge {
+    /* An outline rather than a border, so the badge keeps its size and the row does not shift as the pointer
+       crosses it. Drawn just outside the pill in the body colour rather than inside it in the badge's own
+       foreground: an inset ring reads as the pill shrinking, because on the success and info variants it is white
+       against a white page. Applied to the badge rather than the link, whose box is slightly the taller of the
+       two, so the ring follows the edge of the pill. */
+    outline: 2px solid var(--bs-body-color);
+    outline-offset: 1px;
+    filter: brightness(1.1);
+}
+
+/*
+ * Quickform still reserves a label column for the decorative checkbox even though its own label is empty
+ * (the "femptylabel" modifier that would otherwise collapse it is not applied here), so it is collapsed directly
+ * to keep the checkbox row flush left with the other controls above it, matching Tiny's own image details dialog.
+ */
+.report-imagealt-decorative-row .col-md-3 {
+    display: none;
+}
+
+.report-imagealt-decorative-row .col-md-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+/*
+ * Stand-in for an image the content refers to but the site does not have. Sized to the thumbnails it sits beside so
+ * a broken row keeps its place in the column, rather than collapsing to the height of one line of text and making
+ * the table jump around the rows that matter most.
+ */
+.report-imagealt-broken-preview {
+    width: 96px;
+    min-height: 72px;
+    border: 1px dashed var(--bs-border-color);
+}
+
+/*
+ * The image being described, presented the way Tiny's own image details dialog presents it: centred in a panel that
+ * fills the column beside the form, rather than as a thumbnail in the top corner. A minimum height so the panel still
+ * reads as the place the image lives even when the form beside it is short, and the image itself bounded so a large
+ * one scales down to fit instead of being clipped by the panel or pushing the dialog out of shape.
+ */
+.report-imagealt-preview-box {
+    min-height: 16rem;
+    overflow: hidden;
+}
+
+.report-imagealt-preview {
+    max-width: 100%;
+    max-height: 26rem;
+}

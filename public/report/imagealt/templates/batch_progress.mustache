@@ -1,0 +1,119 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template report_imagealt/batch_progress
+
+    Progress summary for one bulk alternative text suggestion batch.
+
+    Deliberately a bordered panel rather than an alert: this is persistent page furniture describing the batch, not
+    a dismissible message about something that just happened.
+
+    Context variables required for this template:
+    * statuslabel - Human readable batch status.
+    * statusvariant - Bootstrap contextual suffix for the status badge.
+    * active - The batch is still queued or processing.
+    * total - Total images in the batch.
+    * completed - Images that no longer need processing, whatever the user has since done with them.
+    * ready - Images with a suggestion still waiting to be reviewed.
+    * applied - Images whose suggestion has been accepted onto the image.
+    * hasapplied - Whether any suggestion has been accepted.
+    * discarded - Images whose suggestion was rejected without being applied.
+    * hasdiscarded - Whether any suggestion has been discarded.
+    * stale - Images whose description no longer matches the image, so it can no longer be applied.
+    * hasstale - Whether any suggestion has gone out of date.
+    * failed - Images that could not be described.
+    * cancelled - Images cancelled before they were processed.
+    * hascancelled - Whether any images were cancelled.
+    * processed - Images that have reached any outcome.
+    * percent - Processed images as a percentage of the total.
+    * progresslabel - "X of Y images processed".
+    * timemodified - When the batch last changed.
+
+    Example context (json):
+    {
+        "statuslabel": "Processing",
+        "statusvariant": "info",
+        "active": true,
+        "total": 10,
+        "completed": 6,
+        "ready": 4,
+        "applied": 2,
+        "hasapplied": true,
+        "discarded": 1,
+        "hasdiscarded": true,
+        "stale": 1,
+        "hasstale": true,
+        "failed": 1,
+        "cancelled": 0,
+        "hascancelled": false,
+        "processed": 7,
+        "percent": 70,
+        "progresslabel": "7 of 10 images processed",
+        "timemodified": "28/07/26, 08:15"
+    }
+}}
+<div class="border rounded p-3 mb-3" data-region="report-imagealt-batch-progress">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="badge text-bg-{{statusvariant}}">{{statuslabel}}</span>
+        <span class="fw-bold">{{progresslabel}}</span>
+        <span class="text-muted small ms-auto">
+            {{#str}} batchlastupdated, report_imagealt, {{timemodified}} {{/str}}
+        </span>
+    </div>
+    <div class="progress mb-3" role="progressbar" aria-label="{{progresslabel}}"
+        aria-valuenow="{{percent}}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar {{#active}}progress-bar-striped progress-bar-animated{{/active}} bg-{{statusvariant}}"
+            style="width: {{percent}}%"></div>
+    </div>
+    <dl class="d-flex flex-wrap gap-4 mb-0 small">
+        <div class="d-flex gap-2">
+            <dt class="fw-normal text-muted">{{#str}} batchcountready, report_imagealt {{/str}}</dt>
+            <dd class="fw-bold mb-0">{{ready}}</dd>
+        </div>
+        {{#hasapplied}}
+            <div class="d-flex gap-2">
+                <dt class="fw-normal text-muted">{{#str}} batchcountapplied, report_imagealt {{/str}}</dt>
+                <dd class="fw-bold mb-0">{{applied}}</dd>
+            </div>
+        {{/hasapplied}}
+        {{#hasdiscarded}}
+            <div class="d-flex gap-2">
+                <dt class="fw-normal text-muted">{{#str}} batchcountdiscarded, report_imagealt {{/str}}</dt>
+                <dd class="fw-bold mb-0">{{discarded}}</dd>
+            </div>
+        {{/hasdiscarded}}
+        {{#hasstale}}
+            <div class="d-flex gap-2">
+                <dt class="fw-normal text-muted">{{#str}} batchcountstale, report_imagealt {{/str}}</dt>
+                <dd class="fw-bold mb-0">{{stale}}</dd>
+            </div>
+        {{/hasstale}}
+        <div class="d-flex gap-2">
+            <dt class="fw-normal text-muted">{{#str}} batchcountfailed, report_imagealt {{/str}}</dt>
+            <dd class="fw-bold mb-0">{{failed}}</dd>
+        </div>
+        {{#hascancelled}}
+            <div class="d-flex gap-2">
+                <dt class="fw-normal text-muted">{{#str}} batchcountcancelled, report_imagealt {{/str}}</dt>
+                <dd class="fw-bold mb-0">{{cancelled}}</dd>
+            </div>
+        {{/hascancelled}}
+    </dl>
+    {{#active}}
+        <p class="text-muted small mb-0 mt-2">{{#str}} batchautorefresh, report_imagealt {{/str}}</p>
+    {{/active}}
+</div>

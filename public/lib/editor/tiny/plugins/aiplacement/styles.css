@@ -84,8 +84,8 @@
 
 .tiny-aiplacement-sparkles-icon {
     display: inline-block;
-    width: 20px;
-    height: 17px;
+    inline-size: var(--mds-icons-md);
+    block-size: var(--mds-icons-md);
     flex-shrink: 0;
     vertical-align: middle;
     background-color: currentColor;

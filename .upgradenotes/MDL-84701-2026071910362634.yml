@@ -1,0 +1,15 @@
+issueNumber: MDL-84701
+notes:
+  core:
+    - message: >-
+        Plugins can extend the image alternative text report by observing the
+        `\report_imagealt\hook\extend_content_providers` hook and registering
+        implementations of `\report_imagealt\local\content\provider`.
+      type: improved
+    - message: >-
+        The image alternative text report triggers
+        `\report_imagealt\event\alttext_updated` whenever it writes alternative
+        text onto an image. The event's `other['source']` records whether the
+        text was entered by a person or applied unedited from an AI suggestion,
+        and `other['suggestionid']` names the suggestion in the latter case.
+      type: improved
