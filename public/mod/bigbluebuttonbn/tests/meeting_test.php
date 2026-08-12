@@ -134,6 +134,103 @@ final class meeting_test extends \advanced_testcase {
     }
 
     /**
+     * Test that create_meeting() does not insert a duplicate recording row when called more than
+     * once for the same instance/group, e.g. as could previously happen when two near-simultaneous
+     * join requests both reached create_meeting() before either had inserted its row (MDL-89119).
+     *
+     * @covers ::create_meeting
+     */
+    public function test_create_meeting_does_not_duplicate_recording(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $bbbgenerator = $this->getDataGenerator()->get_plugin_generator('mod_bigbluebuttonbn');
+        $activity = $bbbgenerator->create_instance([
+            'course' => $this->get_course()->id,
+            'type' => instance::TYPE_ALL,
+            'record' => 1,
+        ]);
+        $instance = instance::get_from_instanceid($activity->id);
+        $meeting = new meeting($instance);
+
+        // Simulate two requests both deciding the meeting needs to be created, e.g. because
+        // both saw an empty createtime before either had a chance to create the meeting.
+        $meeting->create_meeting();
+        $meeting->create_meeting();
+
+        $this->assertEquals(
+            1,
+            recording::count_records(['bigbluebuttonbnid' => $activity->id])
+        );
+    }
+
+    /**
+     * Test that join_meeting() does not create a duplicate recording row when two requests both
+     * find the session not yet running, mirroring two near-simultaneous join requests for the
+     * same session (MDL-89119).
+     *
+     * Both calls are forced down the "createtime empty" branch, so create_meeting() is reached
+     * twice exactly as it would be by two concurrent requests. BigBlueButton's create API is
+     * idempotent and returns the same internalMeetingID for the session, so only a single
+     * recording row must exist afterwards.
+     *
+     * @covers ::join_meeting
+     */
+    public function test_join_meeting_does_not_duplicate_recording(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $bbbgenerator = $this->getDataGenerator()->get_plugin_generator('mod_bigbluebuttonbn');
+        $activity = $bbbgenerator->create_instance([
+            'course' => $this->get_course()->id,
+            'type' => instance::TYPE_ALL,
+            'record' => 1,
+        ]);
+        $instance = instance::get_from_instanceid($activity->id);
+
+        // First request: the session is not running, so it is created.
+        meeting::join_meeting($instance);
+
+        // Put the session back into the state the second request would have observed: the first
+        // request had not finished creating the meeting yet, so neither request sees a createtime.
+        $bbbgenerator->reset_mock();
+        (new meeting($instance))->update_cache();
+
+        // Second request: it also finds no createtime and so reaches create_meeting() again.
+        meeting::join_meeting($instance);
+
+        $this->assertEquals(
+            1,
+            recording::count_records(['bigbluebuttonbnid' => $activity->id])
+        );
+    }
+
+    /**
+     * Test that join_meeting() fails cleanly when the meeting creation lock cannot be obtained,
+     * i.e. when another request is already creating the same session (MDL-89119).
+     *
+     * @covers ::join_meeting
+     */
+    public function test_join_meeting_when_creation_lock_is_unavailable(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/bigbluebuttonbn/tests/fixtures/unavailable_lock_factory.php');
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $bbbgenerator = $this->getDataGenerator()->get_plugin_generator('mod_bigbluebuttonbn');
+        $activity = $bbbgenerator->create_instance([
+            'course' => $this->get_course()->id,
+            'type' => instance::TYPE_ALL,
+            'record' => 1,
+        ]);
+        $instance = instance::get_from_instanceid($activity->id);
+
+        // Simulate a concurrent request already holding the meeting creation lock.
+        $CFG->lock_factory = '\mod_bigbluebuttonbn\unavailable_lock_factory';
+
+        $this->expectException(\mod_bigbluebuttonbn\local\exceptions\meeting_join_exception::class);
+        meeting::join_meeting($instance);
+    }
+
+    /**
      * Test for get meeting info for all types
      *
      * @param int $type

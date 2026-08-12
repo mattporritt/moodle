@@ -44,6 +44,9 @@ class meeting {
     /** @var stdClass Info about the meeting */
     protected $meetinginfo = null;
 
+    /** @var int Timeout, in seconds, when waiting to obtain the meeting creation lock */
+    public const CREATE_MEETING_LOCK_TIMEOUT = 15;
+
     /**
      * Constructor for the meeting object.
      *
@@ -67,9 +70,25 @@ class meeting {
     public static function join_meeting(instance $instance, $origin = logger::ORIGIN_BASE): string {
         // See if the session is in progress.
         $meeting = new meeting($instance);
-        // As the meeting doesn't exist, try to create it.
-        if (empty($meeting->get_meeting_info(true)->createtime)) {
-            $meeting->create_meeting();
+
+        // Guard the "check if running, then create" sequence below with a lock keyed on the
+        // meeting id. Without this, two near-simultaneous join requests for a session that has
+        // not yet been created could both see an empty createtime and both call
+        // create_meeting(), resulting in duplicate rows in bigbluebuttonbn_recordings for the
+        // same underlying BigBlueButton recording (see MDL-89119).
+        $lockfactory = \core\lock\lock_config::get_lock_factory('mod_bigbluebuttonbn_meeting');
+        $lockresource = 'create_meeting_' . $instance->get_meeting_id();
+        $lock = $lockfactory->get_lock($lockresource, self::CREATE_MEETING_LOCK_TIMEOUT);
+        if (!$lock) {
+            throw new meeting_join_exception('view_error_meeting_lock');
+        }
+        try {
+            // As the meeting doesn't exist, try to create it.
+            if (empty($meeting->get_meeting_info(true)->createtime)) {
+                $meeting->create_meeting();
+            }
+        } finally {
+            $lock->release();
         }
         return $meeting->join($origin);
     }
@@ -175,13 +194,24 @@ class meeting {
         );
         // New recording management: Insert a recordingID that corresponds to the meeting created.
         if ($this->instance->is_recorded()) {
-            $recording = new recording(0, (object) [
-                'courseid' => $this->instance->get_course_id(),
+            $recordingid = $response['internalMeetingID'];
+            // Defense-in-depth: only insert if a matching row does not already exist. This
+            // complements the locking in join_meeting() so that a duplicate row cannot be
+            // created even if create_meeting() is ever called outside of that lock.
+            $existingrecording = recording::get_record([
                 'bigbluebuttonbnid' => $this->instance->get_instance_id(),
-                'recordingid' => $response['internalMeetingID'],
-                'groupid' => $this->instance->get_group_id()]
-            );
-            $recording->create();
+                'groupid' => $this->instance->get_group_id(),
+                'recordingid' => $recordingid,
+            ]);
+            if (!$existingrecording) {
+                $recording = new recording(0, (object) [
+                    'courseid' => $this->instance->get_course_id(),
+                    'bigbluebuttonbnid' => $this->instance->get_instance_id(),
+                    'recordingid' => $recordingid,
+                    'groupid' => $this->instance->get_group_id(),
+                ]);
+                $recording->create();
+            }
         }
         return $response;
     }

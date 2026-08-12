@@ -468,6 +468,7 @@ $string['view_error_import_no_courses'] = 'There are no courses to look up for r
 $string['view_error_import_no_recordings'] = 'There are no recordings in this course for importing.';
 $string['view_error_invalid_session'] = 'The session has expired. Go back to the activity page.';
 $string['view_error_max_concurrent'] = 'The number of concurrent sessions allowed has been reached.';
+$string['view_error_meeting_lock'] = 'This session is currently being created by another request. Please wait a moment and try again.';
 $string['view_error_meeting_not_running'] = 'Something went wrong; the session is not running.';
 $string['view_error_no_group'] = 'There are no groups. You need to create some groups before trying to join the session.';
 $string['view_error_no_group_student'] = 'You have not been added to a group. Please contact your teacher.';
