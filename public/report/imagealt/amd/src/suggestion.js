@@ -149,7 +149,31 @@ export default async(modalForm) => {
         });
         if (thisrender === renderId) {
             region.innerHTML = html;
+            focusAfterRender(newstate);
         }
+    };
+
+    // Every state transition above replaces region.innerHTML wholesale, which destroys whatever control was
+    // focused (typically the button just activated) and drops keyboard/screen-reader focus to the document body.
+    // Restoring it explicitly after each render keeps a keyboard or screen-reader user in a predictable place while
+    // working through generate/regenerate/discard/confirm/cancel, instead of losing their position on every action.
+    const focusAfterRender = (newstate) => {
+        // Returning to idle is returning control to the field itself, so that is where focus belongs, whether or
+        // not this state renders a generate button (it does not, on a site with no provider to regenerate with).
+        if (newstate === 'idle') {
+            alttext.focus();
+            return;
+        }
+        const focusable = region.querySelector('button, [href], input, select, textarea, [tabindex]');
+        if (focusable) {
+            focusable.focus();
+            return;
+        }
+        // No control was rendered at all (for example a provider-less "waiting" state with only a status message).
+        // Focusing the live region itself still keeps focus somewhere sighted and reported, rather than silently at
+        // the document body.
+        region.setAttribute('tabindex', '-1');
+        region.focus();
     };
 
     // Keep the button's label in step with whether generating would overwrite something the user has typed.

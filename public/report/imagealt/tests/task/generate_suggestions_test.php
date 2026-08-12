@@ -77,12 +77,35 @@ final class generate_suggestions_test extends \advanced_testcase {
 
         $suggestion = $DB->get_record('report_imagealt_suggestion', ['batchid' => $batch->id], '*', MUST_EXIST);
         $this->assertSame('ready', $suggestion->status);
-        $this->assertSame(
-            'A calm lake below mountains. - ' . get_string('contentwatermark', 'core_ai'),
-            $suggestion->suggestion,
-        );
+        // The suggestion text is never tagged inline with an AI disclosure: alternative text is read verbatim by
+        // assistive technology, so it must describe the image and nothing else.
+        $this->assertSame('A calm lake below mountains.', $suggestion->suggestion);
         $this->assertSame('<img src="@@PLUGINFILE@@/lake.png">', $DB->get_field('course', 'summary', ['id' => $course->id]));
         $this->assertSame('complete', $DB->get_field('report_imagealt_batch', 'status', ['id' => $batch->id]));
+    }
+
+    /**
+     * A provider response longer than the image editor's alt text limit is truncated, not rejected.
+     */
+    public function test_execute_truncates_a_response_over_the_length_limit(): void {
+        global $DB, $USER;
+
+        [$batch, , $context] = $this->create_batch();
+        \core_ai\manager::user_policy_accepted((int) $USER->id, $context->id);
+        $longcontent = str_repeat('a', 800);
+        $response = new response_describe_image(success: true);
+        $response->set_response_data(['generatedcontent' => $longcontent, 'finishreason' => 'stop']);
+        $aimanager = $this->stub_ai_availability(true);
+        $aimanager->method('process_action')->willReturn($response);
+
+        $task = new generate_suggestions();
+        $task->set_custom_data(['batchid' => $batch->id]);
+        $task->execute();
+
+        $suggestion = $DB->get_record('report_imagealt_suggestion', ['batchid' => $batch->id], '*', MUST_EXIST);
+        $this->assertSame('ready', $suggestion->status);
+        $this->assertSame(750, \core_text::strlen($suggestion->suggestion));
+        $this->assertStringEndsWith('...', $suggestion->suggestion);
     }
 
     /**

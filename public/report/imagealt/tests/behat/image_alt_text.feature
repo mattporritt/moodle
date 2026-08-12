@@ -1,4 +1,4 @@
-@report_imagealt @javascript
+@report_imagealt @javascript @accessibility
 Feature: Find and manually remediate image alternative text
   In order to improve the accessibility of course content
   As an authorised content maintainer

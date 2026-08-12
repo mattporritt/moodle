@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026080300;
+$plugin->version = 2026081200;
 $plugin->requires = 2026071500;
 $plugin->component = 'report_imagealt';
 // The AI features of this report are offered through the report placement, which owns the capability that gates them

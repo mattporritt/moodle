@@ -71,10 +71,14 @@ final class actions {
         }
 
         $label = get_string('brokenimagefix', 'report_imagealt');
+        // This is an icon-only link, so its aria-label is the entire accessible name: the new-window notice has to
+        // be part of that label rather than a separate visually-hidden span, which a link with no other text would
+        // have nothing to attach to.
+        $labelwithwindownotice = $label . ' ' . get_string('opensinnewwindowbracketed');
         return \html_writer::link($item->editurl, $OUTPUT->pix_icon('i/export', ''), [
             'class' => 'btn btn-icon',
-            'title' => $label,
-            'aria-label' => $label,
+            'title' => $labelwithwindownotice,
+            'aria-label' => $labelwithwindownotice,
             'target' => '_blank',
             'rel' => 'noopener',
         ]);

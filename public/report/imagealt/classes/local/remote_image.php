@@ -66,8 +66,20 @@ final class remote_image {
             'timeout' => self::TIMEOUT,
             'followlocation' => true,
             'maxredirs' => 3,
+            // Aborts the transfer once this many bytes have arrived, whether or not the remote host sent a
+            // Content-Length header, so an oversized response is not buffered to disk in full before the size below
+            // is checked. libcurl enforces this against the live transfer, not only against a declared length.
+            'CURLOPT_MAXFILESIZE' => self::MAX_BYTES,
         ]);
         $info = $curl->get_info();
+        if (is_string($error) && $curl->get_errno() === CURLE_FILESIZE_EXCEEDED) {
+            throw new \moodle_exception(
+                'error:remotetoolarge',
+                'report_imagealt',
+                '',
+                display_size(self::MAX_BYTES),
+            );
+        }
         if ($error !== true || (int) ($info['http_code'] ?? 0) !== 200) {
             throw new \moodle_exception(
                 'error:remotefetchfailed',
@@ -76,10 +88,30 @@ final class remote_image {
                 is_string($error) ? $error : (string) ($info['http_code'] ?? ''),
             );
         }
-        if (!file_exists($temporary) || filesize($temporary) === 0) {
+        return $this->store_downloaded_file($temporary, $url, $context, $occurrenceid);
+    }
+
+    /**
+     * Validate a downloaded file and store it as the fetched copy for one occurrence.
+     *
+     * Split out from {@see self::fetch()} so the size and MIME checks that matter most, and the well-defined shape
+     * of a rejection for each, can be exercised directly against a file this test suite controls, without needing a
+     * live URL or a working double for the underlying cURL transport.
+     *
+     * @param string $path Path to the downloaded file on local disk.
+     * @param string $url Absolute image URL the file was downloaded from, used only to name the stored copy.
+     * @param \context $context Context the fetched copy is stored against.
+     * @param int $occurrenceid Occurrence the copy belongs to, used as the file item ID.
+     * @return \stored_file
+     * @throws \moodle_exception When the file is missing, too large, or not a supported image.
+     */
+    protected function store_downloaded_file(string $path, string $url, \context $context, int $occurrenceid): \stored_file {
+        if (!file_exists($path) || filesize($path) === 0) {
             throw new \moodle_exception('error:remotefetchfailed', 'report_imagealt', '', '0');
         }
-        if (filesize($temporary) > self::MAX_BYTES) {
+        // Belt and braces: CURLOPT_MAXFILESIZE stops libcurl accepting more bytes than this once it notices during a
+        // real download, but the final size on disk is still checked explicitly here rather than trusted.
+        if (filesize($path) > self::MAX_BYTES) {
             throw new \moodle_exception(
                 'error:remotetoolarge',
                 'report_imagealt',
@@ -90,7 +122,7 @@ final class remote_image {
 
         // What the bytes actually are, not what the server said they were: the action rejects an unsupported type
         // with a coding exception, which would surface to the user as a crash rather than as a reason.
-        $mimetype = (string) (new \finfo(FILEINFO_MIME_TYPE))->file($temporary);
+        $mimetype = (string) (new \finfo(FILEINFO_MIME_TYPE))->file($path);
         if (!in_array($mimetype, describe_image::SUPPORTED_MIME_TYPES, true)) {
             throw new \moodle_exception('error:remotenotimage', 'report_imagealt', '', $mimetype ?: 'unknown');
         }
@@ -103,7 +135,7 @@ final class remote_image {
             'itemid' => $occurrenceid,
             'filepath' => '/',
             'filename' => $filename === '' ? 'remote-image' : $filename,
-        ], $temporary);
+        ], $path);
     }
 
     /**

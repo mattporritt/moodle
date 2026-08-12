@@ -64,6 +64,13 @@ final class generate_suggestion extends external_api {
         if (!$provider->can_edit($item, (int) $USER->id)) {
             throw new \moodle_exception('cannotedit', 'report_imagealt');
         }
+        // Mirrors the eligibility guard batch_manager::create() applies to every occurrence in a bulk selection.
+        // The report only ever offers this action on eligible, non-decorative rows, but that is a UI convenience,
+        // not a permission: this endpoint is the one place a request can actually be spent, so it is the one place
+        // this has to be enforced, whether the request came from the report or was called directly.
+        if (!$occurrence->aieligible || $occurrence->status === 'decorative') {
+            throw new \moodle_exception('error:imagenotavailable', 'report_imagealt');
+        }
         // Refused before a record exists, rather than left for generation to fail on. Otherwise a site with no
         // provider accumulates one failed suggestion per attempt, each becoming the image's latest suggestion and
         // reporting itself as a failure in the report.

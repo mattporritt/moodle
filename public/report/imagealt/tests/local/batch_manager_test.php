@@ -446,6 +446,32 @@ final class batch_manager_test extends \advanced_testcase {
     }
 
     /**
+     * The per-occurrence lock taken while checking for outstanding work is released once a batch is created, so it
+     * does not block a later, unrelated request from the same user.
+     *
+     * Guards against the specific way the fix for a duplicate-suggestion race could itself go wrong: a lock that is
+     * acquired but never released would make every later batch for this user appear to have nothing eligible,
+     * rather than merely skip the one image already queued.
+     */
+    public function test_create_releases_its_locks_for_a_later_unrelated_request(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $generator = $this->getDataGenerator()->get_plugin_generator('report_imagealt');
+        $course = $this->getDataGenerator()->create_course();
+        $first = $generator->create_image(['courseid' => $course->id, 'filename' => 'first.png']);
+        $second = $generator->create_image(['courseid' => $course->id, 'filename' => 'second.png']);
+        $userid = (int) get_admin()->id;
+        $this->stub_ai_availability(true);
+        $context = \context_course::instance((int) $course->id);
+
+        $firstbatch = (new batch_manager())->create($context, [(int) $first->id], $userid);
+        $secondbatch = (new batch_manager())->create($context, [(int) $second->id], $userid);
+
+        $this->assertEquals(1, $firstbatch->total);
+        $this->assertEquals(1, $secondbatch->total);
+    }
+
+    /**
      * A resolved suggestion does not block the image from being sent for generation again.
      */
     public function test_create_allows_images_whose_suggestion_is_resolved(): void {

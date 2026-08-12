@@ -126,7 +126,7 @@ final class suggestion_service {
             if ($generatedcontent === '') {
                 throw new \moodle_exception('error:provider', 'report_imagealt', '', get_string('unknownerror'));
             }
-            $suggestion->suggestion = $this->add_disclosure($generatedcontent);
+            $suggestion->suggestion = $this->limit_length($generatedcontent);
             $suggestion->status = 'ready';
             $suggestion->errormessage = null;
         } catch (\Throwable $e) {
@@ -149,21 +149,25 @@ final class suggestion_service {
     }
 
     /**
-     * Add Moodle's AI disclosure while retaining the image editor length limit.
+     * Enforce the image editor's alternative text length limit on a provider response.
+     *
+     * The suggestion is never tagged as AI-written inline: alternative text is read verbatim by assistive
+     * technology, so it must describe the image and nothing else. That the text came from AI, and whether a
+     * reviewer accepted it unedited, is recorded on the alttext_updated event instead, and shown to the reviewer
+     * only in this report's own UI while the suggestion is still awaiting approval.
      *
      * @param string $description Provider response.
-     * @return string Disclosed, length-limited suggestion.
+     * @return string Length-limited suggestion.
      */
-    private function add_disclosure(string $description): string {
-        $suffix = ' - ' . get_string('contentwatermark', 'core_ai');
+    private function limit_length(string $description): string {
         $maxlength = classifier::MAX_ALT_LENGTH;
-        if (\core_text::strlen($description . $suffix) <= $maxlength) {
-            return $description . $suffix;
+        if (\core_text::strlen($description) <= $maxlength) {
+            return $description;
         }
 
         $ellipsis = '...';
-        $available = $maxlength - \core_text::strlen($suffix . $ellipsis);
-        return \core_text::substr($description, 0, max(0, $available)) . $ellipsis . $suffix;
+        $available = $maxlength - \core_text::strlen($ellipsis);
+        return \core_text::substr($description, 0, max(0, $available)) . $ellipsis;
     }
 
     /**

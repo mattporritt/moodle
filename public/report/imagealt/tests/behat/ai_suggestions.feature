@@ -1,4 +1,4 @@
-@report_imagealt @javascript
+@report_imagealt @javascript @accessibility
 Feature: Review AI generated image descriptions in bulk
   In order to improve the alternative text of many images at once
   As an authorised content maintainer

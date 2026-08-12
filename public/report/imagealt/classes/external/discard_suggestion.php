@@ -54,10 +54,11 @@ final class discard_suggestion extends external_api {
         ]);
 
         require_sesskey();
+
+        // Only enough is read here to resolve the context the suggestion belongs to. Anything that decides whether
+        // this user may act on it, including the ownership check below, happens after the session and context have
+        // been validated and the capability confirmed.
         $suggestion = $DB->get_record('report_imagealt_suggestion', ['id' => $suggestionid], '*', MUST_EXIST);
-        if ((int) $suggestion->userid !== (int) $USER->id) {
-            throw new \moodle_exception('nopermissions', 'error');
-        }
         $occurrence = $DB->get_record(
             'report_imagealt_occurrence',
             ['id' => $suggestion->occurrenceid],
@@ -67,6 +68,10 @@ final class discard_suggestion extends external_api {
         $context = \context::instance_by_id($occurrence->contextid);
         self::validate_context($context);
         require_capability('report/imagealt:view', $context);
+
+        if ((int) $suggestion->userid !== (int) $USER->id) {
+            throw new \moodle_exception('nopermissions', 'error');
+        }
 
         $DB->set_field('report_imagealt_suggestion', 'status', 'discarded', ['id' => $suggestionid]);
 

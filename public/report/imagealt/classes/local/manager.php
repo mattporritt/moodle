@@ -16,6 +16,7 @@
 
 namespace report_imagealt\local;
 
+use core\lock\lock_config;
 use core_ai\aiactions\describe_image;
 use report_imagealt\event\alttext_updated;
 use report_imagealt\hook\extend_content_providers;
@@ -494,15 +495,10 @@ final class manager {
     ): void {
         [$occurrence, $provider, $item] = $this->get_current_occurrence($id);
         if (!$provider->can_edit($item, $userid)) {
-            throw new \required_capability_exception(
-                \context::instance_by_id($item->contextid),
-                'report/imagealt:view',
-                'nopermissions',
-                '',
-            );
-        }
-        if (!hash_equals($occurrence->contenthash, $item->get_content_hash())) {
-            throw new \moodle_exception('contentchanged', 'report_imagealt');
+            // The permission that was actually checked is whichever content-specific capability this provider's
+            // can_edit() enforces (for example moodle/course:update or mod/book:edit), not report/imagealt:view, so
+            // this is raised as a generic denial rather than naming the wrong capability.
+            throw new \moodle_exception('cannotedit', 'report_imagealt');
         }
         // Refused here as well as withheld in the report, because the report is not the only way in. Describing an
         // image the site cannot find puts words to something nobody can see, and would report the row as remediated
@@ -511,18 +507,35 @@ final class manager {
             throw new \moodle_exception('error:brokenimage', 'report_imagealt');
         }
 
-        $html = (new image_parser())->replace(
-            $item->html,
-            (int) $occurrence->position,
-            $occurrence->occurrencehash,
-            $alt,
-            $decorative,
-        );
-        if ($html === null) {
+        // The stale-content check above and the write below must not be separated by anything that lets another
+        // save land in between, so both happen while holding a per-item lock, and the check is repeated here
+        // against a freshly-loaded item rather than trusting the one read before the lock was acquired.
+        $lockfactory = lock_config::get_lock_factory('report_imagealt');
+        $lock = $lockfactory->get_lock('item-' . $provider->get_key() . '-' . md5($item->key), 5);
+        if (!$lock) {
             throw new \moodle_exception('contentchanged', 'report_imagealt');
         }
+        try {
+            $item = $provider->get_item($item->key);
+            if (!$item || !hash_equals($occurrence->contenthash, $item->get_content_hash())) {
+                throw new \moodle_exception('contentchanged', 'report_imagealt');
+            }
 
-        $provider->update($item, $html);
+            $html = (new image_parser())->replace(
+                $item->html,
+                (int) $occurrence->position,
+                $occurrence->occurrencehash,
+                $alt,
+                $decorative,
+            );
+            if ($html === null) {
+                throw new \moodle_exception('contentchanged', 'report_imagealt');
+            }
+
+            $provider->update($item, $html);
+        } finally {
+            $lock->release();
+        }
 
         // Logged here rather than in each caller because this is the only path that writes alternative text, so a
         // write cannot reach the content without being recorded. The occurrence is rescanned afterwards and may

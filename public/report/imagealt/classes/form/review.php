@@ -210,7 +210,9 @@ final class review extends dynamic_form {
         $mform->addElement('html', \html_writer::div(
             \html_writer::link(
                 $item->editurl,
-                $OUTPUT->pix_icon('i/export', '', 'moodle', ['class' => 'me-1']) . get_string('editdestination', 'report_imagealt'),
+                $OUTPUT->pix_icon('i/export', '', 'moodle', ['class' => 'me-1'])
+                    . get_string('editdestination', 'report_imagealt')
+                    . \html_writer::span(get_string('opensinnewwindowbracketed'), 'visually-hidden'),
                 ['target' => '_blank', 'rel' => 'noopener'],
             ),
             'mt-2',

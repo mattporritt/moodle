@@ -16,6 +16,7 @@
 
 namespace report_imagealt\local;
 
+use core\lock\lock_config;
 use report_imagealt\local\task\generate_suggestions;
 
 /**
@@ -57,60 +58,82 @@ final class batch_manager {
 
         $contentmanager = new manager();
         $eligible = [];
-        foreach (array_unique(array_map('intval', $occurrenceids)) as $id) {
-            $occurrence = $DB->get_record('report_imagealt_occurrence', ['id' => $id]);
-            if (!$occurrence || !$occurrence->aieligible || $occurrence->analysisstate !== 'ready') {
-                continue;
+        // Held from the outstanding-work check through the insert below, for each occurrence considered, so that
+        // two near-simultaneous requests for the same occurrence and user (a double submit, or two open tabs)
+        // cannot both pass the check before either has inserted its row. Released once the batch either commits or
+        // fails, whichever this occurrence turns out to be part of.
+        $locks = [];
+        try {
+            $lockfactory = lock_config::get_lock_factory('report_imagealt');
+            foreach (array_unique(array_map('intval', $occurrenceids)) as $id) {
+                $occurrence = $DB->get_record('report_imagealt_occurrence', ['id' => $id]);
+                if (!$occurrence || !$occurrence->aieligible || $occurrence->analysisstate !== 'ready') {
+                    continue;
+                }
+                // Describing an image marked decorative contradicts the decision to hide it from screen readers, so
+                // it is refused here as well as withheld in the report, for the same reasons as the outstanding-work
+                // check below: a stale page, and this being the only guard on the endpoint.
+                if ($occurrence->status === 'decorative') {
+                    continue;
+                }
+                if (
+                    !manager::is_in_scope($occurrence, $context)
+                        || !$contentmanager->can_edit_occurrence($occurrence, $userid)
+                ) {
+                    continue;
+                }
+                $lock = $lockfactory->get_lock("suggestion-{$occurrence->id}-{$userid}", 5);
+                if (!$lock) {
+                    continue;
+                }
+                // Checked as well as hidden in the UI, because the report page a selection was made on can be
+                // minutes old by the time it is submitted, and because this and the lock above are the only guards
+                // on the ad hoc bulk endpoint.
+                if (self::has_outstanding_suggestion((int) $occurrence->id, $userid)) {
+                    $lock->release();
+                    continue;
+                }
+                $locks[] = $lock;
+                $eligible[] = $occurrence;
             }
-            // Describing an image marked decorative contradicts the decision to hide it from screen readers, so it is
-            // refused here as well as withheld in the report, for the same reasons as the outstanding-work check
-            // below: a stale page, and this being the only guard on the endpoint.
-            if ($occurrence->status === 'decorative') {
-                continue;
+            if (!$eligible) {
+                throw new \moodle_exception('error:imagenotavailable', 'report_imagealt');
             }
-            if (!manager::is_in_scope($occurrence, $context) || !$contentmanager->can_edit_occurrence($occurrence, $userid)) {
-                continue;
-            }
-            // Checked as well as hidden in the UI, because the report page a selection was made on can be minutes
-            // old by the time it is submitted, and because it is the only guard on the ad hoc bulk endpoint.
-            if (self::has_outstanding_suggestion((int) $occurrence->id, $userid)) {
-                continue;
-            }
-            $eligible[] = $occurrence;
-        }
-        if (!$eligible) {
-            throw new \moodle_exception('error:imagenotavailable', 'report_imagealt');
-        }
 
-        $now = time();
-        $transaction = $DB->start_delegated_transaction();
-        $batch = (object) [
-            'contextid' => $context->id,
-            'userid' => $userid,
-            'status' => 'queued',
-            'total' => count($eligible),
-            'completed' => 0,
-            'failed' => 0,
-            'cancelled' => 0,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ];
-        $batch->id = $DB->insert_record('report_imagealt_batch', $batch);
-        foreach ($eligible as $occurrence) {
-            $DB->insert_record('report_imagealt_suggestion', (object) [
-                'occurrenceid' => $occurrence->id,
-                'batchid' => $batch->id,
+            $now = time();
+            $transaction = $DB->start_delegated_transaction();
+            $batch = (object) [
+                'contextid' => $context->id,
                 'userid' => $userid,
                 'status' => 'queued',
-                'originalhash' => $occurrence->contenthash,
-                'suggestion' => null,
-                'errormessage' => null,
-                'attempts' => 0,
+                'total' => count($eligible),
+                'completed' => 0,
+                'failed' => 0,
+                'cancelled' => 0,
                 'timecreated' => $now,
                 'timemodified' => $now,
-            ]);
+            ];
+            $batch->id = $DB->insert_record('report_imagealt_batch', $batch);
+            foreach ($eligible as $occurrence) {
+                $DB->insert_record('report_imagealt_suggestion', (object) [
+                    'occurrenceid' => $occurrence->id,
+                    'batchid' => $batch->id,
+                    'userid' => $userid,
+                    'status' => 'queued',
+                    'originalhash' => $occurrence->contenthash,
+                    'suggestion' => null,
+                    'errormessage' => null,
+                    'attempts' => 0,
+                    'timecreated' => $now,
+                    'timemodified' => $now,
+                ]);
+            }
+            $transaction->allow_commit();
+        } finally {
+            foreach ($locks as $lock) {
+                $lock->release();
+            }
         }
-        $transaction->allow_commit();
         $this->queue_task((int) $batch->id);
         return $batch;
     }

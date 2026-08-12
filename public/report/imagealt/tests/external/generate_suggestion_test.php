@@ -156,6 +156,74 @@ final class generate_suggestion_test extends \advanced_testcase {
     }
 
     /**
+     * A decorative occurrence cannot be spent on a suggestion, even by calling this endpoint directly rather than
+     * through the report, which never offers the action on one.
+     */
+    public function test_execute_refuses_a_decorative_occurrence(): void {
+        global $DB, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course([
+            'summary' => '<img src="@@PLUGINFILE@@/lake.png" alt="" role="presentation">',
+        ]);
+        $context = context_course::instance($course->id);
+        get_file_storage()->create_file_from_string([
+            'contextid' => $context->id,
+            'component' => 'course',
+            'filearea' => 'summary',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'lake.png',
+        ], base64_decode(self::IMAGE));
+        (new manager())->scan_context($context);
+        $occurrence = $DB->get_record('report_imagealt_occurrence', ['courseid' => $course->id], '*', MUST_EXIST);
+        $this->assertSame('decorative', $occurrence->status);
+        \core_ai\manager::user_policy_accepted((int) $USER->id, $context->id);
+        $this->configure_manager();
+
+        $_POST['sesskey'] = sesskey();
+        $result = external_api::call_external_function('report_imagealt_generate_suggestion', [
+            'occurrenceid' => $occurrence->id,
+        ]);
+
+        $this->assertTrue($result['error']);
+        $this->assertSame('error:imagenotavailable', $result['exception']->errorcode);
+        $this->assertSame(0, $DB->count_records('report_imagealt_suggestion'));
+    }
+
+    /**
+     * A broken occurrence, whose reference resolves to no file this site owns, is not AI eligible and cannot be
+     * spent on a suggestion either.
+     */
+    public function test_execute_refuses_a_broken_occurrence(): void {
+        global $DB, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course([
+            'summary' => '<img src="@@PLUGINFILE@@/gone.png">',
+            'summaryformat' => FORMAT_HTML,
+        ]);
+        $context = context_course::instance($course->id);
+        (new manager())->scan_context($context);
+        $occurrence = $DB->get_record('report_imagealt_occurrence', ['courseid' => $course->id], '*', MUST_EXIST);
+        $this->assertSame('broken', $occurrence->status);
+        $this->assertSame(0, (int) $occurrence->aieligible);
+        \core_ai\manager::user_policy_accepted((int) $USER->id, $context->id);
+        $this->configure_manager();
+
+        $_POST['sesskey'] = sesskey();
+        $result = external_api::call_external_function('report_imagealt_generate_suggestion', [
+            'occurrenceid' => $occurrence->id,
+        ]);
+
+        $this->assertTrue($result['error']);
+        $this->assertSame('error:imagenotavailable', $result['exception']->errorcode);
+        $this->assertSame(0, $DB->count_records('report_imagealt_suggestion'));
+    }
+
+    /**
      * On a site with no provider for image descriptions the request is refused outright, and leaves nothing behind.
      *
      * Letting generation fail instead would record a failed suggestion for every attempt, each one becoming the
