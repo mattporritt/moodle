@@ -16,20 +16,22 @@ Feature: A user can change font family and font size in the TinyMCE editor
     Then I should see "Fonts"
     And I should see "Font sizes"
 
-  Scenario: An author can change the font family of text using the Format menu and the change is saved
+  Scenario: An author can change the font family of text using the toolbar and the change is saved
     Given I am on the "Profile advanced editing" page logged in as "admin"
     And I set the field "Description" to "<p>Sample text</p>"
+    And I expand all toolbars for the "Description" TinyMCE editor
     When I select the "p" element in position "0" of the "Description" TinyMCE editor
-    And I click on the "Format > Fonts > Arial" menu item for the "Description" TinyMCE editor
+    And I click on the "Arial" menu item for the "Font Default" button of the "Description" TinyMCE editor
     And I click on "Update profile" "button"
     And I am on the "Profile advanced editing" page logged in as "admin"
     Then the field "Description" matches expression "@font-family:\s*arial@i"
 
-  Scenario: An author can change the font size of text using the Format menu and the change is saved
+  Scenario: An author can change the font size of text using the toolbar and the change is saved
     Given I am on the "Profile advanced editing" page logged in as "admin"
     And I set the field "Description" to "<p>Sample text</p>"
+    And I expand all toolbars for the "Description" TinyMCE editor
     When I select the "p" element in position "0" of the "Description" TinyMCE editor
-    And I click on the "Format > Font sizes > 18pt" menu item for the "Description" TinyMCE editor
+    And I click on the "18pt" menu item for the "Font size 12pt" button of the "Description" TinyMCE editor
     And I click on "Update profile" "button"
     And I am on the "Profile advanced editing" page logged in as "admin"
     Then the field "Description" matches expression "@font-size:\s*18pt@"

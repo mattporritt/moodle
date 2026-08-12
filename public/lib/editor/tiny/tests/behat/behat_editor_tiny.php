@@ -176,6 +176,40 @@ class behat_editor_tiny extends behat_base implements \core_behat\settable_edito
     }
 
     /**
+     * Click on a menu item within the dropdown opened by a TinyMCE toolbar button.
+     *
+     * @When /^I click on the "(?P<item_string>(?:[^"]|\\")*)" menu item for the "(?P<btn_string>(?:[^"]|\\")*)" button of the "(?P<locator_string>(?:[^"]|\\")*)" TinyMCE editor$/
+     *
+     * @param string $menuitem The label of the menu item within the dropdown
+     * @param string $button The label of the toolbar button that opens the dropdown
+     * @param string $locator The locator for the editor
+     */
+    public function i_click_on_menuitem_for_button(string $menuitem, string $button, string $locator): void {
+        $this->require_tiny_tags();
+        $container = $this->get_editor_container_for_locator($locator);
+
+        $this->execute('behat_general::i_click_on_in_the', [$button, 'button', $container, 'NodeElement']);
+
+        // Find the menu that was opened.
+        $openmenu = $this->find('css', '.tox-selected-menu');
+
+        // Move the mouse to the first item in the list.
+        // This is required because WebDriver takes the shortest path to the next click location,
+        // which will mean crossing across other menu items.
+        // Not all menus have an icon on their items (for example the font family and font size
+        // lists), so fall back to the item itself when there is no icon to hover over.
+        $firstlink = $openmenu->find('css', "[role^='menuitem'] .tox-collection__item-icon");
+        if ($firstlink === null) {
+            $firstlink = $openmenu->find('css', "[role^='menuitem']");
+        }
+        $firstlink->mouseover();
+
+        // Now match by title where the role matches any menuitem, or menuitemcheckbox, or menuitem*.
+        $link = $openmenu->find('css', "[aria-label='{$menuitem}'][role^='menuitem']");
+        $this->execute('behat_general::i_click_on', [$link, 'NodeElement']);
+    }
+
+    /**
      * Select the element type/index for the specified TinyMCE editor.
      *
      * @When /^I select the "(?P<textlocator_string>(?:[^"]|\\")*)" element in position "(?P<position_int>(?:[^"]|\\")*)" of the "(?P<locator_string>(?:[^"]|\\")*)" TinyMCE editor$/
