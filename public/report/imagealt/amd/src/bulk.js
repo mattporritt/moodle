@@ -111,7 +111,13 @@ export const init = (formId, userId, policyAccepted) => {
             policyModal.getModal().on(
                 CustomEvents.events.activate,
                 policyModal.getActionSelector('save'),
-                ensurePolicyAndSubmit,
+                // Wait for acceptance to be confirmed written before submitting: submitting navigates away, and a
+                // still-in-flight write to record it would be aborted by that navigation, leaving the click believed
+                // accepted here while the site itself never learned that.
+                async() => {
+                    await Policy.acceptPolicy();
+                    submit();
+                },
             );
         };
         await ensurePolicyAndSubmit();

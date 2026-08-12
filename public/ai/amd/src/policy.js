@@ -24,6 +24,7 @@ import {getPolicyStatus, setPolicyStatus} from "./repository";
  */
 export default class {
     static #policyAcceptedFor = {};
+    static #acceptancePromise = null;
 
     static preconfigurePolicyState(userid, state) {
         if (!this.#policyAcceptedFor.hasOwnProperty(userid)) {
@@ -49,9 +50,34 @@ export default class {
         return accepted.status;
     }
 
+    /**
+     * Record policy acceptance for the current user and wait for it to be confirmed.
+     *
+     * The local status is only flipped once the write is confirmed, rather than optimistically beforehand, so a
+     * caller that awaits this before doing something irreversible (such as submitting a form that navigates away)
+     * cannot proceed while the acceptance is still only believed true on the client. Concurrent callers (for
+     * example, more than one listener reacting to the same modal save event) share a single in-flight request
+     * instead of writing the acceptance record twice, which the database would otherwise reject.
+     *
+     * @return {Promise}
+     */
     static acceptPolicy() {
-        this.#policyAcceptedFor[M.cfg.userId] = true;
+        if (!this.#acceptancePromise) {
+            // Two-argument then() rather than a trailing catch()/finally(), because setPolicyStatus() returns
+            // whatever core/ajax hands back, which is not guaranteed to be a native Promise supporting finally().
+            this.#acceptancePromise = setPolicyStatus(M.cfg.contextid).then(
+                (result) => {
+                    this.#policyAcceptedFor[M.cfg.userId] = true;
+                    this.#acceptancePromise = null;
+                    return result;
+                },
+                (error) => {
+                    this.#acceptancePromise = null;
+                    throw error;
+                },
+            );
+        }
 
-        return setPolicyStatus(M.cfg.contextid);
+        return this.#acceptancePromise;
     }
 }
