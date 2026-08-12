@@ -22,7 +22,7 @@
        foreground: an inset ring reads as the pill shrinking, because on the success and info variants it is white
        against a white page. Applied to the badge rather than the link, whose box is slightly the taller of the
        two, so the ring follows the edge of the pill. */
-    outline: 2px solid var(--bs-body-color);
+    outline: 2px solid var(--mds-text-default);
     outline-offset: 1px;
     filter: brightness(1.1);
 }
@@ -49,7 +49,7 @@
 .report-imagealt-broken-preview {
     width: 96px;
     min-height: 72px;
-    border: 1px dashed var(--bs-border-color);
+    border: 1px dashed var(--mds-border-default);
 }
 
 /*
