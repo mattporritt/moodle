@@ -277,6 +277,12 @@ function accesslib_clear_role_cache($roles) {
 
     $cache = cache::make('core', 'roledefs');
     $cache->delete_many($roles);
+
+    // The affected role(s) may no longer have the same set of users for a
+    // given capability, so any cached get_users_by_capability() results are
+    // potentially stale. Cache keys are not scoped by role, so purge it
+    // fully rather than trying to work out which entries are affected.
+    \core_availability\capability_checker::purge_cache();
 }
 
 /**
@@ -1653,6 +1659,10 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
     // Role assignments have changed, so mark user as dirty.
     mark_user_dirty($userid);
 
+    // The user may now hold capabilities they didn't before, so any cached
+    // get_users_by_capability() results are potentially stale.
+    \core_availability\capability_checker::purge_cache();
+
     core_course_category::role_assignment_changed($roleid, $context);
 
     $event = \core\event\role_assigned::create(array(
@@ -1746,6 +1756,10 @@ function role_unassign_all(array $params, $subcontexts = false, $includemanual =
             throw new coding_exception('subcontexts paramtere requires component parameter in role_unsassign_all() call');
         }
     }
+
+    // Users may lose capabilities they previously held, so any cached
+    // get_users_by_capability() results are potentially stale.
+    \core_availability\capability_checker::purge_cache();
 
     $ras = $DB->get_records('role_assignments', $params);
     foreach ($ras as $ra) {

@@ -82,4 +82,17 @@ class capability_checker {
 
         return $data;
     }
+
+    /**
+     * Purges the request cache of get_users_by_capability() results.
+     *
+     * Must be called whenever a change could alter the set of users holding
+     * a capability that may already be cached, for example when a role's
+     * capabilities are changed. See accesslib_clear_role_cache().
+     *
+     * @return void
+     */
+    public static function purge_cache(): void {
+        cache::make('core', 'capability_cache')->purge();
+    }
 }

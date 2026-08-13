@@ -98,4 +98,87 @@ final class capability_checker_test extends \advanced_testcase {
         $resultb = array_keys($checkerb->get_users_by_capability('mod/forum:deleteanypost'));
         $this->assertEquals([$teacherb->id], $resultb);
     }
+
+    /**
+     * Tests that a cached get_users_by_capability() result does not survive
+     * a change to who holds the capability in that context, for example
+     * when a role's permissions are edited part-way through the request.
+     * Without cache invalidation, a capability_checker constructed before
+     * the change (e.g. to filter one restricted activity) and reused, or a
+     * new checker for the same context constructed after the change, would
+     * incorrectly keep returning the pre-change user list.
+     *
+     * @covers \core_availability\capability_checker::get_users_by_capability
+     * @covers \core_availability\capability_checker::purge_cache
+     */
+    public function test_capability_checker_cache_invalidated_on_permission_change(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $studentroleid = $roleids['student'];
+
+        $course = $generator->create_course();
+        $student = $generator->create_user();
+        $generator->enrol_user($student->id, $course->id, $studentroleid);
+        $context = \context_course::instance($course->id);
+
+        // Initially, students do not have this capability, so the cached
+        // result is an empty list.
+        $checker = new capability_checker($context);
+        $result = array_keys($checker->get_users_by_capability('mod/forum:deleteanypost'));
+        $this->assertEquals([], $result);
+
+        // Grant the capability to students in this context. This must
+        // invalidate the previously cached result.
+        role_change_permission($studentroleid, $context, 'mod/forum:deleteanypost', CAP_ALLOW);
+
+        // A fresh capability_checker for the same context must reflect the
+        // permission change rather than reusing the stale cached result.
+        $checker = new capability_checker($context);
+        $result = array_keys($checker->get_users_by_capability('mod/forum:deleteanypost'));
+        $this->assertEquals([$student->id], $result);
+    }
+
+    /**
+     * Tests that a cached get_users_by_capability() result does not survive
+     * a role being assigned to, or unassigned from, a user in that context.
+     * A user gaining or losing a role changes who holds a capability in
+     * that context just as much as editing the role's permissions does, so
+     * this must invalidate the cache in the same way.
+     *
+     * @covers \core_availability\capability_checker::get_users_by_capability
+     * @covers \core_availability\capability_checker::purge_cache
+     */
+    public function test_capability_checker_cache_invalidated_on_role_assignment(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $teacherroleid = $roleids['teacher'];
+
+        $course = $generator->create_course();
+        $user = $generator->create_user();
+        $context = \context_course::instance($course->id);
+
+        // Nobody holds the capability yet.
+        $checker = new capability_checker($context);
+        $result = array_keys($checker->get_users_by_capability('mod/forum:deleteanypost'));
+        $this->assertEquals([], $result);
+
+        // Assigning a role that grants the capability must invalidate the
+        // previously cached (empty) result.
+        role_assign($teacherroleid, $user->id, $context->id);
+        $checker = new capability_checker($context);
+        $result = array_keys($checker->get_users_by_capability('mod/forum:deleteanypost'));
+        $this->assertEquals([$user->id], $result);
+
+        // Removing that role must invalidate the cached result too.
+        role_unassign($teacherroleid, $user->id, $context->id);
+        $checker = new capability_checker($context);
+        $result = array_keys($checker->get_users_by_capability('mod/forum:deleteanypost'));
+        $this->assertEquals([], $result);
+    }
 }
