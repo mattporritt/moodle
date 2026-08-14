@@ -40,15 +40,20 @@ class assignfeedback_file_renderer extends plugin_renderer_base {
      * @return string The html response
      */
     public function render_assignfeedback_file_import_summary($summary) {
-        $o = '';
-        $o .= $this->container(get_string('userswithnewfeedback', 'assignfeedback_file', $summary->userswithnewfeedback));
-        $o .= $this->container(get_string('filesupdated', 'assignfeedback_file', $summary->feedbackfilesupdated));
-        $o .= $this->container(get_string('filesadded', 'assignfeedback_file', $summary->feedbackfilesadded));
+        $o = $this->container(get_string('uploadzipsummaryintro', 'assignfeedback_file'));
+
+        $table = new html_table();
+        $table->data = [
+            [get_string('userswithnewfeedback', 'assignfeedback_file'), $summary->userswithnewfeedback],
+            [get_string('filesupdated', 'assignfeedback_file'), $summary->feedbackfilesupdated],
+            [get_string('filesadded', 'assignfeedback_file'), $summary->feedbackfilesadded],
+        ];
+        $o .= $this->container(html_writer::table($table), 'mt-3 mb-3');
 
         $url = new moodle_url('view.php',
                               array('id'=>$summary->cmid,
                                     'action'=>'grading'));
-        $o .= $this->continue_button($url);
+        $o .= $this->container($this->continue_button($url));
         return $o;
     }
 }

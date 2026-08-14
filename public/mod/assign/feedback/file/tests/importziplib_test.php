@@ -38,6 +38,7 @@ require_once($CFG->dirroot . '/mod/assign/feedback/file/importziplib.php');
  * @package    assignfeedback_file
  * @copyright  2020 Eric Merrill <merrill@oakland.edu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \assignfeedback_file_zip_importer
  */
 final class importziplib_test extends \advanced_testcase {
 
@@ -149,5 +150,81 @@ final class importziplib_test extends \advanced_testcase {
         $this->assertEquals($participants[$studentid], $user);
         $this->assertEquals('/some_path/My File.txt', $filename);
         $this->assertInstanceOf(\assign_submission_file::class, $plugin);
+    }
+
+    /**
+     * Set up an assignment, a teacher grader and a student with a feedback file waiting in the
+     * import area, ready to be picked up by import_zip_files().
+     *
+     * @return array [assign $assign, stdClass $teacher, stdClass $student]
+     */
+    private function prepare_import_fixture(): array {
+        global $PAGE;
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $assign = $this->create_instance($course, [
+            'assignsubmission_onlinetext_enabled' => 1,
+            'assignfeedback_file_enabled' => 1,
+        ]);
+
+        $PAGE->set_url(new \moodle_url('/mod/assign/view.php', ['id' => $assign->get_course_module()->id]));
+
+        $this->add_submission($student, $assign);
+
+        // Grading actions (including the zip import) happen as the teacher.
+        $this->setUser($teacher);
+
+        // The zip importer matches files by the participant's assignment-specific unique id,
+        // not their normal user id.
+        $uniqueid = $assign->get_uniqueid_for_user($student->id);
+        $filename = fullname($student) . '_' . $uniqueid . '_assignsubmission_onlinetext_feedback.txt';
+
+        $fs = get_file_storage();
+        $record = new \stdClass();
+        $record->contextid = $assign->get_context()->id;
+        $record->component = 'assignfeedback_file';
+        $record->filearea = ASSIGNFEEDBACK_FILE_IMPORT_FILEAREA;
+        $record->itemid = $teacher->id;
+        $record->filepath = '/import/';
+        $record->filename = $filename;
+        $fs->create_file_from_string($record, 'Some feedback');
+
+        return [$assign, $teacher, $student];
+    }
+
+    /**
+     * Data provider for test_import_zip_files_notifications().
+     *
+     * @return array
+     */
+    public static function import_zip_files_notifications_provider(): array {
+        return [
+            'Notifications requested' => [true],
+            'Notifications not requested' => [false],
+        ];
+    }
+
+    /**
+     * Test whether the student is queued for a notification if and only if requested.
+     * @dataProvider import_zip_files_notifications_provider
+     * @param bool $sendstudentnotifications value passed to import_zip_files()
+     */
+    public function test_import_zip_files_notifications(bool $sendstudentnotifications): void {
+        $this->resetAfterTest();
+
+        [$assign, , $student] = $this->prepare_import_fixture();
+        $importer = new \assignfeedback_file_zip_importer();
+        $fileplugin = $assign->get_feedback_plugin_by_type('file');
+        $importer->import_zip_files($assign, $fileplugin, $sendstudentnotifications);
+
+        $flags = $assign->get_user_flags($student->id, false);
+        if ($sendstudentnotifications) {
+            $this->assertEquals(0, $flags->mailed);
+        } else {
+            $this->assertFalse($flags);
+        }
     }
 }

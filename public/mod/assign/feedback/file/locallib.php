@@ -712,7 +712,13 @@ class assign_feedback_file extends assign_feedback_plugin {
                 return;
             }
 
-            $o .= $importer->import_zip_files($this->assignment, $this);
+            $data = $mform->get_data();
+            if ($data && isset($data->sendstudentnotifications)) {
+                $notify = $data->sendstudentnotifications;
+            } else {
+                $notify = $params['assignment']->get_instance()->sendstudentnotifications;
+            }
+            $o .= $importer->import_zip_files($this->assignment, $this, $notify);
             $importer->delete_import_files($contextid);
         } else if (($data = $mform->get_data()) &&
                    ($zipfile = $mform->save_stored_file('feedbackzip',

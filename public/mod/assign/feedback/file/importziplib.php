@@ -270,10 +270,11 @@ class assignfeedback_file_zip_importer {
      *
      * @param assign $assignment - The assignment instance
      * @param assign_feedback_file $fileplugin - The file feedback plugin
+     * @param bool $sendstudentnotifications whether students should be notified about imported feedback changes
      * @return string - The html response
      */
-    public function import_zip_files($assignment, $fileplugin) {
-        global $CFG, $PAGE, $DB;
+    public function import_zip_files($assignment, $fileplugin, bool $sendstudentnotifications = true) {
+        global $CFG, $PAGE, $USER;
 
         core_php_time_limit::raise(ASSIGNFEEDBACK_FILE_MAXFILEUNZIPTIME);
         $packer = get_file_packer('application/zip');
@@ -297,6 +298,9 @@ class assignfeedback_file_zip_importer {
                 if ($this->is_file_modified($assignment, $users, $plugin, $filename, $unzippedfile)) {
                     foreach ($users as $user) {
                         $grade = $assignment->get_user_grade($user->id, true);
+                        // Set the current user as grader. Otherwise, notifications will never be sent.
+                        $grade->grader = $USER->id;
+                        $assignment->update_grade($grade);
 
                         // In 3.1 the default download structure of the submission files changed so that each student had their own
                         // separate folder, the files were not renamed and the folder structure was kept. It is possible that
@@ -340,8 +344,10 @@ class assignfeedback_file_zip_importer {
                         // Update the number of feedback files for this user.
                         $fileplugin->update_file_count($grade);
 
-                        // Update the last modified time on the grade which will trigger student notifications.
-                        $assignment->notify_grade_modified($grade);
+                        if ($sendstudentnotifications) {
+                            // Update the last modified time on the grade which will trigger student notifications.
+                            $assignment->notify_grade_modified($grade, true);
+                        }
                     }
                 }
             }

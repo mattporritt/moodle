@@ -111,7 +111,21 @@ class assignfeedback_file_import_zip_form extends moodleform implements renderab
         }
 
         if (count($updates)) {
-            $mform->addElement('html', $renderer->list_block_contents(array(), $updates));
+            $updateslist = $renderer->list_block_contents([], $updates);
+            $summarydescription = get_string('feedbackfiles_update_summary_desc', 'assignfeedback_file');
+            $summarytext = get_string(
+                'feedbackfiles_update_summary',
+                'assignfeedback_file',
+                ['total' => count($updates)]
+            );
+            $mform->addElement('static', 'updates_summary', $summarydescription, $summarytext);
+            $mform->addElement('static', 'updates', '', $updateslist);
+            $mform->addElement(
+                'advcheckbox',
+                'sendstudentnotifications',
+                get_string('notifystudents', 'assign')
+            );
+            $mform->setDefault('sendstudentnotifications', $assignment->get_instance()->sendstudentnotifications);
         } else {
             $mform->addElement('html', get_string('nochanges', 'assignfeedback_file'));
         }
