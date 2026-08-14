@@ -167,4 +167,55 @@ final class cleanup_duplicate_recordings_task_test extends advanced_testcase {
             $chunksizeprop->setValue(null, $originalchunksize);
         }
     }
+
+    /**
+     * Test that a duplicate group of more than two rows is fully drained, and that a single
+     * batch never under-reports the number of ids still needing removal.
+     *
+     * The lookup query joins the table against itself on
+     * (bigbluebuttonbnid, groupid, recordingid) to find newer duplicates of an older row. For a
+     * group of more than two rows this join produces more matching pairs than there are rows to
+     * delete (for ids low < mid < high < top it matches (mid, low), (high, low), (high, mid),
+     * (top, low), (top, mid), (top, high) - six pairs for only three ids needing removal), so the
+     * ids column returned by the query must be de-duplicated before the chunk size limit is
+     * applied. Otherwise the limit could be reached by repeated matches for the same id before
+     * every id needing removal has been seen, under-reporting how many duplicates remain and
+     * causing the task to stop re-queueing while some duplicates are still present.
+     */
+    public function test_cleanup_removes_all_duplicates_in_a_larger_group(): void {
+        $this->resetAfterTest();
+        global $DB;
+        $bbbgenerator = $this->getDataGenerator()->get_plugin_generator('mod_bigbluebuttonbn');
+        $activity = $bbbgenerator->create_instance(['course' => $this->get_course()->id]);
+
+        // A single duplicate group of five rows: one original plus four duplicates, so the
+        // self-join over-counts (ten matching pairs for only four ids needing removal).
+        $originalid = $this->insert_recording_row($activity->id, 'recording-1', 0, 1000);
+        for ($i = 0; $i < 4; $i++) {
+            $this->insert_recording_row($activity->id, 'recording-1', 0, 2000 + $i);
+        }
+
+        // A chunk size smaller than the number of ids needing removal, but large enough that,
+        // without de-duplication, the raw over-counted matches for this group alone could fill
+        // the whole batch before every id needing removal has been counted.
+        $chunksizeprop = new \ReflectionProperty(cleanup_duplicate_recordings_task::class, 'chunksize');
+        $chunksizeprop->setAccessible(true);
+        $originalchunksize = $chunksizeprop->getValue();
+        $chunksizeprop->setValue(null, 3);
+
+        try {
+            $this->expectOutputRegex('/Removing \d duplicate recording row\(s\).*Removing \d duplicate recording row\(s\)/s');
+            $task = new cleanup_duplicate_recordings_task();
+            $task->execute();
+            $this->runAdhocTasks(cleanup_duplicate_recordings_task::class);
+
+            // Every duplicate must eventually be removed, leaving only the original row, with no
+            // duplicates missed regardless of how the batches were split.
+            $this->assertTrue(recording::record_exists($originalid));
+            $this->assertEquals(1, $DB->count_records('bigbluebuttonbn_recordings'));
+            $this->assertEmpty(\core\task\manager::get_adhoc_tasks(cleanup_duplicate_recordings_task::class));
+        } finally {
+            $chunksizeprop->setValue(null, $originalchunksize);
+        }
+    }
 }

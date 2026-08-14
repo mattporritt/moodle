@@ -90,7 +90,15 @@ class cleanup_duplicate_recordings_task extends adhoc_task {
     protected function get_duplicate_ids_to_remove(): array {
         global $DB;
 
-        $sql = "SELECT bbr.id
+        // DISTINCT is required here: for a duplicate group of more than two rows, the join
+        // below produces more matching pairs than there are rows to delete (e.g. for ids
+        // 10, 11, 12 sharing a group, it would match (11, 10), (12, 10), (12, 11), yielding
+        // bbr.id values 11, 12, 12). Without DISTINCT, the LIMIT applied via get_records_sql()
+        // would count and cap on that raw, non-deduplicated row set rather than on the actual
+        // ids needing deletion, and could return fewer unique ids than the chunk size even
+        // though duplicates remain, causing process_duplicate_recordings() to under-report and
+        // stop re-queueing before every duplicate has been removed.
+        $sql = "SELECT DISTINCT bbr.id
                   FROM {bigbluebuttonbn_recordings} bbr
                   JOIN {bigbluebuttonbn_recordings} bbr2
                     ON bbr2.bigbluebuttonbnid = bbr.bigbluebuttonbnid
