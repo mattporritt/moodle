@@ -211,6 +211,76 @@ final class registration_test extends \advanced_testcase {
     }
 
     /**
+     * Test that get_site_info() excludes fields pending admin confirmation when requested.
+     *
+     * @covers \core\hub\registration::get_site_info
+     * @covers \core\hub\registration::get_new_registration_fields
+     */
+    public function test_get_site_info_excludes_unconfirmed_fields(): void {
+        $this->resetAfterTest();
+
+        $this->register_site();
+
+        // Pretend the admin last confirmed just before the 'diskusage' and 'defaulthomepage'
+        // fields were introduced, so both are still pending confirmation.
+        set_config('site_regupdateversion', 2023081200, 'hub');
+
+        $fullsiteinfo = registration::get_site_info();
+        $this->assertArrayHasKey('diskusage', $fullsiteinfo);
+        $this->assertArrayHasKey('defaulthomepage', $fullsiteinfo);
+
+        $filteredsiteinfo = registration::get_site_info([], true);
+        $this->assertArrayNotHasKey('diskusage', $filteredsiteinfo);
+        $this->assertArrayNotHasKey('defaulthomepage', $filteredsiteinfo);
+
+        // Fields confirmed before the pending stamp must still be present.
+        $this->assertArrayHasKey('pluginusage', $filteredsiteinfo);
+        $this->assertArrayHasKey('dbtype', $filteredsiteinfo);
+    }
+
+    /**
+     * Test that the full payload resumes once the admin confirms the pending fields.
+     *
+     * @covers \core\hub\registration::get_site_info
+     * @covers \core\hub\registration::save_site_info
+     */
+    public function test_get_site_info_resumes_full_payload_after_confirmation(): void {
+        $this->resetAfterTest();
+
+        $this->register_site();
+
+        set_config('site_regupdateversion', 2023081200, 'hub');
+        $this->assertNotEmpty(registration::get_new_registration_fields());
+
+        // Simulate the admin submitting the registration form to confirm the new fields.
+        $formdata = new \stdClass();
+        foreach (registration::FORM_FIELDS as $field) {
+            $formdata->$field = null;
+        }
+        registration::save_site_info($formdata);
+
+        $this->assertEmpty(registration::get_new_registration_fields());
+        $this->assertEquals(registration::get_site_info(), registration::get_site_info([], true));
+    }
+
+    /**
+     * Insert a confirmed registration record so the site is treated as registered.
+     */
+    private function register_site(): void {
+        global $DB;
+
+        $DB->insert_record('registration_hubs', [
+            'token' => 'testtoken',
+            'hubname' => 'moodle',
+            'huburl' => HUB_MOODLEORGHUBURL,
+            'confirmed' => 1,
+            'secret' => 'testsecret',
+            'timemodified' => time(),
+        ]);
+        registration::reset_caches();
+    }
+
+    /**
      * Test getting the title for the defaulthomepage setting value.
      *
      * @covers \core\hub\registration::get_defaulthomepage_name
