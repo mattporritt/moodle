@@ -154,7 +154,7 @@ class tool_customlang_utils {
 
                 if (!is_null($progressbar)) {
                     $done++;
-                    $donepercent = floor(min($done, self::ROUGH_NUMBER_OF_STRINGS) / self::ROUGH_NUMBER_OF_STRINGS * 100);
+                    $donepercent = floor(min($done, self::ROUGH_NUMBER_OF_STRINGS) / self::ROUGH_NUMBER_OF_STRINGS * 99);
                     $progressbar->update_full($donepercent, $strinprogress);
                 }
 
