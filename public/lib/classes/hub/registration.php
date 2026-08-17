@@ -49,8 +49,9 @@ class registration {
         'geolocation', 'street', 'organisationtype', 'commnewsfirstname', 'commnewslastname'];
 
     /** @var array List of new FORM_FIELDS or siteinfo fields added indexed by the version when they were added.
-     * If site was already registered, admin will be promted to confirm new registration data manually. Until registration is manually confirmed,
-     * the scheduled task updating registration will be paused.
+     * If site was already registered, admin will be promted to confirm new registration data manually. Until
+     * registration is manually confirmed, the scheduled task updating registration will continue to run but will
+     * omit these fields from the payload, sending only the previously confirmed field set.
      * Keys of this array are not important as long as they increment, use current date to avoid confusions.
      */
     const CONFIRM_NEW_FIELDS = [
@@ -172,11 +173,12 @@ class registration {
      * Calculates and prepares site information to send to the sites directory as a part of registration.
      *
      * @param array $defaults default values for inputs in the registration form (if site was never registered before)
-     * @param bool $excludeunconfirmedfields if true, omit fields returned by {@see self::get_new_registration_fields()}
-     *        so the payload only contains data the admin has already confirmed sending
+     * @param array $excludefields siteinfo keys to omit from the payload, typically the result of
+     *        {@see self::get_new_registration_fields()}, so the payload only contains data the admin has
+     *        already confirmed sending
      * @return array site info
      */
-    public static function get_site_info($defaults = [], $excludeunconfirmedfields = false) {
+    public static function get_site_info($defaults = [], array $excludefields = []) {
         global $CFG, $DB;
         require_once($CFG->libdir . '/badgeslib.php');
         require_once($CFG->dirroot . "/course/lib.php");
@@ -243,8 +245,8 @@ class registration {
 
         // IMPORTANT: any new fields in siteinfo have to be added to the constant CONFIRM_NEW_FIELDS.
 
-        if ($excludeunconfirmedfields) {
-            $siteinfo = array_diff_key($siteinfo, array_flip(self::get_new_registration_fields()));
+        if ($excludefields) {
+            $siteinfo = array_diff_key($siteinfo, array_flip($excludefields));
         }
 
         return $siteinfo;
@@ -381,7 +383,7 @@ class registration {
             mtrace(get_string('pleaserefreshregistrationnewdata', 'admin'));
         }
 
-        $siteinfo = self::get_site_info([], (bool)$fieldsneedconfirm);
+        $siteinfo = self::get_site_info([], $fieldsneedconfirm);
         api::update_registration($siteinfo);
         $DB->update_record('registration_hubs', ['id' => $registration->id, 'timemodified' => time()]);
         mtrace(get_string('siteregistrationupdated', 'hub'));
@@ -656,7 +658,8 @@ class registration {
     /**
      * Returns the list of the fields in the registration form that were added since registration or last manual update
      *
-     * If this list is not empty the scheduled task will be paused and admin will be reminded to update registration manually.
+     * If this list is not empty, the scheduled task will omit these fields from the registration payload and the
+     * admin will be reminded to update registration manually to confirm and resume sending them.
      *
      * @return array
      */

@@ -216,7 +216,7 @@ final class registration_test extends \advanced_testcase {
         $fullsiteinfo = registration::get_site_info();
         $this->assertArrayHasKey('aiusage', $fullsiteinfo);
 
-        $filteredsiteinfo = registration::get_site_info([], true);
+        $filteredsiteinfo = registration::get_site_info([], registration::get_new_registration_fields());
         $this->assertArrayNotHasKey('aiusage', $filteredsiteinfo);
 
         // Fields confirmed before the pending stamp must still be present.
@@ -246,7 +246,42 @@ final class registration_test extends \advanced_testcase {
         registration::save_site_info($formdata);
 
         $this->assertEmpty(registration::get_new_registration_fields());
-        $this->assertEquals(registration::get_site_info(), registration::get_site_info([], true));
+        $this->assertEquals(
+            registration::get_site_info(),
+            registration::get_site_info([], registration::get_new_registration_fields())
+        );
+    }
+
+    /**
+     * Test that update_cron() keeps updating registration, instead of returning early, while fields are
+     * pending admin confirmation.
+     *
+     * @covers \core\hub\registration::update_cron
+     */
+    public function test_update_cron_continues_while_fields_pending_confirmation(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $this->register_site();
+        $registration = $DB->get_record('registration_hubs', ['confirmed' => 1]);
+
+        // Pretend the admin last confirmed just before 'aiusage' was introduced, so it is still
+        // pending confirmation and update_cron() would previously have returned early.
+        set_config('site_regupdateversion', 2023072300, 'hub');
+        $this->assertNotEmpty(registration::get_new_registration_fields());
+
+        // Ensure the timestamp comparison below is meaningful.
+        $this->waitForSecond();
+
+        $this->expectOutputRegex('~Registration information has been changed.*Site registration updated~s');
+
+        // Fake a successful response from the hub for hub_update_site_info.
+        \curl::mock_response(json_encode(1));
+        registration::update_cron();
+
+        $updated = $DB->get_record('registration_hubs', ['id' => $registration->id]);
+        $this->assertGreaterThan($registration->timemodified, $updated->timemodified);
     }
 
     /**
