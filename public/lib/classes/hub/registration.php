@@ -415,11 +415,13 @@ class registration {
         $DB->update_record('registration_hubs', $record);
         self::$registration = null;
 
-        $siteinfo = self::get_site_info();
-        if (strlen(http_build_query($siteinfo)) > 1800) {
-            // Update registration again because the initial request was too long and could have been truncated.
-            api::update_registration($siteinfo);
-            self::$registration = null;
+        // The redirect that led here only carried the token and site URL, so send the full site
+        // info now, unconditionally. If this fails, queue a retry rather than leaving a partial
+        // registration in place until the next scheduled registration_cron_task run.
+        try {
+            api::update_registration(self::get_site_info());
+        } catch (moodle_exception $e) {
+            \core\task\manager::queue_adhoc_task(new \core\task\complete_hub_registration_task(), true);
         }
 
         // Finally, allow other plugins to perform actions once a site is registered for first time.
@@ -515,17 +517,11 @@ class registration {
 
         $params = self::get_site_info();
 
-        // The most conservative limit for the redirect URL length is 2000 characters. Only pass parameters before
-        // we reach this limit. The next registration update will update all fields.
-        // We will also update registration after we receive confirmation from stats.moodle.org.
+        // The redirect only needs to carry what the hub matches the registration on. The full
+        // site info is sent unconditionally, immediately after confirmation, by
+        // confirm_registration(); there is no need to also try to fit it into the redirect URL.
         $url = new moodle_url(HUB_MOODLEORGHUBURL . '/local/hub/siteregistration.php',
             ['token' => $hub->token, 'url' => $params['url']]);
-        foreach ($params as $key => $value) {
-            if (strlen($url->out(false, [$key => $value])) > 2000) {
-                break;
-            }
-            $url->param($key, $value);
-        }
 
         $SESSION->registrationredirect = $returnurl;
         redirect($url);
