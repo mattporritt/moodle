@@ -384,6 +384,7 @@ class registration {
      * @param string $token
      * @param string $newtoken
      * @param string $hubname
+     * @return bool true if the full site info reached the hub, false if a retry was queued instead
      * @throws moodle_exception
      */
     public static function confirm_registration($token, $newtoken, $hubname) {
@@ -406,9 +407,19 @@ class registration {
         // The redirect that led here only carried the token and site URL, so send the full site
         // info now, unconditionally. If this fails, queue a retry rather than leaving a partial
         // registration in place until the next scheduled registration_cron_task run.
+        $fullpayloadsent = true;
         try {
             api::update_registration(self::get_site_info());
         } catch (moodle_exception $e) {
+            $fullpayloadsent = false;
+            if (!self::is_registered()) {
+                // The hub rejected the token: process_curl_exception() already called reset_token(),
+                // which deleted the record we just confirmed above. There is nothing left to retry,
+                // so send the site back through registration from scratch instead of queuing a retry
+                // task that would find no registration to act on. register() redirects and does not
+                // return.
+                self::register('');
+            }
             \core\task\manager::queue_adhoc_task(new \core\task\complete_hub_registration_task(), true);
         }
 
@@ -419,6 +430,8 @@ class registration {
                 $pluginfunction($registration->id);
             }
         }
+
+        return $fullpayloadsent;
     }
 
     /**
@@ -508,11 +521,28 @@ class registration {
         // The redirect only needs to carry what the hub matches the registration on. The full
         // site info is sent unconditionally, immediately after confirmation, by
         // confirm_registration(); there is no need to also try to fit it into the redirect URL.
-        $url = new moodle_url(HUB_MOODLEORGHUBURL . '/local/hub/siteregistration.php',
-            ['token' => $hub->token, 'url' => $params['url']]);
+        $url = self::get_registration_redirect_url($hub->token, $params['url']);
 
         $SESSION->registrationredirect = $returnurl;
         redirect($url);
+    }
+
+    /**
+     * Builds the redirect URL used to hand the initial registration off to the hub.
+     *
+     * Only the token and site URL travel on this redirect: they are all the hub needs to match
+     * the incoming request to the unconfirmed registration record. Kept as a separate method so
+     * the URL construction can be unit tested without going through {@see redirect()}.
+     *
+     * @param string $token
+     * @param string $siteurl
+     * @return moodle_url
+     */
+    protected static function get_registration_redirect_url(string $token, string $siteurl): moodle_url {
+        return new moodle_url(
+            HUB_MOODLEORGHUBURL . '/local/hub/siteregistration.php',
+            ['token' => $token, 'url' => $siteurl]
+        );
     }
 
     /**
