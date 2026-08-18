@@ -747,8 +747,11 @@ class auth_plugin_ldap extends auth_plugin_base {
                     // Secondly, and even more important, continuing would leave us with an incomplete list of LDAP
                     // users which would result in a mass suspension or deletion of user accounts below.
                     // Thus, we clean up and abort the synchronisation completely.
-                    print_string('ldapsearcherror', 'auth_ldap',
-                        (object) ['context' => $context, 'error' => ldap_error($ldapconnection)]);
+                    print_string(
+                        'ldapsearcherror',
+                        'auth_ldap',
+                        (object) ['context' => $context, 'error' => ldap_error($ldapconnection)]
+                    );
                     print_string('syncabortedldapsearcherror', 'auth_ldap');
                     $dbman->drop_table($table);
                     $this->ldap_close();
@@ -1601,9 +1604,16 @@ class auth_plugin_ldap extends auth_plugin_base {
                     // Secondly, this function has no way to tell its callers that the returned list of users is
                     // incomplete. An empty result is indistinguishable from 'this user does not exist in LDAP',
                     // so silently ignoring the error would make user_exists() return a wrong answer.
+                    // The error must be read before the connection is closed, otherwise
+                    // ldap_error() fatals with "LDAP connection has already been closed".
+                    $ldaperror = ldap_error($ldapconnection);
                     $this->ldap_close($ldap_pagedresults);
-                    throw new \moodle_exception('ldapsearcherror', 'auth_ldap', '',
-                        (object) ['context' => $context, 'error' => ldap_error($ldapconnection)]);
+                    throw new \moodle_exception(
+                        'ldapsearcherror',
+                        'auth_ldap',
+                        '',
+                        (object) ['context' => $context, 'error' => $ldaperror]
+                    );
                 }
                 if ($ldap_pagedresults) {
                     // Get next server cookie to know if we'll need to continue searching.

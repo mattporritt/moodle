@@ -142,6 +142,7 @@ $string['pluginnotenabled'] = 'Plugin not enabled!';
 $string['renamingnotallowed'] = 'User renaming not allowed in LDAP';
 $string['rootdseerror'] = 'Error querying rootDSE for Active Directory';
 $string['syncabortedldapsearcherror'] = "The user synchronisation has been aborted to avoid that user accounts are suspended or deleted based on an incomplete list of LDAP users\n";
+$string['syncfailed'] = 'The user synchronisation has been aborted. Please check the task output for details.';
 $string['syncroles'] = 'Synchronise system roles from LDAP';
 $string['synctask'] = 'LDAP users sync job';
 $string['sync_updateuserchunk'] = 'Set this value to the number of users you want updated per transaction. Setting this to 0 will update all users in one transaction.';
