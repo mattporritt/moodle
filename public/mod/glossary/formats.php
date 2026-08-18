@@ -281,7 +281,7 @@ echo "</select>";
 echo "</td>";
 echo "<td width=\"60%\" class=\"ps-3\">";
 print_string("cnfsortorder", "glossary");
-echo "    </td>";
+echo "</td>";
 echo "</tr>";
 echo "<tr class=\"align-middle\">";
 echo "<td class=\"text-end pe-3\" width=\"20%\"><label for=\"showgroup\">";
@@ -320,16 +320,11 @@ echo "<td>";
         // Extract showtabs value in an array.
         $visibletabs = glossary_get_visible_tabs($displayformat);
         $size = min(10, count($glossarytabs));
-echo "<select id=\"visibletabs\" name=\"visibletabs[]\" size=\"" . $size . "\" multiple=\"multiple\" class=\"select form-select\">";
-$selected = "";
-foreach ($glossarytabs as $tabkey => $tabvalue) {
-    if (in_array($tabkey, $visibletabs)) {
-        echo "<option value=\"" . $tabkey . "\" selected=\"selected\">" . $tabvalue . "</option>";
-    } else {
-        echo "<option value=\"" . $tabkey . "\>" . $tabvalue . "</option>";
-    }
-}
-echo "</select>";
+echo html_writer::select($glossarytabs, 'visibletabs[]', $visibletabs, false, [
+    'id' => 'visibletabs',
+    'multiple' => 'multiple',
+    'size' => $size,
+]);
 echo "</td>";
 echo "<td width=\"60%\" class=\"ps-3\">";
 print_string("cnftabs", "glossary");
@@ -345,7 +340,7 @@ echo "<input type=\"hidden\" name=\"id\" value=\"";
 p($id);
 echo "\" />";
 echo "<input type=\"hidden\" name=\"sesskey\" value=\"" . sesskey() . "\" />";
-echo "<input type=\"hidden\" name=\"mode\"    value=\"edit\" />";
+echo "<input type=\"hidden\" name=\"mode\" value=\"edit\" />";
 
 echo '</table></form>';
 
