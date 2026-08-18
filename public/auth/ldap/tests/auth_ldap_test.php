@@ -564,6 +564,238 @@ final class auth_ldap_test extends \advanced_testcase {
         ldap_delete($connection, 'cn='.$user['username'].',ou=users,'.$topdn);
     }
 
+    /**
+     * A failed LDAP search during sync must abort the synchronisation instead of silently
+     * continuing with an incomplete list of LDAP users (see MDL-89432).
+     *
+     * @covers \auth_plugin_ldap::sync_users_update_callback
+     */
+    public function test_sync_users_aborts_on_failed_ldap_search(): void {
+        global $DB;
+
+        if (!extension_loaded('ldap')) {
+            $this->markTestSkipped('LDAP extension is not loaded.');
+        }
+
+        $this->resetAfterTest();
+
+        if (!defined('TEST_AUTH_LDAP_HOST_URL') || !defined('TEST_AUTH_LDAP_BIND_DN') || !defined('TEST_AUTH_LDAP_BIND_PW') || !defined('TEST_AUTH_LDAP_DOMAIN')) {
+            $this->markTestSkipped('External LDAP test server not configured.');
+        }
+
+        $debuginfo = '';
+        if (!$connection = ldap_connect_moodle(TEST_AUTH_LDAP_HOST_URL, 3, 'rfc2307', TEST_AUTH_LDAP_BIND_DN, TEST_AUTH_LDAP_BIND_PW, LDAP_DEREF_NEVER, $debuginfo, false)) {
+            $this->markTestSkipped('Can not connect to LDAP test server: ' . $debuginfo);
+        }
+
+        $this->enable_plugin();
+
+        $topdn = 'dc=moodletest,' . TEST_AUTH_LDAP_DOMAIN;
+        $this->recursive_delete($connection, TEST_AUTH_LDAP_DOMAIN, 'dc=moodletest');
+
+        $o = [];
+        $o['objectClass'] = ['dcObject', 'organizationalUnit'];
+        $o['dc'] = 'moodletest';
+        $o['ou'] = 'MOODLETEST';
+        if (!ldap_add($connection, 'dc=moodletest,' . TEST_AUTH_LDAP_DOMAIN, $o)) {
+            $this->markTestSkipped('Can not create test LDAP container.');
+        }
+
+        // Only one real context with users. The second configured context does not exist on
+        // the server, so the LDAP search against it will fail with 'No such object'.
+        $o = [];
+        $o['objectClass'] = ['organizationalUnit'];
+        $o['ou'] = 'users';
+        ldap_add($connection, 'ou=' . $o['ou'] . ',' . $topdn, $o);
+
+        for ($i = 1; $i <= 3; $i++) {
+            $this->create_ldap_user($connection, $topdn, $i);
+        }
+
+        set_config('host_url', TEST_AUTH_LDAP_HOST_URL, 'auth_ldap');
+        set_config('start_tls', 0, 'auth_ldap');
+        set_config('ldap_version', 3, 'auth_ldap');
+        set_config('ldapencoding', 'utf-8', 'auth_ldap');
+        set_config('pagesize', 1000, 'auth_ldap');
+        set_config('bind_dn', TEST_AUTH_LDAP_BIND_DN, 'auth_ldap');
+        set_config('bind_pw', TEST_AUTH_LDAP_BIND_PW, 'auth_ldap');
+        set_config('user_type', 'rfc2307', 'auth_ldap');
+        set_config('contexts', 'ou=users,' . $topdn, 'auth_ldap');
+        set_config('search_sub', 0, 'auth_ldap');
+        set_config('opt_deref', LDAP_DEREF_NEVER, 'auth_ldap');
+        set_config('user_attribute', 'cn', 'auth_ldap');
+        set_config('memberattribute', 'memberuid', 'auth_ldap');
+        set_config('memberattribute_isdn', 0, 'auth_ldap');
+        set_config('removeuser', AUTH_REMOVEUSER_SUSPEND, 'auth_ldap');
+
+        set_config('field_map_email', 'mail', 'auth_ldap');
+        set_config('field_updatelocal_email', 'oncreate', 'auth_ldap');
+        set_config('field_updateremote_email', '0', 'auth_ldap');
+        set_config('field_lock_email', 'unlocked', 'auth_ldap');
+
+        /** @var \auth_plugin_ldap $auth */
+        $auth = \core\di::get(\core\authentication::class)->get_plugin('ldap');
+
+        // First sync: creates the 3 users from the only (valid) context.
+        ob_start();
+        $result = $auth->sync_users(true);
+        ob_end_clean();
+        $this->assertTrue($result);
+        $this->assertEquals(3, $DB->count_records('user', ['auth' => 'ldap']));
+        $this->assertEquals(0, $DB->count_records('user', ['auth' => 'ldap', 'suspended' => 1]));
+
+        // Now add a second, non-existent context. The search against it will fail.
+        // A fresh plugin instance is needed because the plugin caches its config at
+        // construction time.
+        set_config('contexts', 'ou=users,' . $topdn . ';ou=doesnotexist,' . $topdn, 'auth_ldap');
+        $auth = \core\di::get(\core\authentication::class)->get_plugin('ldap');
+
+        ob_start();
+        // The failing search triggers an expected PHP warning from ldap_list() itself; suppress
+        // it here so it does not fail the test run (Moodle's phpunit.xml sets failOnWarning).
+        $result = $this->suppress_expected_ldap_warning(fn() => $auth->sync_users(true));
+        $output = ob_get_clean();
+
+        // The sync must report failure rather than success.
+        $this->assertFalse($result);
+        $this->assertStringContainsString('doesnotexist', $output);
+
+        // None of the existing users must have been suspended or deleted: the failed search
+        // must not be treated as "these users no longer exist in LDAP".
+        $this->assertEquals(3, $DB->count_records('user', ['auth' => 'ldap']));
+        $this->assertEquals(0, $DB->count_records('user', ['auth' => 'ldap', 'suspended' => 1]));
+        $this->assertEquals(0, $DB->count_records('user', ['deleted' => 1]));
+
+        // The temporary table used during the sync must have been cleaned up.
+        $dbman = $DB->get_manager();
+        $this->assertFalse($dbman->table_exists('tmp_extuser'));
+    }
+
+    /**
+     * A failed LDAP search in ldap_get_userlist() (used by, for example, user_exists()) must
+     * raise an exception rather than being silently treated as "no matching users" (see
+     * MDL-89432).
+     *
+     * @covers \auth_plugin_ldap::ldap_get_userlist
+     */
+    public function test_ldap_get_userlist_throws_on_failed_search(): void {
+        if (!extension_loaded('ldap')) {
+            $this->markTestSkipped('LDAP extension is not loaded.');
+        }
+
+        $this->resetAfterTest();
+
+        if (!defined('TEST_AUTH_LDAP_HOST_URL') || !defined('TEST_AUTH_LDAP_BIND_DN') || !defined('TEST_AUTH_LDAP_BIND_PW') || !defined('TEST_AUTH_LDAP_DOMAIN')) {
+            $this->markTestSkipped('External LDAP test server not configured.');
+        }
+
+        $debuginfo = '';
+        if (!$connection = ldap_connect_moodle(TEST_AUTH_LDAP_HOST_URL, 3, 'rfc2307', TEST_AUTH_LDAP_BIND_DN, TEST_AUTH_LDAP_BIND_PW, LDAP_DEREF_NEVER, $debuginfo, false)) {
+            $this->markTestSkipped('Can not connect to LDAP test server: ' . $debuginfo);
+        }
+
+        $this->enable_plugin();
+
+        $topdn = 'dc=moodletest,' . TEST_AUTH_LDAP_DOMAIN;
+        $this->recursive_delete($connection, TEST_AUTH_LDAP_DOMAIN, 'dc=moodletest');
+
+        $o = [];
+        $o['objectClass'] = ['dcObject', 'organizationalUnit'];
+        $o['dc'] = 'moodletest';
+        $o['ou'] = 'MOODLETEST';
+        if (!ldap_add($connection, 'dc=moodletest,' . TEST_AUTH_LDAP_DOMAIN, $o)) {
+            $this->markTestSkipped('Can not create test LDAP container.');
+        }
+
+        set_config('host_url', TEST_AUTH_LDAP_HOST_URL, 'auth_ldap');
+        set_config('start_tls', 0, 'auth_ldap');
+        set_config('ldap_version', 3, 'auth_ldap');
+        set_config('ldapencoding', 'utf-8', 'auth_ldap');
+        set_config('pagesize', 1000, 'auth_ldap');
+        set_config('bind_dn', TEST_AUTH_LDAP_BIND_DN, 'auth_ldap');
+        set_config('bind_pw', TEST_AUTH_LDAP_BIND_PW, 'auth_ldap');
+        set_config('user_type', 'rfc2307', 'auth_ldap');
+        // The configured context does not exist on the server.
+        set_config('contexts', 'ou=doesnotexist,' . $topdn, 'auth_ldap');
+        set_config('search_sub', 0, 'auth_ldap');
+        set_config('opt_deref', LDAP_DEREF_NEVER, 'auth_ldap');
+        set_config('user_attribute', 'cn', 'auth_ldap');
+
+        /** @var \auth_plugin_ldap $auth */
+        $auth = \core\di::get(\core\authentication::class)->get_plugin('ldap');
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessageMatches('/doesnotexist/');
+        // The failing search triggers an expected PHP warning from ldap_list() itself; suppress
+        // it here so it does not fail the test run (Moodle's phpunit.xml sets failOnWarning).
+        $this->suppress_expected_ldap_warning(fn() => $auth->user_exists('someusername'));
+    }
+
+    /**
+     * The sync_task scheduled task must fail (not report success) when the underlying LDAP
+     * synchronisation aborts because a search failed (see MDL-89432).
+     *
+     * @covers \auth_ldap\task\sync_task::execute
+     */
+    public function test_sync_task_fails_when_ldap_search_fails(): void {
+        if (!extension_loaded('ldap')) {
+            $this->markTestSkipped('LDAP extension is not loaded.');
+        }
+
+        $this->resetAfterTest();
+
+        if (!defined('TEST_AUTH_LDAP_HOST_URL') || !defined('TEST_AUTH_LDAP_BIND_DN') || !defined('TEST_AUTH_LDAP_BIND_PW') || !defined('TEST_AUTH_LDAP_DOMAIN')) {
+            $this->markTestSkipped('External LDAP test server not configured.');
+        }
+
+        $debuginfo = '';
+        if (!$connection = ldap_connect_moodle(TEST_AUTH_LDAP_HOST_URL, 3, 'rfc2307', TEST_AUTH_LDAP_BIND_DN, TEST_AUTH_LDAP_BIND_PW, LDAP_DEREF_NEVER, $debuginfo, false)) {
+            $this->markTestSkipped('Can not connect to LDAP test server: ' . $debuginfo);
+        }
+
+        $this->enable_plugin();
+
+        $topdn = 'dc=moodletest,' . TEST_AUTH_LDAP_DOMAIN;
+        $this->recursive_delete($connection, TEST_AUTH_LDAP_DOMAIN, 'dc=moodletest');
+
+        $o = [];
+        $o['objectClass'] = ['dcObject', 'organizationalUnit'];
+        $o['dc'] = 'moodletest';
+        $o['ou'] = 'MOODLETEST';
+        if (!ldap_add($connection, 'dc=moodletest,' . TEST_AUTH_LDAP_DOMAIN, $o)) {
+            $this->markTestSkipped('Can not create test LDAP container.');
+        }
+
+        set_config('host_url', TEST_AUTH_LDAP_HOST_URL, 'auth_ldap');
+        set_config('start_tls', 0, 'auth_ldap');
+        set_config('ldap_version', 3, 'auth_ldap');
+        set_config('ldapencoding', 'utf-8', 'auth_ldap');
+        set_config('pagesize', 1000, 'auth_ldap');
+        set_config('bind_dn', TEST_AUTH_LDAP_BIND_DN, 'auth_ldap');
+        set_config('bind_pw', TEST_AUTH_LDAP_BIND_PW, 'auth_ldap');
+        set_config('user_type', 'rfc2307', 'auth_ldap');
+        // The configured context does not exist on the server.
+        set_config('contexts', 'ou=doesnotexist,' . $topdn, 'auth_ldap');
+        set_config('search_sub', 0, 'auth_ldap');
+        set_config('opt_deref', LDAP_DEREF_NEVER, 'auth_ldap');
+        set_config('user_attribute', 'cn', 'auth_ldap');
+        set_config('removeuser', AUTH_REMOVEUSER_KEEP, 'auth_ldap');
+
+        $task = new \auth_ldap\task\sync_task();
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessageMatches('/syncfailed|synchronisation/');
+        ob_start();
+        try {
+            // The failing search triggers an expected PHP warning from ldap_list() itself;
+            // suppress it here so it does not fail the test run (Moodle's phpunit.xml sets
+            // failOnWarning).
+            $this->suppress_expected_ldap_warning(fn() => $task->execute());
+        } finally {
+            ob_end_clean();
+        }
+    }
+
     protected function create_ldap_user($connection, $topdn, $i) {
         $o = array();
         $o['objectClass']   = array('inetOrgPerson', 'organizationalPerson', 'person', 'posixAccount');
@@ -581,6 +813,25 @@ final class auth_ldap_test extends \advanced_testcase {
 
     protected function delete_ldap_user($connection, $topdn, $i) {
         ldap_delete($connection, 'cn=username'.$i.',ou=users,'.$topdn);
+    }
+
+    /**
+     * Runs $callback while suppressing the PHP E_WARNING raised by a failing ldap_list()/
+     * ldap_search() call, so that the expected warning does not fail the test run under
+     * Moodle's phpunit.xml failOnWarning setting.
+     *
+     * @param callable $callback
+     * @return mixed the return value of $callback
+     */
+    protected function suppress_expected_ldap_warning(callable $callback) {
+        set_error_handler(function ($errno, $errstr) {
+            return str_contains($errstr, 'ldap_list') || str_contains($errstr, 'ldap_search');
+        }, E_WARNING);
+        try {
+            return $callback();
+        } finally {
+            restore_error_handler();
+        }
     }
 
     protected function enable_plugin() {
