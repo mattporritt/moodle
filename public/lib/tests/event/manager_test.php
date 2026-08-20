@@ -47,10 +47,10 @@ final class manager_test extends \advanced_testcase {
             path: 'public/lib/tests/fixtures/fakeplugins/fake',
         );
 
-        $observers = array_filter(
+        $observers = array_values(array_filter(
             \core\event\manager::get_all_observers()['\core\event\course_created'],
             fn($observer) => $observer->plugintype == 'fake'
-        );
+        ));
         $this->assertEquals('\fake_fullfeatured\event_listener::event_handler', $observers[0]->callable);
 
         // Now, deprecate the plugin type, verifying the event observer isn't visible.
