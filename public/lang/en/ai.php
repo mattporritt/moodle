@@ -129,6 +129,7 @@ $string['error:invalidresponse'] = 'The AI service did not return a usable respo
 $string['error:noproviders'] = 'No providers available to process the action.';
 $string['error:providernotfound'] = 'The AI provider instance is not found.';
 $string['error:unknown'] = 'Unknown error';
+$string['error:unsupportedimage'] = 'The supplied file is not a supported image. Upload a JPEG, PNG, or WebP file.';
 $string['globalratelimit'] = 'Maximum number of site-wide requests';
 $string['globalratelimit_help'] = 'The number of site-wide requests allowed per hour.';
 $string['manageaiplacements'] = 'Manage AI placements';

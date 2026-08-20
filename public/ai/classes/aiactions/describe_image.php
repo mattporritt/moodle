@@ -29,8 +29,11 @@ class describe_image extends base {
     /** @var string[] MIME types supported at the provider-independent action boundary. */
     public const SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-    /** @var array Verified image dimensions and type information. */
+    /** @var array Image dimensions, defaulting to zero when the image could not be read. */
     private array $imageinfo;
+
+    /** @var bool Whether the supplied image has a supported MIME type and readable image data. */
+    private bool $imagevalid;
 
     /**
      * Create a new describe image action.
@@ -57,12 +60,11 @@ class describe_image extends base {
     ) {
         parent::__construct($contextid);
 
-        if (!in_array($image->get_mimetype(), self::SUPPORTED_MIME_TYPES, true)) {
-            throw new \core\exception\coding_exception('Unsupported image MIME type: ' . $image->get_mimetype());
-        }
-        $imageinfo = $image->get_imageinfo();
+        $this->imagevalid = in_array($image->get_mimetype(), self::SUPPORTED_MIME_TYPES, true);
+        $imageinfo = $this->imagevalid ? $image->get_imageinfo() : false;
         if ($imageinfo === false) {
-            throw new \core\exception\coding_exception('The supplied file is not a valid image.');
+            $this->imagevalid = false;
+            $imageinfo = ['width' => 0, 'height' => 0];
         }
         $this->imageinfo = $imageinfo;
     }
@@ -81,13 +83,25 @@ class describe_image extends base {
     }
 
     /**
-     * Validate deterministic provider image limits before loading the file into a request.
+     * Validate the supplied image is a supported, readable image within deterministic provider limits.
+     *
+     * This must be called, and its result checked, before a provider is asked to process the action.
+     * The action boundary accepts any stored_file; an unsupported or unreadable image is a normal
+     * request-time failure, not a programming error, so it is reported through the standard AI
+     * subsystem error contract rather than thrown as an exception.
      *
      * @param int|null $maxfilesize Maximum image size in bytes, or null when the provider has no fixed limit.
      * @param int|null $maxdimension Maximum width or height in pixels, or null when the provider has no fixed limit.
      * @return array|true True when valid, otherwise standard AI error details.
      */
     public function validate_provider_limits(?int $maxfilesize = null, ?int $maxdimension = null): array|true {
+        if (!$this->imagevalid) {
+            return \core_ai\error\factory::create(
+                400,
+                get_string('error:unsupportedimage', 'core_ai'),
+            )->get_error_details();
+        }
+
         if ($maxfilesize !== null && $this->image->get_filesize() > $maxfilesize) {
             return \core_ai\error\factory::create(
                 400,

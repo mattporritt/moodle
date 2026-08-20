@@ -64,7 +64,8 @@ final class describe_image_test extends \advanced_testcase {
     }
 
     /**
-     * Test unsupported MIME types are rejected at the action boundary.
+     * Test unsupported MIME types are constructed without error, then rejected via the AI
+     * subsystem's standard error contract rather than an exception.
      */
     public function test_unsupported_mimetype(): void {
         $this->resetAfterTest();
@@ -77,12 +78,16 @@ final class describe_image_test extends \advanced_testcase {
             'filename' => 'image.svg',
         ], '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
 
-        $this->expectException(\core\exception\coding_exception::class);
-        new describe_image(1, 7, $file, 'Describe it', 'A test', 'English');
+        $action = new describe_image(1, 7, $file, 'Describe it', 'A test', 'English');
+        $error = $action->validate_provider_limits();
+        $this->assertIsArray($error);
+        $this->assertEquals(400, $error['errorcode']);
+        $this->assertStringContainsString('not a supported image', $error['errormessage']);
     }
 
     /**
-     * Test files with a supported MIME type must contain a valid image.
+     * Test files with a supported MIME type but invalid image content are constructed without
+     * error, then rejected via the AI subsystem's standard error contract rather than an exception.
      */
     public function test_invalid_image_content(): void {
         $this->resetAfterTest();
@@ -95,9 +100,39 @@ final class describe_image_test extends \advanced_testcase {
             'filename' => 'invalid.png',
         ], 'This is not an image.');
 
-        $this->expectException(\core\exception\coding_exception::class);
-        $this->expectExceptionMessage('The supplied file is not a valid image.');
-        new describe_image(1, 7, $file, 'Describe it', 'A test', 'English');
+        $action = new describe_image(1, 7, $file, 'Describe it', 'A test', 'English');
+        $error = $action->validate_provider_limits();
+        $this->assertIsArray($error);
+        $this->assertEquals(400, $error['errorcode']);
+        $this->assertStringContainsString('not a supported image', $error['errormessage']);
+    }
+
+    /**
+     * Test an invalid image is still stored with a failure result, using zeroed dimensions.
+     */
+    public function test_store_with_invalid_image(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $file = get_file_storage()->create_file_from_string([
+            'contextid' => \context_system::instance()->id,
+            'component' => 'core_ai',
+            'filearea' => 'unittest',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'invalid.png',
+        ], 'This is not an image.');
+
+        $action = new describe_image(1, 7, $file, 'Describe it', 'A test', 'English');
+        $response = new response_describe_image(
+            success: false,
+            errorcode: 400,
+            error: 'Bad request',
+            errormessage: 'The supplied file is not a supported image. Upload a JPEG, PNG, or WebP file.',
+        );
+
+        $record = $DB->get_record('ai_action_describe_image', ['id' => $action->store($response)], '*', MUST_EXIST);
+        $this->assertEquals(0, $record->width);
+        $this->assertEquals(0, $record->height);
     }
 
     /**
