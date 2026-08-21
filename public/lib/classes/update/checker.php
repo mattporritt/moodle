@@ -516,7 +516,7 @@ class checker {
     protected function prepare_site_identifier() {
         try {
             $secret = \core\hub\registration::get_secret();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return null;
         }
 
