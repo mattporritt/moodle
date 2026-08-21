@@ -117,4 +117,36 @@ final class api_test extends \advanced_testcase {
 
         $this->assertNotSame($first['signature'], $second['signature']);
     }
+
+    /**
+     * An unexpected error while signing (for example, a broken clock service) must degrade to
+     * sending no signature, exactly like the anticipated empty-input cases, and must not
+     * propagate the exception.
+     */
+    public function test_sign_registration_update_degrades_on_unexpected_error(): void {
+        $this->resetAfterTest();
+
+        $this->register_site('thesharedsecret');
+
+        \core\di::set(\core\clock::class, new class implements \core\clock {
+            /**
+             * Always throws, to simulate an unexpected error inside the signing code.
+             */
+            public function time(): int {
+                throw new \RuntimeException('clock is unavailable');
+            }
+
+            /**
+             * Always throws, to simulate an unexpected error inside the signing code.
+             */
+            public function now(): \DateTimeImmutable {
+                throw new \RuntimeException('clock is unavailable');
+            }
+        });
+
+        $result = $this->sign_registration_update('https://example.com');
+
+        $this->assertSame([], $result);
+        $this->assertDebuggingCalled('Failed to sign registration update: clock is unavailable');
+    }
 }
