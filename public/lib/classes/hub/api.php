@@ -163,6 +163,7 @@ class api {
             $signature = hash_hmac('sha256', $siteurl . '|' . $timestamp, md5($secret));
             return ['timestamp' => $timestamp, 'signature' => $signature];
         } catch (\Throwable $e) {
+            debugging('Failed to sign registration update: ' . $e->getMessage(), DEBUG_DEVELOPER);
             return [];
         }
     }
