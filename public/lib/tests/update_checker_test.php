@@ -32,6 +32,7 @@ require_once(__DIR__.'/fixtures/testable_update_checker.php');
  * @copyright 2012, 2015 David Mudrak <david@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\core\update\checker::class)]
 final class update_checker_test extends \advanced_testcase {
 
     public function test_core_available_update(): void {
@@ -285,5 +286,65 @@ final class update_checker_test extends \advanced_testcase {
         $this->assertTrue($provider->is_same_release('2.3.2+'));
         $this->assertTrue($provider->is_same_release('2.3.2+ (Build: 20121013)'));
         $this->assertFalse($provider->is_same_release('2.4dev (Build: 20121012)'));
+    }
+
+    /**
+     * An unregistered site must not send a siteidentifier param.
+     */
+    public function test_prepare_request_params_unregistered_site(): void {
+        \core\hub\registration::reset_caches();
+
+        $provider = testable_checker::instance();
+        $provider->fake_current_environment(2012060102.00, '2.3.2 (Build: 20121012)', '2.3', []);
+        $params = $provider->testable_prepare_request_params();
+
+        $this->assertArrayNotHasKey('siteidentifier', $params);
+    }
+
+    /**
+     * A registered site must send siteidentifier as md5() of its registration secret.
+     */
+    public function test_prepare_request_params_registered_site(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $secret = 'unittestsecret1234567890';
+        $DB->insert_record('registration_hubs', (object) [
+            'token' => 'unittesttoken',
+            'hubname' => 'Test hub',
+            'huburl' => HUB_MOODLEORGHUBURL,
+            'confirmed' => 1,
+            'secret' => $secret,
+            'timemodified' => time(),
+        ]);
+        \core\hub\registration::reset_caches();
+
+        $provider = testable_checker::instance();
+        $provider->fake_current_environment(2012060102.00, '2.3.2 (Build: 20121012)', '2.3', []);
+        $params = $provider->testable_prepare_request_params();
+
+        $this->assertArrayHasKey('siteidentifier', $params);
+        $this->assertSame(md5($secret), $params['siteidentifier']);
+
+        \core\hub\registration::reset_caches();
+    }
+
+    /**
+     * The country param must only be sent when $CFG->country is set.
+     */
+    public function test_prepare_request_params_country(): void {
+        global $CFG;
+        $this->resetAfterTest();
+
+        unset($CFG->country);
+        $provider = testable_checker::instance();
+        $provider->fake_current_environment(2012060102.00, '2.3.2 (Build: 20121012)', '2.3', []);
+        $params = $provider->testable_prepare_request_params();
+        $this->assertArrayNotHasKey('countrycode', $params);
+
+        $CFG->country = 'AU';
+        $params = $provider->testable_prepare_request_params();
+        $this->assertArrayHasKey('countrycode', $params);
+        $this->assertSame('AU', $params['countrycode']);
     }
 }
