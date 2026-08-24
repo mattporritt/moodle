@@ -289,6 +289,11 @@ class assignfeedback_file_zip_importer {
 
         $participants = $this->get_participant_mapping($assignment);
 
+        // Track which grades have already had their grader set and pushed via update_grade() in this
+        // import, so a student with more than one modified feedback file only triggers the associated
+        // grade-update side effects (gradebook push, submission_graded event, completion checks) once.
+        $gradeswithgraderset = [];
+
         foreach ($files as $unzippedfile) {
             $users = null;
             $plugin = null;
@@ -298,9 +303,12 @@ class assignfeedback_file_zip_importer {
                 if ($this->is_file_modified($assignment, $users, $plugin, $filename, $unzippedfile)) {
                     foreach ($users as $user) {
                         $grade = $assignment->get_user_grade($user->id, true);
-                        // Set the current user as grader. Otherwise, notifications will never be sent.
-                        $grade->grader = $USER->id;
-                        $assignment->update_grade($grade);
+                        if (!isset($gradeswithgraderset[$grade->id])) {
+                            // Set the current user as grader. Otherwise, notifications will never be sent.
+                            $grade->grader = $USER->id;
+                            $assignment->update_grade($grade);
+                            $gradeswithgraderset[$grade->id] = true;
+                        }
 
                         // In 3.1 the default download structure of the submission files changed so that each student had their own
                         // separate folder, the files were not renamed and the folder structure was kept. It is possible that

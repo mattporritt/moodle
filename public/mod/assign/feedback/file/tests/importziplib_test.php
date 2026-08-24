@@ -196,6 +196,102 @@ final class importziplib_test extends \advanced_testcase {
     }
 
     /**
+     * Set up an assignment with a teacher grader, a student whose feedback file in the import area
+     * is new (modified), and a second student whose feedback file in the import area is byte-for-byte
+     * identical to what is already stored (unmodified).
+     *
+     * @return array [assign $assign, stdClass $teacher, stdClass $modifiedstudent, stdClass $unmodifiedstudent]
+     */
+    private function prepare_import_fixture_with_unmodified_student(): array {
+        global $PAGE;
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $modifiedstudent = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $unmodifiedstudent = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $assign = $this->create_instance($course, [
+            'assignsubmission_onlinetext_enabled' => 1,
+            'assignfeedback_file_enabled' => 1,
+        ]);
+
+        $PAGE->set_url(new \moodle_url('/mod/assign/view.php', ['id' => $assign->get_course_module()->id]));
+
+        $this->add_submission($modifiedstudent, $assign);
+        $this->add_submission($unmodifiedstudent, $assign);
+
+        // Grading actions (including the zip import) happen as the teacher.
+        $this->setUser($teacher);
+
+        $fs = get_file_storage();
+
+        // The modified student has no existing feedback file yet, so their import file is new.
+        $modifiedfilename = fullname($modifiedstudent) . '_' .
+                $assign->get_uniqueid_for_user($modifiedstudent->id) . '_assignsubmission_onlinetext_feedback.txt';
+        $this->create_import_file($fs, $assign, $teacher, $modifiedfilename, 'New feedback');
+
+        // The unmodified student already has a stored feedback file with the exact content being
+        // re-imported, so the import file for them must not be treated as a change.
+        $unmodifiedfilename = fullname($unmodifiedstudent) . '_' .
+                $assign->get_uniqueid_for_user($unmodifiedstudent->id) . '_assignsubmission_onlinetext_feedback.txt';
+        $existinggrade = $assign->get_user_grade($unmodifiedstudent->id, true);
+        $existingfilerecord = new \stdClass();
+        $existingfilerecord->contextid = $assign->get_context()->id;
+        $existingfilerecord->component = 'assignfeedback_file';
+        $existingfilerecord->filearea = ASSIGNFEEDBACK_FILE_FILEAREA;
+        $existingfilerecord->itemid = $existinggrade->id;
+        $existingfilerecord->filepath = '/';
+        $existingfilerecord->filename = $unmodifiedfilename;
+        $fs->create_file_from_string($existingfilerecord, 'Unchanged feedback');
+        $this->create_import_file($fs, $assign, $teacher, $unmodifiedfilename, 'Unchanged feedback');
+
+        return [$assign, $teacher, $modifiedstudent, $unmodifiedstudent];
+    }
+
+    /**
+     * Create a file in the zip import staging area.
+     *
+     * @param file_storage $fs
+     * @param assign $assign
+     * @param stdClass $teacher
+     * @param string $filename
+     * @param string $content
+     */
+    private function create_import_file($fs, $assign, $teacher, string $filename, string $content): void {
+        $record = new \stdClass();
+        $record->contextid = $assign->get_context()->id;
+        $record->component = 'assignfeedback_file';
+        $record->filearea = ASSIGNFEEDBACK_FILE_IMPORT_FILEAREA;
+        $record->itemid = $teacher->id;
+        $record->filepath = '/import/';
+        $record->filename = $filename;
+        $fs->create_file_from_string($record, $content);
+    }
+
+    /**
+     * Test that only the student whose feedback file actually changed is queued for a notification,
+     * not every student included in the zip.
+     */
+    public function test_import_zip_files_only_notifies_modified_students(): void {
+        $this->resetAfterTest();
+
+        [$assign, , $modifiedstudent, $unmodifiedstudent] = $this->prepare_import_fixture_with_unmodified_student();
+        $importer = new \assignfeedback_file_zip_importer();
+        $fileplugin = $assign->get_feedback_plugin_by_type('file');
+        $importer->import_zip_files($assign, $fileplugin, true);
+
+        $modifiedflags = $assign->get_user_flags($modifiedstudent->id, false);
+        $this->assertEquals(0, $modifiedflags->mailed);
+
+        $unmodifiedflags = $assign->get_user_flags($unmodifiedstudent->id, false);
+        $this->assertFalse($unmodifiedflags);
+
+        // The unmodified student's grade must not have been touched either.
+        $unmodifiedgrade = $assign->get_user_grade($unmodifiedstudent->id, false);
+        $this->assertEquals(0, $unmodifiedgrade->grader);
+    }
+
+    /**
      * Data provider for test_import_zip_files_notifications().
      *
      * @return array
