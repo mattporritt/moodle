@@ -28,5 +28,9 @@ $observers = [
     [
         'eventname' => '\core\event\course_created',
         'callback'  => '\fake_fullfeatured\event_listener::event_handler',
+        // A low priority forces this observer after the other core course_created observers
+        // (e.g. mod_forum, tool_brickfield), so manager_test.php exercises a non-zero array key
+        // when filtering by plugintype. See MDL-89535.
+        'priority'  => -1000,
     ],
 ];
