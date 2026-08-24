@@ -196,9 +196,15 @@ final class importziplib_test extends \advanced_testcase {
     }
 
     /**
-     * Set up an assignment with a teacher grader, a student whose feedback file in the import area
-     * is new (modified), and a second student whose feedback file in the import area is byte-for-byte
-     * identical to what is already stored (unmodified).
+     * Set up an assignment with a teacher grader, a student whose submitted file has genuinely been
+     * edited (feedback added) before being re-uploaded, and a second student whose re-uploaded file is
+     * byte-for-byte identical to what they originally submitted.
+     *
+     * This mirrors the ticket's own scenario: a teacher downloads all submissions, edits the file for
+     * one student, then re-uploads the zip. is_file_modified() detects a change by diffing the
+     * re-uploaded file against the student's original assignsubmission_file submission, so the fixture
+     * must go through that plugin (assignfeedback_file itself has no get_files() override, so it is
+     * never the plugin actually consulted for this comparison in the current, real download flow).
      *
      * @return array [assign $assign, stdClass $teacher, stdClass $modifiedstudent, stdClass $unmodifiedstudent]
      */
@@ -211,59 +217,105 @@ final class importziplib_test extends \advanced_testcase {
         $unmodifiedstudent = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         $assign = $this->create_instance($course, [
-            'assignsubmission_onlinetext_enabled' => 1,
+            'assignsubmission_file_enabled' => 1,
+            'assignsubmission_file_maxfiles' => 2,
+            'assignsubmission_file_maxsizebytes' => 512,
             'assignfeedback_file_enabled' => 1,
         ]);
 
         $PAGE->set_url(new \moodle_url('/mod/assign/view.php', ['id' => $assign->get_course_module()->id]));
 
-        $this->add_submission($modifiedstudent, $assign);
-        $this->add_submission($unmodifiedstudent, $assign);
+        $originalcontent = 'Original submission content';
+        $this->add_file_submission($modifiedstudent, $assign, 'feedback.txt', $originalcontent);
+        $this->add_file_submission($unmodifiedstudent, $assign, 'feedback.txt', $originalcontent);
 
         // Grading actions (including the zip import) happen as the teacher.
         $this->setUser($teacher);
 
         $fs = get_file_storage();
 
-        // The modified student has no existing feedback file yet, so their import file is new.
-        $modifiedfilename = fullname($modifiedstudent) . '_' .
-                $assign->get_uniqueid_for_user($modifiedstudent->id) . '_assignsubmission_onlinetext_feedback.txt';
-        $this->create_import_file($fs, $assign, $teacher, $modifiedfilename, 'New feedback');
+        // The modified student's re-uploaded file has different content to their submission.
+        $this->create_import_file(
+            $fs,
+            $assign,
+            $teacher,
+            $modifiedstudent,
+            'assignsubmission_file',
+            'feedback.txt',
+            'Edited feedback content'
+        );
 
-        // The unmodified student already has a stored feedback file with the exact content being
-        // re-imported, so the import file for them must not be treated as a change.
-        $unmodifiedfilename = fullname($unmodifiedstudent) . '_' .
-                $assign->get_uniqueid_for_user($unmodifiedstudent->id) . '_assignsubmission_onlinetext_feedback.txt';
-        $existinggrade = $assign->get_user_grade($unmodifiedstudent->id, true);
-        $existingfilerecord = new \stdClass();
-        $existingfilerecord->contextid = $assign->get_context()->id;
-        $existingfilerecord->component = 'assignfeedback_file';
-        $existingfilerecord->filearea = ASSIGNFEEDBACK_FILE_FILEAREA;
-        $existingfilerecord->itemid = $existinggrade->id;
-        $existingfilerecord->filepath = '/';
-        $existingfilerecord->filename = $unmodifiedfilename;
-        $fs->create_file_from_string($existingfilerecord, 'Unchanged feedback');
-        $this->create_import_file($fs, $assign, $teacher, $unmodifiedfilename, 'Unchanged feedback');
+        // The unmodified student's re-uploaded file is identical to their submission.
+        $this->create_import_file(
+            $fs,
+            $assign,
+            $teacher,
+            $unmodifiedstudent,
+            'assignsubmission_file',
+            'feedback.txt',
+            $originalcontent
+        );
 
         return [$assign, $teacher, $modifiedstudent, $unmodifiedstudent];
     }
 
     /**
-     * Create a file in the zip import staging area.
+     * Create a real file submission for a student, as if they had submitted a file for grading.
+     *
+     * @param stdClass $student
+     * @param assign $assign
+     * @param string $filename
+     * @param string $content
+     */
+    private function add_file_submission($student, $assign, string $filename, string $content): void {
+        $this->setUser($student);
+        $submission = $assign->get_user_submission($student->id, true);
+
+        $filerecord = [
+            'contextid' => $assign->get_context()->id,
+            'component' => 'assignsubmission_file',
+            'filearea' => ASSIGNSUBMISSION_FILE_FILEAREA,
+            'itemid' => $submission->id,
+            'filepath' => '/',
+            'filename' => $filename,
+        ];
+        get_file_storage()->create_file_from_string($filerecord, $content);
+
+        $plugin = $assign->get_submission_plugin_by_type('file');
+        $plugin->save($submission, (object) []);
+    }
+
+    /**
+     * Create a file in the zip import staging area, named to match the folder-per-plugin convention
+     * used by "Download all submissions" since Moodle 3.1.
      *
      * @param file_storage $fs
      * @param assign $assign
      * @param stdClass $teacher
+     * @param stdClass $student
+     * @param string $plugin component name, e.g. 'assignsubmission_file'
      * @param string $filename
      * @param string $content
      */
-    private function create_import_file($fs, $assign, $teacher, string $filename, string $content): void {
+    private function create_import_file(
+        $fs,
+        $assign,
+        $teacher,
+        $student,
+        string $plugin,
+        string $filename,
+        string $content
+    ): void {
+        [$subtype, $type] = explode('_', $plugin, 2);
+        $folder = fullname($student) . '_' . $assign->get_uniqueid_for_user($student->id) .
+                '_' . $subtype . '_' . $type;
+
         $record = new \stdClass();
         $record->contextid = $assign->get_context()->id;
         $record->component = 'assignfeedback_file';
         $record->filearea = ASSIGNFEEDBACK_FILE_IMPORT_FILEAREA;
         $record->itemid = $teacher->id;
-        $record->filepath = '/import/';
+        $record->filepath = '/import/' . $folder . '/';
         $record->filename = $filename;
         $fs->create_file_from_string($record, $content);
     }
@@ -287,8 +339,7 @@ final class importziplib_test extends \advanced_testcase {
         $this->assertFalse($unmodifiedflags);
 
         // The unmodified student's grade must not have been touched either.
-        $unmodifiedgrade = $assign->get_user_grade($unmodifiedstudent->id, false);
-        $this->assertEquals(0, $unmodifiedgrade->grader);
+        $this->assertFalse($assign->get_user_grade($unmodifiedstudent->id, false));
     }
 
     /**
