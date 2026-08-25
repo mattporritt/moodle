@@ -26,9 +26,14 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
 
-    $userfeedback->add(new admin_setting_configcheckbox('enableuserfeedback',
-            new lang_string('enableuserfeedback', 'admin'),
-            new lang_string('enableuserfeedback_desc', 'admin'), 0, 1, 0));
+    $userfeedback->add(new admin_setting_configcheckbox(
+        'enableuserfeedback',
+        new lang_string('enableuserfeedback', 'admin'),
+        new lang_string('enableuserfeedback_desc', 'admin'),
+        1,
+        1,
+        0
+    ));
 
     $options = [
         core_userfeedback::REMIND_AFTER_UPGRADE => new lang_string('userfeedbackafterupgrade', 'admin'),
