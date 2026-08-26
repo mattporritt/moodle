@@ -30,6 +30,8 @@ final class core_userfeedback_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
+        set_config('enableuserfeedback', 0);
+
         $page = new \moodle_page();
         $renderer = new \core_renderer($page, RENDERER_TARGET_GENERAL);
 
