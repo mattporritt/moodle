@@ -48,7 +48,7 @@ body {
                 padding: 0 3rem;
             }
             .show-drawer-left & {
-                margin-left: $drawer-left-width;
+                margin-left: var(--drawer-index-width-effective);
                 padding: 0 3rem 0 1rem;
             }
             .show-drawer-right & {

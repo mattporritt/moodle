@@ -37108,6 +37108,22 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
   }
 }
 /* Anchor link offset fix. This makes hash links scroll 60px down to account for the fixed header. */
+body {
+  --drawer-index-width-effective: 285px;
+  --drawer-index-width-extra: 0px;
+}
+@media (min-width: 992px) {
+  body {
+    --drawer-index-width-effective:
+        clamp(
+            285px,
+            var(--drawer-index-width, 285px),
+            640px
+        );
+    --drawer-index-width-extra: calc(var(--drawer-index-width-effective) - 285px);
+  }
+}
+
 :target,
 :focus {
   scroll-margin-top: 70px;
@@ -37198,13 +37214,13 @@ body.drawer-ease {
 
 @media (min-width: 768px) {
   body:not(.uses-drawers).drawer-open-left {
-    margin-left: 285px;
+    margin-left: var(--drawer-index-width-effective);
   }
 }
 
 @media (min-width: 768px) {
   body.drawer-open-left #page.drawers {
-    margin-left: 285px;
+    margin-left: var(--drawer-index-width-effective);
     padding-left: 1rem;
   }
 }
@@ -37310,9 +37326,9 @@ body.drawer-ease {
 }
 .drawer.drawer-left {
   transition: left 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
-  width: 285px;
-  max-width: 285px;
-  left: calc(-285px + -10px);
+  width: var(--drawer-index-width-effective);
+  max-width: var(--drawer-index-width-effective);
+  left: calc(-1 * var(--drawer-index-width-effective) - 10px);
   visibility: hidden;
   background-color: var(--bs-gray-200);
 }
@@ -37340,6 +37356,74 @@ body.drawer-ease {
   margin-left: 5px;
 }
 
+.drawer-left .drawerresizehandle {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .drawer-left.show .drawerresizehandle {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0.5rem;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+    z-index: 10;
+  }
+  .drawer-left.show .drawerresizehandle::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 2px;
+    width: 2px;
+    background-color: transparent;
+    transition: background-color 0.15s ease;
+  }
+}
+@media (min-width: 992px) and (prefers-reduced-motion: reduce) {
+  .drawer-left.show .drawerresizehandle::after {
+    transition: none;
+  }
+}
+@media (min-width: 992px) {
+  .drawer-left.show .drawerresizehandle:hover::after, .drawer-left.show .drawerresizehandle.dragging::after, .drawer-left.show .drawerresizehandle:focus-visible::after {
+    background-color: #0f6cbf;
+  }
+}
+@media (min-width: 992px) {
+  .drawer-left.show .drawerresizehandle:focus-visible {
+    outline: 2px solid #0f6cbf;
+    outline-offset: -2px;
+  }
+}
+@media (min-width: 992px) and (any-pointer: coarse) {
+  .drawer-left.show .drawerresizehandle {
+    width: 24px;
+  }
+  .drawer-left.show .drawerresizehandle::after {
+    background-color: #dee2e6;
+  }
+  .drawer-left.show .drawerresizehandle.dragging::after {
+    background-color: #0f6cbf;
+  }
+}
+@media (min-width: 992px) {
+  body.drawer-resizing {
+    cursor: col-resize;
+    user-select: none;
+  }
+  body.drawer-resizing #page.drawers,
+  body.drawer-resizing .drawer.drawer-left,
+  body.drawer-resizing .drawer-toggler,
+  body.drawer-resizing .sticky-footer-content-wrapper,
+  body.drawer-resizing .sticky-footer-supplementary-wrapper {
+    transition: none !important;
+  }
+}
 @media (min-width: 992px) {
   .drawer#theme_boost-drawers-blocks:focus-within {
     z-index: 1031;
@@ -37384,7 +37468,7 @@ body.drawer-ease {
     right: calc(50% + 830px / 2 + calc(0.5rem + 20px));
     width: 0;
     min-width: 0;
-    max-width: 285px;
+    max-width: var(--drawer-index-width-effective);
     overflow: clip;
     overscroll-behavior: none;
     transition: width 0.2s ease, right 0.2s ease, visibility 0.2s ease, max-height 0.2s ease;
@@ -37401,7 +37485,7 @@ body.drawer-ease {
   body.limitedwidth .drawer.drawer-left.show {
     left: auto;
     right: calc(50% + 830px / 2 + calc(0.5rem + 20px));
-    width: 285px;
+    width: var(--drawer-index-width-effective);
   }
 }
 @media (min-width: 992px) {
@@ -37451,11 +37535,11 @@ body.drawer-ease {
 @media (min-width: 992px) {
   .pagelayout-standard:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer.drawer-left,
   body.limitedwidth:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer.drawer-left {
-    right: min(calc(50% + 830px / 2 - 285px / 2 + calc(0.5rem + 20px)), calc(100% - 285px));
+    right: min(calc(50% + 830px / 2 - 285px / 2 + calc(0.5rem + 20px) - var(--drawer-index-width-extra)), calc(100% - var(--drawer-index-width-effective)));
   }
   .pagelayout-standard:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer.drawer-left.show,
   body.limitedwidth:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer.drawer-left.show {
-    right: min(calc(50% + 830px / 2 - 285px / 2 + calc(0.5rem + 20px)), calc(100% - 285px));
+    right: min(calc(50% + 830px / 2 - 285px / 2 + calc(0.5rem + 20px) - var(--drawer-index-width-extra)), calc(100% - var(--drawer-index-width-effective)));
   }
   .pagelayout-standard:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer.drawer-right,
   body.limitedwidth:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer.drawer-right {
@@ -37487,11 +37571,11 @@ body.drawer-ease {
 @media (min-width: 992px) {
   .pagelayout-standard:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer.drawer-left,
   body.limitedwidth:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer.drawer-left {
-    right: min(calc(50% + 830px / 2 + calc((315px - 285px) / 2) + calc(0.5rem + 20px)), calc(100% - 285px));
+    right: min(calc(50% + 830px / 2 + calc((315px - 285px) / 2) + calc(0.5rem + 20px)) - var(--drawer-index-width-extra), 100% - var(--drawer-index-width-effective));
   }
   .pagelayout-standard:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer.drawer-left.show,
   body.limitedwidth:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer.drawer-left.show {
-    right: min(calc(50% + 830px / 2 + calc((315px - 285px) / 2) + calc(0.5rem + 20px)), calc(100% - 285px));
+    right: min(calc(50% + 830px / 2 + calc((315px - 285px) / 2) + calc(0.5rem + 20px)) - var(--drawer-index-width-extra), 100% - var(--drawer-index-width-effective));
   }
   .pagelayout-standard:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer.drawer-right,
   body.limitedwidth:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer.drawer-right {
@@ -37604,9 +37688,9 @@ body.drawer-ease {
 @media (max-width: 991.98px) {
   .drawer-md.drawer-left {
     transition: left 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
-    width: 285px;
-    max-width: 285px;
-    left: calc(-285px + -10px);
+    width: var(--drawer-index-width-effective);
+    max-width: var(--drawer-index-width-effective);
+    left: calc(-1 * var(--drawer-index-width-effective) - 10px);
     visibility: hidden;
     background-color: var(--bs-gray-200);
   }
@@ -37715,9 +37799,9 @@ body.drawer-ease {
 @media (max-width: 767.98px) {
   .drawer-sm.drawer-left {
     transition: left 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
-    width: 285px;
-    max-width: 285px;
-    left: calc(-285px + -10px);
+    width: var(--drawer-index-width-effective);
+    max-width: var(--drawer-index-width-effective);
+    left: calc(-1 * var(--drawer-index-width-effective) - 10px);
     visibility: hidden;
     background-color: var(--bs-gray-200);
   }
@@ -44468,7 +44552,7 @@ body {
   }
   .show-drawer-left .stickyfooter .sticky-footer-content-wrapper,
   .show-drawer-left .stickyfooter .sticky-footer-supplementary-wrapper {
-    margin-left: 285px;
+    margin-left: var(--drawer-index-width-effective);
     padding: 0 3rem 0 1rem;
   }
   .show-drawer-right .stickyfooter .sticky-footer-content-wrapper,
@@ -45303,7 +45387,7 @@ body.tox-fullscreen .tox.tox-tinymce-aux {
 }
 @media (min-width: 992px) {
   #page.drawers.show-drawer-left {
-    margin-left: 285px;
+    margin-left: var(--drawer-index-width-effective);
     margin-right: 0;
   }
 }
@@ -45315,7 +45399,7 @@ body.tox-fullscreen .tox.tox-tinymce-aux {
 }
 @media (min-width: 992px) {
   #page.drawers.show-drawer-left.show-drawer-right {
-    margin-left: 285px;
+    margin-left: var(--drawer-index-width-effective);
     margin-right: 315px;
   }
 }
@@ -45332,6 +45416,16 @@ body.tox-fullscreen .tox.tox-tinymce-aux {
   }
   body:not(.pagelayout-standard):not(.limitedwidth):has(#page.drawers.show-drawer-right) .maintenancewarning {
     right: calc(315px + 5rem);
+  }
+}
+@media (min-width: 992px) {
+  .pagelayout-standard #page.drawers.show-drawer-left .main-inner,
+  .pagelayout-standard #page.drawers.show-drawer-left .footer-popover,
+  body.limitedwidth #page.drawers.show-drawer-left .main-inner,
+  body.limitedwidth #page.drawers.show-drawer-left .footer-popover {
+    max-width: calc(830px - var(--drawer-index-width-extra));
+    margin-left: auto;
+    margin-right: max(0px, (100% + var(--drawer-index-width-extra) - 830px) / 2);
   }
 }
 @media (min-width: 992px) {
@@ -45366,7 +45460,20 @@ body.tox-fullscreen .tox.tox-tinymce-aux {
     transition: none;
   }
 }
-@media (min-width: 992px) {
+@media (min-width: 1400px) {
+  .pagelayout-standard #page.drawers.show-drawer-left.show-drawer-right,
+  body.limitedwidth #page.drawers.show-drawer-left.show-drawer-right {
+    margin-left: var(--drawer-index-width-effective);
+    margin-right: 315px;
+  }
+  .pagelayout-standard .drawer-toggles .drawer-left-toggle,
+  body.limitedwidth .drawer-toggles .drawer-left-toggle {
+    right: calc(50% + 830px / 2 + calc(0.5rem + 20px));
+  }
+  .pagelayout-standard .drawer-toggles .drawer-right-toggle,
+  body.limitedwidth .drawer-toggles .drawer-right-toggle {
+    left: calc(50% + 830px / 2 + calc(0.5rem + 20px));
+  }
   .pagelayout-standard:has(#page.drawers.show-drawer-right):not(:has(#page.drawers.show-drawer-left)) .drawer-toggles .drawer-left-toggle,
   body.limitedwidth:has(#page.drawers.show-drawer-right):not(:has(#page.drawers.show-drawer-left)) .drawer-toggles .drawer-left-toggle {
     right: min(calc(50% + 830px / 2 + calc(0.5rem + 20px) + 315px / 2), calc(100% - 40px - 2 * 16px));
@@ -45375,18 +45482,14 @@ body.tox-fullscreen .tox.tox-tinymce-aux {
   body.limitedwidth:has(#page.drawers.show-drawer-right):not(:has(#page.drawers.show-drawer-left)) .drawer-toggles .drawer-right-toggle {
     left: min(calc(50% + 830px / 2 - 315px / 2 + calc(0.5rem + 20px)), calc(100% - 40px - 2 * 16px));
   }
-}
-@media (min-width: 992px) {
   .pagelayout-standard:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer-toggles .drawer-left-toggle,
   body.limitedwidth:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer-toggles .drawer-left-toggle {
-    right: min(calc(50% + 830px / 2 - 285px / 2 + calc(0.5rem + 20px)), calc(100% - 40px - 2 * 16px));
+    right: min(calc(50% + 830px / 2 - 285px / 2 + calc(0.5rem + 20px) - var(--drawer-index-width-extra)), calc(100% - 40px - 2 * 16px));
   }
   .pagelayout-standard:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer-toggles .drawer-right-toggle,
   body.limitedwidth:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) .drawer-toggles .drawer-right-toggle {
     left: min(calc(50% + 830px / 2 + calc(0.5rem + 20px) + 285px / 2), calc(100% - 40px - 2 * 16px));
   }
-}
-@media (min-width: 992px) {
   .pagelayout-standard:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer-toggles .drawer-left-toggle,
   body.limitedwidth:has(#page.drawers.show-drawer-left.show-drawer-right) .drawer-toggles .drawer-left-toggle {
     right: calc(50% + 830px / 2 + calc((315px - 285px) / 2) + calc(0.5rem + 20px));

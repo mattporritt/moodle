@@ -58,6 +58,12 @@ if (!$courseindex) {
 }
 
 $bodyattributes = $OUTPUT->body_attributes($extraclasses);
+$courseindexwidth = $courseindex ? \theme_boost\courseindex_resizer::get_user_width() : null;
+if ($courseindexwidth !== null) {
+    // Emit the saved course index width pre-paint, so the drawer renders at
+    // the chosen width with no flicker or jump after page load.
+    $bodyattributes .= ' style="--drawer-index-width: ' . $courseindexwidth . 'px;"';
+}
 $forceblockdraweropen = $OUTPUT->firstview_fakeblocks();
 
 $secondarynavigation = false;
@@ -106,6 +112,11 @@ $templatecontext = [
     'courseindexopen' => $courseindexopen,
     'blockdraweropen' => $blockdraweropen,
     'courseindex' => $courseindex,
+    'courseindexresizer' => [
+        'minwidth' => \theme_boost\courseindex_resizer::MIN_WIDTH,
+        'maxwidth' => \theme_boost\courseindex_resizer::MAX_WIDTH,
+        'preference' => \theme_boost\courseindex_resizer::PREFERENCE,
+    ],
     'primarymoremenu' => $primarymenu['moremenu'],
     'secondarymoremenu' => $secondarynavigation ?: false,
     'mobileprimarynav' => $primarymenu['mobileprimarynav'],

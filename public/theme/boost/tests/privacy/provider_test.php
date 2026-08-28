@@ -110,4 +110,28 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
             $exportedpreferences->{provider::COLOUR_MODE}->description,
         );
     }
+
+    /**
+     * Test that the course index drawer width preference is exported.
+     */
+    public function test_export_user_preferences_drawer_index_width(): void {
+        $this->resetAfterTest();
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        set_user_preference(provider::DRAWER_INDEX_WIDTH, 400, $user);
+
+        provider::export_user_preferences($user->id);
+        $writer = writer::with_context(context_user::instance($user->id));
+        $this->assertTrue($writer->has_any_data());
+
+        $exportedpreferences = $writer->get_user_preferences('theme_boost');
+        $this->assertCount(1, (array) $exportedpreferences);
+        $this->assertEquals(400, $exportedpreferences->{provider::DRAWER_INDEX_WIDTH}->value);
+        $this->assertEquals(
+            get_string('privacy:drawerindexwidth', 'theme_boost', 400),
+            $exportedpreferences->{provider::DRAWER_INDEX_WIDTH}->description,
+        );
+    }
 }

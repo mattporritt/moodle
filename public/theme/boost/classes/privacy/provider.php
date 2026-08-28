@@ -48,6 +48,9 @@ class provider implements
     /** The user preference for the light or dark colour mode. */
     public const COLOUR_MODE = colour_mode::PREFERENCE;
 
+    /** The user preference for the course index drawer width. */
+    public const DRAWER_INDEX_WIDTH = \theme_boost\courseindex_resizer::PREFERENCE;
+
     /**
      * Returns meta data about this system.
      *
@@ -58,6 +61,7 @@ class provider implements
         $items->add_user_preference(self::DRAWER_OPEN_INDEX, 'privacy:metadata:preference:draweropenindex');
         $items->add_user_preference(self::DRAWER_OPEN_BLOCK, 'privacy:metadata:preference:draweropenblock');
         $items->add_user_preference(self::COLOUR_MODE, 'privacy:metadata:preference:colourmode');
+        $items->add_user_preference(self::DRAWER_INDEX_WIDTH, 'privacy:metadata:preference:drawerindexwidth');
         return $items;
     }
 
@@ -106,6 +110,17 @@ class provider implements
                 self::COLOUR_MODE,
                 $colourmodepref,
                 get_string('privacy:colourmode:' . $colourmodepref, 'theme_boost')
+            );
+        }
+
+        $drawerindexwidthpref = get_user_preferences(self::DRAWER_INDEX_WIDTH, null, $userid);
+
+        if (isset($drawerindexwidthpref)) {
+            writer::export_user_preference(
+                'theme_boost',
+                self::DRAWER_INDEX_WIDTH,
+                $drawerindexwidthpref,
+                get_string('privacy:drawerindexwidth', 'theme_boost', $drawerindexwidthpref)
             );
         }
     }

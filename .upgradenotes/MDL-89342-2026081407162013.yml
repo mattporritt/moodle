@@ -1,0 +1,13 @@
+issueNumber: MDL-89342
+notes:
+  theme_boost:
+    - message: >-
+        The course index drawer can now be resized by dragging or keyboard
+        between 285px and 640px, with the chosen width stored in the
+        drawer-index-width user preference. The effective width is exposed as
+        the --drawer-index-width-effective CSS custom property: themes overriding
+        $drawer-left-width keep working (it remains the default), but styles
+        hardcoding the 285px drawer width should switch to
+        var(--drawer-index-width-effective). The theme_boost/drawer template gained an
+        optional drawerextracontent block.
+      type: improved

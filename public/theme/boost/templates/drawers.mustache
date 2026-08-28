@@ -69,6 +69,23 @@
             {{/drawercontent}}
             {{$drawerpreferencename}}drawer-open-index{{/drawerpreferencename}}
             {{$drawerstate}}show-drawer-left{{/drawerstate}}
+            {{$drawerextracontent}}
+                {{#courseindexresizer}}
+                    {{#react}}
+                    {
+                        "component": "@moodle/lms/theme_boost/courseindex_resizer",
+                        "props": {
+                            "minwidth": {{minwidth}},
+                            "maxwidth": {{maxwidth}},
+                            "preference": "{{preference}}",
+                            "label": {{#quote}}{{#str}}resizecourseindex, theme_boost{{/str}}{{/quote}},
+                            "drawerid": "theme_boost-drawers-courseindex"
+                        },
+                        "id": "courseindex-resizer"
+                    }
+                    {{/react}}
+                {{/courseindexresizer}}
+            {{/drawerextracontent}}
             {{$tooltipplacement}}right{{/tooltipplacement}}
             {{$closebuttontext}}{{#str}}closecourseindex, core{{/str}}{{/closebuttontext}}
             {{$closebuttonicon}}

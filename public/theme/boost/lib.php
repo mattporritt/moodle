@@ -144,6 +144,16 @@ function theme_boost_user_preferences(): array {
             'default' => \theme_boost\colour_mode::LIGHT,
             'permissioncallback' => [core_user::class, 'is_current_user'],
         ],
+        \theme_boost\courseindex_resizer::PREFERENCE => [
+            'type' => PARAM_INT,
+            // Absence is the normal state for this preference: while it is
+            // unset the drawer uses the theme's default width, which only the
+            // theme SCSS defines. So null must remain a valid value, and no
+            // numeric default is declared here.
+            'null' => NULL_ALLOWED,
+            'default' => null,
+            'permissioncallback' => [core_user::class, 'is_current_user'],
+        ],
     ];
 }
 
@@ -210,6 +220,11 @@ function theme_boost_get_pre_scss($theme) {
             $scss .= '$' . $target . ': ' . $value . ";\n";
         }, (array) $targets);
     }
+
+    // Keep the course index drawer width limits single sourced from PHP: the
+    // SCSS !default declarations only serve the statically precompiled CSS.
+    $scss .= '$drawer-index-width-min: ' . \theme_boost\courseindex_resizer::MIN_WIDTH . "px;\n";
+    $scss .= '$drawer-index-width-max: ' . \theme_boost\courseindex_resizer::MAX_WIDTH . "px;\n";
 
     // Add a new variable to indicate that we are running behat.
     if (defined('BEHAT_SITE_RUNNING')) {
