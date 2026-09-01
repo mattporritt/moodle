@@ -501,9 +501,21 @@ class enrol_ldap_plugin extends enrol_plugin {
                                 // as the idnumber does not match their dn and we get dn's from membership.
                                 $memberidnumbers = array();
                                 foreach ($ldapmembers as $ldapmember) {
-                                    $result = ldap_read($this->ldapconnection, $ldapmember, $this->userobjectclass,
-                                                        array($this->config->idnumber_attribute));
+                                    $result = @ldap_read(
+                                        $this->ldapconnection,
+                                        $ldapmember,
+                                        $this->userobjectclass,
+                                        [$this->config->idnumber_attribute]
+                                    );
+                                    if (!$result) {
+                                        // The member's directory entry no longer exists (e.g. deleted but
+                                        // still listed in the group). Skip it rather than fatal.
+                                        continue;
+                                    }
                                     $entry = ldap_first_entry($this->ldapconnection, $result);
+                                    if (!$entry) {
+                                        continue;
+                                    }
                                     $values = ldap_get_values($this->ldapconnection, $entry, $this->config->idnumber_attribute);
                                     array_push($memberidnumbers, $values[0]);
                                 }
