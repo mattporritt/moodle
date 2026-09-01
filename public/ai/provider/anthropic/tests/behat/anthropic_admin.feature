@@ -70,6 +70,36 @@ Feature: Configure Anthropic Claude API provider
     And the field "Max tokens" matches value "4096"
 
   @javascript
+  Scenario: Switching Claude models keeps each model's own endpoint and generation settings
+    Given the following "core_ai > ai providers" exist:
+      | provider             | name           | enabled | apikey           |
+      | aiprovider_anthropic | Anthropic test | 1       | test_api_key_123 |
+    And I am logged in as "admin"
+    And I navigate to "AI > AI providers" in site administration
+    And I click on the "Settings" link in the table row containing "Anthropic test"
+    And I click on the "Settings" link in the table row containing "Generate text"
+    When I set the field "AI model" to "Claude Opus 5"
+    And I set the following fields to these values:
+      | API endpoint | https://opus.example.com/v1/messages |
+      | Max tokens   | 1111                                  |
+    And I click on "Save changes" "button"
+    Then I should see "Generate text action settings updated"
+    When I click on the "Settings" link in the table row containing "Generate text"
+    And I set the field "AI model" to "Claude Sonnet 5"
+    And I set the following fields to these values:
+      | API endpoint | https://sonnet.example.com/v1/messages |
+      | Max tokens   | 2222                                    |
+    And I click on "Save changes" "button"
+    Then I should see "Generate text action settings updated"
+    When I click on the "Settings" link in the table row containing "Generate text"
+    And I set the field "AI model" to "Claude Opus 5"
+    Then the field "API endpoint" matches value "https://opus.example.com/v1/messages"
+    And the field "Max tokens" matches value "1111"
+    When I set the field "AI model" to "Claude Sonnet 5"
+    Then the field "API endpoint" matches value "https://sonnet.example.com/v1/messages"
+    And the field "Max tokens" matches value "2222"
+
+  @javascript
   Scenario: The temperature setting is only offered for Claude models that accept it
     Given the following "core_ai > ai providers" exist:
       | provider             | name           | enabled | apikey           |

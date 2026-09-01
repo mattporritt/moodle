@@ -117,6 +117,58 @@ final class action_form_test extends \advanced_testcase {
     }
 
     /**
+     * Test submitting the form for one model keeps that model's own endpoint and generation
+     * settings, separate from any other model's previously stored settings (MDL-89680).
+     */
+    public function test_get_data_stores_settings_per_model(): void {
+        $modelsettings = [
+            'claude-sonnet-4-5-20250929' => [
+                'endpoint' => 'https://sonnet.example.com/v1/messages',
+                'max_tokens' => 4096,
+            ],
+        ];
+        // Moodleform reads the submission at construction time, so the mock submission must
+        // be in place before the form is built.
+        action_generate_text_form::mock_submit([
+            'modeltemplate' => 'claude-opus-5',
+            'model' => 'claude-opus-5',
+            'custommodel' => '',
+            'endpoint' => 'https://opus.example.com/v1/messages',
+            'max_tokens' => '2048',
+            'systeminstruction' => 'Test instruction',
+            'action' => \core_ai\aiactions\generate_text::class,
+            'provider' => 'aiprovider_anthropic',
+            'providerid' => 1,
+        ]);
+
+        $form = $this->build_form(modelsettings: $modelsettings);
+        $data = $form->get_data();
+
+        $this->assertNotNull($data);
+        $this->assertSame([
+            'endpoint' => 'https://opus.example.com/v1/messages',
+            'max_tokens' => '2048',
+        ], $data->modelsettings['claude-opus-5']);
+    }
+
+    /**
+     * Test the model selector only exposes the currently selected model's stored settings to
+     * the modelchooser JS, so switching models does not leak another model's values client-side.
+     */
+    public function test_model_selector_exposes_current_models_stored_settings(): void {
+        $modelsettings = [
+            'claude-opus-5' => ['endpoint' => 'https://opus.example.com/v1/messages', 'max_tokens' => 111],
+            'claude-sonnet-5' => ['endpoint' => 'https://sonnet.example.com/v1/messages', 'max_tokens' => 222],
+        ];
+        $mform = $this->build_mform(['model' => 'claude-opus-5'], $modelsettings);
+
+        $selector = $mform->getElement('modeltemplate');
+        $stored = json_decode($selector->getAttribute('data-storedmodelsettings'), true);
+
+        $this->assertSame(['claude-opus-5' => $modelsettings['claude-opus-5']], $stored);
+    }
+
+    /**
      * Get an element's current value, flattening the array a select element returns.
      *
      * @param \MoodleQuickForm $mform The form to read from.
@@ -133,16 +185,20 @@ final class action_form_test extends \advanced_testcase {
      * Build a generate_text action settings form.
      *
      * @param array $settings Action settings to configure the provider with.
+     * @param array $modelsettings Stored per-model settings, keyed by model name.
      * @return action_generate_text_form
      */
-    private function build_form(array $settings = []): action_generate_text_form {
+    private function build_form(array $settings = [], array $modelsettings = []): action_generate_text_form {
         $provider = $this->create_provider(
             actionclass: \core_ai\aiactions\generate_text::class,
             actionconfig: $settings,
         );
 
         return new action_generate_text_form(customdata: [
-            'actionconfig' => ['settings' => $provider->actionconfig[\core_ai\aiactions\generate_text::class]['settings']],
+            'actionconfig' => [
+                'settings' => $provider->actionconfig[\core_ai\aiactions\generate_text::class]['settings'],
+                'modelsettings' => $modelsettings,
+            ],
             'actionname' => 'generate_text',
             'action' => \core_ai\aiactions\generate_text::class,
             'providerid' => 1,
@@ -154,10 +210,11 @@ final class action_form_test extends \advanced_testcase {
      * Build a generate_text action settings form and return the underlying MoodleQuickForm.
      *
      * @param array $settings Action settings to configure the provider with.
+     * @param array $modelsettings Stored per-model settings, keyed by model name.
      * @return \MoodleQuickForm
      */
-    private function build_mform(array $settings = []): \MoodleQuickForm {
-        $form = $this->build_form($settings);
+    private function build_mform(array $settings = [], array $modelsettings = []): \MoodleQuickForm {
+        $form = $this->build_form($settings, $modelsettings);
         // Mirrors moodleform::display(), which finalizes the definition on first render.
         $form->definition_after_data();
         $property = new \ReflectionProperty($form, '_form');

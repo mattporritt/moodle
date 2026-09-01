@@ -40,6 +40,8 @@ class action_form extends action_settings_form {
     protected int $providerid;
     /** @var string Provider name. */
     protected string $providername;
+    /** @var array Stored per-model settings, keyed by model name. */
+    protected array $storedmodelsettings;
 
     #[\Override]
     protected function definition(): void {
@@ -50,6 +52,7 @@ class action_form extends action_settings_form {
         $this->action = $this->_customdata['action'];
         $this->providerid = $this->_customdata['providerid'] ?? 0;
         $this->providername = $this->_customdata['providername'] ?? 'aiprovider_anthropic';
+        $this->storedmodelsettings = $this->_customdata['actionconfig']['modelsettings'] ?? [];
 
         $mform->addElement('header', 'generalsettingsheader', get_string('general', 'core'));
     }
@@ -62,6 +65,27 @@ class action_form extends action_settings_form {
 
         if (!empty($data)) {
             unset($data->modeltemplate, $data->custommodel);
+
+            // Keep this model's own endpoint and generation settings so switching models
+            // later can restore them, instead of leaving the previously selected model's
+            // values in place (see MDL-89680).
+            if (isset($data->model)) {
+                $modeldata = [];
+                if (isset($data->endpoint)) {
+                    $modeldata['endpoint'] = $data->endpoint;
+                }
+                $targetmodel = helper::resolve_model($data->model);
+                if ($targetmodel->has_model_settings()) {
+                    foreach (array_keys($targetmodel->get_model_settings()) as $key) {
+                        if (isset($data->$key) && $data->$key !== '') {
+                            $modeldata[$key] = $data->$key;
+                        }
+                    }
+                }
+                if (!empty($modeldata)) {
+                    $data->modelsettings[$data->model] = $modeldata;
+                }
+            }
         }
 
         return $data;
@@ -109,12 +133,18 @@ class action_form extends action_settings_form {
         $iscustom = !array_key_exists($storedmodel, $modellist);
         $defaulttemplate = $iscustom ? custommodel::MODEL_NAME : $storedmodel;
 
+        // Get this model's stored values to assist model switching and value population in JS.
+        $modeltemplate = optional_param('modeltemplate', $defaulttemplate, PARAM_TEXT);
+        if (isset($this->storedmodelsettings[$modeltemplate])) {
+            $this->storedmodelsettings = [$modeltemplate => $this->storedmodelsettings[$modeltemplate]];
+        }
+
         $mform->addElement(
             'select',
             'modeltemplate',
             get_string("action:{$this->actionname}:model", 'aiprovider_anthropic'),
             $modellist,
-            ['data-modelchooser-field' => 'selector'],
+            ['data-modelchooser-field' => 'selector', 'data-storedmodelsettings' => json_encode($this->storedmodelsettings)],
         );
         $mform->setType('modeltemplate', PARAM_TEXT);
         $mform->addRule('modeltemplate', null, 'required', null, 'client');

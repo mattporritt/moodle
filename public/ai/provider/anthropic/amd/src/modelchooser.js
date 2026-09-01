@@ -16,14 +16,17 @@
 /**
  * AI provider model selection handler.
  *
- * Unlike aiprovider_gemini, this provider has a single shared API endpoint, so this module
- * only needs to keep the hidden model field in step with the selection and resubmit the form
- * so the server-side per-model settings (e.g. temperature) can be re-evaluated.
+ * Every Claude model shares the same generation settings fields (endpoint, max_tokens,
+ * temperature), so switching models resubmits the form to let the server re-evaluate which
+ * of those fields apply, then restores this model's own previously stored values into them
+ * (see MDL-89680) instead of leaving the previously selected model's values in place.
  *
  * @module     aiprovider_anthropic/modelchooser
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+import {populateFields, clearFields} from 'core_ai/helper';
 
 const CUSTOM_MODEL = 'custom';
 
@@ -31,9 +34,24 @@ const Selectors = {
     fields: {
         selector: '[data-modelchooser-field="selector"]',
         updateButton: '[data-modelchooser-field="updateButton"]',
+        modelSettingsContainer: 'id_modelsettingsheadercontainer',
+        endpoint: 'input[name="endpoint"]',
         model: 'input[name="model"]',
         custommodel: 'input[name="custommodel"]',
     },
+};
+
+/**
+ * Restore the endpoint field to this model's stored value, or its default if it has none.
+ *
+ * @param {Object|undefined} modelSettings This model's stored settings, if any.
+ */
+const restoreEndpoint = (modelSettings) => {
+    const endpointField = document.querySelector(Selectors.fields.endpoint);
+    if (!endpointField) {
+        return;
+    }
+    endpointField.value = modelSettings?.endpoint ?? endpointField.getAttribute('data-defaultendpoint');
 };
 
 /**
@@ -44,6 +62,18 @@ export const init = () => {
     if (!modelSelector) {
         return;
     }
+
+    // If we have stored settings for the current model, restore them into their fields.
+    const storedModelSettings = JSON.parse(modelSelector.getAttribute('data-storedmodelsettings'));
+    const modelSettings = storedModelSettings[modelSelector.value];
+    const containerId = Selectors.fields.modelSettingsContainer;
+
+    if (modelSettings) {
+        populateFields(modelSettings, containerId);
+    } else {
+        clearFields(containerId);
+    }
+    restoreEndpoint(modelSettings);
 
     modelSelector.addEventListener('change', e => {
         const form = e.target.closest('form');

@@ -40,7 +40,11 @@ class action_generate_text_form extends action_form {
             'text',
             'endpoint',
             get_string("action:{$this->actionname}:endpoint", 'aiprovider_anthropic'),
-            ['maxlength' => '255', 'size' => '50'],
+            [
+                'maxlength' => '255',
+                'size' => '50',
+                'data-defaultendpoint' => abstract_processor::ANTHROPIC_API_ENDPOINT,
+            ],
         );
         $mform->setType('endpoint', PARAM_URL);
         $mform->addRule('endpoint', null, 'required', null, 'client');
