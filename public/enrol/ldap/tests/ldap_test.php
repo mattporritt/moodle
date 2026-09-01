@@ -430,6 +430,151 @@ final class ldap_test extends \advanced_testcase {
         // NOTE: multiple roles in one course is not supported, sorry
     }
 
+    /**
+     * A stale/deleted member DN in a distinguished-name-based group must be
+     * skipped, not fatal the whole sync (MDL-78444).
+     *
+     * @covers ::sync_enrolments
+     */
+    public function test_enrol_ldap_sync_skips_stale_member_dn(): void {
+        global $CFG, $DB;
+
+        if (!extension_loaded('ldap')) {
+            $this->markTestSkipped('LDAP extension is not loaded.');
+        }
+
+        $this->resetAfterTest();
+
+        require_once($CFG->dirroot . '/enrol/ldap/lib.php');
+        require_once($CFG->libdir . '/ldaplib.php');
+
+        if (
+            !defined('TEST_ENROL_LDAP_HOST_URL') || !defined('TEST_ENROL_LDAP_BIND_DN')
+            || !defined('TEST_ENROL_LDAP_BIND_PW') || !defined('TEST_ENROL_LDAP_DOMAIN')
+        ) {
+            $this->markTestSkipped('External LDAP test server not configured.');
+        }
+
+        $debuginfo = '';
+        if (
+            !$connection = ldap_connect_moodle(
+                TEST_ENROL_LDAP_HOST_URL,
+                3,
+                'rfc2307',
+                TEST_ENROL_LDAP_BIND_DN,
+                TEST_ENROL_LDAP_BIND_PW,
+                LDAP_DEREF_NEVER,
+                $debuginfo,
+                false
+            )
+        ) {
+            $this->markTestSkipped('Can not connect to LDAP test server: ' . $debuginfo);
+        }
+
+        $this->enable_plugin();
+
+        // Create new empty test container.
+        $topdn = 'dc=moodletestisdn,' . TEST_ENROL_LDAP_DOMAIN;
+        $this->recursive_delete($connection, TEST_ENROL_LDAP_DOMAIN, 'dc=moodletestisdn');
+
+        $o = [];
+        $o['objectClass'] = ['dcObject', 'organizationalUnit'];
+        $o['dc'] = 'moodletestisdn';
+        $o['ou'] = 'MOODLETESTISDN';
+        if (!ldap_add($connection, $topdn, $o)) {
+            $this->markTestSkipped('Can not create test LDAP container.');
+        }
+
+        // Container for real user entries, one of which we will *not* create,
+        // to simulate a group member whose directory entry has been deleted.
+        $o = [];
+        $o['objectClass'] = ['organizationalUnit'];
+        $o['ou'] = 'people';
+        ldap_add($connection, 'ou=people,' . $topdn, $o);
+
+        $validdn = 'cn=user1,ou=people,' . $topdn;
+        $o = [];
+        $o['objectClass'] = ['inetOrgPerson', 'posixAccount'];
+        $o['cn'] = 'user1';
+        $o['sn'] = 'user1';
+        $o['uid'] = 'user1';
+        $o['uidNumber'] = '10001';
+        $o['gidNumber'] = '10000';
+        $o['homeDirectory'] = '/home/user1';
+        ldap_add($connection, $validdn, $o);
+
+        // This DN is deliberately never created in the directory.
+        $missingdn = 'cn=deleteduser,ou=people,' . $topdn;
+
+        // Container and group using the "member" attribute to hold full DNs.
+        $o = [];
+        $o['objectClass'] = ['organizationalUnit'];
+        $o['ou'] = 'groups';
+        ldap_add($connection, 'ou=groups,' . $topdn, $o);
+
+        $o = [];
+        $o['objectClass'] = ['groupOfNames'];
+        $o['cn'] = 'course1';
+        $o['member'] = [$validdn, $missingdn];
+        ldap_add($connection, 'cn=' . $o['cn'] . ',ou=groups,' . $topdn, $o);
+
+        // Configure enrol plugin. Set user_type before instantiation so the
+        // constructor picks up the matching userobjectclass used to resolve
+        // member DNs.
+        set_config('user_type', 'rfc2307', 'enrol_ldap');
+        /** @var \enrol_ldap_plugin $enrol */
+        $enrol = enrol_get_plugin('ldap');
+        $enrol->set_config('host_url', TEST_ENROL_LDAP_HOST_URL);
+        $enrol->set_config('start_tls', 0);
+        $enrol->set_config('ldap_version', 3);
+        $enrol->set_config('ldapencoding', 'utf-8');
+        $enrol->set_config('pagesize', 1000);
+        $enrol->set_config('bind_dn', TEST_ENROL_LDAP_BIND_DN);
+        $enrol->set_config('bind_pw', TEST_ENROL_LDAP_BIND_PW);
+        $enrol->set_config('course_search_sub', 0);
+        $enrol->set_config('memberattribute_isdn', 1);
+        $enrol->set_config('idnumber_attribute', 'uid');
+        $enrol->set_config('user_contexts', '');
+        $enrol->set_config('user_search_sub', 0);
+        $enrol->set_config('user_type', 'rfc2307');
+        $enrol->set_config('opt_deref', LDAP_DEREF_NEVER);
+        $enrol->set_config('objectclass', '(objectClass=groupOfNames)');
+        $enrol->set_config('course_idnumber', 'cn');
+        $enrol->set_config('course_shortname', 'cn');
+        $enrol->set_config('course_fullname', 'cn');
+        $enrol->set_config('course_summary', '');
+        $enrol->set_config('ignorehiddencourses', 0);
+        $enrol->set_config('nested_groups', 0);
+        $enrol->set_config('autocreate', 1);
+        $enrol->set_config('unenrolaction', ENROL_EXT_REMOVED_KEEP);
+
+        $roles = get_all_roles();
+        foreach ($roles as $role) {
+            $enrol->set_config('contexts_role' . $role->id, '');
+            $enrol->set_config('memberattribute_role' . $role->id, '');
+        }
+
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
+        $this->assertNotEmpty($studentrole);
+        $enrol->set_config('contexts_role' . $studentrole->id, 'ou=groups,' . $topdn);
+        $enrol->set_config('memberattribute_role' . $studentrole->id, 'member');
+
+        $user1 = $this->getDataGenerator()->create_user(['idnumber' => 'user1', 'username' => 'user1']);
+
+        // Before the MDL-78444 fix, resolving $missingdn via ldap_read() returned
+        // false ("No such object"), and passing that into ldap_first_entry()
+        // fataled with a TypeError under PHP 8.0+. This must now complete cleanly.
+        $enrol->sync_enrolments(new \null_progress_trace());
+
+        $course1 = $DB->get_record('course', ['idnumber' => 'course1'], '*', MUST_EXIST);
+        $this->assertIsEnrolled($course1->id, $user1->id, $studentrole->id);
+        $this->assertEquals(1, $DB->count_records('user_enrolments'));
+        $this->assertEquals(1, $DB->count_records('role_assignments'));
+
+        $this->recursive_delete($connection, TEST_ENROL_LDAP_DOMAIN, 'dc=moodletestisdn');
+        ldap_close($connection);
+    }
+
     public function assertIsEnrolled($courseid, $userid, $roleid, $status=null) {
         global $DB;
 
