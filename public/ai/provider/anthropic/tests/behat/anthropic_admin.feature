@@ -142,6 +142,36 @@ Feature: Configure Anthropic Claude API provider
     And the field "Custom model name" matches value "claude-not-bundled-yet"
 
   @javascript
+  Scenario: Switching to the Custom model option and back preserves the custom model's own settings
+    Given the following "core_ai > ai providers" exist:
+      | provider             | name           | enabled | apikey           |
+      | aiprovider_anthropic | Anthropic test | 1       | test_api_key_123 |
+    And I am logged in as "admin"
+    And I navigate to "AI > AI providers" in site administration
+    And I click on the "Settings" link in the table row containing "Anthropic test"
+    And I click on the "Settings" link in the table row containing "Generate text"
+    When I set the field "AI model" to "Custom"
+    And I set the following fields to these values:
+      | Custom model name | my-custom-claude-model                |
+      | API endpoint       | https://custom.example.com/v1/messages |
+      | Max tokens         | 3333                                    |
+      | Temperature        | 0.5                                     |
+    And I click on "Save changes" "button"
+    Then I should see "Generate text action settings updated"
+    When I click on the "Settings" link in the table row containing "Generate text"
+    Then the field "AI model" matches value "Custom"
+    And the field "Custom model name" matches value "my-custom-claude-model"
+    And the field "API endpoint" matches value "https://custom.example.com/v1/messages"
+    And the field "Max tokens" matches value "3333"
+    And the field "Temperature" matches value "0.5"
+    When I set the field "AI model" to "Claude Opus 5"
+    And I set the field "AI model" to "Custom"
+    Then the field "Custom model name" matches value "my-custom-claude-model"
+    And the field "API endpoint" matches value "https://custom.example.com/v1/messages"
+    And the field "Max tokens" matches value "3333"
+    And the field "Temperature" matches value "0.5"
+
+  @javascript
   Scenario: A custom model name is required when the custom model option is selected
     Given the following "core_ai > ai providers" exist:
       | provider             | name           | enabled | apikey           |

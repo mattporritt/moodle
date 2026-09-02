@@ -169,6 +169,58 @@ final class action_form_test extends \advanced_testcase {
     }
 
     /**
+     * Test submitting the form for the "Custom" model option stores its settings under the
+     * "custom" selector value, not the admin-entered model name, so the modelchooser JS lookup
+     * by selector value finds them again (MDL-89680).
+     */
+    public function test_get_data_stores_custom_model_settings_under_custom_key(): void {
+        action_generate_text_form::mock_submit([
+            'modeltemplate' => custommodel::MODEL_NAME,
+            'model' => 'my-custom-claude-model',
+            'custommodel' => 'my-custom-claude-model',
+            'endpoint' => 'https://custom.example.com/v1/messages',
+            'max_tokens' => '3333',
+            'temperature' => '0.5',
+            'systeminstruction' => 'Test instruction',
+            'action' => \core_ai\aiactions\generate_text::class,
+            'provider' => 'aiprovider_anthropic',
+            'providerid' => 1,
+        ]);
+
+        $form = $this->build_form();
+        $data = $form->get_data();
+
+        $this->assertNotNull($data);
+        $this->assertArrayNotHasKey('my-custom-claude-model', $data->modelsettings);
+        $this->assertSame([
+            'endpoint' => 'https://custom.example.com/v1/messages',
+            'max_tokens' => '3333',
+            'temperature' => '0.5',
+        ], $data->modelsettings[custommodel::MODEL_NAME]);
+    }
+
+    /**
+     * Test that reselecting the "Custom" model option after saving restores its previously
+     * stored settings, mirroring how a bundled model's settings are restored (MDL-89680).
+     */
+    public function test_model_selector_exposes_stored_custom_model_settings(): void {
+        $modelsettings = [
+            custommodel::MODEL_NAME => [
+                'endpoint' => 'https://custom.example.com/v1/messages',
+                'max_tokens' => 3333,
+                'temperature' => 0.5,
+            ],
+            'claude-opus-5' => ['endpoint' => 'https://opus.example.com/v1/messages', 'max_tokens' => 111],
+        ];
+        $mform = $this->build_mform(['model' => 'my-custom-claude-model'], $modelsettings);
+
+        $selector = $mform->getElement('modeltemplate');
+        $stored = json_decode($selector->getAttribute('data-storedmodelsettings'), true);
+
+        $this->assertSame([custommodel::MODEL_NAME => $modelsettings[custommodel::MODEL_NAME]], $stored);
+    }
+
+    /**
      * Get an element's current value, flattening the array a select element returns.
      *
      * @param \MoodleQuickForm $mform The form to read from.

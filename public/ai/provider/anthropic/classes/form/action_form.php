@@ -64,6 +64,7 @@ class action_form extends action_settings_form {
         $data = parent::get_data();
 
         if (!empty($data)) {
+            $modeltemplate = $data->modeltemplate ?? null;
             unset($data->modeltemplate, $data->custommodel);
 
             // Keep this model's own endpoint and generation settings so switching models
@@ -83,7 +84,12 @@ class action_form extends action_settings_form {
                     }
                 }
                 if (!empty($modeldata)) {
-                    $data->modelsettings[$data->model] = $modeldata;
+                    // Store the custom model's settings under the "custom" selector value
+                    // rather than the admin-entered model name, matching aiprovider_gemini,
+                    // since the selector's stored value (and the modelchooser JS lookup) is
+                    // always the literal "custom", never the actual model name.
+                    $storagekey = $modeltemplate === custommodel::MODEL_NAME ? custommodel::MODEL_NAME : $data->model;
+                    $data->modelsettings[$storagekey] = $modeldata;
                 }
             }
         }
