@@ -508,15 +508,24 @@ class enrol_ldap_plugin extends enrol_plugin {
                                         [$this->config->idnumber_attribute]
                                     );
                                     if (!$result) {
-                                        // The member's directory entry no longer exists (e.g. deleted but
-                                        // still listed in the group). Skip it rather than fatal.
+                                        // Could not resolve this member's DN at all: either its directory
+                                        // entry no longer exists (e.g. deleted but still listed in the
+                                        // group), or another LDAP error occurred. Report it so a genuine
+                                        // connectivity problem is not indistinguishable from an expected
+                                        // stale member reference, then skip it rather than fatal.
+                                        $trace->output(get_string('couldnotresolvegroupmemberdn', 'enrol_ldap', $ldapmember));
                                         continue;
                                     }
                                     $entry = ldap_first_entry($this->ldapconnection, $result);
                                     if (!$entry) {
                                         continue;
                                     }
-                                    $values = ldap_get_values($this->ldapconnection, $entry, $this->config->idnumber_attribute);
+                                    $values = @ldap_get_values($this->ldapconnection, $entry, $this->config->idnumber_attribute);
+                                    if (empty($values['count'])) {
+                                        // The entry resolved but does not have the configured idnumber
+                                        // attribute (e.g. misconfigured attribute name). Skip it.
+                                        continue;
+                                    }
                                     array_push($memberidnumbers, $values[0]);
                                 }
 

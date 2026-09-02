@@ -432,7 +432,9 @@ final class ldap_test extends \advanced_testcase {
 
     /**
      * A stale/deleted member DN in a distinguished-name-based group must be
-     * skipped, not fatal the whole sync (MDL-78444).
+     * skipped, not fatal the whole sync (MDL-78444). A member DN that resolves
+     * but lacks the configured idnumber attribute must also be skipped
+     * without a warning.
      *
      * @covers ::sync_enrolments
      */
@@ -492,12 +494,18 @@ final class ldap_test extends \advanced_testcase {
         $o['ou'] = 'people';
         ldap_add($connection, 'ou=people,' . $topdn, $o);
 
+        // The idnumber attribute is deliberately 'gecos' rather than the more
+        // typical 'uid', because 'gecos' is optional in the posixAccount
+        // schema. This lets $noidnumberdn below simulate a resolvable entry
+        // that is missing the configured idnumber attribute, without
+        // violating the (mandatory) posixAccount object class.
         $validdn = 'cn=user1,ou=people,' . $topdn;
         $o = [];
         $o['objectClass'] = ['inetOrgPerson', 'posixAccount'];
         $o['cn'] = 'user1';
         $o['sn'] = 'user1';
         $o['uid'] = 'user1';
+        $o['gecos'] = 'user1';
         $o['uidNumber'] = '10001';
         $o['gidNumber'] = '10000';
         $o['homeDirectory'] = '/home/user1';
@@ -505,6 +513,20 @@ final class ldap_test extends \advanced_testcase {
 
         // This DN is deliberately never created in the directory.
         $missingdn = 'cn=deleteduser,ou=people,' . $topdn;
+
+        // This entry exists and satisfies the posixAccount schema, but lacks
+        // the configured idnumber attribute ('gecos'), simulating a schema
+        // mismatch or misconfigured attribute.
+        $noidnumberdn = 'cn=nogecos,ou=people,' . $topdn;
+        $o = [];
+        $o['objectClass'] = ['inetOrgPerson', 'posixAccount'];
+        $o['cn'] = 'nogecos';
+        $o['sn'] = 'nogecos';
+        $o['uid'] = 'nogecos';
+        $o['uidNumber'] = '10002';
+        $o['gidNumber'] = '10000';
+        $o['homeDirectory'] = '/home/nogecos';
+        ldap_add($connection, $noidnumberdn, $o);
 
         // Container and group using the "member" attribute to hold full DNs.
         $o = [];
@@ -515,7 +537,7 @@ final class ldap_test extends \advanced_testcase {
         $o = [];
         $o['objectClass'] = ['groupOfNames'];
         $o['cn'] = 'course1';
-        $o['member'] = [$validdn, $missingdn];
+        $o['member'] = [$validdn, $missingdn, $noidnumberdn];
         ldap_add($connection, 'cn=' . $o['cn'] . ',ou=groups,' . $topdn, $o);
 
         // Configure enrol plugin. Set user_type before instantiation so the
@@ -533,7 +555,7 @@ final class ldap_test extends \advanced_testcase {
         $enrol->set_config('bind_pw', TEST_ENROL_LDAP_BIND_PW);
         $enrol->set_config('course_search_sub', 0);
         $enrol->set_config('memberattribute_isdn', 1);
-        $enrol->set_config('idnumber_attribute', 'uid');
+        $enrol->set_config('idnumber_attribute', 'gecos');
         $enrol->set_config('user_contexts', '');
         $enrol->set_config('user_search_sub', 0);
         $enrol->set_config('user_type', 'rfc2307');
@@ -564,12 +586,27 @@ final class ldap_test extends \advanced_testcase {
         // Before the MDL-78444 fix, resolving $missingdn via ldap_read() returned
         // false ("No such object"), and passing that into ldap_first_entry()
         // fataled with a TypeError under PHP 8.0+. This must now complete cleanly.
-        $enrol->sync_enrolments(new \null_progress_trace());
+        $trace = new \progress_trace_buffer(new \text_progress_trace(), false);
+        $enrol->sync_enrolments($trace);
+        $trace->finished();
+        $output = $trace->get_buffer();
+        $trace->reset_buffer();
 
         $course1 = $DB->get_record('course', ['idnumber' => 'course1'], '*', MUST_EXIST);
         $this->assertIsEnrolled($course1->id, $user1->id, $studentrole->id);
         $this->assertEquals(1, $DB->count_records('user_enrolments'));
         $this->assertEquals(1, $DB->count_records('role_assignments'));
+
+        // The unresolvable member DN is reported so it is not indistinguishable
+        // from a genuine LDAP connectivity problem in the task's mtrace log.
+        $this->assertStringContainsString(
+            get_string('couldnotresolvegroupmemberdn', 'enrol_ldap', $missingdn),
+            $output
+        );
+
+        // The member that resolves but lacks the idnumber attribute is
+        // skipped silently (pre-existing behaviour, just no longer fatal).
+        $this->assertStringNotContainsString($noidnumberdn, $output);
 
         $this->recursive_delete($connection, TEST_ENROL_LDAP_DOMAIN, 'dc=moodletestisdn');
         ldap_close($connection);
