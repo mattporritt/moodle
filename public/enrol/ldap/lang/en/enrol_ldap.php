@@ -44,6 +44,7 @@ $string['category'] = 'The category for auto-created courses';
 $string['category_key'] = 'Category';
 $string['contexts'] = 'LDAP contexts';
 $string['couldnotfinduser'] = "Could not find user '{\$a}', skipping\n";
+$string['couldnotresolvegroupmemberdn'] = "Could not resolve group member '{\$a}', skipping\n";
 $string['coursenotexistskip'] = "Course '{\$a}' does not exist and autocreation disabled, skipping\n";
 $string['course_fullname'] = 'Optional: LDAP attribute to get the full name from';
 $string['course_fullname_key'] = 'Full name';
