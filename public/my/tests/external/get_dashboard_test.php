@@ -69,6 +69,47 @@ final class get_dashboard_test extends \advanced_testcase {
     }
 
     /**
+     * A brand-new user's dashboard (with no customisation of their own, so it is copied
+     * straight from the site's unmigrated default page) uses the default grid shape: an
+     * empty column on each side, content blocks taking the next three columns, side-region
+     * blocks the column after, and the first block in each stack a row taller than the rest.
+     */
+    public function test_execute_returns_the_default_layout_shape(): void {
+        $this->resetAfterTest();
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $result = get_dashboard::execute(false);
+        $result = external_api::clean_returnvalue(get_dashboard::execute_returns(), $result);
+
+        $blockidsbyname = [];
+        foreach ($result['blocks'] as $block) {
+            $blockidsbyname[$block['name']] = $block['id'];
+        }
+        $positionsbyid = [];
+        foreach ($result['layout'] as $item) {
+            $positionsbyid[$item['id']] = $item;
+        }
+
+        $expected = [
+            'myoverview' => ['column' => 1, 'row' => 0, 'columns' => 3, 'rows' => 4],
+            'timeline' => ['column' => 1, 'row' => 4, 'columns' => 3, 'rows' => 3],
+            'calendar_month' => ['column' => 4, 'row' => 0, 'columns' => 1, 'rows' => 4],
+            'recentlyaccesseditems' => ['column' => 4, 'row' => 4, 'columns' => 1, 'rows' => 3],
+        ];
+        foreach ($expected as $blockname => $expectedposition) {
+            $this->assertArrayHasKey(
+                $blockname,
+                $blockidsbyname,
+                "Default dashboard is missing the {$blockname} block.",
+            );
+            $position = $positionsbyid[$blockidsbyname[$blockname]];
+            foreach ($expectedposition as $field => $value) {
+                $this->assertSame($value, $position[$field], "{$blockname}.{$field} did not match the default layout.");
+            }
+        }
+    }
+
+    /**
      * A user who can only edit their own dashboard cannot also switch to the site default.
      */
     public function test_execute_reports_no_other_scope_without_site_capability(): void {

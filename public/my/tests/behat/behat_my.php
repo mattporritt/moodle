@@ -568,6 +568,50 @@ class behat_my extends behat_base {
     }
 
     /**
+     * Assert that Calendar's day cells render at their intended compact height when the block's
+     * tile is narrow, rather than the full-page calendar view's much taller day cell.
+     *
+     * Boost's full calendar view sets a fixed, tall day-cell height via a rule scoped to
+     * "#region-main .maincalendar .calendarwrapper td > div". Legacy block regions never
+     * rendered inside #region-main, so that rule never reached block content; the dashboard grid
+     * does render inside #region-main, so without an explicit override the leaked rule forces a
+     * tall day cell and a scrolling month grid regardless of how narrow the tile actually is.
+     *
+     * @Then the Calendar block renders compact day cells
+     */
+    public function the_calendar_block_renders_compact_day_cells(): void {
+        $result = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const tile = document.querySelector(".core-my-dashboard-tile[data-block='calendar_month']");
+                const content = tile?.querySelector('.core-my-dashboard-tile__content');
+                const day = content?.querySelector('.calendartable.calendarmonth td:not(.dayblank) > div');
+                if (!tile || !content || !day) {
+                    return null;
+                }
+                return {
+                    tilewidth: tile.getBoundingClientRect().width,
+                    dayheight: day.getBoundingClientRect().height,
+                    scrollheight: content.scrollHeight,
+                    clientheight: content.clientHeight,
+                };
+            })();
+        JS);
+
+        if ($result === null) {
+            throw new \Exception('Could not find a Calendar day cell to measure.');
+        }
+        // A compact day cell is a small fraction of the leaked full-page height (previously
+        // observed around 166px); comfortably below that without pinning to an exact pixel value.
+        // This intentionally does not also assert zero scroll: Calendar's own toolbar (course
+        // filter, "New event" button) can still exceed a narrow tile's default row allocation
+        // even once day cells are compact, which is a separate density question, not this leak.
+        if ($result['dayheight'] >= 60) {
+            throw new \Exception('Calendar day cells are not rendering at their compact height: ' .
+                json_encode($result));
+        }
+    }
+
+    /**
      * Grow a block by one grid cell in the given direction, using the same discrete-control click
      * sequence as the existing accessible-controls scenario (activate, direction, activate again
      * to commit), and capture the grid position of whichever other tile moved as a result.

@@ -77,6 +77,13 @@ Feature: Arrange dashboard blocks in a responsive grid
     And resizing the Calendar block into its column neighbour pushes it down
 
   @javascript
+  Scenario: Calendar renders compactly in its narrow default column
+    When I turn editing mode on
+    And I change viewport size to "2600x1000"
+    Then "[data-columns='6']" "css_element" should exist
+    And the Calendar block renders compact day cells
+
+  @javascript
   Scenario: Reflow the grid from six columns down to one
     When I turn editing mode on
     And I change viewport size to "2600x1000"
