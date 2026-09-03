@@ -148,6 +148,18 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
     const previewLayout = useMemo(() => interaction
         ? packWithPinned(displayLayout, columnCount, interaction.draft)
         : displayLayout, [columnCount, displayLayout, interaction]);
+    const bumpedBlockIds = useMemo(() => {
+        if (interaction?.origin !== 'pointer') {
+            return new Set<number>();
+        }
+        const originalItems = new Map(displayLayout.map(item => [item.id, item]));
+        return new Set(previewLayout.filter(item => {
+            const original = originalItems.get(item.id);
+            return item.id !== interaction.id && original && (
+                item.column !== original.column || item.row !== original.row
+            );
+        }).map(item => item.id));
+    }, [displayLayout, interaction, previewLayout]);
     const blocksById = useMemo(() => new Map((data?.blocks ?? []).map(block => [block.id, block])), [data]);
 
     const announce = useCallback(async(key: string, value?: string | Record<string, unknown>) => {
@@ -202,7 +214,7 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
         }
         const derived = packWithPinned(currentDisplay, currentColumns, current.draft);
         const disturbed = disturbedCount(current.before, derived, current.id);
-        const next = writeBack(currentCanonical, derived, current.mode === 'resize' ? current.id : undefined);
+        const next = writeBack(currentCanonical, derived, current.id);
         setSaving(true);
         try {
             await updateDashboard('save', siteDefault, next);
@@ -387,13 +399,14 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
                         columns: Math.min(item.columns, columnCount),
                     };
                     const next = writeBack(response.layout,
-                        packWithPinned(packLayout(response.layout, columnCount), columnCount, pinned));
+                        packWithPinned(packLayout(response.layout, columnCount), columnCount, pinned), item.id);
                     await updateDashboard('save', siteDefault, next);
                     setCanonical(next);
                     canonicalRef.current = next;
                 } else if (item && palette.position === 'start') {
                     const next = writeBack(response.layout,
-                        packWithPinned(packLayout(response.layout, columnCount), columnCount, {...item, column: 0, row: 0}));
+                        packWithPinned(packLayout(response.layout, columnCount), columnCount,
+                            {...item, column: 0, row: 0}), item.id);
                     await updateDashboard('save', siteDefault, next);
                     setCanonical(next);
                     canonicalRef.current = next;
@@ -415,14 +428,15 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
         setSaving(true);
         try {
             await updateDashboard('reset', false);
-            await load();
-            await announce('dashboardresetcomplete');
+            // Reset restores the system dashboard, which also ends Moodle edit mode.
+            // Reload the document to keep the server-rendered edit switch in sync.
+            window.location.reload();
         } catch (caught) {
             setError(caught instanceof Error ? caught.message : String(caught));
         } finally {
             setSaving(false);
         }
-    }, [announce, data, load]);
+    }, [data]);
 
     if (!data) {
         return error
@@ -489,6 +503,8 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
                     showControls={interaction?.id === item.id && interaction.origin !== 'pointer'}
                     drag={interaction?.id === item.id ? interaction.drag : undefined}
                     dragOrigin={interaction?.id === item.id ? interaction.original : undefined}
+                    shouldAnimatePosition={interaction?.origin === 'pointer' && interaction.id !== item.id}
+                    isBumped={bumpedBlockIds.has(item.id)}
                     onStart={start}
                     onKeyDown={keyDown}
                     onPointerDown={pointerDown}

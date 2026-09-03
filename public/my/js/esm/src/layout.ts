@@ -22,7 +22,7 @@
  */
 
 export const MAX_COLUMNS = 6;
-export const SIX_COLUMN_THRESHOLD = 2100;
+export const SIX_COLUMN_THRESHOLD = 1921;
 export const FOUR_COLUMN_THRESHOLD = 920;
 export const TWO_COLUMN_THRESHOLD = 690;
 export const ROW_HEIGHT = 96;
@@ -98,12 +98,40 @@ export const packInOrder = (items: LayoutItem[], columnCount: number): LayoutIte
     });
 };
 
-export const packLayout = (items: LayoutItem[], columnCount: number): LayoutItem[] => packInOrder(
-    [...items].sort((left, right) =>
-        left.row - right.row || left.column - right.column || left.id - right.id
-    ),
-    columnCount,
-);
+export const packLayout = (items: LayoutItem[], columnCount: number): LayoutItem[] => {
+    const occupied = new Set<string>();
+    return [...items]
+        .sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id)
+        .map(item => {
+            const columns = Math.min(item.columns, columnCount);
+            const column = Math.max(0, Math.min(item.column, columnCount - columns));
+            const row = Math.max(0, item.row);
+            let placed: LayoutItem | null = null;
+            if (fits(occupied, column, row, columns, item.rows)) {
+                placed = {...item, column, row, columns, sourceColumns: item.sourceColumns ?? item.columns};
+            } else {
+                for (let nextrow = 0; nextrow < 10000 && !placed; nextrow++) {
+                    for (let nextcolumn = 0; nextcolumn + columns <= columnCount; nextcolumn++) {
+                        if (fits(occupied, nextcolumn, nextrow, columns, item.rows)) {
+                            placed = {
+                                ...item,
+                                column: nextcolumn,
+                                row: nextrow,
+                                columns,
+                                sourceColumns: item.sourceColumns ?? item.columns,
+                            };
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!placed) {
+                throw new Error('Unable to place dashboard block.');
+            }
+            occupy(occupied, placed);
+            return placed;
+        });
+};
 
 export const packWithPinned = (
     items: LayoutItem[],
@@ -126,12 +154,18 @@ export const packWithPinned = (
         .sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id);
     for (const item of remaining) {
         const columns = Math.min(item.columns, columnCount);
+        const column = Math.max(0, Math.min(item.column, columnCount - columns));
+        const row = Math.max(0, item.row);
         let placed: LayoutItem | null = null;
-        for (let row = 0; row < 10000 && !placed; row++) {
-            for (let column = 0; column + columns <= columnCount; column++) {
-                if (fits(occupied, column, row, columns, item.rows)) {
-                    placed = {...item, column, row, columns};
-                    break;
+        if (fits(occupied, column, row, columns, item.rows)) {
+            placed = {...item, column, row, columns};
+        } else {
+            for (let nextrow = 0; nextrow < 10000 && !placed; nextrow++) {
+                for (let nextcolumn = 0; nextcolumn + columns <= columnCount; nextcolumn++) {
+                    if (fits(occupied, nextcolumn, nextrow, columns, item.rows)) {
+                        placed = {...item, column: nextcolumn, row: nextrow, columns};
+                        break;
+                    }
                 }
             }
         }
@@ -147,19 +181,21 @@ export const packWithPinned = (
 export const writeBack = (
     canonical: LayoutItem[],
     derived: LayoutItem[],
-    resizedId?: number,
+    pinnedId?: number,
 ): LayoutItem[] => {
     const original = new Map(canonical.map(item => [item.id, item]));
     const restored = [...derived]
         .sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id)
         .map(item => ({
             ...item,
-            columns: item.id === resizedId
+            columns: item.id === pinnedId
                 ? item.columns
                 : (item.sourceColumns ?? original.get(item.id)?.columns ?? item.columns),
             sourceColumns: undefined,
         }));
-    return packInOrder(restored, MAX_COLUMNS).map(item => ({
+    const pinned = restored.find(item => item.id === pinnedId);
+    const packed = pinned ? packWithPinned(restored, MAX_COLUMNS, pinned) : packInOrder(restored, MAX_COLUMNS);
+    return packed.map(item => ({
         id: item.id,
         column: item.column,
         row: item.row,

@@ -37,7 +37,10 @@ const GridControls = /* @__PURE__ */ __name(({ mode, labels, onDirection }) => /
             lineNumber: 48,
             columnNumber: 24
           }),
-          onPointerDown: (event) => event.preventDefault(),
+          onPointerDown: (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          },
           onClick: () => onDirection(direction.horizontal, direction.vertical)
         },
         direction.name,

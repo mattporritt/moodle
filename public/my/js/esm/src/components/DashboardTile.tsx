@@ -13,7 +13,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import React from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {Button} from '@moodlehq/design-system';
 import type {DashboardBlock, DashboardLabels} from '../repository';
 import type {LayoutItem} from '../layout';
@@ -35,6 +35,8 @@ interface DashboardTileProps {
     showControls: boolean;
     drag?: PointerDrag;
     dragOrigin?: LayoutItem;
+    shouldAnimatePosition?: boolean;
+    isBumped?: boolean;
     onStart: (id: number, mode: 'move' | 'resize') => void;
     onKeyDown: (event: React.KeyboardEvent, id: number, mode: 'move' | 'resize') => void;
     onPointerDown: (event: React.PointerEvent, id: number, mode: 'move' | 'resize') => void;
@@ -52,6 +54,8 @@ const DashboardTile = ({
     showControls,
     drag,
     dragOrigin,
+    shouldAnimatePosition = false,
+    isBumped = false,
     onStart,
     onKeyDown,
     onPointerDown,
@@ -59,13 +63,48 @@ const DashboardTile = ({
     onCommit,
     onRemove,
 }: DashboardTileProps) => {
+    const tileRef = useRef<HTMLElement>(null);
+    const previousPosition = useRef<DOMRect | null>(null);
+    const positionAnimation = useRef<Animation | null>(null);
     const moveInstructionsId = `core-my-dashboard-move-instructions-${block.id}`;
     const resizeInstructionsId = `core-my-dashboard-resize-instructions-${block.id}`;
 
     const displayItem = drag && dragOrigin ? dragOrigin : item;
 
+    useLayoutEffect(() => {
+        const tile = tileRef.current;
+        if (!tile) {
+            return;
+        }
+        positionAnimation.current?.cancel();
+        const currentPosition = tile.getBoundingClientRect();
+        const priorPosition = previousPosition.current;
+        previousPosition.current = currentPosition;
+
+        if (!shouldAnimatePosition || !priorPosition ||
+            window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !tile.animate) {
+            return;
+        }
+
+        const horizontal = priorPosition.left - currentPosition.left;
+        const vertical = priorPosition.top - currentPosition.top;
+        if (!horizontal && !vertical) {
+            return;
+        }
+
+        // Use FLIP so CSS grid's discrete row/column placement eases visually.
+        positionAnimation.current = tile.animate([
+            {transform: `translate3d(${horizontal}px, ${vertical}px, 0)`},
+            {transform: 'translate3d(0, 0, 0)'},
+        ], {
+            duration: 180,
+            easing: 'cubic-bezier(.2, 0, 0, 1)',
+        });
+    }, [item.column, item.columns, item.row, item.rows, shouldAnimatePosition]);
+
     return <section
-        className={`core-my-dashboard-tile${activeMode ? ' core-my-dashboard-tile--active' : ''}${drag ? ' core-my-dashboard-tile--pointer-dragging' : ''}`}
+        ref={tileRef}
+        className={`core-my-dashboard-tile${activeMode ? ' core-my-dashboard-tile--active' : ''}${drag ? ' core-my-dashboard-tile--pointer-dragging' : ''}${isBumped ? ' core-my-dashboard-tile--bumped' : ''}`}
         style={{
             gridColumn: `${displayItem.column + 1} / span ${displayItem.columns}`,
             gridRow: `${displayItem.row + 1} / span ${displayItem.rows}`,
@@ -76,6 +115,7 @@ const DashboardTile = ({
         aria-label={labels.tile.replace('{$a}', block.title)}
         data-block={block.name}
         data-block-id={block.id}
+        data-bumped={isBumped || undefined}
     >
         {editing && <>
             <span id={moveInstructionsId} className="visually-hidden">{labels.moveinstructions}</span>

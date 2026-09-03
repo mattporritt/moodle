@@ -1330,6 +1330,22 @@ class block_manager {
         }
     }
 
+    /**
+     * Refresh rendered block content while keeping the loaded block instances.
+     *
+     * This is useful when a page header has rendered a block region, but the
+     * same block content needs to be rendered again into a separately collected
+     * fragment response.
+     */
+    public function refresh_cached_content(): void {
+        $this->visibleblockcontent = [];
+        foreach ($this->blockinstances as $instances) {
+            foreach ($instances as $instance) {
+                $instance->refresh_content();
+            }
+        }
+    }
+
 /// Process actions from the URL ===============================================
 
     /**

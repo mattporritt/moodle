@@ -28,6 +28,108 @@ require_once(__DIR__ . '/../../../lib/behat/behat_base.php');
  */
 class behat_my extends behat_base {
     /**
+     * Assert that the page-level dashboard editing switch is off.
+     *
+     * @Then the dashboard edit mode switch should be off
+     */
+    public function dashboard_edit_mode_switch_should_be_off(): void {
+        $this->spin(
+            function ($context): bool {
+                return $context->evaluate_script(<<<'JS'
+                    return document.querySelector('input[name="setmode"]')?.checked === false;
+                JS);
+            },
+            false,
+            5,
+            new \Exception('The dashboard edit mode switch is still on after resetting the dashboard.')
+        );
+    }
+
+    /**
+     * Drag a dashboard block one column into free grid space and verify its saved position.
+     *
+     * @Then dragging the :block dashboard block into an adjacent free column persists
+     * @param string $block Block name.
+     */
+    public function dragging_dashboard_block_into_an_adjacent_free_column_persists(string $block): void {
+        $drag = $this->evaluate_script(<<<JS
+            return (() => {
+                const tile = document.querySelector('.core-my-dashboard-tile[data-block="{$block}"]');
+                const handle = tile?.querySelector('.core-my-dashboard-handle--move');
+                const grid = document.querySelector('.core-my-dashboard-grid');
+                if (!tile || !handle || !grid) {
+                    return null;
+                }
+                const tilerect = tile.getBoundingClientRect();
+                const handlerect = handle.getBoundingClientRect();
+                const gridrect = grid.getBoundingClientRect();
+                const columns = Number(grid.dataset.columns);
+                const gap = parseFloat(getComputedStyle(grid).gap);
+                const stride = (gridrect.width - gap * (columns - 1)) / columns + gap;
+                const column = Number(getComputedStyle(tile).gridColumnStart);
+                const span = Number(getComputedStyle(tile).gridColumnEnd.replace('span ', ''));
+                const direction = column + span <= columns ? 1 : -1;
+                if (direction < 0 && column <= 1) {
+                    return {error: 'The fixture does not have an adjacent free column.'};
+                }
+                const x = handlerect.left + handlerect.width / 2;
+                const y = handlerect.top + handlerect.height / 2;
+                const pointer = (type, clientx, buttons) => new PointerEvent(type, {
+                    bubbles: true,
+                    button: 0,
+                    buttons,
+                    clientX: clientx,
+                    clientY: y,
+                    isPrimary: true,
+                    pointerId: 3,
+                    pointerType: 'mouse',
+                });
+                handle.dispatchEvent(pointer('pointerdown', x, 1));
+                window.dispatchEvent(pointer('pointermove', x + direction * stride * 0.75, 1));
+                return {column, expected: column + direction, x, y, stride, direction};
+            })();
+        JS);
+
+        if ($drag === null || isset($drag['error'])) {
+            throw new \Exception($drag['error'] ?? 'The dashboard move handle was not found.');
+        }
+
+        usleep(100000);
+        $preview = $this->evaluate_script(<<<JS
+            return (() => {
+                const tile = document.querySelector('.core-my-dashboard-tile[data-block="{$block}"]');
+                return {
+                    dragging: tile?.classList.contains('core-my-dashboard-tile--pointer-dragging'),
+                    transform: tile?.style.transform,
+                };
+            })();
+        JS);
+        if (empty($preview['dragging']) || empty($preview['transform'])) {
+            throw new \Exception('Dashboard move did not produce a fluid drag preview: ' . json_encode($preview));
+        }
+        $this->evaluate_script(<<<JS
+            window.dispatchEvent(new PointerEvent('pointerup', {
+                bubbles: true,
+                button: 0,
+                buttons: 0,
+                clientX: {$drag['x']} + {$drag['direction']} * {$drag['stride']} * 0.75,
+                clientY: {$drag['y']},
+                isPrimary: true,
+                pointerId: 3,
+                pointerType: 'mouse',
+            }));
+            return true;
+        JS);
+        usleep(500000);
+        $actual = (int)$this->evaluate_script(<<<JS
+            return getComputedStyle(document.querySelector('.core-my-dashboard-tile[data-block="{$block}"]')).gridColumnStart;
+        JS);
+        if ($actual !== $drag['expected']) {
+            throw new \Exception("Dashboard block '{$block}' starts in grid column '{$actual}', expected '{$drag['expected']}'.");
+        }
+    }
+
+    /**
      * Assert that keyboard activation exposes the discrete resize controls.
      *
      * @Then keyboard activation shows resize directional controls
@@ -217,6 +319,137 @@ class behat_my extends behat_base {
         if ($shrinkpreview['width'] >= $shrinkstart['width'] || $shrinkpreview['prospective'] === 0) {
             throw new \Exception('Resize did not show its occupied cells while shrinking below the snap threshold: ' .
                 json_encode($shrinkpreview));
+        }
+    }
+
+    /**
+     * Assert that a pointer resize eases blocks that are displaced by its new grid footprint.
+     *
+     * @Then blocks bumped by a pointer resize ease into their new grid position
+     */
+    public function bumped_blocks_ease_into_their_new_grid_position(): void {
+        $start = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const tile = document.querySelector(".core-my-dashboard-tile[data-block='calendar_month']");
+                const handle = tile?.querySelector('.core-my-dashboard-handle--resize');
+                const grid = document.querySelector('.core-my-dashboard-grid');
+                if (!tile || !handle || !grid) {
+                    return null;
+                }
+                const tileRect = tile.getBoundingClientRect();
+                const gridRect = grid.getBoundingClientRect();
+                const columns = Number(grid.dataset.columns);
+                const gap = parseFloat(getComputedStyle(grid).gap);
+                const stride = (gridRect.width - gap * (columns - 1)) / columns + gap;
+                const x = tileRect.right - 20;
+                const y = tileRect.bottom - 20;
+                const pointer = (type, clientX, buttons) => new PointerEvent(type, {
+                    bubbles: true,
+                    button: 0,
+                    buttons,
+                    clientX,
+                    clientY: y,
+                    isPrimary: true,
+                    pointerId: 4,
+                    pointerType: 'mouse',
+                });
+                handle.dispatchEvent(pointer('pointerdown', x, 1));
+                window.dispatchEvent(pointer('pointermove', x + stride * 0.75, 1));
+                return {x, y};
+            })();
+        JS);
+
+        if ($start === null) {
+            throw new \Exception('The Calendar resize handle was not found.');
+        }
+
+        usleep(100000);
+        $animation = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const tile = document.querySelector('.core-my-dashboard-tile[data-bumped="true"]');
+                if (!tile) {
+                    return null;
+                }
+                return {
+                    animations: tile.getAnimations().map(animation => ({
+                        duration: animation.effect?.getTiming().duration,
+                        state: animation.playState,
+                    })),
+                };
+            })();
+        JS);
+        if (
+            $animation === null ||
+            !array_filter(
+                $animation['animations'],
+                fn(array $animation): bool => $animation['duration'] === 180 && $animation['state'] !== 'finished'
+            )
+        ) {
+            throw new \Exception('A bumped dashboard tile did not run its position easing animation: ' .
+                json_encode($animation));
+        }
+
+        $returning = $this->evaluate_script(<<<JS
+            return (() => {
+                const tile = document.querySelector('.core-my-dashboard-tile[data-bumped="true"]');
+                const grid = document.querySelector('.core-my-dashboard-grid');
+                const handle = document.querySelector(
+                    ".core-my-dashboard-tile[data-block='calendar_month'] .core-my-dashboard-handle--resize"
+                );
+                if (!tile || !grid || !handle) {
+                    return null;
+                }
+                const gridRect = grid.getBoundingClientRect();
+                const columns = Number(grid.dataset.columns);
+                const gap = parseFloat(getComputedStyle(grid).gap);
+                const stride = (gridRect.width - gap * (columns - 1)) / columns + gap;
+                window.dispatchEvent(new PointerEvent('pointermove', {
+                    bubbles: true,
+                    buttons: 1,
+                    clientX: {$start['x']} + stride * 0.4,
+                    clientY: {$start['y']},
+                    isPrimary: true,
+                    pointerId: 4,
+                    pointerType: 'mouse',
+                }));
+                return {block: tile.dataset.block};
+            })();
+        JS);
+        if ($returning === null) {
+            throw new \Exception('The bumped dashboard tile did not remain available for the return animation.');
+        }
+        usleep(100000);
+        $returnanimation = $this->evaluate_script(<<<JS
+            return (() => {
+                const tile = document.querySelector('.core-my-dashboard-tile[data-block="{$returning['block']}"]');
+                if (!tile) {
+                    return null;
+                }
+                return tile.getAnimations().map(animation => ({
+                    duration: animation.effect?.getTiming().duration,
+                    state: animation.playState,
+                }));
+            })();
+        JS);
+        $this->evaluate_script(<<<JS
+            window.dispatchEvent(new PointerEvent('pointercancel', {
+                bubbles: true,
+                pointerId: 4,
+                pointerType: 'mouse',
+                clientX: {$start['x']},
+                clientY: {$start['y']},
+            }));
+            return true;
+        JS);
+        if (
+            $returnanimation === null ||
+            !array_filter(
+                $returnanimation,
+                fn(array $animation): bool => $animation['duration'] === 180 && $animation['state'] !== 'finished'
+            )
+        ) {
+            throw new \Exception('A returning dashboard tile did not run its position easing animation: ' .
+                json_encode($returnanimation));
         }
     }
 

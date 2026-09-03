@@ -61,7 +61,11 @@ describe('core_my grid components', () => {
             onActivate={activate}
         />);
 
-        fireEvent.click(screen.getByRole('button', {name: 'Empty grid cell, Row 4, column 3'}));
+        const cell = screen.getByRole('button', {name: 'Empty grid cell, Row 4, column 3'});
+        cell.focus();
+        expect(cell).toHaveFocus();
+
+        fireEvent.click(cell);
         expect(activate).toHaveBeenCalledWith(2, 3);
     });
 
@@ -207,6 +211,35 @@ describe('core_my grid components', () => {
 
         expect(screen.getByRole('region', {name: 'Useful links block'})).toBeInTheDocument();
         expect(screen.getByText('Tile content')).toBeInTheDocument();
+    });
+
+    it('marks a displaced tile for pointer-position easing', () => {
+        render(<DashboardTile
+            block={{
+                id: 9,
+                name: 'html',
+                title: 'Useful links',
+                content: '',
+                footer: '',
+                region: 'content',
+                weight: 0,
+            }}
+            item={{id: 9, column: 1, row: 1, columns: 2, rows: 2}}
+            labels={{...labels, tile: '{$a} block'} as DashboardLabels}
+            editing={false}
+            showControls={false}
+            shouldAnimatePosition
+            isBumped
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
+            onRemove={jest.fn()}
+        />);
+
+        expect(screen.getByRole('region', {name: 'Useful links block'}))
+            .toHaveAttribute('data-bumped', 'true');
     });
 
     it('renders large icon-only move, resize, and remove actions in edit mode', () => {

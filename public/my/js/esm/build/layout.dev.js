@@ -8,7 +8,7 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 const MAX_COLUMNS = 6;
-const SIX_COLUMN_THRESHOLD = 2100;
+const SIX_COLUMN_THRESHOLD = 1921;
 const FOUR_COLUMN_THRESHOLD = 920;
 const TWO_COLUMN_THRESHOLD = 690;
 const ROW_HEIGHT = 96;
@@ -70,12 +70,38 @@ const packInOrder = /* @__PURE__ */ __name((items, columnCount) => {
     return placed;
   });
 }, "packInOrder");
-const packLayout = /* @__PURE__ */ __name((items, columnCount) => packInOrder(
-  [...items].sort(
-    (left, right) => left.row - right.row || left.column - right.column || left.id - right.id
-  ),
-  columnCount
-), "packLayout");
+const packLayout = /* @__PURE__ */ __name((items, columnCount) => {
+  const occupied = /* @__PURE__ */ new Set();
+  return [...items].sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id).map((item) => {
+    const columns = Math.min(item.columns, columnCount);
+    const column = Math.max(0, Math.min(item.column, columnCount - columns));
+    const row = Math.max(0, item.row);
+    let placed = null;
+    if (fits(occupied, column, row, columns, item.rows)) {
+      placed = { ...item, column, row, columns, sourceColumns: item.sourceColumns ?? item.columns };
+    } else {
+      for (let nextrow = 0; nextrow < 1e4 && !placed; nextrow++) {
+        for (let nextcolumn = 0; nextcolumn + columns <= columnCount; nextcolumn++) {
+          if (fits(occupied, nextcolumn, nextrow, columns, item.rows)) {
+            placed = {
+              ...item,
+              column: nextcolumn,
+              row: nextrow,
+              columns,
+              sourceColumns: item.sourceColumns ?? item.columns
+            };
+            break;
+          }
+        }
+      }
+    }
+    if (!placed) {
+      throw new Error("Unable to place dashboard block.");
+    }
+    occupy(occupied, placed);
+    return placed;
+  });
+}, "packLayout");
 const packWithPinned = /* @__PURE__ */ __name((items, columnCount, pinned) => {
   const columns = Math.min(pinned.columns, columnCount);
   const safePinned = {
@@ -91,12 +117,18 @@ const packWithPinned = /* @__PURE__ */ __name((items, columnCount, pinned) => {
   const remaining = items.filter((item) => item.id !== pinned.id).sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id);
   for (const item of remaining) {
     const columns2 = Math.min(item.columns, columnCount);
+    const column = Math.max(0, Math.min(item.column, columnCount - columns2));
+    const row = Math.max(0, item.row);
     let placed = null;
-    for (let row = 0; row < 1e4 && !placed; row++) {
-      for (let column = 0; column + columns2 <= columnCount; column++) {
-        if (fits(occupied, column, row, columns2, item.rows)) {
-          placed = { ...item, column, row, columns: columns2 };
-          break;
+    if (fits(occupied, column, row, columns2, item.rows)) {
+      placed = { ...item, column, row, columns: columns2 };
+    } else {
+      for (let nextrow = 0; nextrow < 1e4 && !placed; nextrow++) {
+        for (let nextcolumn = 0; nextcolumn + columns2 <= columnCount; nextcolumn++) {
+          if (fits(occupied, nextcolumn, nextrow, columns2, item.rows)) {
+            placed = { ...item, column: nextcolumn, row: nextrow, columns: columns2 };
+            break;
+          }
         }
       }
     }
@@ -108,14 +140,16 @@ const packWithPinned = /* @__PURE__ */ __name((items, columnCount, pinned) => {
   }
   return result;
 }, "packWithPinned");
-const writeBack = /* @__PURE__ */ __name((canonical, derived, resizedId) => {
+const writeBack = /* @__PURE__ */ __name((canonical, derived, pinnedId) => {
   const original = new Map(canonical.map((item) => [item.id, item]));
   const restored = [...derived].sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id).map((item) => ({
     ...item,
-    columns: item.id === resizedId ? item.columns : item.sourceColumns ?? original.get(item.id)?.columns ?? item.columns,
+    columns: item.id === pinnedId ? item.columns : item.sourceColumns ?? original.get(item.id)?.columns ?? item.columns,
     sourceColumns: void 0
   }));
-  return packInOrder(restored, MAX_COLUMNS).map((item) => ({
+  const pinned = restored.find((item) => item.id === pinnedId);
+  const packed = pinned ? packWithPinned(restored, MAX_COLUMNS, pinned) : packInOrder(restored, MAX_COLUMNS);
+  return packed.map((item) => ({
     id: item.id,
     column: item.column,
     row: item.row,

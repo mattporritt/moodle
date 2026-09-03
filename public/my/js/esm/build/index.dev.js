@@ -97,6 +97,16 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
   const displayLayout = useMemo(() => packLayout(canonical, columnCount), [canonical, columnCount]);
   displayLayoutRef.current = displayLayout;
   const previewLayout = useMemo(() => interaction ? packWithPinned(displayLayout, columnCount, interaction.draft) : displayLayout, [columnCount, displayLayout, interaction]);
+  const bumpedBlockIds = useMemo(() => {
+    if (interaction?.origin !== "pointer") {
+      return /* @__PURE__ */ new Set();
+    }
+    const originalItems = new Map(displayLayout.map((item) => [item.id, item]));
+    return new Set(previewLayout.filter((item) => {
+      const original = originalItems.get(item.id);
+      return item.id !== interaction.id && original && (item.column !== original.column || item.row !== original.row);
+    }).map((item) => item.id));
+  }, [displayLayout, interaction, previewLayout]);
   const blocksById = useMemo(() => new Map((data?.blocks ?? []).map((block) => [block.id, block])), [data]);
   const announce = useCallback(async (key, value) => {
     setAnnouncement(await getString(key, "my", value));
@@ -147,7 +157,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
     }
     const derived = packWithPinned(currentDisplay, currentColumns, current.draft);
     const disturbed = disturbedCount(current.before, derived, current.id);
-    const next = writeBack(currentCanonical, derived, current.mode === "resize" ? current.id : void 0);
+    const next = writeBack(currentCanonical, derived, current.id);
     setSaving(true);
     try {
       await updateDashboard("save", siteDefault, next);
@@ -330,7 +340,8 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
           };
           const next = writeBack(
             response.layout,
-            packWithPinned(packLayout(response.layout, columnCount), columnCount, pinned)
+            packWithPinned(packLayout(response.layout, columnCount), columnCount, pinned),
+            item.id
           );
           await updateDashboard("save", siteDefault, next);
           setCanonical(next);
@@ -338,7 +349,12 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
         } else if (item && palette.position === "start") {
           const next = writeBack(
             response.layout,
-            packWithPinned(packLayout(response.layout, columnCount), columnCount, { ...item, column: 0, row: 0 })
+            packWithPinned(
+              packLayout(response.layout, columnCount),
+              columnCount,
+              { ...item, column: 0, row: 0 }
+            ),
+            item.id
           );
           await updateDashboard("save", siteDefault, next);
           setCanonical(next);
@@ -360,22 +376,21 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
     setSaving(true);
     try {
       await updateDashboard("reset", false);
-      await load();
-      await announce("dashboardresetcomplete");
+      window.location.reload();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setSaving(false);
     }
-  }, [announce, data, load]);
+  }, [data]);
   if (!data) {
     return error ? /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-status alert alert-danger", role: "alert", children: error }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 429,
+      lineNumber: 443,
       columnNumber: 15
     }) : /* @__PURE__ */ jsxDEV(DashboardLoading, { label: loadingLabel }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 430,
+      lineNumber: 444,
       columnNumber: 15
     });
   }
@@ -384,18 +399,18 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
   return /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-app", "aria-busy": saving, children: [
     error && /* @__PURE__ */ jsxDEV("div", { className: "alert alert-danger", role: "alert", children: error }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 438,
+      lineNumber: 452,
       columnNumber: 19
     }),
     /* @__PURE__ */ jsxDEV("div", { className: "visually-hidden", "aria-live": "polite", "aria-atomic": "true", children: announcement }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 439,
+      lineNumber: 453,
       columnNumber: 9
     }),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar", children: [
       /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblocktop, onClick: () => setPalette({ position: "start" }) }, void 0, false, {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 441,
+        lineNumber: 455,
         columnNumber: 13
       }),
       !siteDefault && /* @__PURE__ */ jsxDEV(
@@ -409,13 +424,13 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
         false,
         {
           fileName: "public/my/js/esm/src/index.tsx",
-          lineNumber: 442,
+          lineNumber: 456,
           columnNumber: 30
         }
       )
     ] }, void 0, true, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 440,
+      lineNumber: 454,
       columnNumber: 26
     }),
     /* @__PURE__ */ jsxDEV(
@@ -450,7 +465,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
                 false,
                 {
                   fileName: "public/my/js/esm/src/index.tsx",
-                  lineNumber: 466,
+                  lineNumber: 480,
                   columnNumber: 59
                 }
               ) : null;
@@ -472,6 +487,8 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
                 showControls: interaction?.id === item.id && interaction.origin !== "pointer",
                 drag: interaction?.id === item.id ? interaction.drag : void 0,
                 dragOrigin: interaction?.id === item.id ? interaction.original : void 0,
+                shouldAnimatePosition: interaction?.origin === "pointer" && interaction.id !== item.id,
+                isBumped: bumpedBlockIds.has(item.id),
                 onStart: start,
                 onKeyDown: keyDown,
                 onPointerDown: pointerDown,
@@ -483,7 +500,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
               false,
               {
                 fileName: "public/my/js/esm/src/index.tsx",
-                lineNumber: 482,
+                lineNumber: 496,
                 columnNumber: 24
               }
             );
@@ -494,17 +511,17 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       true,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 448,
+        lineNumber: 462,
         columnNumber: 9
       }
     ),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar core-my-dashboard-toolbar--bottom", children: /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblockbottom, onClick: () => setPalette({ position: "end" }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 502,
+      lineNumber: 518,
       columnNumber: 13
     }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 501,
+      lineNumber: 517,
       columnNumber: 26
     }),
     palette && /* @__PURE__ */ jsxDEV(
@@ -520,7 +537,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 504,
+        lineNumber: 520,
         columnNumber: 21
       }
     ),
@@ -546,13 +563,13 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 511,
+        lineNumber: 527,
         columnNumber: 27
       }
     )
   ] }, void 0, true, {
     fileName: "public/my/js/esm/src/index.tsx",
-    lineNumber: 437,
+    lineNumber: 451,
     columnNumber: 12
   });
 }, "Dashboard");

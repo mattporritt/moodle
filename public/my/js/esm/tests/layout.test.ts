@@ -33,8 +33,8 @@ describe('core_my responsive dashboard layout', () => {
         [690, 2],
         [919, 2],
         [920, 4],
-        [2099, 4],
-        [2100, 6],
+        [1920, 4],
+        [1921, 6],
     ])('uses %dpx as a %d-column container', (width, columns) => {
         expect(columnsForWidth(width)).toBe(columns);
     });
@@ -54,12 +54,36 @@ describe('core_my responsive dashboard layout', () => {
         expect(disturbedCount(canonical, packed, 3)).toBeGreaterThan(0);
     });
 
+    it('does not move blocks which do not collide with the pinned block', () => {
+        const layout: LayoutItem[] = [
+            {id: 1, column: 0, row: 0, columns: 3, rows: 2},
+            {id: 2, column: 3, row: 2, columns: 3, rows: 2},
+        ];
+
+        const packed = packWithPinned(layout, 6, {...layout[0], column: 3, row: 0});
+
+        expect(packed.find(item => item.id === 2)).toMatchObject({column: 3, row: 2});
+    });
+
     it('restores canonical spans after a temporary responsive clamp', () => {
         const narrow = packLayout(canonical, 2);
         const restored = writeBack(canonical, narrow);
 
         expect(restored.find(item => item.id === 1)?.columns).toBe(4);
         expect(restored.find(item => item.id === 2)?.columns).toBe(2);
+    });
+
+    it('preserves a moved tile in an otherwise free adjacent column', () => {
+        const fourColumnLayout: LayoutItem[] = [
+            {id: 1, column: 0, row: 0, columns: 4, rows: 2, sourceColumns: 4},
+            {id: 2, column: 0, row: 2, columns: 3, rows: 2, sourceColumns: 3},
+        ];
+        const moved = {...fourColumnLayout[1], column: 1};
+        const restored = writeBack(fourColumnLayout, [fourColumnLayout[0], moved], moved.id);
+
+        expect(restored.find(item => item.id === moved.id)).toMatchObject({column: 1, row: 2, columns: 3});
+        expect(packLayout(restored, 4).find(item => item.id === moved.id))
+            .toMatchObject({column: 1, row: 2, columns: 3});
     });
 
     it('clamps an oversized pinned block without producing a negative column', () => {

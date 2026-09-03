@@ -102,6 +102,7 @@ final class dashboard {
         // Block renderers may register JavaScript which must be returned to the React client.
         $OUTPUT->header();
         $PAGE->start_collecting_javascript_requirements();
+        $PAGE->blocks->refresh_cached_content();
 
         $blocks = [];
         $instances = [];

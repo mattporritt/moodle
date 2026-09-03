@@ -36914,6 +36914,10 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
   will-change: transform, width, height;
 }
 
+.core-my-dashboard-tile--bumped {
+  will-change: transform;
+}
+
 .core-my-dashboard-tile__header {
   display: flex;
   gap: var(--mds-spacing-sm);
@@ -37108,21 +37112,18 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
 .core-my-grid-cell--available {
   padding: 0;
   cursor: pointer;
-  background: var(--mds-bg-surface-subtle);
-  border: var(--mds-stroke-weight-sm) dashed var(--mds-border-interactive-secondary-default);
-  opacity: 0.55;
+  background: var(--mds-bg-interactive-secondary-default);
+  border: var(--mds-stroke-weight-sm) dashed var(--mds-border-interactive-secondary-hover);
 }
 
 .core-my-grid-cell--available:hover {
   background: var(--mds-bg-feedback-primary-subtle);
   border-color: var(--mds-border-interactive-primary-hover);
-  opacity: 1;
 }
 
 .core-my-grid-cell--available:focus-visible {
   outline: var(--mds-stroke-weight-md) solid var(--mds-focus-default);
   outline-offset: var(--mds-spacing-offset);
-  opacity: 1;
 }
 
 .core-my-grid-cell--prospective {

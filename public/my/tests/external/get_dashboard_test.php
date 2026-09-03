@@ -57,9 +57,30 @@ final class get_dashboard_test extends \advanced_testcase {
         $this->assertArrayHasKey('layout', $result);
         $this->assertArrayHasKey('availableblocks', $result);
         $this->assertArrayHasKey('javascript', $result);
+        $this->assertStringContainsString('block_recentlyaccesseditems/main', $result['javascript']);
         $this->assertSame('Add a block', $result['labels']['addblock']);
         $this->assertStringContainsString('arrow keys', $result['labels']['moveinstructions']);
         $this->assertStringContainsString('arrow keys', $result['labels']['resizeinstructions']);
+    }
+
+    /**
+     * Block requirements are collected after the dashboard header has prepared its block content.
+     */
+    public function test_block_requirements_are_collected_after_header_render(): void {
+        global $OUTPUT, $PAGE;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        \core_my\local\dashboard::initialise_page(false);
+        $OUTPUT->header();
+        $PAGE->start_collecting_javascript_requirements();
+        $PAGE->blocks->refresh_cached_content();
+        $PAGE->blocks->get_content_for_all_regions($OUTPUT);
+        $javascript = $PAGE->requires->get_end_code();
+        $PAGE->end_collecting_javascript_requirements();
+
+        $this->assertStringContainsString('block_recentlyaccesseditems/main', $javascript);
     }
 
     /**

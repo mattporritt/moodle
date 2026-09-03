@@ -46,7 +46,10 @@ const GridControls = ({mode, labels, onDirection}: GridControlsProps) => <div
             title={label}
             tabIndex={-1}
             startIcon={<i className={`fa fa-${direction.icon}`} aria-hidden="true" />}
-            onPointerDown={event => event.preventDefault()}
+            onPointerDown={event => {
+                event.preventDefault();
+                event.stopPropagation();
+            }}
             onClick={() => onDirection(direction.horizontal, direction.vertical)}
         />;
     })}

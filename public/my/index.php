@@ -185,6 +185,10 @@ if (empty($CFG->forcedefaultmymoodle) && $PAGE->user_allowed_editing()) {
     $USER->editing = $edit = 0;
 }
 
+// Dashboard blocks may supply AMD initialisers as part of the dashboard data response.
+// Ensure the page-level loader is available before the React application receives them.
+$PAGE->requires->js_call_amd('core/first');
+
 echo $OUTPUT->header();
 
 if (core_userfeedback::should_display_reminder()) {

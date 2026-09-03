@@ -23,7 +23,8 @@ Feature: Reset dashboard page to default
     And I click on "Latest announcements" "button" in the "Add a block" "dialogue"
     And I click on "Reset page to default" "button" in the ".core-my-dashboard-toolbar" "css_element"
     And I click on "Confirm" "button" in the "Reset dashboard" "dialogue"
-    Then "Latest announcements" "block" should not exist
+    Then the dashboard edit mode switch should be off
+    And "Latest announcements" "block" should not exist
     And "Course overview" "block" should exist
     And "Timeline" "block" should exist
     And "Calendar" "block" should exist
