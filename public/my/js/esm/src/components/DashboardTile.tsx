@@ -13,10 +13,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import React, {useLayoutEffect, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Button} from '@moodlehq/design-system';
 import type {DashboardBlock, DashboardLabels} from '../repository';
-import type {LayoutItem} from '../layout';
+import {NARROW_BLOCK_WIDTH, type LayoutItem} from '../layout';
 import DashboardHandle from './DashboardHandle';
 
 interface PointerDrag {
@@ -64,12 +64,26 @@ const DashboardTile = ({
     onRemove,
 }: DashboardTileProps) => {
     const tileRef = useRef<HTMLElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
     const previousPosition = useRef<DOMRect | null>(null);
     const positionAnimation = useRef<Animation | null>(null);
+    const [narrow, setNarrow] = useState(false);
     const moveInstructionsId = `core-my-dashboard-move-instructions-${block.id}`;
     const resizeInstructionsId = `core-my-dashboard-resize-instructions-${block.id}`;
 
     const displayItem = drag && dragOrigin ? dragOrigin : item;
+
+    useEffect(() => {
+        const content = contentRef.current;
+        if (!content || typeof ResizeObserver === 'undefined') {
+            return undefined;
+        }
+        const measure = () => setNarrow(content.getBoundingClientRect().width < NARROW_BLOCK_WIDTH);
+        const observer = new ResizeObserver(measure);
+        observer.observe(content);
+        measure();
+        return () => observer.disconnect();
+    }, []);
 
     useLayoutEffect(() => {
         const tile = tileRef.current;
@@ -115,6 +129,7 @@ const DashboardTile = ({
         aria-label={labels.tile.replace('{$a}', block.title)}
         data-block={block.name}
         data-block-id={block.id}
+        data-blockregion={narrow ? 'side-pre' : 'content'}
         data-bumped={isBumped || undefined}
     >
         {editing && <>
@@ -148,7 +163,11 @@ const DashboardTile = ({
                 />
             </div>}
         </header>
-        <div className="core-my-dashboard-tile__content" dangerouslySetInnerHTML={{__html: block.content}} />
+        <div
+            ref={contentRef}
+            className={`core-my-dashboard-tile__content block block_${block.name}`}
+            dangerouslySetInnerHTML={{__html: block.content}}
+        />
         {block.footer && <div
             className="core-my-dashboard-tile__block-footer"
             dangerouslySetInnerHTML={{__html: block.footer}}

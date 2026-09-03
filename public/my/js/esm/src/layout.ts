@@ -30,6 +30,10 @@ export const GRID_GAP = 16;
 export const MIN_COLUMNS = 1;
 export const MIN_ROWS = 2;
 
+// Below this rendered width a tile is treated like a legacy narrow side-region block,
+// so that block CSS designed around Boost's fixed-width sidebar keeps applying correctly.
+export const NARROW_BLOCK_WIDTH = 480;
+
 export interface LayoutItem {
     id: number;
     column: number;

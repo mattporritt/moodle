@@ -147,18 +147,16 @@
     gap: var(--mds-spacing-sm);
     align-items: center;
     justify-content: space-between;
-    padding: var(--mds-spacing-sm);
-    background: var(--mds-bg-surface-subtle);
-    border-bottom: var(--mds-stroke-weight-sm) solid var(--mds-border-subtle);
+    padding: var(--mds-spacing-md);
 }
 
 .core-my-dashboard-tile__title {
     min-width: 0;
     margin: 0;
     overflow: hidden;
-    font-size: var(--mds-font-size-headings-6);
-    font-weight: var(--mds-font-weight-semibold);
-    line-height: var(--mds-line-height-headings-6);
+    font-size: var(--mds-font-size-headings-5);
+    font-weight: var(--mds-font-weight-medium);
+    line-height: var(--mds-line-height-headings-5);
     text-overflow: ellipsis;
     white-space: nowrap;
 }

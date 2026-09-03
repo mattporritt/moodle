@@ -119,13 +119,24 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
 
     useEffect(() => {
         if (!data?.javascript) {
-            return;
+            return undefined;
         }
+        // Each dashboard reload re-renders blocks with fresh DOM ids and JS initialisers.
+        // Guard against a superseded reload's async script running after a newer one has
+        // already replaced the tile content it was written to target.
+        let superseded = false;
         void requireManyAsync(['core/fragment', 'core/templates']).then(([fragment, templates]) => {
+            if (superseded) {
+                return undefined;
+            }
             const processed = (fragment as {processCollectedJavascript: (source: string) => string})
                 .processCollectedJavascript(data.javascript);
             (templates as {runTemplateJS: (source: string) => void}).runTemplateJS(processed);
+            return undefined;
         });
+        return () => {
+            superseded = true;
+        };
     }, [data]);
 
     useEffect(() => {

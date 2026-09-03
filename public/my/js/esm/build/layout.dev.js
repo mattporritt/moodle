@@ -15,6 +15,7 @@ const ROW_HEIGHT = 96;
 const GRID_GAP = 16;
 const MIN_COLUMNS = 1;
 const MIN_ROWS = 2;
+const NARROW_BLOCK_WIDTH = 480;
 const columnsForWidth = /* @__PURE__ */ __name((width) => {
   if (width >= SIX_COLUMN_THRESHOLD) {
     return 6;
@@ -207,6 +208,7 @@ export {
   MAX_COLUMNS,
   MIN_COLUMNS,
   MIN_ROWS,
+  NARROW_BLOCK_WIDTH,
   ROW_HEIGHT,
   SIX_COLUMN_THRESHOLD,
   TWO_COLUMN_THRESHOLD,

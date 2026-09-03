@@ -246,6 +246,36 @@ describe('core_my grid components', () => {
         expect(screen.getByText('Tile content')).toBeInTheDocument();
     });
 
+    it('wraps block content with the standard block classes so shared block CSS keeps applying', () => {
+        const {container} = render(<DashboardTile
+            block={{
+                id: 8,
+                name: 'calendar_month',
+                title: 'Calendar',
+                content: '<p>Tile content</p>',
+                footer: '',
+                region: 'content',
+                weight: 0,
+            }}
+            item={{id: 8, column: 0, row: 0, columns: 2, rows: 2}}
+            labels={{...labels, tile: '{$a} block'} as DashboardLabels}
+            editing={false}
+            showControls={false}
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
+            onRemove={jest.fn()}
+        />);
+
+        const content = container.querySelector('.core-my-dashboard-tile__content');
+        expect(content).toHaveClass('block', 'block_calendar_month');
+        // data-blockregion lives on the tile wrapper (an ancestor of .block), matching how
+        // Boost's block CSS selectors expect the two to relate (e.g. "[data-blockregion] .block").
+        expect(container.querySelector('.core-my-dashboard-tile')).toHaveAttribute('data-blockregion');
+    });
+
     it('marks a displaced tile for pointer-position easing', () => {
         render(<DashboardTile
             block={{
