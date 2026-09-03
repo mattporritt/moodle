@@ -21,6 +21,7 @@ import DashboardTile from '../src/components/DashboardTile';
 import BlockPalette from '../src/components/BlockPalette';
 import DashboardHandle from '../src/components/DashboardHandle';
 import DashboardLoading from '../src/components/DashboardLoading';
+import DashboardScopeBanner from '../src/components/DashboardScopeBanner';
 import type {DashboardLabels} from '../src/repository';
 
 jest.mock('@moodlehq/design-system', () => ({
@@ -35,6 +36,11 @@ jest.mock('@moodlehq/design-system', () => ({
         className={`mds-btn--size-${size} ${className ?? ''}`}
         {...props}
     >{startIcon}{label}</button>,
+    Badge: ({label, variant: _variant, subtle: _subtle, pill: _pill, ...props}:
+    React.HTMLAttributes<HTMLSpanElement> & {label?: string; variant?: string; subtle?: boolean; pill?: boolean}) =>
+        <span {...props}>{label}</span>,
+    Link: ({label, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {label?: string}) =>
+        <a {...props}>{label}</a>,
 }), {virtual: true});
 
 const labels = {
@@ -48,7 +54,16 @@ const labels = {
     resizecontrols: 'Resize block controls',
     moveinstructions: 'Use the arrow keys to move',
     resizeinstructions: 'Use the arrow keys to resize',
+    scopeown: 'Editing your dashboard',
+    scopesitedefault: 'Editing the default dashboard for all users',
+    switchtoown: 'Switch to editing your dashboard',
+    switchtositedefault: 'Switch to editing the default dashboard for all users',
 } as DashboardLabels;
+
+const urls = {
+    ownpage: 'https://example.com/my/index.php',
+    sitedefault: 'https://example.com/my/indexsys.php',
+};
 
 describe('core_my grid components', () => {
     it('exposes an available cell as a positioned button', () => {
@@ -335,5 +350,30 @@ describe('core_my grid components', () => {
 
         fireEvent.click(screen.getByRole('button', {name: 'Online users'}));
         expect(select).toHaveBeenCalledWith({name: 'online_users', title: 'Online users'});
+    });
+
+    it('indicates the own-dashboard scope and offers no switch without the other capability', () => {
+        render(<DashboardScopeBanner
+            siteDefault={false}
+            caneditotherscope={false}
+            urls={urls}
+            labels={labels}
+        />);
+
+        expect(screen.getByText('Editing your dashboard')).toBeInTheDocument();
+        expect(screen.queryByText('Switch to editing the default dashboard for all users')).not.toBeInTheDocument();
+    });
+
+    it('indicates the site-default scope and offers a switch back to the user\'s own dashboard', () => {
+        render(<DashboardScopeBanner
+            siteDefault
+            caneditotherscope
+            urls={urls}
+            labels={labels}
+        />);
+
+        expect(screen.getByText('Editing the default dashboard for all users')).toBeInTheDocument();
+        const link = screen.getByText('Switch to editing your dashboard');
+        expect(link.closest('a')).toHaveAttribute('href', urls.ownpage);
     });
 });

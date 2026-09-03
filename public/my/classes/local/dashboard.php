@@ -19,6 +19,7 @@ namespace core_my\local;
 use block_manager;
 use context_system;
 use context_user;
+use moodle_url;
 
 /**
  * Server-side support for the responsive dashboard grid.
@@ -97,6 +98,9 @@ final class dashboard {
         $capability = $sitedefault ? 'moodle/my:configsyspages' : 'moodle/my:manageblocks';
         $canedit = has_capability($capability, $context);
         $editing = $canedit && !empty($USER->editing);
+        $othercapability = $sitedefault ? 'moodle/my:manageblocks' : 'moodle/my:configsyspages';
+        $othercontext = $sitedefault ? context_user::instance($USER->id) : context_system::instance();
+        $caneditotherscope = has_capability($othercapability, $othercontext);
         [$mypage] = self::initialise_page($sitedefault, $editing);
 
         // Block renderers may register JavaScript which must be returned to the React client.
@@ -149,6 +153,11 @@ final class dashboard {
             'canedit' => $canedit,
             'editing' => $editing,
             'sitedefault' => $sitedefault,
+            'caneditotherscope' => $caneditotherscope,
+            'urls' => [
+                'ownpage' => (new moodle_url('/my/index.php'))->out(false),
+                'sitedefault' => (new moodle_url('/my/indexsys.php'))->out(false),
+            ],
             'javascript' => $PAGE->requires->get_end_code(),
             'labels' => [
                 'addblock' => get_string('addblock'),
@@ -176,6 +185,10 @@ final class dashboard {
                 'resizecontrols' => get_string('dashboardresizecontrols', 'my'),
                 'resizeinstructions' => get_string('dashboardresizehandleinstructions', 'my'),
                 'right' => get_string('dashboardright', 'my'),
+                'scopeown' => get_string('dashboardscopeown', 'my'),
+                'scopesitedefault' => get_string('dashboardscopesitedefault', 'my'),
+                'switchtoown' => get_string('dashboardswitchtoown', 'my'),
+                'switchtositedefault' => get_string('dashboardswitchtositedefault', 'my'),
                 'tile' => get_string('dashboardtile', 'my'),
                 'up' => get_string('dashboardup', 'my'),
             ],

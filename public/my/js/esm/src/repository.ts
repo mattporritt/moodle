@@ -65,8 +65,17 @@ export interface DashboardLabels {
     resizecontrols: string;
     resizeinstructions: string;
     right: string;
+    scopeown: string;
+    scopesitedefault: string;
+    switchtoown: string;
+    switchtositedefault: string;
     tile: string;
     up: string;
+}
+
+export interface DashboardUrls {
+    ownpage: string;
+    sitedefault: string;
 }
 
 export interface DashboardData {
@@ -76,6 +85,8 @@ export interface DashboardData {
     canedit: boolean;
     editing: boolean;
     sitedefault: boolean;
+    caneditotherscope: boolean;
+    urls: DashboardUrls;
     javascript: string;
     labels: DashboardLabels;
 }

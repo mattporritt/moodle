@@ -81,3 +81,24 @@ Feature: Arrange dashboard blocks in a responsive grid
     Then "[data-columns='2']" "css_element" should exist
     When I change viewport size to "600x900"
     Then "[data-columns='1']" "css_element" should exist
+
+  @javascript
+  Scenario: A user without the site-default capability sees no scope switch CTA
+    When I turn editing mode on
+    Then I should see "Editing your dashboard"
+    And "Switch to editing the default dashboard for all users" "link" should not exist
+    When I turn editing mode off
+    Then I should not see "Editing your dashboard"
+
+  @javascript
+  Scenario: An administrator can switch between their own dashboard and the site default while editing
+    Given I log out
+    And I log in as "admin"
+    And I visit "/my/index.php"
+    When I turn editing mode on
+    Then I should see "Editing your dashboard"
+    And I click on "Switch to editing the default dashboard for all users" "link"
+    Then I should see "Editing the default dashboard for all users"
+    And I should see "Switch to editing your dashboard"
+    When I click on "Switch to editing your dashboard" "link"
+    Then I should see "Editing your dashboard"

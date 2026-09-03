@@ -53,6 +53,9 @@ final class get_dashboard_test extends \advanced_testcase {
         $this->assertFalse($result['sitedefault']);
         $this->assertTrue($result['canedit']);
         $this->assertFalse($result['editing']);
+        $this->assertTrue($result['caneditotherscope']);
+        $this->assertStringContainsString('/my/index.php', $result['urls']['ownpage']);
+        $this->assertStringContainsString('/my/indexsys.php', $result['urls']['sitedefault']);
         $this->assertArrayHasKey('blocks', $result);
         $this->assertArrayHasKey('layout', $result);
         $this->assertArrayHasKey('availableblocks', $result);
@@ -61,6 +64,22 @@ final class get_dashboard_test extends \advanced_testcase {
         $this->assertSame('Add a block', $result['labels']['addblock']);
         $this->assertStringContainsString('arrow keys', $result['labels']['moveinstructions']);
         $this->assertStringContainsString('arrow keys', $result['labels']['resizeinstructions']);
+        $this->assertSame('Editing your dashboard', $result['labels']['scopeown']);
+        $this->assertSame('Editing the default dashboard for all users', $result['labels']['scopesitedefault']);
+    }
+
+    /**
+     * A user who can only edit their own dashboard cannot also switch to the site default.
+     */
+    public function test_execute_reports_no_other_scope_without_site_capability(): void {
+        $this->resetAfterTest();
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $result = get_dashboard::execute(false);
+        $result = external_api::clean_returnvalue(get_dashboard::execute_returns(), $result);
+
+        $this->assertTrue($result['canedit']);
+        $this->assertFalse($result['caneditotherscope']);
     }
 
     /**
@@ -97,6 +116,7 @@ final class get_dashboard_test extends \advanced_testcase {
 
         $this->assertTrue($result['canedit']);
         $this->assertFalse($result['editing']);
+        $this->assertTrue($result['caneditotherscope']);
     }
 
     /**

@@ -22,6 +22,7 @@ import ConfirmationDialog from './components/ConfirmationDialog';
 import BlockPalette from './components/BlockPalette';
 import GridCell from './components/GridCell';
 import DashboardLoading from './components/DashboardLoading';
+import DashboardScopeBanner from './components/DashboardScopeBanner';
 import {
     GRID_GAP,
     MIN_COLUMNS,
@@ -451,6 +452,12 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
     return <div className="core-my-dashboard-app" aria-busy={saving}>
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="visually-hidden" aria-live="polite" aria-atomic="true">{announcement}</div>
+        {data.editing && <DashboardScopeBanner
+            siteDefault={siteDefault}
+            caneditotherscope={data.caneditotherscope}
+            urls={data.urls}
+            labels={data.labels}
+        />}
         {data.editing && <div className="core-my-dashboard-toolbar">
             <Button variant="secondary" label={data.labels.addblocktop} onClick={() => setPalette({position: 'start'})} />
             {!siteDefault && <Button

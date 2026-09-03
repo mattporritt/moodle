@@ -88,6 +88,14 @@
     color: var(--mds-text-muted);
 }
 
+.core-my-dashboard-scope {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--mds-spacing-sm);
+    margin-block-start: var(--mds-spacing-md);
+}
+
 .core-my-dashboard-toolbar {
     display: flex;
     flex-wrap: wrap;

@@ -91,6 +91,14 @@ final class get_dashboard extends external_api {
             'canedit' => new external_value(PARAM_BOOL, 'Whether the user may edit.'),
             'editing' => new external_value(PARAM_BOOL, 'Whether Edit mode is active.'),
             'sitedefault' => new external_value(PARAM_BOOL, 'Whether this is the site default.'),
+            'caneditotherscope' => new external_value(
+                PARAM_BOOL,
+                'Whether the user may also edit the other dashboard scope (own page versus site default).'
+            ),
+            'urls' => new external_single_structure([
+                'ownpage' => new external_value(PARAM_URL, 'URL of the user\'s own dashboard.'),
+                'sitedefault' => new external_value(PARAM_URL, 'URL of the site-default dashboard.'),
+            ]),
             'javascript' => new external_value(PARAM_RAW, 'Collected block JavaScript requirements.'),
             'labels' => new external_single_structure([
                 'addblock' => new external_value(PARAM_RAW, 'Add block label.'),
@@ -118,6 +126,10 @@ final class get_dashboard extends external_api {
                 'resizecontrols' => new external_value(PARAM_RAW, 'Resize controls label.'),
                 'resizeinstructions' => new external_value(PARAM_RAW, 'Resize handle instructions.'),
                 'right' => new external_value(PARAM_RAW, 'Right label.'),
+                'scopeown' => new external_value(PARAM_RAW, 'Own-dashboard scope indicator label.'),
+                'scopesitedefault' => new external_value(PARAM_RAW, 'Site-default scope indicator label.'),
+                'switchtoown' => new external_value(PARAM_RAW, 'Switch-to-own-dashboard CTA label.'),
+                'switchtositedefault' => new external_value(PARAM_RAW, 'Switch-to-site-default CTA label.'),
                 'tile' => new external_value(PARAM_RAW, 'Dashboard tile label.'),
                 'up' => new external_value(PARAM_RAW, 'Up label.'),
             ]),
