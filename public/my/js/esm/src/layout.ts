@@ -102,7 +102,33 @@ export const packInOrder = (items: LayoutItem[], columnCount: number): LayoutIte
     });
 };
 
+/**
+ * When every block's existing column span already fits inside a narrower column count, keep
+ * every block's row/column exactly as-is (if it already fits) or shift the whole layout left by
+ * only as much as needed to bring it back in bounds, rather than reflowing block-by-block. This
+ * keeps blocks in place (relative to each other) when a narrower breakpoint only clips empty
+ * margin columns, and falls through to full reflow only once real content would overflow.
+ */
+const shiftToFit = (items: LayoutItem[], columnCount: number): LayoutItem[] | null => {
+    if (items.length === 0) {
+        return items;
+    }
+    const minColumn = Math.min(...items.map(item => item.column));
+    const maxColumn = Math.max(...items.map(item => item.column + item.columns));
+    if (maxColumn > columnCount && maxColumn - minColumn > columnCount) {
+        return null;
+    }
+    const shift = Math.max(0, maxColumn - columnCount);
+    return [...items]
+        .sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id)
+        .map(item => ({...item, column: item.column - shift, sourceColumns: item.sourceColumns ?? item.columns}));
+};
+
 export const packLayout = (items: LayoutItem[], columnCount: number): LayoutItem[] => {
+    const shifted = shiftToFit(items, columnCount);
+    if (shifted) {
+        return shifted;
+    }
     const occupied = new Set<string>();
     return [...items]
         .sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id)

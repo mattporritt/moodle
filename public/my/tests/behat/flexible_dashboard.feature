@@ -50,13 +50,17 @@ Feature: Arrange dashboard blocks in a responsive grid
   @javascript
   Scenario: Resize follows the pointer and previews its snap target
     When I turn editing mode on
-    Then keyboard activation shows resize directional controls
+    And I change viewport size to "2600x1000"
+    Then "[data-columns='6']" "css_element" should exist
+    And keyboard activation shows resize directional controls
     And the mouse resize preview follows the pointer before snapping to a grid cell
 
   @javascript
   Scenario: Bumped blocks ease into their new grid position
     When I turn editing mode on
-    Then blocks bumped by a pointer resize ease into their new grid position
+    And I change viewport size to "2600x1000"
+    Then "[data-columns='6']" "css_element" should exist
+    And blocks bumped by a pointer resize ease into their new grid position
 
   @javascript
   Scenario: Growing a block into a row neighbour pushes it sideways, not to the row start

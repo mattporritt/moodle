@@ -35,6 +35,9 @@ final class dashboard {
     /** Default grid row span for legacy and newly-added blocks. */
     public const DEFAULT_ROWS = 3;
 
+    /** Default grid row span for the first legacy block in each stack (taller than the rest). */
+    public const DEFAULT_ROWS_FIRST = 4;
+
     /** Legacy regions which may still be attached to dashboard blocks. */
     private const REGIONS = ['content', 'side-pre', 'side-post'];
 
@@ -248,7 +251,7 @@ final class dashboard {
                 ?? $instance->instance->defaultregion;
             $isdrawer = $region !== 'content';
             $stack = $isdrawer ? 'drawer' : 'content';
-            $columns = $isdrawer ? 2 : 4;
+            $columns = $isdrawer ? 1 : 3;
             $row = $nextrow[$stack];
             if (
                 $position && $position->gridcolumn !== null && $position->gridrow !== null
@@ -259,8 +262,11 @@ final class dashboard {
                 $columns = (int) $position->gridcolumns;
                 $rows = (int) $position->gridrows;
             } else {
-                $column = $isdrawer ? 4 : 0;
-                $rows = self::DEFAULT_ROWS;
+                // Leave an empty column on each side: legacy content blocks take the next
+                // three columns, legacy side-region ("drawer") blocks take the column after.
+                // The first block in each stack is a row taller than the rest.
+                $column = $isdrawer ? 4 : 1;
+                $rows = $row === 0 ? self::DEFAULT_ROWS_FIRST : self::DEFAULT_ROWS;
             }
             $nextrow[$stack] = max($nextrow[$stack], $row + $rows);
             $layout[] = [

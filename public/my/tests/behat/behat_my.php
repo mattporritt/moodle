@@ -328,9 +328,15 @@ class behat_my extends behat_base {
      * @Then blocks bumped by a pointer resize ease into their new grid position
      */
     public function bumped_blocks_ease_into_their_new_grid_position(): void {
+        // A resize handle only ever grows a tile rightwards from its fixed left edge, so the
+        // tile needs real content in the way of that growth to produce a bump. With the default
+        // layout's empty margin columns, Calendar (anchored hard against the grid's right edge)
+        // has no room left to grow into and would never collide with anything. Course overview
+        // starts with room to spare before the Calendar column, so growing it is guaranteed to
+        // collide with, and bump, its row neighbour.
         $start = $this->evaluate_script(<<<'JS'
             return (() => {
-                const tile = document.querySelector(".core-my-dashboard-tile[data-block='calendar_month']");
+                const tile = document.querySelector(".core-my-dashboard-tile[data-block='myoverview']");
                 const handle = tile?.querySelector('.core-my-dashboard-handle--resize');
                 const grid = document.querySelector('.core-my-dashboard-grid');
                 if (!tile || !handle || !grid) {
@@ -360,7 +366,7 @@ class behat_my extends behat_base {
         JS);
 
         if ($start === null) {
-            throw new \Exception('The Calendar resize handle was not found.');
+            throw new \Exception('The Course overview resize handle was not found.');
         }
 
         usleep(100000);
@@ -394,7 +400,7 @@ class behat_my extends behat_base {
                 const tile = document.querySelector('.core-my-dashboard-tile[data-bumped="true"]');
                 const grid = document.querySelector('.core-my-dashboard-grid');
                 const handle = document.querySelector(
-                    ".core-my-dashboard-tile[data-block='calendar_month'] .core-my-dashboard-handle--resize"
+                    ".core-my-dashboard-tile[data-block='myoverview'] .core-my-dashboard-handle--resize"
                 );
                 if (!tile || !grid || !handle) {
                     return null;

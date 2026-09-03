@@ -2407,10 +2407,13 @@ function xmldb_main_upgrade($oldversion) {
                         'visible' => $block->visible ?? 1,
                         'region' => $region,
                         'weight' => $block->weight ?? $block->defaultweight,
-                        'gridcolumn' => $isdrawer ? 4 : 0,
+                        // Leave an empty column on each side: legacy content blocks take
+                        // the next three columns, legacy side-region blocks the column after.
+                        // The first block in each stack is a row taller than the rest.
+                        'gridcolumn' => $isdrawer ? 4 : 1,
                         'gridrow' => $nextrow[$stack],
-                        'gridcolumns' => $isdrawer ? 2 : 4,
-                        'gridrows' => 3,
+                        'gridcolumns' => $isdrawer ? 1 : 3,
+                        'gridrows' => $nextrow[$stack] === 0 ? 4 : 3,
                     ];
                     $nextrow[$stack] = $position->gridrow + $position->gridrows;
                     if ($block->positionid) {

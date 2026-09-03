@@ -47,6 +47,42 @@ describe('core_my responsive dashboard layout', () => {
         expect(packed.map(item => item.row)).toEqual([0, 2, 4]);
     });
 
+    it('leaves an untouched layout in place at a wider column count', () => {
+        const layout: LayoutItem[] = [
+            {id: 1, column: 1, row: 0, columns: 3, rows: 3},
+            {id: 2, column: 4, row: 0, columns: 1, rows: 3},
+        ];
+
+        expect(packLayout(layout, 6)).toEqual([
+            {...layout[0], sourceColumns: 3},
+            {...layout[1], sourceColumns: 1},
+        ]);
+    });
+
+    it('shifts a layout left rather than reflowing when only empty margins are clipped', () => {
+        const layout: LayoutItem[] = [
+            {id: 1, column: 1, row: 0, columns: 3, rows: 3},
+            {id: 2, column: 4, row: 0, columns: 1, rows: 3},
+        ];
+
+        const packed = packLayout(layout, 4);
+
+        expect(packed.find(item => item.id === 1)).toMatchObject({column: 0, row: 0, columns: 3});
+        expect(packed.find(item => item.id === 2)).toMatchObject({column: 3, row: 0, columns: 1});
+    });
+
+    it('reflows instead of shifting once real content spans more columns than fit', () => {
+        const layout: LayoutItem[] = [
+            {id: 1, column: 1, row: 0, columns: 4, rows: 2},
+            {id: 2, column: 5, row: 0, columns: 1, rows: 2},
+        ];
+
+        const packed = packLayout(layout, 4);
+
+        expect(packed.map(item => item.columns)).toEqual([4, 1]);
+        expect(packed.find(item => item.id === 2)?.row).toBeGreaterThan(0);
+    });
+
     it('keeps the active block pinned while reflowing disturbed blocks', () => {
         const packed = packWithPinned(canonical, 6, {...canonical[2], column: 0, row: 0});
 

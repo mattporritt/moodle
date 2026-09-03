@@ -71,7 +71,23 @@ const packInOrder = /* @__PURE__ */ __name((items, columnCount) => {
     return placed;
   });
 }, "packInOrder");
+const shiftToFit = /* @__PURE__ */ __name((items, columnCount) => {
+  if (items.length === 0) {
+    return items;
+  }
+  const minColumn = Math.min(...items.map((item) => item.column));
+  const maxColumn = Math.max(...items.map((item) => item.column + item.columns));
+  if (maxColumn > columnCount && maxColumn - minColumn > columnCount) {
+    return null;
+  }
+  const shift = Math.max(0, maxColumn - columnCount);
+  return [...items].sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id).map((item) => ({ ...item, column: item.column - shift, sourceColumns: item.sourceColumns ?? item.columns }));
+}, "shiftToFit");
 const packLayout = /* @__PURE__ */ __name((items, columnCount) => {
+  const shifted = shiftToFit(items, columnCount);
+  if (shifted) {
+    return shifted;
+  }
   const occupied = /* @__PURE__ */ new Set();
   return [...items].sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id).map((item) => {
     const columns = Math.min(item.columns, columnCount);
