@@ -28,6 +28,199 @@ require_once(__DIR__ . '/../../../lib/behat/behat_base.php');
  */
 class behat_my extends behat_base {
     /**
+     * Assert that keyboard activation exposes the discrete resize controls.
+     *
+     * @Then keyboard activation shows resize directional controls
+     */
+    public function keyboard_activation_shows_resize_directional_controls(): void {
+        $activated = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const handle = document.querySelector(
+                    ".core-my-dashboard-tile[data-block='calendar_month'] .core-my-dashboard-handle--resize"
+                );
+                if (!handle) {
+                    return null;
+                }
+                handle.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, key: 'Enter'}));
+                return true;
+            })();
+        JS);
+
+        if ($activated === null) {
+            throw new \Exception('The Calendar resize handle was not found.');
+        }
+
+        usleep(100000);
+        $controls = $this->evaluate_script(<<<'JS'
+            return document.querySelectorAll('.core-my-grid-controls__direction').length;
+        JS);
+        $this->evaluate_script(<<<'JS'
+            document.querySelector(".core-my-dashboard-tile[data-block='calendar_month'] .core-my-dashboard-handle--resize")
+                ?.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, key: 'Escape'}));
+            return true;
+        JS);
+
+        if ($controls !== 4) {
+            throw new \Exception('Keyboard activation did not show all resize directional controls.');
+        }
+    }
+
+    /**
+     * Assert that a pointer resize stays fluid until it crosses a grid-cell threshold.
+     *
+     * @Then the mouse resize preview follows the pointer before snapping to a grid cell
+     */
+    public function mouse_resize_preview_follows_the_pointer(): void {
+        $start = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const tile = document.querySelector(".core-my-dashboard-tile[data-block='calendar_month']");
+                const handle = tile?.querySelector('.core-my-dashboard-handle--resize');
+                const grid = document.querySelector('.core-my-dashboard-grid');
+                if (!tile || !handle || !grid) {
+                    return null;
+                }
+
+                const tilerect = tile.getBoundingClientRect();
+                const gridrect = grid.getBoundingClientRect();
+                const columns = Number(grid.dataset.columns);
+                const gap = parseFloat(getComputedStyle(grid).gap);
+                const cellwidth = (gridrect.width - gap * (columns - 1)) / columns;
+                const pointer = (type, x) => new PointerEvent(type, {
+                    bubbles: true,
+                    button: 0,
+                    buttons: type === 'pointerup' || type === 'pointercancel' ? 0 : 1,
+                    clientX: x,
+                    clientY: tilerect.bottom - 20,
+                    isPrimary: true,
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                });
+                const x = tilerect.right - 20;
+                handle.dispatchEvent(pointer('pointerdown', x));
+                window.dispatchEvent(pointer('pointermove', x + (cellwidth + gap) * 0.4));
+                return {x, y: tilerect.bottom - 20, stride: cellwidth + gap, width: tilerect.width};
+            })();
+        JS);
+
+        if ($start === null) {
+            throw new \Exception('The Calendar resize handle was not found.');
+        }
+
+        usleep(100000);
+        $beforethreshold = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const tile = document.querySelector(".core-my-dashboard-tile[data-block='calendar_month']");
+                return {
+                    dragging: tile?.classList.contains('core-my-dashboard-tile--pointer-dragging'),
+                    width: parseFloat(tile?.style.width || '0'),
+                    prospective: document.querySelectorAll('.core-my-grid-cell--prospective').length,
+                    controls: document.querySelectorAll('.core-my-grid-controls__direction').length,
+                };
+            })();
+        JS);
+
+        if (
+            !$beforethreshold['dragging'] || $beforethreshold['width'] <= $start['width'] ||
+                $beforethreshold['prospective'] !== 0 || $beforethreshold['controls'] !== 0
+        ) {
+            throw new \Exception('Resize did not remain fluid below the grid-cell threshold: ' .
+                json_encode($beforethreshold));
+        }
+
+        $this->evaluate_script(<<<JS
+            window.dispatchEvent(new PointerEvent('pointermove', {
+                bubbles: true,
+                buttons: 1,
+                clientX: {$start['x']} + {$start['stride']} * 0.6,
+                clientY: {$start['y']},
+                isPrimary: true,
+                pointerId: 1,
+                pointerType: 'mouse',
+            }));
+            return true;
+        JS);
+        usleep(100000);
+        $afterthreshold = $this->evaluate_script(<<<'JS'
+            return {
+                prospective: document.querySelectorAll('.core-my-grid-cell--prospective').length,
+                controls: document.querySelectorAll('.core-my-grid-controls__direction').length,
+            };
+        JS);
+        $this->evaluate_script(<<<'JS'
+            window.dispatchEvent(new PointerEvent('pointercancel', {
+                bubbles: true,
+                pointerId: 1,
+                pointerType: 'mouse',
+            }));
+            return true;
+        JS);
+
+        if ($afterthreshold['prospective'] === 0 || $afterthreshold['controls'] !== 0) {
+            throw new \Exception('Pointer resize controls or snap preview are incorrect after crossing the threshold: ' .
+                json_encode($afterthreshold));
+        }
+
+        $shrinkstart = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const tile = document.querySelector(".core-my-dashboard-tile[data-block='calendar_month']");
+                const handle = tile?.querySelector('.core-my-dashboard-handle--resize');
+                const grid = document.querySelector('.core-my-dashboard-grid');
+                if (!tile || !handle || !grid) {
+                    return null;
+                }
+
+                const tilerect = tile.getBoundingClientRect();
+                const gridrect = grid.getBoundingClientRect();
+                const columns = Number(grid.dataset.columns);
+                const gap = parseFloat(getComputedStyle(grid).gap);
+                const stride = (gridrect.width - gap * (columns - 1)) / columns + gap;
+                const x = tilerect.right - 20;
+                const y = tilerect.bottom - 20;
+                const pointer = (type, clientx) => new PointerEvent(type, {
+                    bubbles: true,
+                    buttons: 1,
+                    clientX: clientx,
+                    clientY: y,
+                    isPrimary: true,
+                    pointerId: 2,
+                    pointerType: 'mouse',
+                });
+                handle.dispatchEvent(pointer('pointerdown', x));
+                window.dispatchEvent(pointer('pointermove', x - stride * 0.4));
+                return {width: tilerect.width};
+            })();
+        JS);
+
+        if ($shrinkstart === null) {
+            throw new \Exception('The Calendar resize handle was not found for the shrink preview.');
+        }
+
+        usleep(100000);
+        $shrinkpreview = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const tile = document.querySelector(".core-my-dashboard-tile[data-block='calendar_month']");
+                return {
+                    width: parseFloat(tile?.style.width || '0'),
+                    prospective: document.querySelectorAll('.core-my-grid-cell--prospective').length,
+                };
+            })();
+        JS);
+        $this->evaluate_script(<<<'JS'
+            window.dispatchEvent(new PointerEvent('pointercancel', {
+                bubbles: true,
+                pointerId: 2,
+                pointerType: 'mouse',
+            }));
+            return true;
+        JS);
+
+        if ($shrinkpreview['width'] >= $shrinkstart['width'] || $shrinkpreview['prospective'] === 0) {
+            throw new \Exception('Resize did not show its occupied cells while shrinking below the snap threshold: ' .
+                json_encode($shrinkpreview));
+        }
+    }
+
+    /**
      * Assert that the four resize controls are centred around their active handle.
      *
      * @Then the resize directional controls are centred on the active resize handle

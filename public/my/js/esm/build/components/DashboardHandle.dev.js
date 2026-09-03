@@ -16,6 +16,7 @@ const DashboardHandle = /* @__PURE__ */ __name(({
   labels,
   instructionsId,
   active,
+  showControls,
   onStart,
   onKeyDown,
   onPointerDown,
@@ -32,10 +33,10 @@ const DashboardHandle = /* @__PURE__ */ __name(({
       }
     },
     children: [
-      active && /* @__PURE__ */ jsxDEV(GridControls, { mode, labels, onDirection }, void 0, false, {
+      active && showControls && /* @__PURE__ */ jsxDEV(GridControls, { mode, labels, onDirection }, void 0, false, {
         fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
-        lineNumber: 54,
-        columnNumber: 16
+        lineNumber: 56,
+        columnNumber: 32
       }),
       /* @__PURE__ */ jsxDEV(
         Button,
@@ -57,7 +58,7 @@ const DashboardHandle = /* @__PURE__ */ __name(({
             false,
             {
               fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
-              lineNumber: 63,
+              lineNumber: 65,
               columnNumber: 20
             }
           ),
@@ -81,7 +82,7 @@ const DashboardHandle = /* @__PURE__ */ __name(({
         false,
         {
           fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
-          lineNumber: 55,
+          lineNumber: 57,
           columnNumber: 5
         }
       )
@@ -91,7 +92,7 @@ const DashboardHandle = /* @__PURE__ */ __name(({
   true,
   {
     fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
-    lineNumber: 45,
+    lineNumber: 47,
     columnNumber: 29
   }
 ), "DashboardHandle");

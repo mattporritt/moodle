@@ -34,6 +34,7 @@ import {
   updateDashboard
 } from "./repository";
 const isSiteDefault = /* @__PURE__ */ __name(() => window.location.pathname.endsWith("/my/indexsys.php"), "isSiteDefault");
+const layoutChanged = /* @__PURE__ */ __name((original, draft) => original.column !== draft.column || original.row !== draft.row || original.columns !== draft.columns || original.rows !== draft.rows, "layoutChanged");
 const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
   const [data, setData] = useState(null);
   const [canonical, setCanonical] = useState([]);
@@ -100,13 +101,13 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
   const announce = useCallback(async (key, value) => {
     setAnnouncement(await getString(key, "my", value));
   }, []);
-  const start = useCallback((id, mode) => {
+  const start = useCallback((id, mode, origin = "keyboard") => {
     const item = displayLayout.find((candidate) => candidate.id === id);
     const block = blocksById.get(id);
     if (!item || !block) {
       return;
     }
-    const next = { id, mode, original: item, draft: item, before: displayLayout };
+    const next = { id, mode, origin, original: item, draft: item, before: displayLayout };
     interactionRef.current = next;
     setInteraction(next);
     void announce(mode === "move" ? "dashboardmovebegin" : "dashboardresizebegin", block.title);
@@ -203,7 +204,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
   }, [cancel, commit, interaction, shift, start]);
   const pointerDown = useCallback((event, id, mode) => {
     event.preventDefault();
-    start(id, mode);
+    start(id, mode, "pointer");
     pointerRef.current = { x: event.clientX, y: event.clientY, moved: false };
     const origin = displayLayout.find((item) => item.id === id);
     if (!origin) {
@@ -211,6 +212,10 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
     }
     const grid = gridRef.current;
     const cellWidth = grid ? (grid.getBoundingClientRect().width - GRID_GAP * (columnCount - 1)) / columnCount : 1;
+    const columnStride = cellWidth + GRID_GAP;
+    const rowStride = ROW_HEIGHT + GRID_GAP;
+    const originalWidth = origin.columns * cellWidth + (origin.columns - 1) * GRID_GAP;
+    const originalHeight = origin.rows * ROW_HEIGHT + (origin.rows - 1) * GRID_GAP;
     const move = /* @__PURE__ */ __name((pointerEvent) => {
       const pointer = pointerRef.current;
       if (!pointer) {
@@ -219,24 +224,42 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       const deltaX = pointerEvent.clientX - pointer.x;
       const deltaY = pointerEvent.clientY - pointer.y;
       pointer.moved = pointer.moved || Math.abs(deltaX) >= 4 || Math.abs(deltaY) >= 4;
-      const horizontal = Math.round(deltaX / (cellWidth + GRID_GAP));
-      const vertical = Math.round(deltaY / (ROW_HEIGHT + GRID_GAP));
+      const horizontal = Math.round(deltaX / columnStride);
+      const vertical = Math.round(deltaY / rowStride);
       setInteraction((current) => {
         if (!current) {
           return current;
         }
         const draft = { ...origin };
+        let drag;
         if (mode === "move") {
           draft.column = Math.max(0, Math.min(columnCount - draft.columns, origin.column + horizontal));
           draft.row = Math.max(0, origin.row + vertical);
+          drag = {
+            x: Math.max(
+              -origin.column * columnStride,
+              Math.min((columnCount - origin.column - origin.columns) * columnStride, deltaX)
+            ),
+            y: Math.max(-origin.row * rowStride, deltaY)
+          };
         } else {
           draft.columns = Math.max(
             MIN_COLUMNS,
             Math.min(columnCount - draft.column, origin.columns + horizontal)
           );
           draft.rows = Math.max(MIN_ROWS, origin.rows + vertical);
+          drag = {
+            x: 0,
+            y: 0,
+            width: Math.max(cellWidth, Math.min(
+              (columnCount - origin.column) * columnStride - GRID_GAP,
+              originalWidth + deltaX
+            )),
+            height: Math.max(ROW_HEIGHT, originalHeight + deltaY),
+            shrinking: deltaX < 0 || deltaY < 0
+          };
         }
-        const next = { ...current, draft };
+        const next = { ...current, draft, drag };
         interactionRef.current = next;
         return next;
       });
@@ -248,8 +271,20 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       pointerRef.current = null;
     }, "cleanup");
     const up = /* @__PURE__ */ __name(() => {
-      if (pointerRef.current?.moved) {
+      const current = interactionRef.current;
+      if (pointerRef.current?.moved && current && layoutChanged(current.original, current.draft)) {
         void commit();
+      } else if (!pointerRef.current?.moved) {
+        setInteraction((previous) => {
+          if (!previous) {
+            return previous;
+          }
+          const next = { ...previous, origin: "mouseclick" };
+          interactionRef.current = next;
+          return next;
+        });
+      } else {
+        cancel();
       }
       cleanup();
     }, "up");
@@ -336,31 +371,31 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
   if (!data) {
     return error ? /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-status alert alert-danger", role: "alert", children: error }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 383,
+      lineNumber: 429,
       columnNumber: 15
     }) : /* @__PURE__ */ jsxDEV(DashboardLoading, { label: loadingLabel }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 384,
+      lineNumber: 430,
       columnNumber: 15
     });
   }
   const rows = Math.max(1, maxRow(previewLayout));
-  const prospective = interaction?.draft;
+  const prospective = interaction && (layoutChanged(interaction.original, interaction.draft) || interaction.origin === "pointer" && interaction.mode === "resize" && interaction.drag?.shrinking) ? interaction.draft : void 0;
   return /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-app", "aria-busy": saving, children: [
     error && /* @__PURE__ */ jsxDEV("div", { className: "alert alert-danger", role: "alert", children: error }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 390,
+      lineNumber: 438,
       columnNumber: 19
     }),
     /* @__PURE__ */ jsxDEV("div", { className: "visually-hidden", "aria-live": "polite", "aria-atomic": "true", children: announcement }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 391,
+      lineNumber: 439,
       columnNumber: 9
     }),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar", children: [
       /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblocktop, onClick: () => setPalette({ position: "start" }) }, void 0, false, {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 393,
+        lineNumber: 441,
         columnNumber: 13
       }),
       !siteDefault && /* @__PURE__ */ jsxDEV(
@@ -374,13 +409,13 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
         false,
         {
           fileName: "public/my/js/esm/src/index.tsx",
-          lineNumber: 394,
+          lineNumber: 442,
           columnNumber: 30
         }
       )
     ] }, void 0, true, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 392,
+      lineNumber: 440,
       columnNumber: 26
     }),
     /* @__PURE__ */ jsxDEV(
@@ -415,7 +450,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
                 false,
                 {
                   fileName: "public/my/js/esm/src/index.tsx",
-                  lineNumber: 418,
+                  lineNumber: 466,
                   columnNumber: 59
                 }
               ) : null;
@@ -434,6 +469,9 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
                 labels: data.labels,
                 editing: data.editing,
                 activeMode: interaction?.id === item.id ? interaction.mode : void 0,
+                showControls: interaction?.id === item.id && interaction.origin !== "pointer",
+                drag: interaction?.id === item.id ? interaction.drag : void 0,
+                dragOrigin: interaction?.id === item.id ? interaction.original : void 0,
                 onStart: start,
                 onKeyDown: keyDown,
                 onPointerDown: pointerDown,
@@ -445,7 +483,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
               false,
               {
                 fileName: "public/my/js/esm/src/index.tsx",
-                lineNumber: 434,
+                lineNumber: 482,
                 columnNumber: 24
               }
             );
@@ -456,17 +494,17 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       true,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 400,
+        lineNumber: 448,
         columnNumber: 9
       }
     ),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar core-my-dashboard-toolbar--bottom", children: /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblockbottom, onClick: () => setPalette({ position: "end" }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 451,
+      lineNumber: 502,
       columnNumber: 13
     }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 450,
+      lineNumber: 501,
       columnNumber: 26
     }),
     palette && /* @__PURE__ */ jsxDEV(
@@ -482,7 +520,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 453,
+        lineNumber: 504,
         columnNumber: 21
       }
     ),
@@ -508,13 +546,13 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 460,
+        lineNumber: 511,
         columnNumber: 27
       }
     )
   ] }, void 0, true, {
     fileName: "public/my/js/esm/src/index.tsx",
-    lineNumber: 389,
+    lineNumber: 437,
     columnNumber: 12
   });
 }, "Dashboard");

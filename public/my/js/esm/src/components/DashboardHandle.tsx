@@ -24,6 +24,7 @@ interface DashboardHandleProps {
     labels: DashboardLabels;
     instructionsId: string;
     active: boolean;
+    showControls: boolean;
     onStart: () => void;
     onKeyDown: (event: React.KeyboardEvent) => void;
     onPointerDown: (event: React.PointerEvent) => void;
@@ -37,6 +38,7 @@ const DashboardHandle = ({
     labels,
     instructionsId,
     active,
+    showControls,
     onStart,
     onKeyDown,
     onPointerDown,
@@ -51,7 +53,7 @@ const DashboardHandle = ({
         }
     }}
 >
-    {active && <GridControls mode={mode} labels={labels} onDirection={onDirection} />}
+    {active && showControls && <GridControls mode={mode} labels={labels} onDirection={onDirection} />}
     <Button
         size="md"
         variant="ghost"

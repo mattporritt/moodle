@@ -41,6 +41,12 @@ Feature: Arrange dashboard blocks in a responsive grid
     Then I should see "Item resized to"
 
   @javascript
+  Scenario: Resize follows the pointer and previews its snap target
+    When I turn editing mode on
+    Then keyboard activation shows resize directional controls
+    And the mouse resize preview follows the pointer before snapping to a grid cell
+
+  @javascript
   Scenario: Reflow the grid from six columns down to one
     When I turn editing mode on
     And I change viewport size to "2600x1000"

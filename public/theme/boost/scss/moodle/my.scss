@@ -125,6 +125,11 @@
     outline-offset: var(--mds-spacing-offset);
 }
 
+.core-my-dashboard-tile--pointer-dragging {
+    transition: none;
+    will-change: transform, width, height;
+}
+
 .core-my-dashboard-tile__header {
     display: flex;
     gap: var(--mds-spacing-sm);

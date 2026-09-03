@@ -109,6 +109,7 @@ describe('core_my grid components', () => {
             labels={labels}
             instructionsId="move-instructions"
             active={false}
+            showControls={false}
             onStart={start}
             onKeyDown={keyDown}
             onPointerDown={pointerDown}
@@ -136,6 +137,7 @@ describe('core_my grid components', () => {
             labels={labels}
             instructionsId="resize-instructions"
             active
+            showControls
             onStart={jest.fn()}
             onKeyDown={jest.fn()}
             onPointerDown={jest.fn()}
@@ -153,6 +155,24 @@ describe('core_my grid components', () => {
         expect(commit).toHaveBeenCalled();
         fireEvent.blur(screen.getByRole('button', {name: 'Resize Course overview block'}));
         expect(commit).toHaveBeenCalledTimes(2);
+    });
+
+    it('hides directional controls during an active pointer interaction', () => {
+        render(<DashboardHandle
+            mode="resize"
+            label="Resize Course overview block"
+            labels={labels}
+            instructionsId="resize-instructions"
+            active
+            showControls={false}
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
+        />);
+
+        expect(screen.queryByRole('group', {name: 'Resize block controls'})).not.toBeInTheDocument();
     });
 
     it('renders an accessible full-viewport loading skeleton', () => {
@@ -176,6 +196,7 @@ describe('core_my grid components', () => {
             item={{id: 7, column: 0, row: 0, columns: 2, rows: 2}}
             labels={{...labels, tile: '{$a} block'} as DashboardLabels}
             editing={false}
+            showControls={false}
             onStart={jest.fn()}
             onKeyDown={jest.fn()}
             onPointerDown={jest.fn()}
@@ -208,6 +229,7 @@ describe('core_my grid components', () => {
                 tile: '{$a} block',
             } as DashboardLabels}
             editing
+            showControls
             onStart={jest.fn()}
             onKeyDown={jest.fn()}
             onPointerDown={jest.fn()}

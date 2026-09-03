@@ -19,12 +19,22 @@ import type {DashboardBlock, DashboardLabels} from '../repository';
 import type {LayoutItem} from '../layout';
 import DashboardHandle from './DashboardHandle';
 
+interface PointerDrag {
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+}
+
 interface DashboardTileProps {
     block: DashboardBlock;
     item: LayoutItem;
     labels: DashboardLabels;
     editing: boolean;
     activeMode?: 'move' | 'resize';
+    showControls: boolean;
+    drag?: PointerDrag;
+    dragOrigin?: LayoutItem;
     onStart: (id: number, mode: 'move' | 'resize') => void;
     onKeyDown: (event: React.KeyboardEvent, id: number, mode: 'move' | 'resize') => void;
     onPointerDown: (event: React.PointerEvent, id: number, mode: 'move' | 'resize') => void;
@@ -39,6 +49,9 @@ const DashboardTile = ({
     labels,
     editing,
     activeMode,
+    showControls,
+    drag,
+    dragOrigin,
     onStart,
     onKeyDown,
     onPointerDown,
@@ -49,11 +62,16 @@ const DashboardTile = ({
     const moveInstructionsId = `core-my-dashboard-move-instructions-${block.id}`;
     const resizeInstructionsId = `core-my-dashboard-resize-instructions-${block.id}`;
 
+    const displayItem = drag && dragOrigin ? dragOrigin : item;
+
     return <section
-        className={`core-my-dashboard-tile${activeMode ? ' core-my-dashboard-tile--active' : ''}`}
+        className={`core-my-dashboard-tile${activeMode ? ' core-my-dashboard-tile--active' : ''}${drag ? ' core-my-dashboard-tile--pointer-dragging' : ''}`}
         style={{
-            gridColumn: `${item.column + 1} / span ${item.columns}`,
-            gridRow: `${item.row + 1} / span ${item.rows}`,
+            gridColumn: `${displayItem.column + 1} / span ${displayItem.columns}`,
+            gridRow: `${displayItem.row + 1} / span ${displayItem.rows}`,
+            transform: drag && activeMode === 'move' ? `translate3d(${drag.x}px, ${drag.y}px, 0)` : undefined,
+            width: drag?.width ? `${drag.width}px` : undefined,
+            height: drag?.height ? `${drag.height}px` : undefined,
         }}
         aria-label={labels.tile.replace('{$a}', block.title)}
         data-block={block.name}
@@ -70,6 +88,7 @@ const DashboardTile = ({
                 labels={labels}
                 instructionsId={moveInstructionsId}
                 active={activeMode === 'move'}
+                showControls={showControls}
                 onStart={() => onStart(block.id, 'move')}
                 onKeyDown={event => onKeyDown(event, block.id, 'move')}
                 onPointerDown={event => onPointerDown(event, block.id, 'move')}
@@ -101,6 +120,7 @@ const DashboardTile = ({
                 labels={labels}
                 instructionsId={resizeInstructionsId}
                 active={activeMode === 'resize'}
+                showControls={showControls}
                 onStart={() => onStart(block.id, 'resize')}
                 onKeyDown={event => onKeyDown(event, block.id, 'resize')}
                 onPointerDown={event => onPointerDown(event, block.id, 'resize')}

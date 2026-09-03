@@ -45,9 +45,19 @@ import {
 interface Interaction {
     id: number;
     mode: 'move' | 'resize';
+    origin: 'keyboard' | 'mouseclick' | 'pointer';
     original: LayoutItem;
     draft: LayoutItem;
     before: LayoutItem[];
+    drag?: PointerDrag;
+}
+
+interface PointerDrag {
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+    shrinking?: boolean;
 }
 
 interface PaletteTarget {
@@ -59,6 +69,10 @@ interface PaletteTarget {
 type ConfirmAction = {type: 'remove'; id: number} | {type: 'reset'};
 
 const isSiteDefault = (): boolean => window.location.pathname.endsWith('/my/indexsys.php');
+
+const layoutChanged = (original: LayoutItem, draft: LayoutItem): boolean =>
+    original.column !== draft.column || original.row !== draft.row ||
+    original.columns !== draft.columns || original.rows !== draft.rows;
 
 interface DashboardProps {
     loadingLabel?: string;
@@ -140,13 +154,13 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
         setAnnouncement(await getString(key, 'my', value));
     }, []);
 
-    const start = useCallback((id: number, mode: 'move' | 'resize') => {
+    const start = useCallback((id: number, mode: 'move' | 'resize', origin: Interaction['origin'] = 'keyboard') => {
         const item = displayLayout.find(candidate => candidate.id === id);
         const block = blocksById.get(id);
         if (!item || !block) {
             return;
         }
-        const next = {id, mode, original: item, draft: item, before: displayLayout};
+        const next = {id, mode, origin, original: item, draft: item, before: displayLayout};
         interactionRef.current = next;
         setInteraction(next);
         void announce(mode === 'move' ? 'dashboardmovebegin' : 'dashboardresizebegin', block.title);
@@ -248,7 +262,7 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
 
     const pointerDown = useCallback((event: React.PointerEvent, id: number, mode: 'move' | 'resize') => {
         event.preventDefault();
-        start(id, mode);
+        start(id, mode, 'pointer');
         pointerRef.current = {x: event.clientX, y: event.clientY, moved: false};
         const origin = displayLayout.find(item => item.id === id);
         if (!origin) {
@@ -258,6 +272,10 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
         const cellWidth = grid
             ? (grid.getBoundingClientRect().width - GRID_GAP * (columnCount - 1)) / columnCount
             : 1;
+        const columnStride = cellWidth + GRID_GAP;
+        const rowStride = ROW_HEIGHT + GRID_GAP;
+        const originalWidth = origin.columns * cellWidth + (origin.columns - 1) * GRID_GAP;
+        const originalHeight = origin.rows * ROW_HEIGHT + (origin.rows - 1) * GRID_GAP;
         const move = (pointerEvent: PointerEvent) => {
             const pointer = pointerRef.current;
             if (!pointer) {
@@ -266,22 +284,38 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
             const deltaX = pointerEvent.clientX - pointer.x;
             const deltaY = pointerEvent.clientY - pointer.y;
             pointer.moved = pointer.moved || Math.abs(deltaX) >= 4 || Math.abs(deltaY) >= 4;
-            const horizontal = Math.round(deltaX / (cellWidth + GRID_GAP));
-            const vertical = Math.round(deltaY / (ROW_HEIGHT + GRID_GAP));
+            const horizontal = Math.round(deltaX / columnStride);
+            const vertical = Math.round(deltaY / rowStride);
             setInteraction(current => {
                 if (!current) {
                     return current;
                 }
                 const draft = {...origin};
+                let drag: PointerDrag;
                 if (mode === 'move') {
                     draft.column = Math.max(0, Math.min(columnCount - draft.columns, origin.column + horizontal));
                     draft.row = Math.max(0, origin.row + vertical);
+                    drag = {
+                        x: Math.max(-origin.column * columnStride,
+                            Math.min((columnCount - origin.column - origin.columns) * columnStride, deltaX)),
+                        y: Math.max(-origin.row * rowStride, deltaY),
+                    };
                 } else {
                     draft.columns = Math.max(MIN_COLUMNS,
                         Math.min(columnCount - draft.column, origin.columns + horizontal));
                     draft.rows = Math.max(MIN_ROWS, origin.rows + vertical);
+                    drag = {
+                        x: 0,
+                        y: 0,
+                        width: Math.max(cellWidth, Math.min(
+                            (columnCount - origin.column) * columnStride - GRID_GAP,
+                            originalWidth + deltaX,
+                        )),
+                        height: Math.max(ROW_HEIGHT, originalHeight + deltaY),
+                        shrinking: deltaX < 0 || deltaY < 0,
+                    };
                 }
-                const next = {...current, draft};
+                const next = {...current, draft, drag};
                 interactionRef.current = next;
                 return next;
             });
@@ -293,8 +327,20 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
             pointerRef.current = null;
         };
         const up = () => {
-            if (pointerRef.current?.moved) {
+            const current = interactionRef.current;
+            if (pointerRef.current?.moved && current && layoutChanged(current.original, current.draft)) {
                 void commit();
+            } else if (!pointerRef.current?.moved) {
+                setInteraction(previous => {
+                    if (!previous) {
+                        return previous;
+                    }
+                    const next = {...previous, origin: 'mouseclick' as const};
+                    interactionRef.current = next;
+                    return next;
+                });
+            } else {
+                cancel();
             }
             cleanup();
         };
@@ -385,7 +431,9 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
     }
 
     const rows = Math.max(1, maxRow(previewLayout));
-    const prospective = interaction?.draft;
+    const prospective = interaction && (layoutChanged(interaction.original, interaction.draft) ||
+        (interaction.origin === 'pointer' && interaction.mode === 'resize' && interaction.drag?.shrinking))
+        ? interaction.draft : undefined;
     return <div className="core-my-dashboard-app" aria-busy={saving}>
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="visually-hidden" aria-live="polite" aria-atomic="true">{announcement}</div>
@@ -438,6 +486,9 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
                     labels={data.labels}
                     editing={data.editing}
                     activeMode={interaction?.id === item.id ? interaction.mode : undefined}
+                    showControls={interaction?.id === item.id && interaction.origin !== 'pointer'}
+                    drag={interaction?.id === item.id ? interaction.drag : undefined}
+                    dragOrigin={interaction?.id === item.id ? interaction.original : undefined}
                     onStart={start}
                     onKeyDown={keyDown}
                     onPointerDown={pointerDown}
