@@ -133,6 +133,78 @@ export const packLayout = (items: LayoutItem[], columnCount: number): LayoutItem
         });
 };
 
+interface GridRect {
+    column: number;
+    row: number;
+    columns: number;
+    rows: number;
+}
+
+const rectsOverlap = (left: GridRect, right: GridRect): boolean =>
+    left.column < right.column + right.columns && left.column + left.columns > right.column &&
+    left.row < right.row + right.rows && left.row + left.rows > right.row;
+
+/**
+ * Slide a rect rightwards, in its own row, to the nearest free columns.
+ */
+const pushRight = (rect: GridRect, occupied: Set<string>, columnCount: number): GridRect | null => {
+    for (let column = rect.column + 1; column + rect.columns <= columnCount; column++) {
+        if (fits(occupied, column, rect.row, rect.columns, rect.rows)) {
+            return {...rect, column};
+        }
+    }
+    return null;
+};
+
+/**
+ * Slide a rect downwards, in its own column, to the nearest free rows.
+ */
+const pushDown = (rect: GridRect, occupied: Set<string>): GridRect | null => {
+    for (let row = rect.row + 1; row < 10000; row++) {
+        if (fits(occupied, rect.column, row, rect.columns, rect.rows)) {
+            return {...rect, row};
+        }
+    }
+    return null;
+};
+
+/**
+ * Displace a colliding rect towards the empty grid space the collision came from, rather than
+ * relocating it to the first free cell in reading order. A block sharing a row with whatever it
+ * collided with is pushed right; a block sharing a column is pushed down.
+ */
+const displaceFromBlocker = (
+    rect: GridRect,
+    blocker: GridRect,
+    occupied: Set<string>,
+    columnCount: number,
+): GridRect | null => {
+    const sameRow = rect.row === blocker.row;
+    const sameColumn = rect.column === blocker.column;
+    if (sameColumn && !sameRow) {
+        return pushDown(rect, occupied) ?? pushRight(rect, occupied, columnCount);
+    }
+    if (sameRow) {
+        return pushRight(rect, occupied, columnCount) ?? pushDown(rect, occupied);
+    }
+    return null;
+};
+
+/**
+ * Fall back to the first free cell in reading order, used when directional displacement finds
+ * no room in either direction.
+ */
+const firstFreeCell = (rect: GridRect, occupied: Set<string>, columnCount: number): GridRect | null => {
+    for (let row = 0; row < 10000; row++) {
+        for (let column = 0; column + rect.columns <= columnCount; column++) {
+            if (fits(occupied, column, row, rect.columns, rect.rows)) {
+                return {...rect, column, row};
+            }
+        }
+    }
+    return null;
+};
+
 export const packWithPinned = (
     items: LayoutItem[],
     columnCount: number,
@@ -148,7 +220,7 @@ export const packWithPinned = (
     };
     const occupied = new Set<string>();
     occupy(occupied, safePinned);
-    const result = [safePinned];
+    const result: LayoutItem[] = [safePinned];
     const remaining = items
         .filter(item => item.id !== pinned.id)
         .sort((left, right) => left.row - right.row || left.column - right.column || left.id - right.id);
@@ -156,17 +228,16 @@ export const packWithPinned = (
         const columns = Math.min(item.columns, columnCount);
         const column = Math.max(0, Math.min(item.column, columnCount - columns));
         const row = Math.max(0, item.row);
+        const rect: GridRect = {column, row, columns, rows: item.rows};
         let placed: LayoutItem | null = null;
         if (fits(occupied, column, row, columns, item.rows)) {
             placed = {...item, column, row, columns};
         } else {
-            for (let nextrow = 0; nextrow < 10000 && !placed; nextrow++) {
-                for (let nextcolumn = 0; nextcolumn + columns <= columnCount; nextcolumn++) {
-                    if (fits(occupied, nextcolumn, nextrow, columns, item.rows)) {
-                        placed = {...item, column: nextcolumn, row: nextrow, columns};
-                        break;
-                    }
-                }
+            const blocker = result.find(candidate => rectsOverlap(rect, candidate));
+            const resolved = (blocker && displaceFromBlocker(rect, blocker, occupied, columnCount))
+                ?? firstFreeCell(rect, occupied, columnCount);
+            if (resolved) {
+                placed = {...item, column: resolved.column, row: resolved.row, columns};
             }
         }
         if (!placed) {

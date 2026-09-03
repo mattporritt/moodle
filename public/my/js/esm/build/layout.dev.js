@@ -102,6 +102,44 @@ const packLayout = /* @__PURE__ */ __name((items, columnCount) => {
     return placed;
   });
 }, "packLayout");
+const rectsOverlap = /* @__PURE__ */ __name((left, right) => left.column < right.column + right.columns && left.column + left.columns > right.column && left.row < right.row + right.rows && left.row + left.rows > right.row, "rectsOverlap");
+const pushRight = /* @__PURE__ */ __name((rect, occupied, columnCount) => {
+  for (let column = rect.column + 1; column + rect.columns <= columnCount; column++) {
+    if (fits(occupied, column, rect.row, rect.columns, rect.rows)) {
+      return { ...rect, column };
+    }
+  }
+  return null;
+}, "pushRight");
+const pushDown = /* @__PURE__ */ __name((rect, occupied) => {
+  for (let row = rect.row + 1; row < 1e4; row++) {
+    if (fits(occupied, rect.column, row, rect.columns, rect.rows)) {
+      return { ...rect, row };
+    }
+  }
+  return null;
+}, "pushDown");
+const displaceFromBlocker = /* @__PURE__ */ __name((rect, blocker, occupied, columnCount) => {
+  const sameRow = rect.row === blocker.row;
+  const sameColumn = rect.column === blocker.column;
+  if (sameColumn && !sameRow) {
+    return pushDown(rect, occupied) ?? pushRight(rect, occupied, columnCount);
+  }
+  if (sameRow) {
+    return pushRight(rect, occupied, columnCount) ?? pushDown(rect, occupied);
+  }
+  return null;
+}, "displaceFromBlocker");
+const firstFreeCell = /* @__PURE__ */ __name((rect, occupied, columnCount) => {
+  for (let row = 0; row < 1e4; row++) {
+    for (let column = 0; column + rect.columns <= columnCount; column++) {
+      if (fits(occupied, column, row, rect.columns, rect.rows)) {
+        return { ...rect, column, row };
+      }
+    }
+  }
+  return null;
+}, "firstFreeCell");
 const packWithPinned = /* @__PURE__ */ __name((items, columnCount, pinned) => {
   const columns = Math.min(pinned.columns, columnCount);
   const safePinned = {
@@ -119,17 +157,15 @@ const packWithPinned = /* @__PURE__ */ __name((items, columnCount, pinned) => {
     const columns2 = Math.min(item.columns, columnCount);
     const column = Math.max(0, Math.min(item.column, columnCount - columns2));
     const row = Math.max(0, item.row);
+    const rect = { column, row, columns: columns2, rows: item.rows };
     let placed = null;
     if (fits(occupied, column, row, columns2, item.rows)) {
       placed = { ...item, column, row, columns: columns2 };
     } else {
-      for (let nextrow = 0; nextrow < 1e4 && !placed; nextrow++) {
-        for (let nextcolumn = 0; nextcolumn + columns2 <= columnCount; nextcolumn++) {
-          if (fits(occupied, nextcolumn, nextrow, columns2, item.rows)) {
-            placed = { ...item, column: nextcolumn, row: nextrow, columns: columns2 };
-            break;
-          }
-        }
+      const blocker = result.find((candidate) => rectsOverlap(rect, candidate));
+      const resolved = (blocker && displaceFromBlocker(rect, blocker, occupied, columnCount)) ?? firstFreeCell(rect, occupied, columnCount);
+      if (resolved) {
+        placed = { ...item, column: resolved.column, row: resolved.row, columns: columns2 };
       }
     }
     if (!placed) {

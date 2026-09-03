@@ -91,4 +91,26 @@ describe('core_my responsive dashboard layout', () => {
 
         expect(packed.find(item => item.id === 1)).toMatchObject({column: 0, columns: 1});
     });
+
+    it('pushes a row-neighbour sideways into free grid space instead of the row start', () => {
+        const layout: LayoutItem[] = [
+            {id: 1, column: 1, row: 0, columns: 2, rows: 2},
+            {id: 2, column: 3, row: 0, columns: 1, rows: 2},
+        ];
+
+        const packed = packWithPinned(layout, 6, {...layout[0], columns: 3});
+
+        expect(packed.find(item => item.id === 2)).toMatchObject({column: 4, row: 0});
+    });
+
+    it('pushes a column-neighbour downwards into free grid space instead of the grid start', () => {
+        const layout: LayoutItem[] = [
+            {id: 1, column: 0, row: 0, columns: 2, rows: 2},
+            {id: 2, column: 0, row: 2, columns: 2, rows: 2},
+        ];
+
+        const packed = packWithPinned(layout, 6, {...layout[0], rows: 4});
+
+        expect(packed.find(item => item.id === 2)).toMatchObject({column: 0, row: 4});
+    });
 });

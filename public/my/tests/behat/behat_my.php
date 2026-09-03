@@ -510,4 +510,119 @@ class behat_my extends behat_base {
             }
         }
     }
+
+    /**
+     * Assert that growing a block into a row neighbour pushes that neighbour sideways into free
+     * grid space, rather than relocating it to the start of the row.
+     *
+     * The default dashboard fixture fills the row with no free column, so the Calendar block is
+     * first shrunk by one column to reproduce the "one empty column at the row's end" layout the
+     * bug report was raised against, before Course overview is grown into it.
+     *
+     * @Then resizing the Course overview block into its row neighbour pushes it right
+     */
+    public function resizing_into_row_neighbour_pushes_it_right(): void {
+        $this->execute('behat_general::i_click_on_in_the', ['Resize block', 'button', 'Calendar', 'block']);
+        $this->execute('behat_general::i_click_on_in_the', ['Left', 'button', 'Calendar', 'block']);
+        $this->execute('behat_general::i_click_on_in_the', ['Resize block', 'button', 'Calendar', 'block']);
+
+        $result = $this->keyboard_resize_and_capture_bumped_tile('Course overview', 'myoverview', 'Right');
+        if ($result['block'] !== 'calendar_month') {
+            throw new \Exception('Expected the Calendar block to be pushed: ' . json_encode($result));
+        }
+        if ($result['before']['row'] !== $result['after']['row']) {
+            throw new \Exception('The pushed row neighbour changed row instead of staying in place: ' .
+                json_encode($result));
+        }
+        if ($result['after']['column'] <= $result['before']['column']) {
+            throw new \Exception('The pushed row neighbour did not move further right into free space: ' .
+                json_encode($result));
+        }
+    }
+
+    /**
+     * Assert that growing a block into a column neighbour pushes that neighbour downwards into
+     * free grid space, rather than relocating it to the start of the grid.
+     *
+     * @Then resizing the Calendar block into its column neighbour pushes it down
+     */
+    public function resizing_into_column_neighbour_pushes_it_down(): void {
+        $result = $this->keyboard_resize_and_capture_bumped_tile('Calendar', 'calendar_month', 'Down');
+        if ($result['block'] !== 'recentlyaccesseditems') {
+            throw new \Exception('Expected the Recently accessed items block to be pushed: ' . json_encode($result));
+        }
+        if ($result['before']['column'] !== $result['after']['column']) {
+            throw new \Exception('The pushed column neighbour changed column instead of staying in place: ' .
+                json_encode($result));
+        }
+        if ($result['after']['row'] <= $result['before']['row']) {
+            throw new \Exception('The pushed column neighbour did not move further down into free space: ' .
+                json_encode($result));
+        }
+    }
+
+    /**
+     * Grow a block by one grid cell in the given direction, using the same discrete-control click
+     * sequence as the existing accessible-controls scenario (activate, direction, activate again
+     * to commit), and capture the grid position of whichever other tile moved as a result.
+     *
+     * The pointer-only "bumped" marker used for the FLIP-easing animation is not set for
+     * keyboard-origin interactions, so the displaced tile is identified by diffing positions
+     * instead.
+     *
+     * @param string $blocklabel Human-readable block title, as used in "in the ... block" steps.
+     * @param string $blockname Internal block name (data-block attribute value) of the resized block.
+     * @param string $direction One of 'Right' or 'Down'.
+     * @return array Displaced block name plus its before/after {column, row}.
+     */
+    protected function keyboard_resize_and_capture_bumped_tile(
+        string $blocklabel,
+        string $blockname,
+        string $direction
+    ): array {
+        $before = $this->read_dashboard_tile_positions();
+
+        $this->execute('behat_general::i_click_on_in_the', ['Resize block', 'button', $blocklabel, 'block']);
+        $this->execute('behat_general::i_click_on_in_the', [$direction, 'button', $blocklabel, 'block']);
+        $this->execute('behat_general::i_click_on_in_the', ['Resize block', 'button', $blocklabel, 'block']);
+
+        $after = $this->read_dashboard_tile_positions();
+        $displaced = null;
+        foreach ($before as $name => $position) {
+            if ($name !== $blockname && $position !== ($after[$name] ?? null)) {
+                $displaced = $name;
+                break;
+            }
+        }
+
+        if ($displaced === null) {
+            throw new \Exception('No other dashboard tile moved as a result of the resize: ' .
+                json_encode(['before' => $before, 'after' => $after]));
+        }
+
+        return [
+            'block' => $displaced,
+            'before' => $before[$displaced],
+            'after' => $after[$displaced],
+        ];
+    }
+
+    /**
+     * Read the current grid column/row of every dashboard tile.
+     *
+     * @return array Map of block name to {column, row}.
+     */
+    protected function read_dashboard_tile_positions(): array {
+        return $this->evaluate_script(<<<'JS'
+            return Object.fromEntries(
+                Array.from(document.querySelectorAll('.core-my-dashboard-tile[data-block]')).map(candidate => {
+                    const style = getComputedStyle(candidate);
+                    return [candidate.dataset.block, {
+                        column: Number(style.gridColumnStart),
+                        row: Number(style.gridRowStart),
+                    }];
+                })
+            );
+        JS);
+    }
 }

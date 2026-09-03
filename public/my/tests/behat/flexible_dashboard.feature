@@ -59,6 +59,20 @@ Feature: Arrange dashboard blocks in a responsive grid
     Then blocks bumped by a pointer resize ease into their new grid position
 
   @javascript
+  Scenario: Growing a block into a row neighbour pushes it sideways, not to the row start
+    When I turn editing mode on
+    And I change viewport size to "2600x1000"
+    Then "[data-columns='6']" "css_element" should exist
+    And resizing the Course overview block into its row neighbour pushes it right
+
+  @javascript
+  Scenario: Growing a block into a column neighbour pushes it downwards, not to the grid start
+    When I turn editing mode on
+    And I change viewport size to "2600x1000"
+    Then "[data-columns='6']" "css_element" should exist
+    And resizing the Calendar block into its column neighbour pushes it down
+
+  @javascript
   Scenario: Reflow the grid from six columns down to one
     When I turn editing mode on
     And I change viewport size to "2600x1000"
