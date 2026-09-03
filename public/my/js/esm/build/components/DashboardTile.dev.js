@@ -9,7 +9,6 @@ import { Fragment, jsxDEV } from "react/jsx-dev-runtime";
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import { Button } from "@moodlehq/design-system";
-import GridControls from "./GridControls";
 import DashboardHandle from "./DashboardHandle";
 const DashboardTile = /* @__PURE__ */ __name(({
   block,
@@ -22,7 +21,6 @@ const DashboardTile = /* @__PURE__ */ __name(({
   onPointerDown,
   onDirection,
   onCommit,
-  onCancel,
   onRemove
 }) => {
   const moveInstructionsId = `core-my-dashboard-move-instructions-${block.id}`;
@@ -42,17 +40,17 @@ const DashboardTile = /* @__PURE__ */ __name(({
         editing && /* @__PURE__ */ jsxDEV(Fragment, { children: [
           /* @__PURE__ */ jsxDEV("span", { id: moveInstructionsId, className: "visually-hidden", children: labels.moveinstructions }, void 0, false, {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 66,
+            lineNumber: 63,
             columnNumber: 13
           }),
           /* @__PURE__ */ jsxDEV("span", { id: resizeInstructionsId, className: "visually-hidden", children: labels.resizeinstructions }, void 0, false, {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 67,
+            lineNumber: 64,
             columnNumber: 13
           })
         ] }, void 0, true, {
           fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-          lineNumber: 65,
+          lineNumber: 62,
           columnNumber: 21
         }),
         /* @__PURE__ */ jsxDEV("header", { className: "core-my-dashboard-tile__header", children: [
@@ -61,17 +59,20 @@ const DashboardTile = /* @__PURE__ */ __name(({
             {
               mode: "move",
               label: labels.move.replace("{$a}", block.title),
+              labels,
               instructionsId: moveInstructionsId,
               active: activeMode === "move",
               onStart: () => onStart(block.id, "move"),
               onKeyDown: (event) => onKeyDown(event, block.id, "move"),
-              onPointerDown: (event) => onPointerDown(event, block.id, "move")
+              onPointerDown: (event) => onPointerDown(event, block.id, "move"),
+              onDirection,
+              onCommit
             },
             void 0,
             false,
             {
               fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-              lineNumber: 70,
+              lineNumber: 67,
               columnNumber: 25
             }
           ),
@@ -109,71 +110,61 @@ const DashboardTile = /* @__PURE__ */ __name(({
           })
         ] }, void 0, true, {
           fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-          lineNumber: 69,
+          lineNumber: 66,
           columnNumber: 9
         }),
-        activeMode && /* @__PURE__ */ jsxDEV(
-          GridControls,
-          {
-            mode: activeMode,
-            labels,
-            onDirection,
-            onCommit,
-            onCancel
-          },
-          void 0,
-          false,
-          {
-            fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 92,
-            columnNumber: 24
-          }
-        ),
         /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-tile__content", dangerouslySetInnerHTML: { __html: block.content } }, void 0, false, {
           fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-          lineNumber: 99,
+          lineNumber: 92,
           columnNumber: 9
         }),
         block.footer && /* @__PURE__ */ jsxDEV(
-          "footer",
+          "div",
           {
-            className: "core-my-dashboard-tile__footer",
+            className: "core-my-dashboard-tile__block-footer",
             dangerouslySetInnerHTML: { __html: block.footer }
           },
           void 0,
           false,
           {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 100,
+            lineNumber: 93,
             columnNumber: 26
           }
         ),
-        editing && /* @__PURE__ */ jsxDEV(
+        editing && /* @__PURE__ */ jsxDEV("footer", { className: "core-my-dashboard-tile__dashboard-footer", children: /* @__PURE__ */ jsxDEV(
           DashboardHandle,
           {
             mode: "resize",
             label: labels.resize,
+            labels,
             instructionsId: resizeInstructionsId,
             active: activeMode === "resize",
             onStart: () => onStart(block.id, "resize"),
             onKeyDown: (event) => onKeyDown(event, block.id, "resize"),
-            onPointerDown: (event) => onPointerDown(event, block.id, "resize")
+            onPointerDown: (event) => onPointerDown(event, block.id, "resize"),
+            onDirection,
+            onCommit
           },
           void 0,
           false,
           {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 104,
-            columnNumber: 21
+            lineNumber: 98,
+            columnNumber: 13
           }
-        )
+        ) }, void 0, false, {
+          fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
+          lineNumber: 97,
+          columnNumber: 21
+        })
       ]
     },
     void 0,
     true,
     {
       fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-      lineNumber: 55,
+      lineNumber: 52,
       columnNumber: 12
     }
   );

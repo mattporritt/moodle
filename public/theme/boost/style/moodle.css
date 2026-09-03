@@ -36895,7 +36895,7 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   color: var(--mds-text-default);
   background: var(--mds-bg-surface-default);
   border: var(--mds-stroke-weight-sm) solid var(--mds-border-default);
@@ -36904,6 +36904,7 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
 }
 
 .core-my-dashboard-tile--active {
+  z-index: 3;
   outline: var(--mds-stroke-weight-md) solid var(--mds-focus-default);
   outline-offset: var(--mds-spacing-offset);
 }
@@ -36929,12 +36930,28 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
   white-space: nowrap;
 }
 
-.core-my-dashboard-tile__actions,
-.core-my-grid-controls {
+.core-my-dashboard-tile__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--mds-spacing-xxs);
   align-items: center;
+}
+
+.core-my-dashboard-handle-wrapper {
+  position: relative;
+  display: grid;
+  flex: 0 0 var(--mds-scale-1100);
+  place-items: center;
+  width: var(--mds-scale-1100);
+  height: var(--mds-scale-1100);
+}
+
+.core-my-dashboard-handle-wrapper.active {
+  z-index: 5;
+}
+
+.core-my-dashboard-handle-wrapper--resize {
+  flex: 0 0 var(--mds-scale-1100);
 }
 
 .mds-btn.btn.core-my-dashboard-handle,
@@ -36962,17 +36979,10 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
 }
 
 .core-my-dashboard-handle--move {
-  flex: 0 0 auto;
   cursor: grab;
 }
 
 .core-my-dashboard-handle--resize {
-  position: absolute;
-  right: var(--mds-spacing-xs);
-  left: auto;
-  bottom: var(--mds-spacing-xs);
-  z-index: 3;
-  align-self: auto;
   cursor: nwse-resize;
   background: var(--mds-bg-surface-default);
   border: var(--mds-stroke-weight-sm) solid var(--mds-border-interactive-secondary-default);
@@ -36980,14 +36990,80 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
 
 .mds-btn.btn.core-my-dashboard-handle[aria-pressed=true] {
   cursor: grabbing;
-  color: var(--mds-text-inverse);
-  background: var(--mds-bg-interactive-primary-default);
+  color: var(--mds-text-link-primary-default);
+  background: var(--mds-bg-surface-default);
+  border: var(--mds-stroke-weight-md) solid var(--mds-border-interactive-primary-default);
 }
 
 .core-my-grid-controls {
-  padding: var(--mds-spacing-xs) var(--mds-spacing-sm);
-  background: var(--mds-bg-feedback-primary-subtle);
-  border-bottom: var(--mds-stroke-weight-sm) solid var(--mds-border-feedback-primary);
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.mds-btn.btn.core-my-grid-controls__direction {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mds-scale-800);
+  min-width: var(--mds-scale-800);
+  height: var(--mds-scale-800);
+  min-height: var(--mds-scale-800);
+  padding: 0;
+  color: var(--mds-bg-feedback-secondary-dark);
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+}
+
+.mds-btn.btn.core-my-grid-controls__direction:hover {
+  color: var(--mds-text-subtle);
+  background: transparent;
+}
+
+.mds-btn.btn.core-my-grid-controls__direction:active {
+  color: var(--mds-text-default);
+  background: transparent;
+}
+
+.mds-btn.btn.mds-btn--icon-only.mds-btn--size-sm.core-my-grid-controls__direction i {
+  display: block;
+  inline-size: var(--mds-icons-lg);
+  block-size: var(--mds-icons-lg);
+  width: var(--mds-icons-lg);
+  height: var(--mds-icons-lg);
+  font-size: var(--mds-icons-lg);
+  line-height: 1;
+}
+
+.mds-btn.btn.mds-btn--icon-only.mds-btn--size-sm.core-my-grid-controls__direction i::before {
+  font-size: var(--mds-icons-lg);
+}
+
+.core-my-grid-controls__direction--up {
+  bottom: calc(100% + var(--mds-spacing-xxs));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.core-my-grid-controls__direction--down {
+  top: calc(100% + var(--mds-spacing-xxs));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.core-my-grid-controls__direction--left {
+  top: 50%;
+  right: calc(100% + var(--mds-spacing-xxs));
+  transform: translateY(-50%);
+}
+
+.core-my-grid-controls__direction--right {
+  top: 50%;
+  left: calc(100% + var(--mds-spacing-xxs));
+  transform: translateY(-50%);
 }
 
 .core-my-dashboard-tile__content {
@@ -36998,10 +37074,21 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
   overscroll-behavior: contain;
 }
 
-.core-my-dashboard-tile__footer {
+.core-my-dashboard-tile__block-footer {
   flex: 0 0 auto;
   padding: var(--mds-spacing-xs) var(--mds-spacing-md);
   color: var(--mds-text-muted);
+  background: var(--mds-bg-surface-subtle);
+  border-top: var(--mds-stroke-weight-sm) solid var(--mds-border-subtle);
+}
+
+.core-my-dashboard-tile__dashboard-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: var(--mds-scale-1100);
+  padding: 0;
   background: var(--mds-bg-surface-subtle);
   border-top: var(--mds-stroke-weight-sm) solid var(--mds-border-subtle);
 }

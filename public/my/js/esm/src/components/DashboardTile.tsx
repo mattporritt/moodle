@@ -17,7 +17,6 @@ import React from 'react';
 import {Button} from '@moodlehq/design-system';
 import type {DashboardBlock, DashboardLabels} from '../repository';
 import type {LayoutItem} from '../layout';
-import GridControls from './GridControls';
 import DashboardHandle from './DashboardHandle';
 
 interface DashboardTileProps {
@@ -31,7 +30,6 @@ interface DashboardTileProps {
     onPointerDown: (event: React.PointerEvent, id: number, mode: 'move' | 'resize') => void;
     onDirection: (horizontal: number, vertical: number) => void;
     onCommit: () => void;
-    onCancel: () => void;
     onRemove: (id: number) => void;
 }
 
@@ -46,7 +44,6 @@ const DashboardTile = ({
     onPointerDown,
     onDirection,
     onCommit,
-    onCancel,
     onRemove,
 }: DashboardTileProps) => {
     const moveInstructionsId = `core-my-dashboard-move-instructions-${block.id}`;
@@ -70,11 +67,14 @@ const DashboardTile = ({
             {editing && <DashboardHandle
                 mode="move"
                 label={labels.move.replace('{$a}', block.title)}
+                labels={labels}
                 instructionsId={moveInstructionsId}
                 active={activeMode === 'move'}
                 onStart={() => onStart(block.id, 'move')}
                 onKeyDown={event => onKeyDown(event, block.id, 'move')}
                 onPointerDown={event => onPointerDown(event, block.id, 'move')}
+                onDirection={onDirection}
+                onCommit={onCommit}
             />}
             <h2 className="core-my-dashboard-tile__title">{block.title}</h2>
             {editing && <div className="core-my-dashboard-tile__actions">
@@ -89,27 +89,25 @@ const DashboardTile = ({
                 />
             </div>}
         </header>
-        {activeMode && <GridControls
-            mode={activeMode}
-            labels={labels}
-            onDirection={onDirection}
-            onCommit={onCommit}
-            onCancel={onCancel}
-        />}
         <div className="core-my-dashboard-tile__content" dangerouslySetInnerHTML={{__html: block.content}} />
-        {block.footer && <footer
-            className="core-my-dashboard-tile__footer"
+        {block.footer && <div
+            className="core-my-dashboard-tile__block-footer"
             dangerouslySetInnerHTML={{__html: block.footer}}
         />}
-        {editing && <DashboardHandle
-            mode="resize"
-            label={labels.resize}
-            instructionsId={resizeInstructionsId}
-            active={activeMode === 'resize'}
-            onStart={() => onStart(block.id, 'resize')}
-            onKeyDown={event => onKeyDown(event, block.id, 'resize')}
-            onPointerDown={event => onPointerDown(event, block.id, 'resize')}
-        />}
+        {editing && <footer className="core-my-dashboard-tile__dashboard-footer">
+            <DashboardHandle
+                mode="resize"
+                label={labels.resize}
+                labels={labels}
+                instructionsId={resizeInstructionsId}
+                active={activeMode === 'resize'}
+                onStart={() => onStart(block.id, 'resize')}
+                onKeyDown={event => onKeyDown(event, block.id, 'resize')}
+                onPointerDown={event => onPointerDown(event, block.id, 'resize')}
+                onDirection={onDirection}
+                onCommit={onCommit}
+            />
+        </footer>}
     </section>;
 };
 

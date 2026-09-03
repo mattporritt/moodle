@@ -9,54 +9,89 @@ import { jsxDEV } from "react/jsx-dev-runtime";
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import { Button } from "@moodlehq/design-system";
+import GridControls from "./GridControls";
 const DashboardHandle = /* @__PURE__ */ __name(({
   mode,
   label,
+  labels,
   instructionsId,
   active,
   onStart,
   onKeyDown,
-  onPointerDown
+  onPointerDown,
+  onDirection,
+  onCommit
 }) => /* @__PURE__ */ jsxDEV(
-  Button,
+  "div",
   {
-    size: "md",
-    variant: "ghost",
-    className: `core-my-dashboard-handle core-my-dashboard-handle--${mode}`,
-    "aria-label": label,
-    "aria-describedby": instructionsId,
-    "aria-pressed": active,
-    title: label,
-    startIcon: /* @__PURE__ */ jsxDEV(
-      "i",
-      {
-        className: `fa fa-${mode === "move" ? "arrows-up-down-left-right" : "up-right-and-down-left-from-center"}`,
-        "aria-hidden": "true"
-      },
-      void 0,
-      false,
-      {
-        fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
-        lineNumber: 45,
-        columnNumber: 16
-      }
-    ),
-    onClick: (event) => {
-      if (event.detail === 0) {
-        onStart();
+    className: `core-my-dashboard-handle-wrapper core-my-dashboard-handle-wrapper--${mode}${active ? " active" : ""}`,
+    onBlur: (event) => {
+      const nextTarget = event.relatedTarget;
+      if (active && (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget))) {
+        onCommit();
       }
     },
-    onKeyDown,
-    onPointerDown: (event) => {
-      event.currentTarget.focus();
-      onPointerDown(event);
-    }
+    children: [
+      active && /* @__PURE__ */ jsxDEV(GridControls, { mode, labels, onDirection }, void 0, false, {
+        fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
+        lineNumber: 54,
+        columnNumber: 16
+      }),
+      /* @__PURE__ */ jsxDEV(
+        Button,
+        {
+          size: "md",
+          variant: "ghost",
+          className: `core-my-dashboard-handle core-my-dashboard-handle--${mode}`,
+          "aria-label": label,
+          "aria-describedby": instructionsId,
+          "aria-pressed": active,
+          title: label,
+          startIcon: /* @__PURE__ */ jsxDEV(
+            "i",
+            {
+              className: `fa fa-${mode === "move" ? "arrows-up-down-left-right" : "up-right-and-down-left-from-center fa-flip-horizontal"}`,
+              "aria-hidden": "true"
+            },
+            void 0,
+            false,
+            {
+              fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
+              lineNumber: 63,
+              columnNumber: 20
+            }
+          ),
+          onClick: (event) => {
+            if (event.detail === 0 && !active) {
+              onStart();
+            }
+          },
+          onKeyDown,
+          onPointerDown: (event) => {
+            if (active) {
+              event.preventDefault();
+              onCommit();
+              return;
+            }
+            event.currentTarget.focus();
+            onPointerDown(event);
+          }
+        },
+        void 0,
+        false,
+        {
+          fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
+          lineNumber: 55,
+          columnNumber: 5
+        }
+      )
+    ]
   },
   void 0,
-  false,
+  true,
   {
     fileName: "public/my/js/esm/src/components/DashboardHandle.tsx",
-    lineNumber: 37,
+    lineNumber: 45,
     columnNumber: 29
   }
 ), "DashboardHandle");

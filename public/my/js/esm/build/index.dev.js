@@ -439,7 +439,6 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
                 onPointerDown: pointerDown,
                 onDirection: shift,
                 onCommit: () => void commit(),
-                onCancel: cancel,
                 onRemove: (id) => setConfirmAction({ type: "remove", id })
               },
               item.id,
@@ -463,11 +462,11 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
     ),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar core-my-dashboard-toolbar--bottom", children: /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblockbottom, onClick: () => setPalette({ position: "end" }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 452,
+      lineNumber: 451,
       columnNumber: 13
     }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 451,
+      lineNumber: 450,
       columnNumber: 26
     }),
     palette && /* @__PURE__ */ jsxDEV(
@@ -483,7 +482,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 454,
+        lineNumber: 453,
         columnNumber: 21
       }
     ),
@@ -509,7 +508,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 461,
+        lineNumber: 460,
         columnNumber: 27
       }
     )

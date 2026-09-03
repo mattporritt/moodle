@@ -84,13 +84,19 @@ describe('core_my grid components', () => {
             mode="move"
             labels={labels}
             onDirection={direction}
-            onCommit={jest.fn()}
-            onCancel={jest.fn()}
         />);
 
-        expect(screen.getByRole('toolbar', {name: 'Move block controls'})).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', {name: 'Right'}));
-        expect(direction).toHaveBeenCalledWith(1, 0);
+        expect(screen.getByRole('group', {name: 'Move block controls'})).toBeInTheDocument();
+        expect(screen.getAllByRole('button')).toHaveLength(4);
+        [
+            ['Up', 0, -1],
+            ['Left', -1, 0],
+            ['Right', 1, 0],
+            ['Down', 0, 1],
+        ].forEach(([name, horizontal, vertical]) => {
+            fireEvent.click(screen.getByRole('button', {name: String(name)}));
+            expect(direction).toHaveBeenLastCalledWith(horizontal, vertical);
+        });
     });
 
     it('exposes an icon move handle to pointer and keyboard input', () => {
@@ -100,11 +106,14 @@ describe('core_my grid components', () => {
         render(<DashboardHandle
             mode="move"
             label="Move Course overview block"
+            labels={labels}
             instructionsId="move-instructions"
             active={false}
             onStart={start}
             onKeyDown={keyDown}
             onPointerDown={pointerDown}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
         />);
 
         const handle = screen.getByRole('button', {name: 'Move Course overview block'});
@@ -116,6 +125,34 @@ describe('core_my grid components', () => {
         expect(handle).toHaveFocus();
         fireEvent.keyDown(handle, {key: 'Enter'});
         expect(keyDown).toHaveBeenCalled();
+    });
+
+    it('displays clickable directional controls around an active handle', () => {
+        const direction = jest.fn();
+        const commit = jest.fn();
+        render(<DashboardHandle
+            mode="resize"
+            label="Resize Course overview block"
+            labels={labels}
+            instructionsId="resize-instructions"
+            active
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={direction}
+            onCommit={commit}
+        />);
+
+        expect(screen.getByRole('group', {name: 'Resize block controls'})).toBeInTheDocument();
+        const up = screen.getByRole('button', {name: 'Up'});
+        expect(up).toHaveAttribute('tabindex', '-1');
+        expect(up.querySelector('.fa-circle-arrow-up')).toBeInTheDocument();
+        fireEvent.click(up);
+        expect(direction).toHaveBeenCalledWith(0, -1);
+        fireEvent.pointerDown(screen.getByRole('button', {name: 'Resize Course overview block'}));
+        expect(commit).toHaveBeenCalled();
+        fireEvent.blur(screen.getByRole('button', {name: 'Resize Course overview block'}));
+        expect(commit).toHaveBeenCalledTimes(2);
     });
 
     it('renders an accessible full-viewport loading skeleton', () => {
@@ -144,7 +181,6 @@ describe('core_my grid components', () => {
             onPointerDown={jest.fn()}
             onDirection={jest.fn()}
             onCommit={jest.fn()}
-            onCancel={jest.fn()}
             onRemove={jest.fn()}
         />);
 
@@ -177,7 +213,6 @@ describe('core_my grid components', () => {
             onPointerDown={jest.fn()}
             onDirection={jest.fn()}
             onCommit={jest.fn()}
-            onCancel={jest.fn()}
             onRemove={jest.fn()}
         />);
 
@@ -185,6 +220,8 @@ describe('core_my grid components', () => {
             .toHaveClass('mds-btn--size-md');
         expect(screen.getByRole('button', {name: 'Resize block'}))
             .toHaveClass('core-my-dashboard-handle--resize');
+        expect(screen.getByRole('button', {name: 'Resize block'}).closest('footer'))
+            .toHaveClass('core-my-dashboard-tile__dashboard-footer');
         const remove = screen.getByRole('button', {name: 'Delete Useful links block'});
         expect(remove).toHaveAttribute('title', 'Delete Useful links block');
         expect(remove.querySelector('.fa-trash-can')).toBeInTheDocument();

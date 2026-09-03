@@ -15,10 +15,12 @@ Feature: Arrange dashboard blocks in a responsive grid
     When I turn editing mode on
     Then "Open block drawer" "button" should not exist
     And I click on "Move Course overview block" "button" in the "Course overview" "block"
-    And I press the down key
-    And I press the enter key
+    And I click on "Down" "button" in the "Course overview" "block"
+    And I click on "Move Course overview block" "button" in the "Course overview" "block"
     Then I should see "Item moved to row"
     When I click on "Resize block" "button" in the "Course overview" "block"
+    Then "Up" "button" should exist in the "Course overview" "block"
+    And the resize directional controls are centred on the active resize handle
     And I press the down key
     And I press the enter key
     Then I should see "Item resized to"

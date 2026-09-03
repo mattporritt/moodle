@@ -21,21 +21,35 @@ interface GridControlsProps {
     mode: 'move' | 'resize';
     labels: DashboardLabels;
     onDirection: (horizontal: number, vertical: number) => void;
-    onCommit: () => void;
-    onCancel: () => void;
 }
 
-const GridControls = ({mode, labels, onDirection, onCommit, onCancel}: GridControlsProps) => <div
+const directions = [
+    {name: 'up', horizontal: 0, vertical: -1, icon: 'circle-arrow-up'},
+    {name: 'left', horizontal: -1, vertical: 0, icon: 'circle-arrow-left'},
+    {name: 'right', horizontal: 1, vertical: 0, icon: 'circle-arrow-right'},
+    {name: 'down', horizontal: 0, vertical: 1, icon: 'circle-arrow-down'},
+] as const;
+
+const GridControls = ({mode, labels, onDirection}: GridControlsProps) => <div
     className="core-my-grid-controls"
-    role="toolbar"
+    role="group"
     aria-label={mode === 'move' ? labels.movecontrols : labels.resizecontrols}
 >
-    <Button size="sm" variant="ghost" label={labels.up} onClick={() => onDirection(0, -1)} />
-    <Button size="sm" variant="ghost" label={labels.left} onClick={() => onDirection(-1, 0)} />
-    <Button size="sm" variant="ghost" label={labels.right} onClick={() => onDirection(1, 0)} />
-    <Button size="sm" variant="ghost" label={labels.down} onClick={() => onDirection(0, 1)} />
-    <Button size="sm" variant="primary" label={labels.done} onClick={onCommit} />
-    <Button size="sm" variant="secondary" label={labels.cancel} onClick={onCancel} />
+    {directions.map(direction => {
+        const label = labels[direction.name];
+        return <Button
+            key={direction.name}
+            size="sm"
+            variant="secondary"
+            className={`core-my-grid-controls__direction core-my-grid-controls__direction--${direction.name}`}
+            aria-label={label}
+            title={label}
+            tabIndex={-1}
+            startIcon={<i className={`fa fa-${direction.icon}`} aria-hidden="true" />}
+            onPointerDown={event => event.preventDefault()}
+            onClick={() => onDirection(direction.horizontal, direction.vertical)}
+        />;
+    })}
 </div>;
 
 export default GridControls;

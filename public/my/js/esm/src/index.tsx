@@ -443,7 +443,6 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
                     onPointerDown={pointerDown}
                     onDirection={shift}
                     onCommit={() => void commit()}
-                    onCancel={cancel}
                     onRemove={id => setConfirmAction({type: 'remove', id})}
                 />;
             })}
