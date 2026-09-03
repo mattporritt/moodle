@@ -20,11 +20,12 @@ interface GridCellProps {
     row: number;
     label: string;
     positionLabel: string;
+    addLabel: string;
     prospective?: boolean;
     onActivate?: (column: number, row: number) => void;
 }
 
-const GridCell = ({column, row, label, positionLabel, prospective = false, onActivate}: GridCellProps) => {
+const GridCell = ({column, row, label, positionLabel, addLabel, prospective = false, onActivate}: GridCellProps) => {
     const style = {
         gridColumn: `${column + 1}`,
         gridRow: `${row + 1}`,
@@ -39,7 +40,10 @@ const GridCell = ({column, row, label, positionLabel, prospective = false, onAct
         aria-label={`${label}, ${positionLabel.replace('{$a->row}', String(row + 1))
             .replace('{$a->column}', String(column + 1))}`}
         onClick={() => onActivate?.(column, row)}
-    />;
+    >
+        <i className="fa fa-plus core-my-grid-cell__icon" aria-hidden="true" />
+        <span className="core-my-grid-cell__label" aria-hidden="true">{addLabel}</span>
+    </button>;
 };
 
 export default GridCell;

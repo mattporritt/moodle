@@ -37110,15 +37110,48 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
 }
 
 .core-my-grid-cell--available {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mds-spacing-xs);
   padding: 0;
   cursor: pointer;
   background: var(--mds-bg-interactive-secondary-default);
   border: var(--mds-stroke-weight-sm) dashed var(--mds-border-interactive-secondary-hover);
 }
 
-.core-my-grid-cell--available:hover {
+.core-my-grid-cell__icon {
+  font-size: var(--mds-icons-md);
+  color: var(--mds-text-subtle);
+  transition: color 0.15s ease;
+}
+
+.core-my-grid-cell__label {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--mds-font-size-paragraph-small);
+  color: var(--mds-text-feedback-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.core-my-grid-cell--available:hover,
+.core-my-grid-cell--available:focus-visible {
   background: var(--mds-bg-feedback-primary-subtle);
   border-color: var(--mds-border-interactive-primary-hover);
+}
+
+.core-my-grid-cell--available:hover .core-my-grid-cell__icon,
+.core-my-grid-cell--available:focus-visible .core-my-grid-cell__icon {
+  color: var(--mds-text-feedback-primary);
+}
+
+.core-my-grid-cell--available:hover .core-my-grid-cell__label,
+.core-my-grid-cell--available:focus-visible .core-my-grid-cell__label {
+  opacity: 1;
 }
 
 .core-my-grid-cell--available:focus-visible {
@@ -37201,7 +37234,9 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
 
 @media (prefers-reduced-motion: reduce) {
   .core-my-dashboard-tile,
-  .core-my-grid-cell {
+  .core-my-grid-cell,
+  .core-my-grid-cell__icon,
+  .core-my-grid-cell__label {
     transition: none;
   }
   .core-my-dashboard-loading__heading::after,

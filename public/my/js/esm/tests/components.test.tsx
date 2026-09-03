@@ -58,6 +58,7 @@ describe('core_my grid components', () => {
             row={3}
             label="Empty grid cell"
             positionLabel="Row {$a->row}, column {$a->column}"
+            addLabel="Add a block"
             onActivate={activate}
         />);
 
@@ -69,12 +70,29 @@ describe('core_my grid components', () => {
         expect(activate).toHaveBeenCalledWith(2, 3);
     });
 
+    it('shows a plus icon and an "add a block" hover/focus cue without changing the accessible name', () => {
+        render(<GridCell
+            column={2}
+            row={3}
+            label="Empty grid cell"
+            positionLabel="Row {$a->row}, column {$a->column}"
+            addLabel="Add a block"
+        />);
+
+        const cell = screen.getByRole('button', {name: 'Empty grid cell, Row 4, column 3'});
+        expect(cell.querySelector('.core-my-grid-cell__icon')).toHaveAttribute('aria-hidden', 'true');
+        const cue = cell.querySelector('.core-my-grid-cell__label');
+        expect(cue).toHaveAttribute('aria-hidden', 'true');
+        expect(cue).toHaveTextContent('Add a block');
+    });
+
     it('renders prospective placement without adding a focus target', () => {
         const {container} = render(<GridCell
             column={0}
             row={0}
             label="Empty grid cell"
             positionLabel="Row {$a->row}, column {$a->column}"
+            addLabel="Add a block"
             prospective
         />);
 

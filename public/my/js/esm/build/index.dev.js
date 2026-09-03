@@ -458,6 +458,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
                   row,
                   label: data.labels.emptycell,
                   positionLabel: data.labels.gridcell,
+                  addLabel: data.labels.addblock,
                   prospective: isProspective,
                   onActivate: (targetColumn, targetRow) => setPalette({ column: targetColumn, row: targetRow })
                 },
@@ -500,7 +501,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
               false,
               {
                 fileName: "public/my/js/esm/src/index.tsx",
-                lineNumber: 496,
+                lineNumber: 497,
                 columnNumber: 24
               }
             );
@@ -517,11 +518,11 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
     ),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar core-my-dashboard-toolbar--bottom", children: /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblockbottom, onClick: () => setPalette({ position: "end" }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 518,
+      lineNumber: 519,
       columnNumber: 13
     }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 517,
+      lineNumber: 518,
       columnNumber: 26
     }),
     palette && /* @__PURE__ */ jsxDEV(
@@ -537,7 +538,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 520,
+        lineNumber: 521,
         columnNumber: 21
       }
     ),
@@ -563,7 +564,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "" }) => {
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 527,
+        lineNumber: 528,
         columnNumber: 27
       }
     )

@@ -483,6 +483,7 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
                         row={row}
                         label={data.labels.emptycell}
                         positionLabel={data.labels.gridcell}
+                        addLabel={data.labels.addblock}
                         prospective={isProspective}
                         onActivate={(targetColumn, targetRow) => setPalette({column: targetColumn, row: targetRow})}
                     /> : null;
