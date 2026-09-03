@@ -50,9 +50,11 @@ $PAGE->set_secondary_active_tab('appearance');
 $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');
 $PAGE->set_url(new moodle_url('/my/indexsys.php'));
 admin_externalpage_setup('mypage', '', null, '', ['pagelayout' => 'mydashboard', 'nosearch' => true]);
-$PAGE->add_body_class('limitedwidth');
+$PAGE->add_body_class('core-my-dashboard-page');
 $PAGE->set_pagetype('my-index');
 $PAGE->blocks->add_region('content');
+$PAGE->blocks->show_only_fake_blocks(true);
+$PAGE->force_lock_all_blocks();
 $PAGE->set_title($pagetitle);
 $PAGE->set_heading($pagetitle);
 $PAGE->set_secondary_navigation(false);
@@ -88,8 +90,10 @@ $PAGE->set_button($button . $PAGE->button);
 
 echo $OUTPUT->header();
 
-echo $OUTPUT->addblockbutton('content');
-
-echo $OUTPUT->custom_block_region('content');
+$loadinglabel = get_string('loading');
+echo html_writer::div(\core_my\local\dashboard::get_loading_placeholder(), 'core-my-dashboard-mount', [
+    'data-react-component' => '@moodle/lms/core_my/index',
+    'data-react-props' => json_encode(['loadingLabel' => $loadinglabel]),
+]);
 
 echo $OUTPUT->footer();

@@ -1,0 +1,8 @@
+issueNumber: MDL-89636
+notes:
+  core_my:
+    - message: >-
+        Dashboard block positions now support canonical six-column grid
+        coordinates through the gridcolumn, gridrow, gridcolumns, and gridrows
+        fields in block_positions.
+      type: changed

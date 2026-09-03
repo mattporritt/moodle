@@ -2326,5 +2326,106 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026081800.06);
     }
 
+    if ($oldversion < 2026081800.07) {
+        $table = new xmldb_table('block_positions');
+        $fields = [
+            new xmldb_field('gridcolumn', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'weight'),
+            new xmldb_field('gridrow', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'gridcolumn'),
+            new xmldb_field('gridcolumns', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'gridrow'),
+            new xmldb_field('gridrows', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'gridcolumns'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        // Translate the legacy dashboard's centre and drawer stacks to one six-column grid.
+        $lastpageid = 0;
+        do {
+            $pages = $DB->get_records_select(
+                'my_pages',
+                'id > :lastpageid AND name = :name AND private = :private',
+                ['lastpageid' => $lastpageid, 'name' => '__default', 'private' => 1],
+                'id ASC',
+                'id, userid',
+                0,
+                500,
+            );
+            foreach ($pages as $mypage) {
+                $lastpageid = $mypage->id;
+                if ($mypage->userid) {
+                    $context = context_user::instance($mypage->userid, IGNORE_MISSING);
+                } else {
+                    $context = context_system::instance();
+                }
+                if (!$context) {
+                    continue;
+                }
+
+                $sql = "SELECT bi.id, bi.defaultregion, bi.defaultweight, bp.id AS positionid,
+                               bp.region, bp.weight, bp.visible
+                          FROM {block_instances} bi
+                     LEFT JOIN {block_positions} bp
+                            ON bp.blockinstanceid = bi.id
+                           AND bp.contextid = :positioncontextid
+                           AND bp.pagetype = :positionpagetype
+                           AND bp.subpage = :positionsubpage
+                         WHERE bi.parentcontextid = :parentcontextid
+                           AND bi.pagetypepattern = :instancepagetype
+                           AND bi.subpagepattern = :instancesubpage";
+                $params = [
+                    'positioncontextid' => $context->id,
+                    'positionpagetype' => 'my-index',
+                    'positionsubpage' => (string) $mypage->id,
+                    'parentcontextid' => $context->id,
+                    'instancepagetype' => 'my-index',
+                    'instancesubpage' => (string) $mypage->id,
+                ];
+                $blocks = $DB->get_records_sql($sql, $params);
+                uasort($blocks, static function ($left, $right): int {
+                    $leftregion = $left->region ?? $left->defaultregion;
+                    $rightregion = $right->region ?? $right->defaultregion;
+                    $regionorder = ['content' => 0, 'side-pre' => 1];
+                    $regioncomparison = ($regionorder[$leftregion] ?? 2) <=> ($regionorder[$rightregion] ?? 2);
+                    if ($regioncomparison !== 0) {
+                        return $regioncomparison;
+                    }
+                    return ($left->weight ?? $left->defaultweight) <=> ($right->weight ?? $right->defaultweight);
+                });
+
+                $nextrow = ['content' => 0, 'drawer' => 0];
+                foreach ($blocks as $block) {
+                    $region = $block->region ?? $block->defaultregion;
+                    $isdrawer = $region !== 'content';
+                    $stack = $isdrawer ? 'drawer' : 'content';
+                    $position = (object) [
+                        'blockinstanceid' => $block->id,
+                        'contextid' => $context->id,
+                        'pagetype' => 'my-index',
+                        'subpage' => (string) $mypage->id,
+                        'visible' => $block->visible ?? 1,
+                        'region' => $region,
+                        'weight' => $block->weight ?? $block->defaultweight,
+                        'gridcolumn' => $isdrawer ? 4 : 0,
+                        'gridrow' => $nextrow[$stack],
+                        'gridcolumns' => $isdrawer ? 2 : 4,
+                        'gridrows' => 3,
+                    ];
+                    $nextrow[$stack] = $position->gridrow + $position->gridrows;
+                    if ($block->positionid) {
+                        $position->id = $block->positionid;
+                        $DB->update_record('block_positions', $position);
+                    } else {
+                        $DB->insert_record('block_positions', $position);
+                    }
+                }
+                upgrade_set_timeout(60);
+            }
+        } while ($pages);
+
+        upgrade_main_savepoint(true, 2026081800.07);
+    }
+
     return true;
 }

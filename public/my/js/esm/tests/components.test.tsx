@@ -1,0 +1,229 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+/**
+ * Tests for the replaceable dashboard grid components.
+ *
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+import {fireEvent, render, screen} from '@testing-library/react';
+import type React from 'react';
+import GridCell from '../src/components/GridCell';
+import GridControls from '../src/components/GridControls';
+import ConfirmationDialog from '../src/components/ConfirmationDialog';
+import DashboardTile from '../src/components/DashboardTile';
+import BlockPalette from '../src/components/BlockPalette';
+import DashboardHandle from '../src/components/DashboardHandle';
+import DashboardLoading from '../src/components/DashboardLoading';
+import type {DashboardLabels} from '../src/repository';
+
+jest.mock('@moodlehq/design-system', () => ({
+    Button: ({label, startIcon, size, variant: _variant, className, ...props}:
+    React.ButtonHTMLAttributes<HTMLButtonElement> & {
+        label?: string;
+        startIcon?: React.ReactElement;
+        size?: string;
+        variant?: string;
+    }) => <button
+        type="button"
+        className={`mds-btn--size-${size} ${className ?? ''}`}
+        {...props}
+    >{startIcon}{label}</button>,
+}), {virtual: true});
+
+const labels = {
+    up: 'Up',
+    down: 'Down',
+    left: 'Left',
+    right: 'Right',
+    done: 'Done',
+    cancel: 'Cancel',
+    movecontrols: 'Move block controls',
+    resizecontrols: 'Resize block controls',
+    moveinstructions: 'Use the arrow keys to move',
+    resizeinstructions: 'Use the arrow keys to resize',
+} as DashboardLabels;
+
+describe('core_my grid components', () => {
+    it('exposes an available cell as a positioned button', () => {
+        const activate = jest.fn();
+        render(<GridCell
+            column={2}
+            row={3}
+            label="Empty grid cell"
+            positionLabel="Row {$a->row}, column {$a->column}"
+            onActivate={activate}
+        />);
+
+        fireEvent.click(screen.getByRole('button', {name: 'Empty grid cell, Row 4, column 3'}));
+        expect(activate).toHaveBeenCalledWith(2, 3);
+    });
+
+    it('renders prospective placement without adding a focus target', () => {
+        const {container} = render(<GridCell
+            column={0}
+            row={0}
+            label="Empty grid cell"
+            positionLabel="Row {$a->row}, column {$a->column}"
+            prospective
+        />);
+
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+        expect(container.firstChild).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('builds bespoke controls from MDS buttons and relays direction', () => {
+        const direction = jest.fn();
+        render(<GridControls
+            mode="move"
+            labels={labels}
+            onDirection={direction}
+            onCommit={jest.fn()}
+            onCancel={jest.fn()}
+        />);
+
+        expect(screen.getByRole('toolbar', {name: 'Move block controls'})).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', {name: 'Right'}));
+        expect(direction).toHaveBeenCalledWith(1, 0);
+    });
+
+    it('exposes an icon move handle to pointer and keyboard input', () => {
+        const start = jest.fn();
+        const pointerDown = jest.fn();
+        const keyDown = jest.fn();
+        render(<DashboardHandle
+            mode="move"
+            label="Move Course overview block"
+            instructionsId="move-instructions"
+            active={false}
+            onStart={start}
+            onKeyDown={keyDown}
+            onPointerDown={pointerDown}
+        />);
+
+        const handle = screen.getByRole('button', {name: 'Move Course overview block'});
+        expect(handle).toHaveAttribute('aria-describedby', 'move-instructions');
+        expect(handle).toHaveAttribute('aria-pressed', 'false');
+        expect(handle.querySelector('.fa-arrows-up-down-left-right')).toBeInTheDocument();
+        fireEvent.pointerDown(handle, {clientX: 10, clientY: 10});
+        expect(pointerDown).toHaveBeenCalled();
+        expect(handle).toHaveFocus();
+        fireEvent.keyDown(handle, {key: 'Enter'});
+        expect(keyDown).toHaveBeenCalled();
+    });
+
+    it('renders an accessible full-viewport loading skeleton', () => {
+        const {container} = render(<DashboardLoading label="Loading" />);
+
+        expect(screen.getByRole('status', {name: 'Loading'})).toHaveAttribute('aria-busy', 'true');
+        expect(container.querySelectorAll('.core-my-dashboard-loading__tile')).toHaveLength(6);
+    });
+
+    it('renders block content without changing the tile accessible name', () => {
+        render(<DashboardTile
+            block={{
+                id: 7,
+                name: 'html',
+                title: 'Useful links',
+                content: '<p>Tile content</p>',
+                footer: '',
+                region: 'content',
+                weight: 0,
+            }}
+            item={{id: 7, column: 0, row: 0, columns: 2, rows: 2}}
+            labels={{...labels, tile: '{$a} block'} as DashboardLabels}
+            editing={false}
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
+            onCancel={jest.fn()}
+            onRemove={jest.fn()}
+        />);
+
+        expect(screen.getByRole('region', {name: 'Useful links block'})).toBeInTheDocument();
+        expect(screen.getByText('Tile content')).toBeInTheDocument();
+    });
+
+    it('renders large icon-only move, resize, and remove actions in edit mode', () => {
+        render(<DashboardTile
+            block={{
+                id: 8,
+                name: 'html',
+                title: 'Useful links',
+                content: '<p>Tile content</p>',
+                footer: '',
+                region: 'content',
+                weight: 0,
+            }}
+            item={{id: 8, column: 0, row: 0, columns: 2, rows: 2}}
+            labels={{
+                ...labels,
+                move: 'Move {$a} block',
+                remove: 'Delete {$a} block',
+                resize: 'Resize block',
+                tile: '{$a} block',
+            } as DashboardLabels}
+            editing
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
+            onCancel={jest.fn()}
+            onRemove={jest.fn()}
+        />);
+
+        expect(screen.getByRole('button', {name: 'Move Useful links block'}))
+            .toHaveClass('mds-btn--size-md');
+        expect(screen.getByRole('button', {name: 'Resize block'}))
+            .toHaveClass('core-my-dashboard-handle--resize');
+        const remove = screen.getByRole('button', {name: 'Delete Useful links block'});
+        expect(remove).toHaveAttribute('title', 'Delete Useful links block');
+        expect(remove.querySelector('.fa-trash-can')).toBeInTheDocument();
+        expect(remove).not.toHaveTextContent('Delete Useful links block');
+    });
+
+    it('uses a native modal shell with MDS confirmation controls', () => {
+        HTMLDialogElement.prototype.showModal = jest.fn(function(this: HTMLDialogElement) {
+            this.setAttribute('open', '');
+        });
+        const confirm = jest.fn();
+        render(<ConfirmationDialog
+            title="Remove block"
+            message="Remove this block?"
+            confirmLabel="Confirm"
+            cancelLabel="Cancel"
+            onConfirm={confirm}
+            onCancel={jest.fn()}
+        />);
+
+        expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+        fireEvent.click(screen.getByRole('button', {name: 'Confirm'}));
+        expect(confirm).toHaveBeenCalled();
+    });
+
+    it('uses a native modal shell for the replaceable block palette', () => {
+        HTMLDialogElement.prototype.showModal = jest.fn(function(this: HTMLDialogElement) {
+            this.setAttribute('open', '');
+        });
+        const select = jest.fn();
+        render(<BlockPalette
+            title="Add a block"
+            closeLabel="Close"
+            blocks={[{name: 'online_users', title: 'Online users'}]}
+            onSelect={select}
+            onClose={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole('button', {name: 'Online users'}));
+        expect(select).toHaveBeenCalledWith({name: 'online_users', title: 'Online users'});
+    });
+});

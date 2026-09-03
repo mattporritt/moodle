@@ -1,4 +1,4 @@
-@core @core_my
+@core @core_my @javascript
 Feature: Reset all personalised pages to default
   In order to reset everyone's personalised pages
   As an admin
@@ -38,10 +38,10 @@ Feature: Reset all personalised pages to default
     Given I log in as "admin"
     And I navigate to "Appearance > Default Dashboard page" in site administration
     And I turn editing mode on
-    And I add the "Latest announcements" block
-    And I open the "Timeline" blocks action menu
-    And I follow "Delete Timeline block"
-    And I press "Yes"
+    And I click on "Add a block at the start of the dashboard" "button"
+    And I click on "Latest announcements" "button" in the "Add a block" "dialogue"
+    And I click on "Delete Timeline block" "button" in the "Timeline" "block"
+    And I click on "Confirm" "button" in the "Remove block" "dialogue"
     And I turn editing mode off
     And I log out
 

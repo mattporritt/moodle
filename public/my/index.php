@@ -100,9 +100,11 @@ $PAGE->set_context($context);
 $PAGE->set_url('/my/index.php', $params);
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_docs_path('dashboard');
-$PAGE->add_body_class('limitedwidth');
+$PAGE->add_body_class('core-my-dashboard-page');
 $PAGE->set_pagetype('my-index');
 $PAGE->blocks->add_region('content');
+$PAGE->blocks->show_only_fake_blocks(true);
+$PAGE->force_lock_all_blocks();
 $PAGE->set_subpage($currentpage->id);
 $PAGE->set_title($pagetitle);
 $PAGE->set_heading($pagetitle);
@@ -170,14 +172,6 @@ if (empty($CFG->forcedefaultmymoodle) && $PAGE->user_allowed_editing()) {
         $editstring = get_string('updatemymoodleon');
     } else {
         $editstring = get_string('updatemymoodleoff');
-        $resetbutton = $OUTPUT->single_button(
-            new moodle_url('/my/index.php', ['edit' => 1, 'reset' => 1]),
-            get_string('resetpage', 'my'),
-            options: [
-                'data-modal' => 'confirmation',
-                'data-modal-content-str' => json_encode(['resetpageconfirm', 'my']),
-            ],
-        );
     }
 
     $url = new moodle_url("$CFG->wwwroot/my/index.php", $params);
@@ -197,9 +191,11 @@ if (core_userfeedback::should_display_reminder()) {
     core_userfeedback::print_reminder_block();
 }
 
-echo $OUTPUT->addblockbutton('content');
-
-echo $OUTPUT->custom_block_region('content');
+$loadinglabel = get_string('loading');
+echo html_writer::div(\core_my\local\dashboard::get_loading_placeholder(), 'core-my-dashboard-mount', [
+    'data-react-component' => '@moodle/lms/core_my/index',
+    'data-react-props' => json_encode(['loadingLabel' => $loadinglabel]),
+]);
 
 echo $OUTPUT->footer();
 
