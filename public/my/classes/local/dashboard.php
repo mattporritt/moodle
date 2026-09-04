@@ -42,12 +42,16 @@ final class dashboard {
     private const REGIONS = ['content', 'side-pre', 'side-post'];
 
     /**
-     * Legacy block editing-control classes not offered from the dashboard's block actions menu.
+     * Legacy block editing-control classes still offered from the dashboard's block actions menu.
      *
      * Move and hide/show are superseded by the grid's own controls, and delete lives in the
      * tile's discrete delete button instead of being duplicated inside the menu as well.
+     * Configure and Assign roles are dropped too: the dashboard is a personal, per-user surface,
+     * so a block's own placement/role-assignment settings are redundant here in a way they are
+     * not on a shared course or site page. Permissions review stays, since who can do what with
+     * a block instance is still meaningful to check and change on the dashboard.
      */
-    private const MENU_ACTION_EXCLUDED = ['move', 'hide', 'show', 'delete'];
+    private const MENU_ACTION_ALLOWED = ['permissions', 'checkroles'];
 
     /**
      * Set up Moodle's block manager for a user or site-default dashboard.
@@ -212,10 +216,10 @@ final class dashboard {
      * Translate a block's legacy editing controls into the dashboard's block actions menu.
      *
      * The menu reuses whichever controls {@see block_manager::edit_controls()} already builds
-     * for the block, with the same capability checks and the same destination pages, minus the
-     * ones the dashboard grid replaces or relocates (see MENU_ACTION_EXCLUDED). This is
-     * deliberately generic rather than an allow-list, so a future core or plugin control appears
-     * here automatically without dashboard code needing to know about it.
+     * for the block, with the same capability checks and the same destination pages, filtered to
+     * the small set the dashboard still has a use for (see MENU_ACTION_ALLOWED). Every other
+     * control is either superseded by the grid's own controls, relocated to the tile's discrete
+     * delete button, or simply redundant on a personal, per-user page.
      *
      * @param \action_link[] $controls The block's editing controls, from block_contents::$controls.
      * @return array
@@ -231,7 +235,7 @@ final class dashboard {
                     break;
                 }
             }
-            if ($id === null || in_array($id, self::MENU_ACTION_EXCLUDED, true)) {
+            if ($id === null || !in_array($id, self::MENU_ACTION_ALLOWED, true)) {
                 continue;
             }
             $actions[] = [

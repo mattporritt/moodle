@@ -528,7 +528,15 @@ describe('core_my grid components', () => {
             onRemove={jest.fn()}
         />);
 
-        expect(screen.getByRole('button', {name: 'More actions for Useful links'})).toBeInTheDocument();
+        const trigger = screen.getByRole('button', {name: 'More actions for Useful links'});
+        expect(trigger).toBeInTheDocument();
+
+        const remove = screen.getByRole('button', {name: 'Delete Useful links block'});
+        const actionsRow = remove.closest('.core-my-dashboard-tile__actions');
+        const children = Array.from(actionsRow?.children ?? []);
+        expect(children.indexOf(remove)).toBeLessThan(
+            children.findIndex(child => child.contains(trigger)),
+        );
     });
 
     it('uses a native modal shell with MDS confirmation controls', () => {

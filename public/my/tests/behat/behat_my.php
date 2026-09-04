@@ -612,6 +612,39 @@ class behat_my extends behat_base {
     }
 
     /**
+     * Assert the block actions menu trigger sits to the right of the tile's discrete delete
+     * button, matching the control ordering used on every other block-bearing page in LMS.
+     *
+     * @Then the block actions menu sits to the right of the delete control
+     */
+    public function the_block_actions_menu_sits_to_the_right_of_the_delete_control(): void {
+        $result = $this->evaluate_script(<<<'JS'
+            return (() => {
+                const actions = document.querySelector(
+                    ".core-my-dashboard-tile[data-block='myoverview'] .core-my-dashboard-tile__actions"
+                );
+                const remove = actions?.querySelector('.core-my-dashboard-remove');
+                const menu = actions?.querySelector('.core-my-dashboard-block-actions__trigger');
+                if (!remove || !menu) {
+                    return null;
+                }
+                return {
+                    removeleft: remove.getBoundingClientRect().left,
+                    menuleft: menu.getBoundingClientRect().left,
+                };
+            })();
+        JS);
+
+        if ($result === null) {
+            throw new \Exception('Could not find both the delete control and the block actions menu trigger.');
+        }
+        if ($result['menuleft'] <= $result['removeleft']) {
+            throw new \Exception('The block actions menu trigger is not to the right of the delete control: ' .
+                json_encode($result));
+        }
+    }
+
+    /**
      * Grow a block by one grid cell in the given direction, using the same discrete-control click
      * sequence as the existing accessible-controls scenario (activate, direction, activate again
      * to commit), and capture the grid position of whichever other tile moved as a result.

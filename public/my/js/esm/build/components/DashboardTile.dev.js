@@ -140,11 +140,19 @@ const DashboardTile = /* @__PURE__ */ __name(({
           }),
           editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-tile__actions", children: [
             /* @__PURE__ */ jsxDEV(
-              BlockActionsMenu,
+              Button,
               {
-                blockId: block.id,
-                actions: block.actions,
-                label: labels.blockactions.replace("{$a}", block.title)
+                size: "md",
+                variant: "ghost",
+                className: "core-my-dashboard-remove",
+                "aria-label": labels.remove.replace("{$a}", block.title),
+                title: labels.remove.replace("{$a}", block.title),
+                startIcon: /* @__PURE__ */ jsxDEV("i", { className: "fa fa-trash-can", "aria-hidden": "true" }, void 0, false, {
+                  fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
+                  lineNumber: 162,
+                  columnNumber: 32
+                }),
+                onClick: () => onRemove(block.id)
               },
               void 0,
               false,
@@ -155,25 +163,17 @@ const DashboardTile = /* @__PURE__ */ __name(({
               }
             ),
             /* @__PURE__ */ jsxDEV(
-              Button,
+              BlockActionsMenu,
               {
-                size: "md",
-                variant: "ghost",
-                className: "core-my-dashboard-remove",
-                "aria-label": labels.remove.replace("{$a}", block.title),
-                title: labels.remove.replace("{$a}", block.title),
-                startIcon: /* @__PURE__ */ jsxDEV("i", { className: "fa fa-trash-can", "aria-hidden": "true" }, void 0, false, {
-                  fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-                  lineNumber: 167,
-                  columnNumber: 32
-                }),
-                onClick: () => onRemove(block.id)
+                blockId: block.id,
+                actions: block.actions,
+                label: labels.blockactions.replace("{$a}", block.title)
               },
               void 0,
               false,
               {
                 fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-                lineNumber: 161,
+                lineNumber: 165,
                 columnNumber: 17
               }
             )

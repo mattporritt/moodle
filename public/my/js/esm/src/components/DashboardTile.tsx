@@ -153,11 +153,6 @@ const DashboardTile = ({
             />}
             <h2 className="core-my-dashboard-tile__title">{block.title}</h2>
             {editing && <div className="core-my-dashboard-tile__actions">
-                <BlockActionsMenu
-                    blockId={block.id}
-                    actions={block.actions}
-                    label={labels.blockactions.replace('{$a}', block.title)}
-                />
                 <Button
                     size="md"
                     variant="ghost"
@@ -166,6 +161,11 @@ const DashboardTile = ({
                     title={labels.remove.replace('{$a}', block.title)}
                     startIcon={<i className="fa fa-trash-can" aria-hidden="true" />}
                     onClick={() => onRemove(block.id)}
+                />
+                <BlockActionsMenu
+                    blockId={block.id}
+                    actions={block.actions}
+                    label={labels.blockactions.replace('{$a}', block.title)}
                 />
             </div>}
         </header>

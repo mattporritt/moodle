@@ -110,12 +110,12 @@ final class get_dashboard_test extends \advanced_testcase {
     }
 
     /**
-     * In Edit mode, each block's actions menu carries its remaining legacy editing controls
-     * (Configure, Assign roles, Permissions, Change permissions), but never Move, Hide/show or
-     * Delete: the grid replaces the first three, and Delete lives in the tile's own discrete
-     * control instead of being duplicated inside the menu.
+     * In Edit mode, each block's actions menu is capped to Permissions and Check permissions -
+     * the dashboard is a personal, per-user page, so a block's own Configure and Assign roles
+     * controls are redundant here, on top of Move, Hide/show and Delete already being replaced
+     * or relocated elsewhere in the tile.
      */
-    public function test_execute_returns_generic_but_not_legacy_block_menu_actions(): void {
+    public function test_execute_caps_the_block_menu_at_permissions_actions(): void {
         global $USER;
 
         $this->resetAfterTest();
@@ -128,21 +128,19 @@ final class get_dashboard_test extends \advanced_testcase {
         $this->assertNotEmpty($result['blocks']);
         foreach ($result['blocks'] as $block) {
             $ids = array_column($block['actions'], 'id');
-            $this->assertNotContains('move', $ids, "The {$block['name']} block menu still offers Move.");
-            $this->assertNotContains('hide', $ids, "The {$block['name']} block menu still offers Hide.");
-            $this->assertNotContains('show', $ids, "The {$block['name']} block menu still offers Show.");
-            $this->assertNotContains('delete', $ids, "The {$block['name']} block menu still offers Delete.");
+            $unexpected = array_diff($ids, ['permissions', 'checkroles']);
+            $this->assertSame(
+                [],
+                array_values($unexpected),
+                "The {$block['name']} block menu offers actions beyond Permissions and Check permissions: " .
+                    implode(', ', $unexpected),
+            );
         }
 
         $myoverview = current(array_filter($result['blocks'], static fn ($block) => $block['name'] === 'myoverview'));
-        $actionsbyid = [];
-        foreach ($myoverview['actions'] as $action) {
-            $actionsbyid[$action['id']] = $action;
-        }
-        $this->assertArrayHasKey('edit', $actionsbyid, 'The Course overview block is missing its Configure action.');
-        $this->assertNotSame('', $actionsbyid['edit']['modalform'], 'Configure is missing its modal form class.');
-        $this->assertArrayHasKey('permissions', $actionsbyid, 'The Course overview block is missing its Permissions action.');
-        $this->assertSame('', $actionsbyid['permissions']['modalform'], 'Permissions unexpectedly carries a modal form class.');
+        $ids = array_column($myoverview['actions'], 'id');
+        $this->assertContains('permissions', $ids, 'The Course overview block is missing its Permissions action.');
+        $this->assertContains('checkroles', $ids, 'The Course overview block is missing its Check permissions action.');
     }
 
     /**
