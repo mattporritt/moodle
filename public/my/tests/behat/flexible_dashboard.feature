@@ -102,6 +102,17 @@ Feature: Arrange dashboard blocks in a responsive grid
     Then I should not see "Editing your dashboard"
 
   @javascript
+  Scenario: The block actions menu offers only the retained legacy controls
+    Given I log out
+    And I log in as "admin"
+    When I turn editing mode on
+    And I click on "More actions for Course overview" "button" in the "Course overview" "block"
+    Then I should see "Permissions" in the ".core-my-dashboard-block-actions__menu" "css_element"
+    And I should not see "Move Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
+    And I should not see "Delete Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
+    And "Hide Course overview block" "button" should not exist
+
+  @javascript
   Scenario: An administrator can switch between their own dashboard and the site default while editing
     Given I log out
     And I log in as "admin"

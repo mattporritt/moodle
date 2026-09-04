@@ -20,24 +20,31 @@ import Dashboard from '../src/index';
 import type {DashboardData, DashboardLabels} from '../src/repository';
 import type {LayoutItem} from '../src/layout';
 
-jest.mock('@moodlehq/design-system', () => ({
-    Button: ({label, startIcon, size: _size, variant: _variant, className, ...props}:
-    React.ButtonHTMLAttributes<HTMLButtonElement> & {
-        label?: string;
-        startIcon?: React.ReactElement;
-        size?: string;
-        variant?: string;
-    }) => <button
-        type="button"
-        className={className ?? ''}
-        {...props}
-    >{startIcon}{label}</button>,
-    Badge: ({label, variant: _variant, subtle: _subtle, pill: _pill, ...props}:
-    React.HTMLAttributes<HTMLSpanElement> & {label?: string; variant?: string; subtle?: boolean; pill?: boolean}) =>
-        <span {...props}>{label}</span>,
-    Link: ({label, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {label?: string}) =>
-        <a {...props}>{label}</a>,
-}), {virtual: true});
+jest.mock('@moodlehq/design-system', () => {
+    const ReactActual = require('react');
+    return {
+        Button: ReactActual.forwardRef((
+            {label, startIcon, size: _size, variant: _variant, className, ...props}:
+            React.ButtonHTMLAttributes<HTMLButtonElement> & {
+                label?: string;
+                startIcon?: React.ReactElement;
+                size?: string;
+                variant?: string;
+            },
+            ref: React.Ref<HTMLButtonElement>,
+        ) => <button
+            ref={ref}
+            type="button"
+            className={className ?? ''}
+            {...props}
+        >{startIcon}{label}</button>),
+        Badge: ({label, variant: _variant, subtle: _subtle, pill: _pill, ...props}:
+        React.HTMLAttributes<HTMLSpanElement> & {label?: string; variant?: string; subtle?: boolean; pill?: boolean}) =>
+            <span {...props}>{label}</span>,
+        Link: ({label, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {label?: string}) =>
+            <a {...props}>{label}</a>,
+    };
+}, {virtual: true});
 
 // Jsdom has no ResizeObserver; the dashboard's own column-count measurement effect uses one
 // directly (unlike DashboardTile's, this one has no feature-detection guard). Width comes from
@@ -90,6 +97,7 @@ const labels: DashboardLabels = {
     addblock: 'Add a block',
     addblocktop: 'Add a block at the start of the dashboard',
     addblockbottom: 'Add a block at the end of the dashboard',
+    blockactions: 'More actions for {$a}',
     cancel: 'Cancel',
     close: 'Close',
     confirm: 'Confirm',
@@ -132,13 +140,22 @@ const baseLayout: LayoutItem[] = [
 ];
 
 const secondBlockOnly = [
-    {id: 102, name: 'online_users', title: 'Second block', content: '<p>Second</p>', footer: '', region: 'content', weight: 1},
+    {
+        id: 102, name: 'online_users', title: 'Second block', content: '<p>Second</p>',
+        footer: '', region: 'content', weight: 1, actions: [],
+    },
 ];
 
 const buildData = (overrides: Partial<DashboardData> = {}): DashboardData => ({
     blocks: [
-        {id: 101, name: 'html', title: 'First block', content: '<p>First</p>', footer: '', region: 'content', weight: 0},
-        {id: 102, name: 'online_users', title: 'Second block', content: '<p>Second</p>', footer: '', region: 'content', weight: 1},
+        {
+            id: 101, name: 'html', title: 'First block', content: '<p>First</p>',
+            footer: '', region: 'content', weight: 0, actions: [],
+        },
+        {
+            id: 102, name: 'online_users', title: 'Second block', content: '<p>Second</p>',
+            footer: '', region: 'content', weight: 1, actions: [],
+        },
     ],
     layout: baseLayout,
     availableblocks: [{name: 'calendar_month', title: 'Calendar'}],
@@ -249,8 +266,10 @@ describe('core_my Dashboard application', () => {
     });
 
     it('adds a block from the palette and reloads the dashboard', async() => {
-        const newBlock =
-            {id: 103, name: 'calendar_month', title: 'Calendar', content: '<p>Cal</p>', footer: '', region: 'content', weight: 2};
+        const newBlock = {
+            id: 103, name: 'calendar_month', title: 'Calendar', content: '<p>Cal</p>',
+            footer: '', region: 'content', weight: 2, actions: [],
+        };
         const afterAdd = buildData({
             blocks: [...buildData().blocks, newBlock],
             layout: [...baseLayout, {id: 103, column: 0, row: 2, columns: 2, rows: 2}],

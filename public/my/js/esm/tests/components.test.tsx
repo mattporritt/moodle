@@ -18,32 +18,41 @@ import GridCell from '../src/components/GridCell';
 import GridControls from '../src/components/GridControls';
 import ConfirmationDialog from '../src/components/ConfirmationDialog';
 import DashboardTile from '../src/components/DashboardTile';
+import BlockActionsMenu from '../src/components/BlockActionsMenu';
 import BlockPalette from '../src/components/BlockPalette';
 import DashboardHandle from '../src/components/DashboardHandle';
 import DashboardLoading from '../src/components/DashboardLoading';
 import DashboardScopeBanner from '../src/components/DashboardScopeBanner';
 import type {DashboardLabels} from '../src/repository';
 
-jest.mock('@moodlehq/design-system', () => ({
-    Button: ({label, startIcon, size, variant: _variant, className, ...props}:
-    React.ButtonHTMLAttributes<HTMLButtonElement> & {
-        label?: string;
-        startIcon?: React.ReactElement;
-        size?: string;
-        variant?: string;
-    }) => <button
-        type="button"
-        className={`mds-btn--size-${size} ${className ?? ''}`}
-        {...props}
-    >{startIcon}{label}</button>,
-    Badge: ({label, variant: _variant, subtle: _subtle, pill: _pill, ...props}:
-    React.HTMLAttributes<HTMLSpanElement> & {label?: string; variant?: string; subtle?: boolean; pill?: boolean}) =>
-        <span {...props}>{label}</span>,
-    Link: ({label, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {label?: string}) =>
-        <a {...props}>{label}</a>,
-}), {virtual: true});
+jest.mock('@moodlehq/design-system', () => {
+    const ReactActual = require('react');
+    return {
+        Button: ReactActual.forwardRef((
+            {label, startIcon, size, variant: _variant, className, ...props}:
+            React.ButtonHTMLAttributes<HTMLButtonElement> & {
+                label?: string;
+                startIcon?: React.ReactElement;
+                size?: string;
+                variant?: string;
+            },
+            ref: React.Ref<HTMLButtonElement>,
+        ) => <button
+            ref={ref}
+            type="button"
+            className={`mds-btn--size-${size} ${className ?? ''}`}
+            {...props}
+        >{startIcon}{label}</button>),
+        Badge: ({label, variant: _variant, subtle: _subtle, pill: _pill, ...props}:
+        React.HTMLAttributes<HTMLSpanElement> & {label?: string; variant?: string; subtle?: boolean; pill?: boolean}) =>
+            <span {...props}>{label}</span>,
+        Link: ({label, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {label?: string}) =>
+            <a {...props}>{label}</a>,
+    };
+}, {virtual: true});
 
 const labels = {
+    blockactions: 'More actions for {$a}',
     up: 'Up',
     down: 'Down',
     left: 'Left',
@@ -229,6 +238,7 @@ describe('core_my grid components', () => {
                 footer: '',
                 region: 'content',
                 weight: 0,
+                actions: [],
             }}
             item={{id: 7, column: 0, row: 0, columns: 2, rows: 2}}
             labels={{...labels, tile: '{$a} block'} as DashboardLabels}
@@ -256,6 +266,7 @@ describe('core_my grid components', () => {
                 footer: '',
                 region: 'content',
                 weight: 0,
+                actions: [],
             }}
             item={{id: 8, column: 0, row: 0, columns: 2, rows: 2}}
             labels={{...labels, tile: '{$a} block'} as DashboardLabels}
@@ -286,6 +297,7 @@ describe('core_my grid components', () => {
                 footer: '',
                 region: 'content',
                 weight: 0,
+                actions: [],
             }}
             item={{id: 9, column: 1, row: 1, columns: 2, rows: 2}}
             labels={{...labels, tile: '{$a} block'} as DashboardLabels}
@@ -315,6 +327,7 @@ describe('core_my grid components', () => {
                 footer: '',
                 region: 'content',
                 weight: 0,
+                actions: [],
             }}
             item={{id: 8, column: 0, row: 0, columns: 2, rows: 2}}
             labels={{
@@ -344,6 +357,178 @@ describe('core_my grid components', () => {
         expect(remove).toHaveAttribute('title', 'Delete Useful links block');
         expect(remove.querySelector('.fa-trash-can')).toBeInTheDocument();
         expect(remove).not.toHaveTextContent('Delete Useful links block');
+    });
+
+    it('renders no block actions menu when the block has no permitted actions', () => {
+        render(<BlockActionsMenu blockId={11} actions={[]} label="More actions for Useful links" />);
+
+        expect(screen.queryByRole('button', {name: 'More actions for Useful links'})).not.toBeInTheDocument();
+    });
+
+    it('opens the block actions menu and lists each retained action as a link', () => {
+        render(<BlockActionsMenu
+            blockId={11}
+            actions={[
+                {id: 'assignroles', label: 'Assign roles', url: 'https://example.com/roles', modalform: ''},
+                {id: 'permissions', label: 'Permissions', url: 'https://example.com/perm', modalform: ''},
+            ]}
+            label="More actions for Useful links"
+        />);
+
+        const trigger = screen.getByRole('button', {name: 'More actions for Useful links'});
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+        fireEvent.click(trigger);
+
+        expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        const rolesitem = screen.getByRole('menuitem', {name: 'Assign roles'});
+        expect(rolesitem).toHaveAttribute('href', 'https://example.com/roles');
+        expect(screen.getByRole('menuitem', {name: 'Permissions'})).toHaveAttribute('href', 'https://example.com/perm');
+
+        fireEvent.click(rolesitem);
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    it('carries the legacy modal-form data attributes for the configure action only', () => {
+        render(<BlockActionsMenu
+            blockId={12}
+            actions={[
+                {
+                    id: 'edit',
+                    label: 'Configure Useful links block',
+                    url: 'https://example.com/edit',
+                    modalform: 'block_html\\form\\edit',
+                },
+                {id: 'permissions', label: 'Permissions', url: 'https://example.com/perm', modalform: ''},
+            ]}
+            label="More actions for Useful links"
+        />);
+
+        fireEvent.click(screen.getByRole('button', {name: 'More actions for Useful links'}));
+
+        const configure = screen.getByRole('menuitem', {name: 'Configure Useful links block'});
+        expect(configure).toHaveAttribute('data-action', 'editblock');
+        expect(configure).toHaveAttribute('data-blockid', '12');
+        expect(configure).toHaveAttribute('data-blockform', 'block_html\\form\\edit');
+        expect(configure).toHaveAttribute('data-header', 'Configure Useful links block');
+
+        const permissions = screen.getByRole('menuitem', {name: 'Permissions'});
+        expect(permissions).not.toHaveAttribute('data-action');
+        expect(permissions).not.toHaveAttribute('data-blockform');
+    });
+
+    it('closes the block actions menu on Escape and returns focus to the trigger', () => {
+        render(<BlockActionsMenu
+            blockId={11}
+            actions={[{id: 'permissions', label: 'Permissions', url: 'https://example.com/perm', modalform: ''}]}
+            label="More actions for Useful links"
+        />);
+
+        const trigger = screen.getByRole('button', {name: 'More actions for Useful links'});
+        fireEvent.click(trigger);
+        expect(screen.getByRole('menu')).toBeInTheDocument();
+
+        fireEvent.keyDown(document, {key: 'Escape'});
+
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        expect(trigger).toHaveFocus();
+    });
+
+    it('moves focus onto the first item on open, then wraps with the arrow keys', () => {
+        render(<BlockActionsMenu
+            blockId={11}
+            actions={[
+                {id: 'edit', label: 'Configure', url: 'https://example.com/edit', modalform: ''},
+                {id: 'permissions', label: 'Permissions', url: 'https://example.com/perm', modalform: ''},
+            ]}
+            label="More actions for Useful links"
+        />);
+
+        fireEvent.click(screen.getByRole('button', {name: 'More actions for Useful links'}));
+
+        const configure = screen.getByRole('menuitem', {name: 'Configure'});
+        const permissions = screen.getByRole('menuitem', {name: 'Permissions'});
+        expect(configure).toHaveFocus();
+
+        fireEvent.keyDown(configure, {key: 'ArrowDown'});
+        expect(permissions).toHaveFocus();
+
+        fireEvent.keyDown(permissions, {key: 'ArrowDown'});
+        expect(configure).toHaveFocus();
+
+        fireEvent.keyDown(configure, {key: 'ArrowUp'});
+        expect(permissions).toHaveFocus();
+
+        fireEvent.keyDown(permissions, {key: 'Home'});
+        expect(configure).toHaveFocus();
+
+        fireEvent.keyDown(configure, {key: 'End'});
+        expect(permissions).toHaveFocus();
+    });
+
+    it('only shows the dashboard tile\'s block actions trigger when the block has actions', () => {
+        const withoutActions = render(<DashboardTile
+            block={{
+                id: 13,
+                name: 'html',
+                title: 'Useful links',
+                content: '',
+                footer: '',
+                region: 'content',
+                weight: 0,
+                actions: [],
+            }}
+            item={{id: 13, column: 0, row: 0, columns: 2, rows: 2}}
+            labels={{
+                ...labels,
+                move: 'Move {$a} block',
+                remove: 'Delete {$a} block',
+                tile: '{$a} block',
+            } as DashboardLabels}
+            editing
+            showControls={false}
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
+            onRemove={jest.fn()}
+        />);
+
+        expect(withoutActions.queryByRole('button', {name: /More actions/})).not.toBeInTheDocument();
+        withoutActions.unmount();
+
+        render(<DashboardTile
+            block={{
+                id: 14,
+                name: 'html',
+                title: 'Useful links',
+                content: '',
+                footer: '',
+                region: 'content',
+                weight: 0,
+                actions: [{id: 'permissions', label: 'Permissions', url: 'https://example.com/perm', modalform: ''}],
+            }}
+            item={{id: 14, column: 0, row: 0, columns: 2, rows: 2}}
+            labels={{
+                ...labels,
+                move: 'Move {$a} block',
+                remove: 'Delete {$a} block',
+                tile: '{$a} block',
+                blockactions: 'More actions for {$a}',
+            } as DashboardLabels}
+            editing
+            showControls={false}
+            onStart={jest.fn()}
+            onKeyDown={jest.fn()}
+            onPointerDown={jest.fn()}
+            onDirection={jest.fn()}
+            onCommit={jest.fn()}
+            onRemove={jest.fn()}
+        />);
+
+        expect(screen.getByRole('button', {name: 'More actions for Useful links'})).toBeInTheDocument();
     });
 
     it('uses a native modal shell with MDS confirmation controls', () => {

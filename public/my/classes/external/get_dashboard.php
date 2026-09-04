@@ -76,6 +76,15 @@ final class get_dashboard extends external_api {
                 'footer' => new external_value(PARAM_RAW, 'Rendered block footer.'),
                 'region' => new external_value(PARAM_ALPHANUMEXT, 'Legacy block region.'),
                 'weight' => new external_value(PARAM_INT, 'Legacy block weight.'),
+                'actions' => new external_multiple_structure(new external_single_structure([
+                    'id' => new external_value(PARAM_ALPHANUMEXT, 'Stable action identifier, e.g. edit or permissions.'),
+                    'label' => new external_value(PARAM_RAW, 'Action label.'),
+                    'url' => new external_value(PARAM_URL, 'Action URL.'),
+                    'modalform' => new external_value(
+                        PARAM_RAW,
+                        'Modal form class to open in place of navigating, or an empty string.'
+                    ),
+                ]), 'The block\'s remaining editing-controls-menu actions.'),
             ])),
             'layout' => new external_multiple_structure(new external_single_structure([
                 'id' => new external_value(PARAM_INT, 'Block instance id.'),
@@ -102,6 +111,7 @@ final class get_dashboard extends external_api {
             'javascript' => new external_value(PARAM_RAW, 'Collected block JavaScript requirements.'),
             'labels' => new external_single_structure([
                 'addblock' => new external_value(PARAM_RAW, 'Add block label.'),
+                'blockactions' => new external_value(PARAM_RAW, 'Block actions menu trigger label.'),
                 'addblocktop' => new external_value(PARAM_RAW, 'Top add block label.'),
                 'addblockbottom' => new external_value(PARAM_RAW, 'Bottom add block label.'),
                 'cancel' => new external_value(PARAM_RAW, 'Cancel label.'),

@@ -110,6 +110,42 @@ final class get_dashboard_test extends \advanced_testcase {
     }
 
     /**
+     * In Edit mode, each block's actions menu carries its remaining legacy editing controls
+     * (Configure, Assign roles, Permissions, Change permissions), but never Move, Hide/show or
+     * Delete: the grid replaces the first three, and Delete lives in the tile's own discrete
+     * control instead of being duplicated inside the menu.
+     */
+    public function test_execute_returns_generic_but_not_legacy_block_menu_actions(): void {
+        global $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $USER->editing = 1;
+
+        $result = get_dashboard::execute(false);
+        $result = external_api::clean_returnvalue(get_dashboard::execute_returns(), $result);
+
+        $this->assertNotEmpty($result['blocks']);
+        foreach ($result['blocks'] as $block) {
+            $ids = array_column($block['actions'], 'id');
+            $this->assertNotContains('move', $ids, "The {$block['name']} block menu still offers Move.");
+            $this->assertNotContains('hide', $ids, "The {$block['name']} block menu still offers Hide.");
+            $this->assertNotContains('show', $ids, "The {$block['name']} block menu still offers Show.");
+            $this->assertNotContains('delete', $ids, "The {$block['name']} block menu still offers Delete.");
+        }
+
+        $myoverview = current(array_filter($result['blocks'], static fn ($block) => $block['name'] === 'myoverview'));
+        $actionsbyid = [];
+        foreach ($myoverview['actions'] as $action) {
+            $actionsbyid[$action['id']] = $action;
+        }
+        $this->assertArrayHasKey('edit', $actionsbyid, 'The Course overview block is missing its Configure action.');
+        $this->assertNotSame('', $actionsbyid['edit']['modalform'], 'Configure is missing its modal form class.');
+        $this->assertArrayHasKey('permissions', $actionsbyid, 'The Course overview block is missing its Permissions action.');
+        $this->assertSame('', $actionsbyid['permissions']['modalform'], 'Permissions unexpectedly carries a modal form class.');
+    }
+
+    /**
      * A user who can only edit their own dashboard cannot also switch to the site default.
      */
     public function test_execute_reports_no_other_scope_without_site_capability(): void {

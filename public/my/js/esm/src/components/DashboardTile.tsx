@@ -18,6 +18,7 @@ import {Button} from '@moodlehq/design-system';
 import type {DashboardBlock, DashboardLabels} from '../repository';
 import {NARROW_BLOCK_WIDTH, type LayoutItem} from '../layout';
 import DashboardHandle from './DashboardHandle';
+import BlockActionsMenu from './BlockActionsMenu';
 
 interface PointerDrag {
     x: number;
@@ -152,6 +153,11 @@ const DashboardTile = ({
             />}
             <h2 className="core-my-dashboard-tile__title">{block.title}</h2>
             {editing && <div className="core-my-dashboard-tile__actions">
+                <BlockActionsMenu
+                    blockId={block.id}
+                    actions={block.actions}
+                    label={labels.blockactions.replace('{$a}', block.title)}
+                />
                 <Button
                     size="md"
                     variant="ghost"

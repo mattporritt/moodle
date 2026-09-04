@@ -29,6 +29,7 @@ $string['alldashboardswerereset'] = 'All Dashboard pages have been reset to defa
 $string['allprofileswerereset'] = 'All profile pages have been reset to default.';
 $string['confirmremoveblock'] = 'Remove this block from your dashboard?';
 $string['confirmresetdashboard'] = 'Reset your dashboard to the site default? Your changes will be lost.';
+$string['dashboardblockactions'] = 'More actions for {$a}';
 $string['dashboardblockadded'] = '{$a} block added.';
 $string['dashboardblockremoved'] = 'Block removed.';
 $string['dashboardcancel'] = 'Cancel';

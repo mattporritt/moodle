@@ -42,6 +42,14 @@ final class dashboard {
     private const REGIONS = ['content', 'side-pre', 'side-post'];
 
     /**
+     * Legacy block editing-control classes not offered from the dashboard's block actions menu.
+     *
+     * Move and hide/show are superseded by the grid's own controls, and delete lives in the
+     * tile's discrete delete button instead of being duplicated inside the menu as well.
+     */
+    private const MENU_ACTION_EXCLUDED = ['move', 'hide', 'show', 'delete'];
+
+    /**
      * Set up Moodle's block manager for a user or site-default dashboard.
      *
      * @param bool $sitedefault Whether to load the site-default dashboard.
@@ -134,6 +142,7 @@ final class dashboard {
                     'footer' => (string) $content->footer,
                     'region' => $region,
                     'weight' => (int) $instance->instance->weight,
+                    'actions' => self::get_menu_actions($content->controls),
                 ];
             }
         }
@@ -194,8 +203,45 @@ final class dashboard {
                 'switchtositedefault' => get_string('dashboardswitchtositedefault', 'my'),
                 'tile' => get_string('dashboardtile', 'my'),
                 'up' => get_string('dashboardup', 'my'),
+                'blockactions' => get_string('dashboardblockactions', 'my'),
             ],
         ];
+    }
+
+    /**
+     * Translate a block's legacy editing controls into the dashboard's block actions menu.
+     *
+     * The menu reuses whichever controls {@see block_manager::edit_controls()} already builds
+     * for the block, with the same capability checks and the same destination pages, minus the
+     * ones the dashboard grid replaces or relocates (see MENU_ACTION_EXCLUDED). This is
+     * deliberately generic rather than an allow-list, so a future core or plugin control appears
+     * here automatically without dashboard code needing to know about it.
+     *
+     * @param \action_link[] $controls The block's editing controls, from block_contents::$controls.
+     * @return array
+     */
+    private static function get_menu_actions(array $controls): array {
+        $actions = [];
+        foreach ($controls as $control) {
+            $classes = explode(' ', (string) ($control->attributes['class'] ?? ''));
+            $id = null;
+            foreach ($classes as $class) {
+                if (str_starts_with($class, 'editing_')) {
+                    $id = substr($class, strlen('editing_'));
+                    break;
+                }
+            }
+            if ($id === null || in_array($id, self::MENU_ACTION_EXCLUDED, true)) {
+                continue;
+            }
+            $actions[] = [
+                'id' => $id,
+                'label' => (string) $control->text,
+                'url' => $control->url->out(false),
+                'modalform' => (string) ($control->attributes['data-blockform'] ?? ''),
+            ];
+        }
+        return $actions;
     }
 
     /**

@@ -24,6 +24,13 @@
 import {fetchOne} from '@moodle/lms/core/ajax';
 import type {LayoutItem} from './layout';
 
+export interface BlockAction {
+    id: string;
+    label: string;
+    url: string;
+    modalform: string;
+}
+
 export interface DashboardBlock {
     id: number;
     name: string;
@@ -32,6 +39,7 @@ export interface DashboardBlock {
     footer: string;
     region: string;
     weight: number;
+    actions: BlockAction[];
 }
 
 export interface AvailableBlock {
@@ -43,6 +51,7 @@ export interface DashboardLabels {
     addblock: string;
     addblocktop: string;
     addblockbottom: string;
+    blockactions: string;
     cancel: string;
     close: string;
     confirm: string;
