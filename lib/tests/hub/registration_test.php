@@ -190,20 +190,33 @@ final class registration_test extends \advanced_testcase {
     }
 
     /**
-     * The initial registration redirect must only ever carry the token and site URL, never the
-     * full site info payload that used to be silently truncated at a 2000-character URL cap.
+     * The initial registration redirect must carry only the token, site URL, and the small
+     * fixed set of fields (policyagreed, contactemail, language) the hub's own initial
+     * registration processing requires - never the full site info payload that used to be
+     * silently truncated at a 2000-character URL cap.
      */
-    public function test_get_registration_redirect_url_only_carries_token_and_url(): void {
+    public function test_get_registration_redirect_url_only_carries_required_fields(): void {
         $this->resetAfterTest();
+
+        $siteinfo = [
+            'url' => 'https://example.com',
+            'policyagreed' => 1,
+            'contactemail' => 'admin@example.com',
+            'language' => 'en',
+            'pluginusage' => json_encode(['some' => 'large payload']),
+        ];
 
         $method = new \ReflectionMethod(registration::class, 'get_registration_redirect_url');
         $method->setAccessible(true);
-        $url = $method->invoke(null, 'sometoken123', 'https://example.com');
+        $url = $method->invoke(null, 'sometoken123', $siteinfo);
 
         $this->assertInstanceOf(\moodle_url::class, $url);
         $this->assertEquals('sometoken123', $url->get_param('token'));
         $this->assertEquals('https://example.com', $url->get_param('url'));
-        $this->assertCount(2, $url->params());
+        $this->assertEquals(1, $url->get_param('policyagreed'));
+        $this->assertEquals('admin@example.com', $url->get_param('contactemail'));
+        $this->assertEquals('en', $url->get_param('language'));
+        $this->assertCount(5, $url->params());
     }
 
     /**
