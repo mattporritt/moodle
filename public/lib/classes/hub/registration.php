@@ -530,10 +530,12 @@ class registration {
 
         $params = self::get_site_info();
 
-        // The redirect only needs to carry what the hub matches the registration on. The full
-        // site info is sent unconditionally, immediately after confirmation, by
+        // The redirect only needs to carry what the hub requires to process the initial
+        // registration request and what it matches the registration on: the admin's consent,
+        // enough contact detail for the hub to act on that consent, and the site identity. The
+        // full site info is sent unconditionally, immediately after confirmation, by
         // confirm_registration(); there is no need to also try to fit it into the redirect URL.
-        $url = self::get_registration_redirect_url($hub->token, $params['url']);
+        $url = self::get_registration_redirect_url($hub->token, $params);
 
         $SESSION->registrationredirect = $returnurl;
         redirect($url);
@@ -542,18 +544,29 @@ class registration {
     /**
      * Builds the redirect URL used to hand the initial registration off to the hub.
      *
-     * Only the token and site URL travel on this redirect: they are all the hub needs to match
-     * the incoming request to the unconfirmed registration record. Kept as a separate method so
+     * This deliberately carries only a small, fixed subset of the site info: the token and site
+     * URL are what the hub matches the incoming request to the unconfirmed registration record
+     * on, and policyagreed/contactemail/language are required by the hub's own initial
+     * registration processing (consent, and enough contact detail to act on it). Everything else
+     * - the bulk of the payload, including fields like pluginusage that can be large on their
+     * own - is sent unconditionally, immediately after confirmation, by confirm_registration().
+     * There is no need to also try to fit it into the redirect URL. Kept as a separate method so
      * the URL construction can be unit tested without going through {@see redirect()}.
      *
      * @param string $token
-     * @param string $siteurl
+     * @param array $siteinfo result of get_site_info()
      * @return moodle_url
      */
-    protected static function get_registration_redirect_url(string $token, string $siteurl): moodle_url {
+    protected static function get_registration_redirect_url(string $token, array $siteinfo): moodle_url {
         return new moodle_url(
             HUB_MOODLEORGHUBURL . '/local/hub/siteregistration.php',
-            ['token' => $token, 'url' => $siteurl]
+            [
+                'token' => $token,
+                'url' => $siteinfo['url'],
+                'policyagreed' => $siteinfo['policyagreed'],
+                'contactemail' => $siteinfo['contactemail'],
+                'language' => $siteinfo['language'],
+            ]
         );
     }
 

@@ -88,16 +88,20 @@ class api {
         $curl = new curl();
         $serverurl = HUB_MOODLEORGHUBURL . "/local/hub/webservice/webservices.php";
         $query = http_build_query($params);
-        $curloutput = @json_decode($curl->post($serverurl, $query), true);
+        $rawresponse = $curl->post($serverurl, $query);
+        $curloutput = @json_decode((string)$rawresponse, true);
         $info = $curl->get_info();
         if ($curl->get_errno()) {
             // Connection error.
             throw new moodle_exception('errorconnect', 'hub', '', $curl->error);
-        } else if (isset($curloutput['exception'])) {
+        } else if (is_array($curloutput) && isset($curloutput['exception'])) {
             // Exception occurred on the remote side.
             self::process_curl_exception($token, $curloutput);
-        } else if (!empty($info['http_code']) && $info['http_code'] != 200) {
-            throw new moodle_exception('errorconnect', 'hub', '', $info['http_code']);
+        } else if (empty($info['http_code']) || $info['http_code'] != 200 || !is_array($curloutput)) {
+            // Anything other than a 200 response carrying a decodable JSON array is a failure,
+            // not a quiet success: a blocked or unreachable URL leaves http_code empty, and an
+            // HTTP error, empty body or non-JSON body must not be mistaken for "nothing to report".
+            throw new moodle_exception('errorconnect', 'hub', '', $info['http_code'] ?? 0);
         } else {
             return $curloutput;
         }
