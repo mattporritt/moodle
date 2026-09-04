@@ -1436,7 +1436,7 @@ class block_manager {
         if (has_capability('moodle/role:review', $block->context) or get_overridable_roles($block->context)) {
             $rolesurl = new moodle_url('/admin/roles/permissions.php', array('contextid' => $block->context->id,
                 'returnurl' => $this->page->url->out_as_local_url()));
-            $str = get_string('permissions', 'role');
+            $str = get_string('managepermissions', 'block');
             $controls[] = new action_menu_link_secondary(
                 $rolesurl,
                 new pix_icon('i/permissions', $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
