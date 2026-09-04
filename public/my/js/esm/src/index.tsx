@@ -77,9 +77,10 @@ const layoutChanged = (original: LayoutItem, draft: LayoutItem): boolean =>
 
 interface DashboardProps {
     loadingLabel?: string;
+    initialLayout?: LayoutItem[];
 }
 
-const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
+const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
     const [data, setData] = useState<DashboardData | null>(null);
     const [canonical, setCanonical] = useState<LayoutItem[]>([]);
     const [columnCount, setColumnCount] = useState(1);
@@ -453,7 +454,7 @@ const Dashboard = ({loadingLabel = ''}: DashboardProps) => {
     if (!data) {
         return error
             ? <div className="core-my-dashboard-status alert alert-danger" role="alert">{error}</div>
-            : <DashboardLoading label={loadingLabel} />;
+            : <DashboardLoading label={loadingLabel} layout={initialLayout} />;
     }
 
     const rows = Math.max(1, maxRow(previewLayout));

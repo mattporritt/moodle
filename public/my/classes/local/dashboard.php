@@ -248,27 +248,143 @@ final class dashboard {
         return $actions;
     }
 
+    /** Row height in pixels, matching the client's ROW_HEIGHT in js/esm/src/layout.ts. */
+    private const ROW_HEIGHT_PX = 96;
+
     /**
      * Return a loading placeholder which is visible before the React application starts.
      *
+     * When {@see self::get_skeleton_layout()} could cheaply determine the real grid shape, this
+     * server-rendered placeholder is positioned to match it: the very first thing the browser
+     * paints, before any JavaScript has run, already looks like the user's real dashboard, rather
+     * than a generic grid that gets replaced outright once React mounts.
+     *
+     * @param array $layout Layout items (id, column, row, columns, rows), or [] for a generic grid.
      * @return string
      */
-    public static function get_loading_placeholder(): string {
-        $line = \html_writer::div('', 'core-my-dashboard-loading__line');
-        $tile = \html_writer::div(
-            \html_writer::div('', 'core-my-dashboard-loading__heading')
-                . \html_writer::div('', 'core-my-dashboard-loading__line core-my-dashboard-loading__line--long')
-                . $line
-                . \html_writer::div('', 'core-my-dashboard-loading__line core-my-dashboard-loading__line--short'),
-            'core-my-dashboard-loading__tile',
-        );
+    public static function get_loading_placeholder(array $layout = []): string {
         $label = get_string('loading');
+        if (empty($layout)) {
+            $line = \html_writer::div('', 'core-my-dashboard-loading__line');
+            $tile = \html_writer::div(
+                \html_writer::div('', 'core-my-dashboard-loading__heading')
+                    . \html_writer::div('', 'core-my-dashboard-loading__line core-my-dashboard-loading__line--long')
+                    . $line
+                    . \html_writer::div('', 'core-my-dashboard-loading__line core-my-dashboard-loading__line--short'),
+                'core-my-dashboard-loading__tile',
+            );
+            return \html_writer::div(
+                \html_writer::span($label, 'visually-hidden')
+                    . \html_writer::div(str_repeat($tile, 6), 'core-my-dashboard-loading__grid', ['aria-hidden' => 'true']),
+                'core-my-dashboard-loading',
+                ['role' => 'status', 'aria-label' => $label, 'aria-busy' => 'true'],
+            );
+        }
+
+        $rows = 1;
+        foreach ($layout as $item) {
+            $rows = max($rows, $item['row'] + $item['rows']);
+        }
+        $tiles = '';
+        foreach ($layout as $item) {
+            $tiles .= \html_writer::div(
+                \html_writer::div('', 'core-my-dashboard-loading__heading')
+                    . \html_writer::div('', 'core-my-dashboard-loading__line core-my-dashboard-loading__line--long')
+                    . \html_writer::div('', 'core-my-dashboard-loading__line'),
+                'core-my-dashboard-tile core-my-dashboard-loading__tile core-my-dashboard-loading__tile--positioned',
+                ['style' => sprintf(
+                    'grid-column: %d / span %d; grid-row: %d / span %d;',
+                    $item['column'] + 1,
+                    $item['columns'],
+                    $item['row'] + 1,
+                    $item['rows'],
+                )],
+            );
+        }
         return \html_writer::div(
             \html_writer::span($label, 'visually-hidden')
-                . \html_writer::div(str_repeat($tile, 6), 'core-my-dashboard-loading__grid', ['aria-hidden' => 'true']),
+                . \html_writer::div($tiles, 'core-my-dashboard-grid core-my-dashboard-loading__grid--positioned', [
+                    'aria-hidden' => 'true',
+                    'style' => sprintf(
+                        'grid-template-columns: repeat(%d, minmax(0, 1fr)); grid-template-rows: repeat(%d, %dpx);',
+                        self::MAX_COLUMNS,
+                        $rows,
+                        self::ROW_HEIGHT_PX,
+                    ),
+                ]),
             'core-my-dashboard-loading',
             ['role' => 'status', 'aria-label' => $label, 'aria-busy' => 'true'],
         );
+    }
+
+    /**
+     * Cheaply read the persisted grid shape for the initial page render, without loading blocks.
+     *
+     * Unlike {@see self::get()}, this never instantiates block objects or renders block content,
+     * the expensive part of a dashboard load. It only reads {@see self::get_layout()}'s already
+     * persisted grid columns/rows directly from the database, so the very first response can draw
+     * loading placeholders in the shape of the user's real dashboard instead of a generic grid.
+     *
+     * Returns an empty array whenever the persisted data is incomplete (a block with no saved
+     * position yet, for example right after it was added) rather than guessing: the caller is
+     * expected to fall back to a generic placeholder in that case.
+     *
+     * @param bool $sitedefault Whether to read the site-default dashboard.
+     * @return array Layout items (id, column, row, columns, rows), or [] if not cheaply knowable.
+     */
+    public static function get_skeleton_layout(bool $sitedefault): array {
+        global $CFG, $DB, $USER;
+
+        require_once($CFG->dirroot . '/my/lib.php');
+
+        $userid = $sitedefault ? null : $USER->id;
+        $mypage = my_get_page($userid, MY_PAGE_PRIVATE);
+        if (!$mypage) {
+            return [];
+        }
+        $context = $sitedefault ? context_system::instance() : context_user::instance($USER->id);
+
+        $sql = "SELECT bi.id AS blockinstanceid, bp.gridcolumn, bp.gridrow, bp.gridcolumns, bp.gridrows
+                  FROM {block_instances} bi
+             LEFT JOIN {block_positions} bp
+                    ON bp.blockinstanceid = bi.id
+                   AND bp.contextid = :contextid
+                   AND bp.pagetype = :pagetype
+                   AND bp.subpage = :subpage
+                 WHERE bi.parentcontextid = :parentcontextid
+                   AND bi.pagetypepattern = :instancepagetype
+                   AND bi.subpagepattern = :instancesubpage";
+        $params = [
+            'contextid' => $context->id,
+            'pagetype' => 'my-index',
+            'subpage' => (string) $mypage->id,
+            'parentcontextid' => $context->id,
+            'instancepagetype' => 'my-index',
+            'instancesubpage' => (string) $mypage->id,
+        ];
+        $rows = $DB->get_records_sql($sql, $params);
+
+        $layout = [];
+        foreach ($rows as $row) {
+            if (
+                $row->gridcolumn === null || $row->gridrow === null
+                    || $row->gridcolumns === null || $row->gridrows === null
+            ) {
+                // A block is missing its saved position: the real layout can't be known cheaply.
+                return [];
+            }
+            $layout[] = [
+                'id' => (int) $row->blockinstanceid,
+                'column' => (int) $row->gridcolumn,
+                'row' => (int) $row->gridrow,
+                'columns' => (int) $row->gridcolumns,
+                'rows' => (int) $row->gridrows,
+            ];
+        }
+
+        usort($layout, static fn(array $left, array $right): int =>
+            [$left['row'], $left['column'], $left['id']] <=> [$right['row'], $right['column'], $right['id']]);
+        return $layout;
     }
 
     /**

@@ -61,6 +61,17 @@
     width: 55%;
 }
 
+// A positioned loading grid reuses the real grid and tile classes so the loading state and the
+// real dashboard share the same column count, tile shape and spacing: content simply appears in
+// place once it arrives, instead of a generically shaped placeholder being replaced wholesale.
+.core-my-dashboard-loading__grid--positioned {
+    width: 100%;
+}
+
+.core-my-dashboard-loading__tile--positioned {
+    min-height: 0;
+}
+
 .core-my-dashboard-loading__heading::after,
 .core-my-dashboard-loading__line::after {
     position: absolute;

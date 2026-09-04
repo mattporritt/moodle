@@ -36855,6 +36855,14 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
   width: 55%;
 }
 
+.core-my-dashboard-loading__grid--positioned {
+  width: 100%;
+}
+
+.core-my-dashboard-loading__tile--positioned {
+  min-height: 0;
+}
+
 .core-my-dashboard-loading__heading::after,
 .core-my-dashboard-loading__line::after {
   position: absolute;

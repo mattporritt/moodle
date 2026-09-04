@@ -25,6 +25,43 @@ import DashboardLoading from '../src/components/DashboardLoading';
 import DashboardScopeBanner from '../src/components/DashboardScopeBanner';
 import type {DashboardLabels} from '../src/repository';
 
+// Jsdom has no ResizeObserver; DashboardLoading's positioned-grid mode measures the mount
+// point's width the same way the real dashboard grid does.
+class StubResizeObserver {
+    observe(): void {
+        // No-op: width comes from the getBoundingClientRect stub in the relevant test.
+    }
+    unobserve(): void {
+        // No-op.
+    }
+    disconnect(): void {
+        // No-op.
+    }
+}
+(global as unknown as {ResizeObserver: typeof ResizeObserver}).ResizeObserver =
+    StubResizeObserver as unknown as typeof ResizeObserver;
+
+// Jsdom's layout is a no-op, so every element measures as a zero-size box by default. Pin a wide
+// width so columnsForWidth resolves to the full six columns the positioned-loading test below
+// is written for.
+const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+beforeAll(() => {
+    Element.prototype.getBoundingClientRect = jest.fn(() => ({
+        width: 2000,
+        height: 800,
+        top: 0,
+        left: 0,
+        bottom: 800,
+        right: 2000,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+    }));
+});
+afterAll(() => {
+    Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+});
+
 jest.mock('@moodlehq/design-system', () => {
     const ReactActual = require('react');
     return {
@@ -221,11 +258,24 @@ describe('core_my grid components', () => {
         expect(screen.queryByRole('group', {name: 'Resize block controls'})).not.toBeInTheDocument();
     });
 
-    it('renders an accessible full-viewport loading skeleton', () => {
+    it('renders an accessible full-viewport loading skeleton without an initial layout', () => {
         const {container} = render(<DashboardLoading label="Loading" />);
 
         expect(screen.getByRole('status', {name: 'Loading'})).toHaveAttribute('aria-busy', 'true');
         expect(container.querySelectorAll('.core-my-dashboard-loading__tile')).toHaveLength(6);
+    });
+
+    it('renders loading tiles positioned like the real grid when given an initial layout', () => {
+        const {container} = render(<DashboardLoading label="Loading" layout={[
+            {id: 1, column: 0, row: 0, columns: 3, rows: 4},
+            {id: 2, column: 3, row: 0, columns: 1, rows: 4},
+        ]} />);
+
+        expect(screen.getByRole('status', {name: 'Loading'})).toHaveAttribute('aria-busy', 'true');
+        const tiles = container.querySelectorAll('.core-my-dashboard-loading__tile--positioned');
+        expect(tiles).toHaveLength(2);
+        expect((tiles[0] as HTMLElement).style.gridColumn).toBe('1 / span 3');
+        expect((tiles[1] as HTMLElement).style.gridColumn).toBe('4 / span 1');
     });
 
     it('renders block content without changing the tile accessible name', () => {

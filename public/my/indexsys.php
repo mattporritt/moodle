@@ -91,9 +91,10 @@ $PAGE->set_button($button . $PAGE->button);
 echo $OUTPUT->header();
 
 $loadinglabel = get_string('loading');
-echo html_writer::div(\core_my\local\dashboard::get_loading_placeholder(), 'core-my-dashboard-mount', [
+$initiallayout = \core_my\local\dashboard::get_skeleton_layout(true);
+echo html_writer::div(\core_my\local\dashboard::get_loading_placeholder($initiallayout), 'core-my-dashboard-mount', [
     'data-react-component' => '@moodle/lms/core_my/index',
-    'data-react-props' => json_encode(['loadingLabel' => $loadinglabel]),
+    'data-react-props' => json_encode(['loadingLabel' => $loadinglabel, 'initialLayout' => $initiallayout]),
 ]);
 
 echo $OUTPUT->footer();
