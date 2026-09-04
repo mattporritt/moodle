@@ -26,10 +26,49 @@ use core_my\external\get_dashboard;
  * @category   test
  * @covers     \core_my\local\dashboard::get_skeleton_layout
  * @covers     \core_my\local\dashboard::get_loading_placeholder
+ * @covers     \core_my\local\dashboard::get
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class dashboard_test extends \advanced_testcase {
+    /**
+     * A user's own dashboard response is cached after the first read, and a mutation (here,
+     * saving the layout) purges it - the point of the cache is to skip re-rendering every block
+     * on every load, not to serve stale content once the dashboard actually changes.
+     */
+    public function test_get_caches_own_dashboard_and_save_purges_it(): void {
+        global $PAGE;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $cache = \cache::make('core', 'my_dashboard');
+        $this->assertFalse($cache->get('view'));
+
+        $result = get_dashboard::execute(false);
+        $result = external_api::clean_returnvalue(get_dashboard::execute_returns(), $result);
+        $this->assertNotFalse($cache->get('view'));
+
+        $PAGE = new \moodle_page();
+        dashboard::save(false, $result['layout']);
+
+        $this->assertFalse($cache->get('view'));
+    }
+
+    /**
+     * The site default is never cached: it is read rarely (only by admins with
+     * moodle/my:configsyspages), and caching it would risk masking a capability revoked mid-ttl.
+     */
+    public function test_get_never_caches_the_site_default(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $cache = \cache::make('core', 'my_dashboard');
+        get_dashboard::execute(true);
+
+        $this->assertFalse($cache->get('view'));
+        $this->assertFalse($cache->get('edit'));
+    }
     /**
      * Once a dashboard's grid has been saved, its shape can be read back cheaply, without
      * instantiating or rendering any block, and matches the layout the full read returns.

@@ -103,10 +103,47 @@ final class dashboard {
     /**
      * Return the current dashboard payload for the React application.
      *
+     * Rendering every block's content is the expensive part of this (see the class-level note on
+     * {@see self::get_skeleton_layout()}): each block instance re-runs its own queries on every
+     * call. For a user's own dashboard, the response is cached for a short time (the 'my_dashboard'
+     * definition in lib/db/caches.php - a subsystem like core_my has no db/caches.php of its own)
+     * and purged proactively by {@see self::save()}, {@see self::add()}, {@see self::remove()} and
+     * {@see self::reset()} - the actions that change it - so the cache only masks staleness caused
+     * by something else changing in the meantime (e.g. completing an activity elsewhere), never the
+     * user's own edits. The site default is never cached here: it is read rarely (only by admins,
+     * gated by moodle/my:configsyspages) and a stale response there could hide a capability change.
+     *
      * @param bool $sitedefault Whether to load the site default.
      * @return array
      */
     public static function get(bool $sitedefault): array {
+        global $USER;
+
+        if ($sitedefault) {
+            return self::get_uncached($sitedefault);
+        }
+
+        $editing = !empty($USER->editing)
+            && has_capability('moodle/my:manageblocks', context_user::instance($USER->id));
+        $cache = \cache::make('core', 'my_dashboard');
+        $cachekey = $editing ? 'edit' : 'view';
+        $cached = $cache->get($cachekey);
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        $result = self::get_uncached($sitedefault);
+        $cache->set($cachekey, $result);
+        return $result;
+    }
+
+    /**
+     * Build the dashboard payload, unconditionally, without consulting or populating the cache.
+     *
+     * @param bool $sitedefault Whether to load the site default.
+     * @return array
+     */
+    private static function get_uncached(bool $sitedefault): array {
         global $OUTPUT, $PAGE, $USER;
 
         $context = $sitedefault ? context_system::instance() : context_user::instance($USER->id);
@@ -500,6 +537,10 @@ final class dashboard {
             }
         }
         $transaction->allow_commit();
+
+        if (!$sitedefault) {
+            self::purge_cache();
+        }
     }
 
     /**
@@ -554,6 +595,10 @@ final class dashboard {
             'gridcolumns' => 2,
             'gridrows' => self::DEFAULT_ROWS,
         ]);
+
+        if (!$sitedefault) {
+            self::purge_cache();
+        }
         return (int) $block->instance->id;
     }
 
@@ -576,6 +621,10 @@ final class dashboard {
             throw new \moodle_exception('nopermissions', '', $PAGE->url->out(), get_string('deleteablock'));
         }
         blocks_delete_instance($block->instance);
+
+        if (!$sitedefault) {
+            self::purge_cache();
+        }
     }
 
     /**
@@ -591,6 +640,17 @@ final class dashboard {
             throw new \moodle_exception('reseterror', 'my');
         }
         $USER->editing = 0;
+        self::purge_cache();
+    }
+
+    /**
+     * Purge the current user's cached dashboard response after a change to their own dashboard.
+     *
+     * Only ever needed for the user's own dashboard: {@see self::get()} never caches the site
+     * default.
+     */
+    private static function purge_cache(): void {
+        \cache::make('core', 'my_dashboard')->delete_many(['view', 'edit']);
     }
 
     /**
