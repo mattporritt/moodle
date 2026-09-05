@@ -289,10 +289,22 @@ final class update_checker_test extends \advanced_testcase {
     }
 
     /**
+     * Resets core\hub\registration's static registration cache between tests.
+     *
+     * core\hub\registration::reset_caches() is not available on this stable branch, so the
+     * protected static cache is reset directly via reflection instead.
+     */
+    private function reset_registration_cache(): void {
+        $property = new \ReflectionProperty(\core\hub\registration::class, 'registration');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+    }
+
+    /**
      * An unregistered site must not send a siteidentifier param.
      */
     public function test_prepare_request_params_unregistered_site(): void {
-        \core\hub\registration::reset_caches();
+        $this->reset_registration_cache();
 
         $provider = testable_checker::instance();
         $provider->fake_current_environment(2012060102.00, '2.3.2 (Build: 20121012)', '2.3', []);
@@ -317,7 +329,7 @@ final class update_checker_test extends \advanced_testcase {
             'secret' => $secret,
             'timemodified' => time(),
         ]);
-        \core\hub\registration::reset_caches();
+        $this->reset_registration_cache();
 
         $provider = testable_checker::instance();
         $provider->fake_current_environment(2012060102.00, '2.3.2 (Build: 20121012)', '2.3', []);
@@ -326,7 +338,7 @@ final class update_checker_test extends \advanced_testcase {
         $this->assertArrayHasKey('siteidentifier', $params);
         $this->assertSame(md5($secret), $params['siteidentifier']);
 
-        \core\hub\registration::reset_caches();
+        $this->reset_registration_cache();
     }
 
     /**
@@ -350,7 +362,7 @@ final class update_checker_test extends \advanced_testcase {
             'secret' => $secret,
             'timemodified' => time(),
         ]);
-        \core\hub\registration::reset_caches();
+        $this->reset_registration_cache();
 
         $provider = testable_checker::instance();
         $provider->fake_current_environment(2012060102.00, '2.3.2 (Build: 20121012)', '2.3', []);
@@ -358,7 +370,7 @@ final class update_checker_test extends \advanced_testcase {
 
         $this->assertArrayNotHasKey('siteidentifier', $params);
 
-        \core\hub\registration::reset_caches();
+        $this->reset_registration_cache();
     }
 
     /**
