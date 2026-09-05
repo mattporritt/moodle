@@ -423,9 +423,11 @@ final class renderer_test extends \advanced_testcase {
      * Notifications page, not "notice", so it appears alongside other warning-level items.
      */
     public function test_registration_warning_severity_task_disabled_is_warning(): void {
+        global $CFG;
         $this->resetAfterTest();
         $this->setAdminUser();
         $this->register_site();
+        $CFG->disableupdatenotifications = true;
 
         $task = \core\task\manager::get_scheduled_task(\core\task\registration_cron_task::class);
         $task->set_disabled(true);

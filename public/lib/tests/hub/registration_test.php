@@ -24,6 +24,9 @@ namespace core\hub;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \core\hub\registration
  */
+#[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_reporting_paused_reason')]
+#[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'check_reporting_paused_notification')]
+#[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_registration_page_notification')]
 final class registration_test extends \advanced_testcase {
     /**
      * Clear the static registration cache so each test sees the current database state.
@@ -324,7 +327,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_reporting_paused_reason() for an unregistered site.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_reporting_paused_reason')]
     public function test_get_reporting_paused_reason_not_registered(): void {
         $this->resetAfterTest();
 
@@ -334,7 +336,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_reporting_paused_reason() for a registered site reporting normally.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_reporting_paused_reason')]
     public function test_get_reporting_paused_reason_reporting_normally(): void {
         $this->resetAfterTest();
         $this->register_site();
@@ -346,7 +347,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_reporting_paused_reason() when new registration fields need confirming.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_reporting_paused_reason')]
     public function test_get_reporting_paused_reason_new_fields(): void {
         $this->resetAfterTest();
         $this->register_site();
@@ -358,7 +358,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_reporting_paused_reason() when the registration cron task is disabled.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_reporting_paused_reason')]
     public function test_get_reporting_paused_reason_task_disabled(): void {
         $this->resetAfterTest();
         $this->register_site();
@@ -377,7 +376,6 @@ final class registration_test extends \advanced_testcase {
      * Such a site is deliberately not reported as paused: the registration task only sends updates when
      * site_is_public(), so there is nothing the admin could usefully do about it.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_reporting_paused_reason')]
     public function test_get_reporting_paused_reason_not_public(): void {
         global $CFG;
 
@@ -392,7 +390,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test that check_reporting_paused_notification() notifies admins once and does not repeat until cleared.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'check_reporting_paused_notification')]
     public function test_check_reporting_paused_notification(): void {
         $this->resetAfterTest();
         $sink = $this->redirectMessages();
@@ -425,7 +422,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_registration_page_notification() for an unregistered, non-initial-registration site.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_registration_page_notification')]
     public function test_get_registration_page_notification_unregistered(): void {
         $this->resetAfterTest();
 
@@ -437,7 +433,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_registration_page_notification() for an unregistered site pending its initial registration.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_registration_page_notification')]
     public function test_get_registration_page_notification_initial_registration(): void {
         $this->resetAfterTest();
 
@@ -448,7 +443,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_registration_page_notification() for a registered site that has never successfully updated.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_registration_page_notification')]
     public function test_get_registration_page_notification_unknown_last_updated(): void {
         global $DB;
 
@@ -464,7 +458,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_registration_page_notification() for a registered site with new fields pending confirmation.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_registration_page_notification')]
     public function test_get_registration_page_notification_new_fields(): void {
         $this->resetAfterTest();
         $this->register_site();
@@ -478,7 +471,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_registration_page_notification() when the registration cron task is disabled.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_registration_page_notification')]
     public function test_get_registration_page_notification_task_disabled(): void {
         $this->resetAfterTest();
         $this->register_site();
@@ -498,7 +490,6 @@ final class registration_test extends \advanced_testcase {
     /**
      * Test get_registration_page_notification() for a registered site reporting normally.
      */
-    #[\PHPUnit\Framework\Attributes\CoversMethod(registration::class, 'get_registration_page_notification')]
     public function test_get_registration_page_notification_reporting_normally(): void {
         $this->resetAfterTest();
         $this->register_site();

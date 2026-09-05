@@ -471,10 +471,12 @@ class core_admin_renderer extends plugin_renderer_base {
         if (!$registered && site_is_public() && has_capability('moodle/site:config', context_system::instance())) {
             return 'danger';
         }
-        if ($registered
-                && has_capability('moodle/site:config', context_system::instance())
-                && \core\hub\registration::get_reporting_paused_reason()
-                    === \core\hub\registration::REPORTING_PAUSED_TASK_DISABLED) {
+        $pausedreason = \core\hub\registration::get_reporting_paused_reason();
+        if (
+            $registered
+            && has_capability('moodle/site:config', context_system::instance())
+            && $pausedreason === \core\hub\registration::REPORTING_PAUSED_TASK_DISABLED
+        ) {
             return 'warning';
         }
         return 'notice';
