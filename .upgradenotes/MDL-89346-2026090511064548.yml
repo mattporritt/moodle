@@ -1,0 +1,8 @@
+issueNumber: MDL-89346
+notes:
+  mod_assign:
+    - message: >-
+        mod_assign_get_submission_status now returns each marker's own feedback
+        text (with a markerid) for assignments with multiple markers, in
+        addition to the overall feedback text.
+      type: improved

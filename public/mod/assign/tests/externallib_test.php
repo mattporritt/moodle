@@ -2409,6 +2409,99 @@ final class externallib_test extends \mod_assign\externallib_advanced_testcase {
     }
 
     /**
+     * Test that get_submission_status returns each marker's own feedback comment for
+     * assignments with multiple markers, in addition to the overall comment (MDL-89346).
+     *
+     * @covers \mod_assign_external::get_submission_status
+     */
+    public function test_get_submission_status_multiple_markers(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+
+        [$assign, $instance, $student1, $student2, $teacher, $g1, $g2] = $this->create_submission_for_testing_status(true);
+
+        $teacherrole = $DB->get_record('role', ['shortname' => 'teacher']);
+        $marker2 = self::getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($marker2->id, $instance->course, $teacherrole->id);
+
+        // Grade the assignment, setting an overall comment only.
+        $this->setUser($teacher);
+        $data = new \stdClass();
+        $data->grade = '50.0';
+        $data->assignfeedbackcomments_editor = ['text' => 'Overall feedback', 'format' => FORMAT_HTML];
+        $assign->testable_apply_grade_to_user($data, $student1->id, 0);
+
+        // Each marker leaves their own feedback comment.
+        $plugin = $assign->get_feedback_plugin_by_type('comments');
+        $grade = $assign->get_user_grade($student1->id, true);
+        $assign->set_is_marking(true);
+
+        $markerdata = new \stdClass();
+        $grade->grader = $teacher->id;
+        $markerdata->assignfeedbackcomments_editor = ['text' => 'Feedback from marker one', 'format' => FORMAT_HTML];
+        $plugin->save($grade, $markerdata);
+
+        $this->setUser($marker2);
+        $grade->grader = $marker2->id;
+        $markerdata->assignfeedbackcomments_editor = ['text' => 'Feedback from marker two', 'format' => FORMAT_HTML];
+        $plugin->save($grade, $markerdata);
+
+        $assign->set_is_marking(false);
+
+        $this->setUser($student1);
+        $result = mod_assign_external::get_submission_status($assign->get_instance()->id);
+        // We expect debugging because of the $PAGE object, this won't happen in a normal WS request.
+        $this->assertDebuggingCalled();
+        $result = external_api::clean_returnvalue(mod_assign_external::get_submission_status_returns(), $result);
+
+        $commentsplugin = null;
+        foreach ($result['feedback']['plugins'] as $plugindata) {
+            if ($plugindata['type'] === 'comments') {
+                $commentsplugin = $plugindata;
+                break;
+            }
+        }
+        $this->assertNotNull($commentsplugin);
+
+        $byfield = [];
+        foreach ($commentsplugin['editorfields'] as $editorfield) {
+            $markerid = $editorfield['markerid'] ?? 0;
+            $byfield[$markerid] = $editorfield['text'];
+        }
+
+        $this->assertEquals('Overall feedback', $byfield[0]);
+        $this->assertEquals('Feedback from marker one', $byfield[$teacher->id]);
+        $this->assertEquals('Feedback from marker two', $byfield[$marker2->id]);
+
+        // Now hide the grader/marker identities and confirm only the overall comment remains.
+        $this->setAdminUser();
+        $updatedinstance = $assign->get_instance();
+        $updatedinstance->instance = $updatedinstance->id;
+        $updatedinstance->hidegrader = true;
+        // Calling update_instance() disables any feedback plugin whose "_enabled" flag isn't
+        // present on the form data, so re-assert the plugins this fixture originally enabled.
+        $updatedinstance->assignfeedback_comments_enabled = 1;
+        $updatedinstance->assignfeedback_file_enabled = 1;
+        $assign->update_instance($updatedinstance);
+
+        $this->setUser($student1);
+        $result = mod_assign_external::get_submission_status($assign->get_instance()->id);
+        $result = external_api::clean_returnvalue(mod_assign_external::get_submission_status_returns(), $result);
+
+        $commentsplugin = null;
+        foreach ($result['feedback']['plugins'] as $plugindata) {
+            if ($plugindata['type'] === 'comments') {
+                $commentsplugin = $plugindata;
+                break;
+            }
+        }
+        $this->assertNotNull($commentsplugin);
+        $this->assertCount(1, $commentsplugin['editorfields']);
+        $this->assertEquals('Overall feedback', $commentsplugin['editorfields'][0]['text']);
+    }
+
+    /**
      * Test get_submission_status with override for student.
      */
     public function test_get_submission_status_with_override(): void {

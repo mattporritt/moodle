@@ -676,9 +676,11 @@ class mod_assign_external extends \mod_assign\external\external_api {
      * @param  assign $assign the assignment object
      * @param  array $assignplugins array of assignment plugins (submission or feedback)
      * @param  stdClass $item the item object (submission or grade)
+     * @param  stdClass[] $markrecords assign_mark records to also return per-marker fields for,
+     *                    keyed by marker user id. Only meaningful for feedback plugins.
      * @return array an array containing the plugins returned information
      */
-    private static function get_plugins_data($assign, $assignplugins, $item) {
+    private static function get_plugins_data($assign, $assignplugins, $item, array $markrecords = []) {
         global $CFG;
 
         $plugins = array();
@@ -712,12 +714,12 @@ class mod_assign_external extends \mod_assign\external\external_api {
             }
 
             $editorfields = $assignplugin->get_editor_fields();
-            foreach ($editorfields as $name => $description) {
+            foreach ($editorfields as $fieldname => $description) {
                 $editorfieldinfo = array(
-                    'name' => $name,
+                    'name' => $fieldname,
                     'description' => $description,
-                    'text' => $assignplugin->get_editor_text($name, $item->id),
-                    'format' => $assignplugin->get_editor_format($name, $item->id)
+                    'text' => $assignplugin->get_editor_text($fieldname, $item->id),
+                    'format' => $assignplugin->get_editor_format($fieldname, $item->id),
                 );
 
                 // Now format the text.
@@ -728,6 +730,35 @@ class mod_assign_external extends \mod_assign\external\external_api {
                 }
 
                 $plugin['editorfields'][] = $editorfieldinfo;
+
+                // For assignments with multiple markers, also return each marker's own feedback
+                // for this field (in addition to the overall field above), when they have any.
+                foreach ($markrecords as $markrecord) {
+                    $markertext = $assignplugin->get_editor_text($fieldname, $item->id, $markrecord->id);
+                    if ($markertext === '') {
+                        continue;
+                    }
+                    $markerfieldinfo = [
+                        'name' => $fieldname,
+                        'description' => $description,
+                        'text' => $markertext,
+                        'format' => $assignplugin->get_editor_format($fieldname, $item->id),
+                        'markerid' => $markrecord->marker,
+                    ];
+
+                    foreach ($fileareas as $filearea => $name) {
+                        [$markerfieldinfo['text'], $markerfieldinfo['format']] = \core_external\util::format_text(
+                            $markerfieldinfo['text'],
+                            $markerfieldinfo['format'],
+                            $assign->get_context(),
+                            $component,
+                            $filearea,
+                            $markrecord->id
+                        );
+                    }
+
+                    $plugin['editorfields'][] = $markerfieldinfo;
+                }
             }
             $plugins[] = $plugin;
         }
@@ -903,7 +934,13 @@ class mod_assign_external extends \mod_assign\external\external_api {
                             'name' => new external_value(PARAM_TEXT, 'field name'),
                             'description' => new external_value(PARAM_RAW, 'field description'),
                             'text' => new external_value (PARAM_RAW, 'field value'),
-                            'format' => new external_format_value ('text')
+                            'format' => new external_format_value('text'),
+                            'markerid' => new external_value(
+                                PARAM_INT,
+                                'User id of the marker this field belongs to, for assignments with multiple markers. ' .
+                                    'Absent for the overall/general field.',
+                                VALUE_OPTIONAL
+                            ),
                         )
                     )
                     , 'editorfields', VALUE_OPTIONAL
@@ -2498,7 +2535,10 @@ class mod_assign_external extends \mod_assign\external\external_api {
                     $feedback->grade->grader = -1;
                 }
                 $feedbackplugins = $assign->get_feedback_plugins();
-                $feedback->plugins = self::get_plugins_data($assign, $feedbackplugins, $feedback->grade);
+                // For assignments with multiple markers, also surface each marker's own feedback -
+                // gated the same way as the overall grader's identity above.
+                $markrecords = $showgradername ? $assign->get_all_mark_records_for_grade($feedback->grade->id) : [];
+                $feedback->plugins = self::get_plugins_data($assign, $feedbackplugins, $feedback->grade, $markrecords);
             } else {
                 unset($feedback->plugins);
                 unset($feedback->grade);

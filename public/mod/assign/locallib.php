@@ -9856,6 +9856,30 @@ class assign {
     }
 
     /**
+     * Get all assign_mark records for a grade, keyed by marker user id.
+     *
+     * Unlike {@see self::get_mark_records()}, this returns marks from any marker who has left
+     * feedback for this grade, not only markers currently allocated to the student - matching
+     * the marker list shown to students in the feedback status display.
+     *
+     * @param int $gradeid The assignment grade id.
+     * @return stdClass[] Array of assign_mark records, keyed by marker user id.
+     */
+    public function get_all_mark_records_for_grade(int $gradeid): array {
+        global $DB;
+
+        $records = $DB->get_records('assign_mark', ['gradeid' => $gradeid], 'id', 'id, marker');
+        $marks = [];
+        foreach ($records as $record) {
+            if ($record->marker > 0) {
+                $marks[$record->marker] = $record;
+            }
+        }
+
+        return $marks;
+    }
+
+    /**
      * Calculate what the overall marking workflow should be based on the allocated marker states, and save it.
      * @param stdClass $grade
      * @param stdClass $flags
