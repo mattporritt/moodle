@@ -26,6 +26,31 @@ namespace core\hub;
 #[\PHPUnit\Framework\Attributes\CoversClass(api::class)]
 final class api_test extends \advanced_testcase {
     /**
+     * Clears the registration cache before each test.
+     *
+     * MOODLE_501_STABLE predates registration::reset_caches(), which on later branches is
+     * called automatically by phpunit_util::reset_all_data() between tests. Without it, the
+     * static cache in {@see registration} would leak a registration record from one test
+     * into the next.
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        $this->reset_registration_cache();
+    }
+
+    /**
+     * Clears the protected static registration cache in {@see registration}.
+     *
+     * MOODLE_501_STABLE predates registration::reset_caches(), so the cache is cleared
+     * directly via reflection instead.
+     */
+    private function reset_registration_cache(): void {
+        $property = new \ReflectionProperty(registration::class, 'registration');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+    }
+
+    /**
      * Registers the site locally so {@see registration::get_secret()} returns a known value.
      *
      * @param string $secret
@@ -33,7 +58,7 @@ final class api_test extends \advanced_testcase {
     private function register_site(string $secret): void {
         global $DB;
 
-        registration::reset_caches();
+        $this->reset_registration_cache();
         $DB->insert_record('registration_hubs', [
             'token' => 'sometoken',
             'hubname' => 'moodle',
@@ -109,7 +134,7 @@ final class api_test extends \advanced_testcase {
         $this->register_site('secretone');
         $first = $this->sign_registration_update('https://example.com');
 
-        registration::reset_caches();
+        $this->reset_registration_cache();
         global $DB;
         $DB->delete_records('registration_hubs', ['huburl' => HUB_MOODLEORGHUBURL]);
         $this->register_site('secrettwo');
