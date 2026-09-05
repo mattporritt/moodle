@@ -22,8 +22,8 @@ namespace core\hub;
  * @package    core
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \core\hub\api
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(api::class)]
 final class api_test extends \advanced_testcase {
     /**
      * Registers the site locally so {@see registration::get_secret()} returns a known value.
