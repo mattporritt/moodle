@@ -330,6 +330,38 @@ final class update_checker_test extends \advanced_testcase {
     }
 
     /**
+     * A site with an unconfirmed registration_hubs row must not send a siteidentifier param.
+     *
+     * core\hub\registration::get_registration() defaults $confirmed to true, so an
+     * unconfirmed row is treated the same as no registration at all. This pins that
+     * behaviour so a future change to that default cannot silently turn this into
+     * registration by the back door.
+     */
+    public function test_prepare_request_params_unconfirmed_registration(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $secret = 'unittestsecret1234567890';
+        $DB->insert_record('registration_hubs', (object) [
+            'token' => 'unittesttoken',
+            'hubname' => 'Test hub',
+            'huburl' => HUB_MOODLEORGHUBURL,
+            'confirmed' => 0,
+            'secret' => $secret,
+            'timemodified' => time(),
+        ]);
+        \core\hub\registration::reset_caches();
+
+        $provider = testable_checker::instance();
+        $provider->fake_current_environment(2012060102.00, '2.3.2 (Build: 20121012)', '2.3', []);
+        $params = $provider->testable_prepare_request_params();
+
+        $this->assertArrayNotHasKey('siteidentifier', $params);
+
+        \core\hub\registration::reset_caches();
+    }
+
+    /**
      * The country param must only be sent when $CFG->country is set.
      */
     public function test_prepare_request_params_country(): void {
