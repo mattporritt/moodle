@@ -14,7 +14,7 @@
  */
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Button} from '@moodlehq/design-system';
+import {Badge, Button, Link} from '@moodlehq/design-system';
 import {getString} from '@moodle/lms/core/stringUtils';
 import {requireManyAsync} from '@moodle/lms/core/amd';
 import DashboardTile from './components/DashboardTile';
@@ -22,7 +22,6 @@ import ConfirmationDialog from './components/ConfirmationDialog';
 import BlockPalette from './components/BlockPalette';
 import GridCell from './components/GridCell';
 import DashboardLoading from './components/DashboardLoading';
-import DashboardScopeBanner from './components/DashboardScopeBanner';
 import {
     GRID_GAP,
     MIN_COLUMNS,
@@ -41,7 +40,35 @@ import {
     updateDashboard,
     type AvailableBlock,
     type DashboardData,
+    type DashboardLabels,
+    type DashboardUrls,
 } from './repository';
+
+interface DashboardScopeBannerProps {
+    siteDefault: boolean;
+    caneditotherscope: boolean;
+    urls: DashboardUrls;
+    labels: DashboardLabels;
+}
+
+// Kept in this file rather than its own module: it's only ever used from Dashboard below, and
+// every ESM component here is a separate network request, so folding trivially-small, non-swizzled
+// pieces into their one caller cuts requests without changing what's independently themeable (see
+// swizzle.json - this was never a swizzle point of its own).
+export const DashboardScopeBanner = ({siteDefault, caneditotherscope, urls, labels}: DashboardScopeBannerProps) =>
+    <div className="core-my-dashboard-scope">
+        <Badge
+            variant={siteDefault ? 'warning' : 'info'}
+            subtle
+            pill
+            label={siteDefault ? labels.scopesitedefault : labels.scopeown}
+        />
+        {caneditotherscope && <Link
+            variant="secondary"
+            href={siteDefault ? urls.ownpage : urls.sitedefault}
+            label={siteDefault ? labels.switchtoown : labels.switchtositedefault}
+        />}
+    </div>;
 
 interface Interaction {
     id: number;

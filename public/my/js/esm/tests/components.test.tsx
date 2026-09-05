@@ -17,12 +17,11 @@ import type React from 'react';
 import GridCell from '../src/components/GridCell';
 import GridControls from '../src/components/GridControls';
 import ConfirmationDialog from '../src/components/ConfirmationDialog';
-import DashboardTile from '../src/components/DashboardTile';
-import BlockActionsMenu from '../src/components/BlockActionsMenu';
+import DashboardTile, {BlockActionsMenu} from '../src/components/DashboardTile';
 import BlockPalette from '../src/components/BlockPalette';
 import DashboardHandle from '../src/components/DashboardHandle';
 import DashboardLoading from '../src/components/DashboardLoading';
-import DashboardScopeBanner from '../src/components/DashboardScopeBanner';
+import {DashboardScopeBanner} from '../src/index';
 import type {DashboardLabels} from '../src/repository';
 
 // Jsdom has no ResizeObserver; DashboardLoading's positioned-grid mode measures the mount

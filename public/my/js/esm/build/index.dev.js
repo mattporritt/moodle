@@ -9,7 +9,7 @@ import { jsxDEV } from "react/jsx-dev-runtime";
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@moodlehq/design-system";
+import { Badge, Button, Link } from "@moodlehq/design-system";
 import { getString } from "@moodle/lms/core/stringUtils";
 import { requireManyAsync } from "@moodle/lms/core/amd";
 import DashboardTile from "./components/DashboardTile";
@@ -17,7 +17,6 @@ import ConfirmationDialog from "./components/ConfirmationDialog";
 import BlockPalette from "./components/BlockPalette";
 import GridCell from "./components/GridCell";
 import DashboardLoading from "./components/DashboardLoading";
-import DashboardScopeBanner from "./components/DashboardScopeBanner";
 import {
   GRID_GAP,
   MIN_COLUMNS,
@@ -34,6 +33,43 @@ import {
   getDashboard,
   updateDashboard
 } from "./repository";
+const DashboardScopeBanner = /* @__PURE__ */ __name(({ siteDefault, caneditotherscope, urls, labels }) => /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-scope", children: [
+  /* @__PURE__ */ jsxDEV(
+    Badge,
+    {
+      variant: siteDefault ? "warning" : "info",
+      subtle: true,
+      pill: true,
+      label: siteDefault ? labels.scopesitedefault : labels.scopeown
+    },
+    void 0,
+    false,
+    {
+      fileName: "public/my/js/esm/src/index.tsx",
+      lineNumber: 60,
+      columnNumber: 9
+    }
+  ),
+  caneditotherscope && /* @__PURE__ */ jsxDEV(
+    Link,
+    {
+      variant: "secondary",
+      href: siteDefault ? urls.ownpage : urls.sitedefault,
+      label: siteDefault ? labels.switchtoown : labels.switchtositedefault
+    },
+    void 0,
+    false,
+    {
+      fileName: "public/my/js/esm/src/index.tsx",
+      lineNumber: 66,
+      columnNumber: 31
+    }
+  )
+] }, void 0, true, {
+  fileName: "public/my/js/esm/src/index.tsx",
+  lineNumber: 59,
+  columnNumber: 5
+}), "DashboardScopeBanner");
 const isSiteDefault = /* @__PURE__ */ __name(() => window.location.pathname.endsWith("/my/indexsys.php"), "isSiteDefault");
 const layoutChanged = /* @__PURE__ */ __name((original, draft) => original.column !== draft.column || original.row !== draft.row || original.columns !== draft.columns || original.rows !== draft.rows, "layoutChanged");
 const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [] }) => {
@@ -395,11 +431,11 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
   if (!data) {
     return error ? /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-status alert alert-danger", role: "alert", children: error }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 456,
+      lineNumber: 483,
       columnNumber: 15
     }) : /* @__PURE__ */ jsxDEV(DashboardLoading, { label: loadingLabel, layout: initialLayout }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 457,
+      lineNumber: 484,
       columnNumber: 15
     });
   }
@@ -408,12 +444,12 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
   return /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-app", "aria-busy": saving, children: [
     error && /* @__PURE__ */ jsxDEV("div", { className: "alert alert-danger", role: "alert", children: error }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 465,
+      lineNumber: 492,
       columnNumber: 19
     }),
     /* @__PURE__ */ jsxDEV("div", { className: "visually-hidden", "aria-live": "polite", "aria-atomic": "true", children: announcement }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 466,
+      lineNumber: 493,
       columnNumber: 9
     }),
     data.editing && /* @__PURE__ */ jsxDEV(
@@ -428,14 +464,14 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 467,
+        lineNumber: 494,
         columnNumber: 26
       }
     ),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar", children: [
       /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblocktop, onClick: () => setPalette({ position: "start" }) }, void 0, false, {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 474,
+        lineNumber: 501,
         columnNumber: 13
       }),
       !siteDefault && /* @__PURE__ */ jsxDEV(
@@ -449,13 +485,13 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
         false,
         {
           fileName: "public/my/js/esm/src/index.tsx",
-          lineNumber: 475,
+          lineNumber: 502,
           columnNumber: 30
         }
       )
     ] }, void 0, true, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 473,
+      lineNumber: 500,
       columnNumber: 26
     }),
     /* @__PURE__ */ jsxDEV(
@@ -491,7 +527,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
                 false,
                 {
                   fileName: "public/my/js/esm/src/index.tsx",
-                  lineNumber: 499,
+                  lineNumber: 526,
                   columnNumber: 59
                 }
               ) : null;
@@ -526,7 +562,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
               false,
               {
                 fileName: "public/my/js/esm/src/index.tsx",
-                lineNumber: 516,
+                lineNumber: 543,
                 columnNumber: 24
               }
             );
@@ -537,17 +573,17 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
       true,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 481,
+        lineNumber: 508,
         columnNumber: 9
       }
     ),
     data.editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-toolbar core-my-dashboard-toolbar--bottom", children: /* @__PURE__ */ jsxDEV(Button, { variant: "secondary", label: data.labels.addblockbottom, onClick: () => setPalette({ position: "end" }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 538,
+      lineNumber: 565,
       columnNumber: 13
     }) }, void 0, false, {
       fileName: "public/my/js/esm/src/index.tsx",
-      lineNumber: 537,
+      lineNumber: 564,
       columnNumber: 26
     }),
     palette && /* @__PURE__ */ jsxDEV(
@@ -563,7 +599,7 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 540,
+        lineNumber: 567,
         columnNumber: 21
       }
     ),
@@ -589,18 +625,19 @@ const Dashboard = /* @__PURE__ */ __name(({ loadingLabel = "", initialLayout = [
       false,
       {
         fileName: "public/my/js/esm/src/index.tsx",
-        lineNumber: 547,
+        lineNumber: 574,
         columnNumber: 27
       }
     )
   ] }, void 0, true, {
     fileName: "public/my/js/esm/src/index.tsx",
-    lineNumber: 464,
+    lineNumber: 491,
     columnNumber: 12
   });
 }, "Dashboard");
 var index_default = Dashboard;
 export {
+  DashboardScopeBanner,
   index_default as default
 };
 //# sourceMappingURL=index.dev.js.map

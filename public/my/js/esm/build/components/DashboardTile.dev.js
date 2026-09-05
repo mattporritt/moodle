@@ -12,7 +12,143 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@moodlehq/design-system";
 import { NARROW_BLOCK_WIDTH } from "../layout";
 import DashboardHandle from "./DashboardHandle";
-import BlockActionsMenu from "./BlockActionsMenu";
+const BlockActionsMenu = /* @__PURE__ */ __name(({ blockId, actions, label }) => {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+  const itemRefs = useRef([]);
+  const menuId = `core-my-dashboard-block-actions-${blockId}`;
+  useEffect(() => {
+    if (!open) {
+      return void 0;
+    }
+    itemRefs.current[0]?.focus();
+    const closeIfOutside = /* @__PURE__ */ __name((event) => {
+      if (!containerRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    }, "closeIfOutside");
+    const closeOnEscape = /* @__PURE__ */ __name((event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    }, "closeOnEscape");
+    document.addEventListener("pointerdown", closeIfOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeIfOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+  if (actions.length === 0) {
+    return null;
+  }
+  const moveFocus = /* @__PURE__ */ __name((fromIndex, delta) => {
+    const count = actions.length;
+    const nextIndex = (fromIndex + delta + count) % count;
+    itemRefs.current[nextIndex]?.focus();
+  }, "moveFocus");
+  const onItemKeyDown = /* @__PURE__ */ __name((event, index) => {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        moveFocus(index, 1);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        moveFocus(index, -1);
+        break;
+      case "Home":
+        event.preventDefault();
+        itemRefs.current[0]?.focus();
+        break;
+      case "End":
+        event.preventDefault();
+        itemRefs.current[actions.length - 1]?.focus();
+        break;
+      case "Tab":
+        setOpen(false);
+        break;
+      default:
+        break;
+    }
+  }, "onItemKeyDown");
+  return /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-block-actions", ref: containerRef, children: [
+    /* @__PURE__ */ jsxDEV(
+      Button,
+      {
+        ref: triggerRef,
+        size: "md",
+        variant: "ghost",
+        className: "core-my-dashboard-block-actions__trigger",
+        "aria-label": label,
+        "aria-haspopup": "menu",
+        "aria-expanded": open,
+        "aria-controls": menuId,
+        startIcon: /* @__PURE__ */ jsxDEV("i", { className: "fa fa-ellipsis-vertical", "aria-hidden": "true" }, void 0, false, {
+          fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
+          lineNumber: 114,
+          columnNumber: 24
+        }),
+        onClick: () => setOpen((current) => !current)
+      },
+      void 0,
+      false,
+      {
+        fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
+        lineNumber: 105,
+        columnNumber: 9
+      }
+    ),
+    open && /* @__PURE__ */ jsxDEV(
+      "div",
+      {
+        id: menuId,
+        role: "menu",
+        "aria-label": label,
+        className: "core-my-dashboard-block-actions__menu",
+        children: actions.map((action, index) => /* @__PURE__ */ jsxDEV(
+          "a",
+          {
+            ref: (element) => {
+              itemRefs.current[index] = element;
+            },
+            role: "menuitem",
+            tabIndex: -1,
+            className: "core-my-dashboard-block-actions__item",
+            href: action.url,
+            "data-action": action.modalform ? "editblock" : void 0,
+            "data-blockid": action.modalform ? blockId : void 0,
+            "data-blockform": action.modalform || void 0,
+            "data-header": action.modalform ? action.label : void 0,
+            onKeyDown: (event) => onItemKeyDown(event, index),
+            onClick: () => setOpen(false),
+            children: action.label
+          },
+          action.id,
+          false,
+          {
+            fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
+            lineNumber: 123,
+            columnNumber: 45
+          }
+        ))
+      },
+      void 0,
+      false,
+      {
+        fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
+        lineNumber: 117,
+        columnNumber: 18
+      }
+    )
+  ] }, void 0, true, {
+    fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
+    lineNumber: 104,
+    columnNumber: 12
+  });
+}, "BlockActionsMenu");
 const DashboardTile = /* @__PURE__ */ __name(({
   block,
   item,
@@ -96,17 +232,17 @@ const DashboardTile = /* @__PURE__ */ __name(({
         editing && /* @__PURE__ */ jsxDEV(Fragment, { children: [
           /* @__PURE__ */ jsxDEV("span", { id: moveInstructionsId, className: "visually-hidden", children: labels.moveinstructions }, void 0, false, {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 137,
+            lineNumber: 259,
             columnNumber: 13
           }),
           /* @__PURE__ */ jsxDEV("span", { id: resizeInstructionsId, className: "visually-hidden", children: labels.resizeinstructions }, void 0, false, {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 138,
+            lineNumber: 260,
             columnNumber: 13
           })
         ] }, void 0, true, {
           fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-          lineNumber: 136,
+          lineNumber: 258,
           columnNumber: 21
         }),
         /* @__PURE__ */ jsxDEV("header", { className: "core-my-dashboard-tile__header", children: [
@@ -129,13 +265,13 @@ const DashboardTile = /* @__PURE__ */ __name(({
             false,
             {
               fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-              lineNumber: 141,
+              lineNumber: 263,
               columnNumber: 25
             }
           ),
           /* @__PURE__ */ jsxDEV("h2", { className: "core-my-dashboard-tile__title", children: block.title }, void 0, false, {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 154,
+            lineNumber: 276,
             columnNumber: 13
           }),
           editing && /* @__PURE__ */ jsxDEV("div", { className: "core-my-dashboard-tile__actions", children: [
@@ -149,7 +285,7 @@ const DashboardTile = /* @__PURE__ */ __name(({
                 title: labels.remove.replace("{$a}", block.title),
                 startIcon: /* @__PURE__ */ jsxDEV("i", { className: "fa fa-trash-can", "aria-hidden": "true" }, void 0, false, {
                   fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-                  lineNumber: 162,
+                  lineNumber: 284,
                   columnNumber: 32
                 }),
                 onClick: () => onRemove(block.id)
@@ -158,7 +294,7 @@ const DashboardTile = /* @__PURE__ */ __name(({
               false,
               {
                 fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-                lineNumber: 156,
+                lineNumber: 278,
                 columnNumber: 17
               }
             ),
@@ -173,18 +309,18 @@ const DashboardTile = /* @__PURE__ */ __name(({
               false,
               {
                 fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-                lineNumber: 165,
+                lineNumber: 287,
                 columnNumber: 17
               }
             )
           ] }, void 0, true, {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 155,
+            lineNumber: 277,
             columnNumber: 25
           })
         ] }, void 0, true, {
           fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-          lineNumber: 140,
+          lineNumber: 262,
           columnNumber: 9
         }),
         /* @__PURE__ */ jsxDEV(
@@ -198,7 +334,7 @@ const DashboardTile = /* @__PURE__ */ __name(({
           false,
           {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 172,
+            lineNumber: 294,
             columnNumber: 9
           }
         ),
@@ -212,7 +348,7 @@ const DashboardTile = /* @__PURE__ */ __name(({
           false,
           {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 177,
+            lineNumber: 299,
             columnNumber: 26
           }
         ),
@@ -235,12 +371,12 @@ const DashboardTile = /* @__PURE__ */ __name(({
           false,
           {
             fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-            lineNumber: 182,
+            lineNumber: 304,
             columnNumber: 13
           }
         ) }, void 0, false, {
           fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-          lineNumber: 181,
+          lineNumber: 303,
           columnNumber: 21
         })
       ]
@@ -249,13 +385,14 @@ const DashboardTile = /* @__PURE__ */ __name(({
     true,
     {
       fileName: "public/my/js/esm/src/components/DashboardTile.tsx",
-      lineNumber: 120,
+      lineNumber: 242,
       columnNumber: 12
     }
   );
 }, "DashboardTile");
 var DashboardTile_default = DashboardTile;
 export {
+  BlockActionsMenu,
   DashboardTile_default as default
 };
 //# sourceMappingURL=DashboardTile.dev.js.map
