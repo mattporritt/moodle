@@ -1692,6 +1692,13 @@ $functions = array(
         'type' => 'write',
         'ajax' => true,
     ],
+    'core_my_get_dashboard_blocks' => [
+        'classname' => '\core_my\external\get_dashboard_blocks',
+        'description' => 'Fetch the current user\'s dashboard blocks and their real grid position, in reading order.',
+        'type' => 'read',
+        'ajax' => true,
+        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
     'core_notes_create_notes' => array(
         'classname' => 'core_notes_external',
         'methodname' => 'create_notes',
