@@ -1063,14 +1063,51 @@ class page_requirements_manager {
         $themes = core_component::get_all_plugins_list('theme');
         $importmap->set_available_themes(array_keys($themes));
 
-        return html_writer::tag(
+        $importmapdata = $importmap->jsonSerialize();
+
+        $output = $this->get_import_map_preload_links($importmapdata);
+        $output .= html_writer::tag(
             'script',
             json_encode(
-                $importmap,
+                $importmapdata,
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
             ),
             ['type' => 'importmap'],
         );
+
+        return $output;
+    }
+
+    /**
+     * Return modulepreload link tags for the import map's concrete, in-use entries.
+     *
+     * The ESM dependency graph is normally discovered one level at a time: the browser must
+     * fetch and parse each module before it learns which further modules that module imports.
+     * For a handful of foundational entries (the JS framework runtime and its themed design
+     * system entry point) the resolved URL is already known from the import map itself, so
+     * preloading them lets the browser start those fetches immediately in parallel with page
+     * parsing rather than waiting for import-graph discovery to reach them.
+     *
+     * Only bare specifiers are preloaded: entries ending in '/' are subpath prefixes rather than
+     * a single resolvable file, and entries containing '/theme-' are the non-active theme variants
+     * of a themable import, kept in the map only so an override file can reference another theme's
+     * version; preloading either would waste a request.
+     *
+     * @param array $importmapdata The serialised import map data, as returned by import_map::jsonSerialize().
+     * @return string
+     */
+    protected function get_import_map_preload_links(array $importmapdata): string {
+        $output = '';
+        foreach ($importmapdata['imports'] as $specifier => $url) {
+            if (str_ends_with($specifier, '/') || str_contains($specifier, '/theme-')) {
+                continue;
+            }
+            $output .= html_writer::empty_tag('link', [
+                'rel' => 'modulepreload',
+                'href' => $url,
+            ]);
+        }
+        return $output;
     }
 
     /**
