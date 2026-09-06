@@ -48,7 +48,7 @@ final class page_requirements_manager_test extends \advanced_testcase {
     }
 
     /**
-     * get_import_map() emits a modulepreload link, ahead of the importmap script tag, for every
+     * get_import_map() emits a modulepreload link, after the importmap script tag, for every
      * concrete (non-prefix) import map entry whose specifier is not an explicit non-active theme
      * variant, so the browser can start fetching those foundational ESM dependencies without
      * waiting to discover them via import-graph parsing. Directory-prefix entries (there is no
@@ -76,9 +76,26 @@ final class page_requirements_manager_test extends \advanced_testcase {
         $actual = $preloads;
         sort($actual);
         $this->assertEquals($expected, $actual);
+    }
 
-        $linkpos = strpos($output, '<link rel="modulepreload"');
+    /**
+     * The importmap script tag must be emitted before any modulepreload link. Browsers only
+     * honour an import map for bare specifier resolution ("react", "@moodlehq/design-system",
+     * ...) if it is registered before the first module-related resource - including a
+     * modulepreload link - is processed. Emitting a preload link first silently breaks specifier
+     * resolution for every module script on the page.
+     */
+    public function test_importmap_script_precedes_modulepreload_links(): void {
+        global $PAGE;
+
+        $this->resetAfterTest();
+
+        $output = $PAGE->requires->get_import_map($PAGE);
+
         $scriptpos = strpos($output, '<script type="importmap">');
-        $this->assertLessThan($scriptpos, $linkpos, 'modulepreload links must precede the importmap script tag.');
+        $linkpos = strpos($output, '<link rel="modulepreload"');
+        $this->assertNotFalse($scriptpos, 'Expected the importmap script tag in the output.');
+        $this->assertNotFalse($linkpos, 'Expected at least one modulepreload link in the output.');
+        $this->assertLessThan($linkpos, $scriptpos, 'The importmap script tag must precede modulepreload links.');
     }
 }

@@ -1065,8 +1065,12 @@ class page_requirements_manager {
 
         $importmapdata = $importmap->jsonSerialize();
 
-        $output = $this->get_import_map_preload_links($importmapdata);
-        $output .= html_writer::tag(
+        // The importmap script tag must be emitted before any modulepreload link (or module
+        // script): browsers only honour an import map for specifier resolution if it is
+        // registered before the first module-related resource is processed. A modulepreload
+        // link emitted ahead of the importmap here would silently break bare specifier
+        // resolution ("react", "@moodlehq/design-system", ...) for every module on the page.
+        $output = html_writer::tag(
             'script',
             json_encode(
                 $importmapdata,
@@ -1074,6 +1078,7 @@ class page_requirements_manager {
             ),
             ['type' => 'importmap'],
         );
+        $output .= $this->get_import_map_preload_links($importmapdata);
 
         return $output;
     }
