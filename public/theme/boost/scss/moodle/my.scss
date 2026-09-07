@@ -3,6 +3,20 @@
     max-width: none;
 }
 
+// core/welcome (public/lib/templates/welcome.mustache) is a shared template rendered by
+// core_renderer::full_header() on any page configured as the site homepage, not just the
+// dashboard. Scope the Moodle Design System spacing to the dashboard layout only, so the
+// classic site-index home page keeps its plain Bootstrap treatment.
+.pagelayout-mydashboard .core-welcome-message {
+    margin-bottom: var(--mds-spacing-md);
+}
+
+.pagelayout-mydashboard .core-welcome-message__text {
+    font-size: var(--mds-font-size-headings-2);
+    font-weight: var(--mds-font-weight-medium);
+    line-height: var(--mds-line-height-headings-2);
+}
+
 .core-my-dashboard-mount,
 .core-my-dashboard-app {
     width: 100%;

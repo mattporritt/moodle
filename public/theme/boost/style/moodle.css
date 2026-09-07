@@ -31847,6 +31847,10 @@ nav.navbar .logo img {
   padding: 0 0.5rem;
 }
 
+.core-welcome-message {
+  margin-bottom: 0.5rem;
+}
+
 /** Header-bar styles **/
 .page-context-header {
   overflow: hidden;
@@ -36796,6 +36800,16 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
 
 .core-my-dashboard-page #page.drawers .main-inner {
   max-width: none;
+}
+
+.pagelayout-mydashboard .core-welcome-message {
+  margin-bottom: var(--mds-spacing-md);
+}
+
+.pagelayout-mydashboard .core-welcome-message__text {
+  font-size: var(--mds-font-size-headings-2);
+  font-weight: var(--mds-font-weight-medium);
+  line-height: var(--mds-line-height-headings-2);
 }
 
 .core-my-dashboard-mount,
