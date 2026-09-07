@@ -36942,7 +36942,7 @@ body.editing#page-course-learningoutcomes .activity-item:hover:not(:has(.activit
   gap: var(--mds-spacing-sm);
   align-items: center;
   justify-content: space-between;
-  padding: var(--mds-spacing-md);
+  padding: var(--mds-spacing-xs);
 }
 
 .core-my-dashboard-tile__title {
