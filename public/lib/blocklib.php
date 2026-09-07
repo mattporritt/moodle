@@ -1992,6 +1992,17 @@ class block_manager {
         }
         $block->instance_config_save($config);
 
+        if ($this->page->pagelayout === 'mydashboard') {
+            // The flexible dashboard grid (MDL-89636) owns each block's page position
+            // (block_positions.gridcolumn/gridrow/gridcolumns/gridrows) via
+            // core_my\local\dashboard, not the region/weight/visible fields below - which
+            // block_edit_form hides here for that reason. Falling through would still delete or
+            // overwrite that same block_positions row (matching region/weight/visible against the
+            // instance's own defaults, as a freshly grid-added block always does, deletes it
+            // outright), destroying the grid position data it holds.
+            return;
+        }
+
         $bp = new stdClass;
         $bp->visible = $data->bui_visible;
         $bp->region = $data->bui_region;

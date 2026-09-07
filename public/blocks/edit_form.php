@@ -273,29 +273,54 @@ class block_edit_form extends \core_form\dynamic_form {
             }
         }
 
+        // The flexible dashboard grid (MDL-89636) positions blocks itself (see
+        // core_my\local\dashboard::get_layout()) - region/weight are vestigial there, so this
+        // form keeps them out of the user's way rather than showing controls that do nothing
+        // visible. They are still submitted unchanged, as hidden fields, because
+        // block_manager::save_block_data() (which this page's dashboard blocks also go through)
+        // still expects them and would otherwise delete the very block_positions row the grid
+        // data (gridcolumn/gridrow/gridcolumns/gridrows) lives in.
+        $onmydashboard = $this->page->pagelayout === 'mydashboard';
+
         $defaultregionoptions = $regionoptions;
         $defaultregion = $this->block->instance->defaultregion;
         if (!array_key_exists($defaultregion, $defaultregionoptions)) {
             $defaultregionoptions[$defaultregion] = $defaultregion;
         }
-        $mform->addElement('select', 'bui_defaultregion', get_string('defaultregion', 'block'), $defaultregionoptions);
-        $mform->addHelpButton('bui_defaultregion', 'defaultregion', 'block');
+        if ($onmydashboard) {
+            $mform->addElement('hidden', 'bui_defaultregion', $defaultregion);
+            $mform->setType('bui_defaultregion', PARAM_ALPHANUMEXT);
+            $mform->addElement('hidden', 'bui_defaultweight', $this->block->instance->defaultweight);
+            $mform->setType('bui_defaultweight', PARAM_INT);
+        } else {
+            $mform->addElement('select', 'bui_defaultregion', get_string('defaultregion', 'block'), $defaultregionoptions);
+            $mform->addHelpButton('bui_defaultregion', 'defaultregion', 'block');
 
-        $mform->addElement('select', 'bui_defaultweight', get_string('defaultweight', 'block'), $weightoptions);
-        $mform->addHelpButton('bui_defaultweight', 'defaultweight', 'block');
-
-        // Where this block is positioned on this page.
-        $mform->addElement('header', 'onthispage', get_string('onthispage', 'block'));
-
-        $mform->addElement('selectyesno', 'bui_visible', get_string('visible', 'block'));
+            $mform->addElement('select', 'bui_defaultweight', get_string('defaultweight', 'block'), $weightoptions);
+            $mform->addHelpButton('bui_defaultweight', 'defaultweight', 'block');
+        }
 
         $blockregion = $this->block->instance->region;
         if (!array_key_exists($blockregion, $regionoptions)) {
             $regionoptions[$blockregion] = $blockregion;
         }
-        $mform->addElement('select', 'bui_region', get_string('region', 'block'), $regionoptions);
+        if ($onmydashboard) {
+            $mform->addElement('hidden', 'bui_visible', (int) ($this->block->instance->visible ?? 1));
+            $mform->setType('bui_visible', PARAM_BOOL);
+            $mform->addElement('hidden', 'bui_region', $blockregion);
+            $mform->setType('bui_region', PARAM_ALPHANUMEXT);
+            $mform->addElement('hidden', 'bui_weight', $blockweight);
+            $mform->setType('bui_weight', PARAM_INT);
+        } else {
+            // Where this block is positioned on this page.
+            $mform->addElement('header', 'onthispage', get_string('onthispage', 'block'));
 
-        $mform->addElement('select', 'bui_weight', get_string('weight', 'block'), $weightoptions);
+            $mform->addElement('selectyesno', 'bui_visible', get_string('visible', 'block'));
+
+            $mform->addElement('select', 'bui_region', get_string('region', 'block'), $regionoptions);
+
+            $mform->addElement('select', 'bui_weight', get_string('weight', 'block'), $weightoptions);
+        }
 
         $pagefields = array('bui_visible', 'bui_region', 'bui_weight');
         if (!$this->block->user_can_edit()) {

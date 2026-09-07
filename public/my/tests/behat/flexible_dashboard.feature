@@ -102,14 +102,14 @@ Feature: Arrange dashboard blocks in a responsive grid
     Then I should not see "Editing your dashboard"
 
   @javascript
-  Scenario: The block actions menu is capped at Permissions and Check permissions
+  Scenario: The block actions menu is capped at Configure, Permissions and Check permissions
     Given I log out
     And I log in as "admin"
     When I turn editing mode on
     And I click on "More actions for Course overview" "button" in the "Course overview" "block"
-    Then I should see "Manage permissions" in the ".core-my-dashboard-block-actions__menu" "css_element"
+    Then I should see "Configure Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
+    And I should see "Manage permissions" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And I should see "Check permissions" in the ".core-my-dashboard-block-actions__menu" "css_element"
-    And I should not see "Configure Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And I should not see "Move Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And I should not see "Delete Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And "Hide Course overview block" "button" should not exist

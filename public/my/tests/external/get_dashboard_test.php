@@ -128,17 +128,18 @@ final class get_dashboard_test extends \advanced_testcase {
         $this->assertNotEmpty($result['blocks']);
         foreach ($result['blocks'] as $block) {
             $ids = array_column($block['actions'], 'id');
-            $unexpected = array_diff($ids, ['permissions', 'checkroles']);
+            $unexpected = array_diff($ids, ['edit', 'permissions', 'checkroles']);
             $this->assertSame(
                 [],
                 array_values($unexpected),
-                "The {$block['name']} block menu offers actions beyond Permissions and Check permissions: " .
-                    implode(', ', $unexpected),
+                "The {$block['name']} block menu offers actions beyond Configure, Permissions and " .
+                    'Check permissions: ' . implode(', ', $unexpected),
             );
         }
 
         $myoverview = current(array_filter($result['blocks'], static fn ($block) => $block['name'] === 'myoverview'));
         $ids = array_column($myoverview['actions'], 'id');
+        $this->assertContains('edit', $ids, 'The Course overview block is missing its Configure action.');
         $this->assertContains('permissions', $ids, 'The Course overview block is missing its Permissions action.');
         $this->assertContains('checkroles', $ids, 'The Course overview block is missing its Check permissions action.');
     }

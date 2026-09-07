@@ -50,10 +50,16 @@ Feature: Add and configure blocks throughout the site
     # The first block matching the pattern should be top-left block
     And I should see "Comments" in the "//*[@id='region-pre' or @id='block-region-side-pre']/descendant::*[contains(concat(' ', normalize-space(@class), ' '), ' block_comments ')]" "xpath_element"
 
-  Scenario: Blocks on the dashboard page can have roles assigned to them
+  @javascript
+  Scenario: Blocks on the dashboard page cannot have roles assigned to them
+    # Role assignment on a single user's own private block instance is not offered on the
+    # flexible dashboard (MDL-89636) - see core_my\local\dashboard::MENU_ACTION_ALLOWED. This is
+    # the inverse of the equivalent scenario below for course blocks, which still offer it.
     Given I log in as "manager1"
+    And I visit "/my/index.php"
     When I turn editing mode on
-    Then I should see "Assign roles in Recently accessed items block"
+    And I click on "More actions for Recently accessed items" "button" in the "Recently accessed items" "block"
+    Then I should not see "Assign roles" in the ".core-my-dashboard-block-actions__menu" "css_element"
 
   Scenario: Blocks on courses can have roles assigned to them
     Given I log in as "teacher1"
@@ -64,10 +70,20 @@ Feature: Add and configure blocks throughout the site
   @javascript
   Scenario: Blocks can safely be customised
     Given I log in as "admin"
-    And I am on homepage
+    And I visit "/my/index.php"
     And I turn editing mode on
-    And I add the "Text" block to the default region with:
+    And I click on "Add a block at the start of the dashboard" "button"
+    And I click on "Text" "button" in the "Add a block" "dialogue"
+    # A freshly-added, unconfigured block has no title yet, so it cannot be located by name -
+    # data-block is the only reliable locator for it until it has been configured below.
+    Then ".core-my-dashboard-tile[data-block='html']" "css_element" should exist
+    When I click on ".core-my-dashboard-block-actions__trigger" "css_element" in the ".core-my-dashboard-tile[data-block='html']" "css_element"
+    # Freshly-added, unconfigured HTML blocks show a placeholder title (block_html's own
+    # "(new text block)" string), not the plugin name "Text" - see block_html::specialization().
+    And I click on "Configure (new text block) block" "link" in the ".core-my-dashboard-block-actions__menu" "css_element"
+    And I set the following fields to these values:
       | Text block title | Foo " onload="document.getElementsByTagName('body')[0].remove()" alt=" |
-      | Content     | Example |
-    Then I should see "Example" in the "block_html" "block"
+      | Content           | Example |
+    And I click on "Save changes" "button" in the "Configure (new text block) block" "dialogue"
+    Then I should see "Example" in the ".core-my-dashboard-tile[data-block='html']" "css_element"
     Then I should see "document.getElementsByTagName"

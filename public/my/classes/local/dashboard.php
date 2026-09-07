@@ -46,12 +46,15 @@ final class dashboard {
      *
      * Move and hide/show are superseded by the grid's own controls, and delete lives in the
      * tile's discrete delete button instead of being duplicated inside the menu as well.
-     * Configure and Assign roles are dropped too: the dashboard is a personal, per-user surface,
-     * so a block's own placement/role-assignment settings are redundant here in a way they are
-     * not on a shared course or site page. Permissions review stays, since who can do what with
-     * a block instance is still meaningful to check and change on the dashboard.
+     * Assign roles is dropped too: role assignment on a single user's own private block instance
+     * is not a meaningful action on this personal, per-user surface. Configure ('editing_edit') is
+     * kept - blocks like block_html only have a title/content to set through it - but its own form
+     * (@see \block_edit_form) hides the where-this-block-appears/region/weight fields when
+     * rendered here, since {@see self::get_layout()} owns page position for the dashboard instead.
+     * Permissions review stays too, since who can do what with a block instance is still
+     * meaningful to check and change on the dashboard.
      */
-    private const MENU_ACTION_ALLOWED = ['permissions', 'checkroles'];
+    private const MENU_ACTION_ALLOWED = ['edit', 'permissions', 'checkroles'];
 
     /**
      * Set up Moodle's block manager for a user or site-default dashboard.
