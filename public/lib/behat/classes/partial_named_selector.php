@@ -196,6 +196,12 @@ XPATH
             and
         normalize-space(descendant::*[contains(concat(' ', normalize-space(@class), ' '), ' modal-header ')]) = %locator%
     ]
+        |
+.//dialog[
+        @open
+            and
+        normalize-space(descendant::*[self::h1 or self::h2 or self::h3]) = %locator%
+    ]
 XPATH
     , 'dropdown' => <<<XPATH
         .//*[

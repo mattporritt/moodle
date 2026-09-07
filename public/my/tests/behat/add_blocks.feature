@@ -21,7 +21,8 @@ Feature: Add blocks to dashboard page
   @javascript @accessibility
   Scenario: Add blocks to page
     When I turn editing mode on
-    And I add the "Latest announcements" block
+    And I click on "Add a block at the start of the dashboard" "button"
+    And I click on "Latest announcements" "button" in the "Add a block" "dialogue"
     And the "Latest announcements" "block" should meet accessibility standards with "best-practice" extra tests
     And I turn editing mode off
     Then I should see "Latest announcements" in the "Latest announcements" "block"
