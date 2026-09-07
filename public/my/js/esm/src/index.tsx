@@ -108,55 +108,30 @@ const layoutChanged = (original: LayoutItem, draft: LayoutItem): boolean =>
     original.column !== draft.column || original.row !== draft.row ||
     original.columns !== draft.columns || original.rows !== draft.rows;
 
-interface DashboardProps {
-    loadingLabel?: string;
-    initialLayout?: LayoutItem[];
-}
-
-const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
-    const [data, setData] = useState<DashboardData | null>(null);
-    const [canonical, setCanonical] = useState<LayoutItem[]>([]);
-    const [columnCount, setColumnCount] = useState(1);
-    const [interaction, setInteraction] = useState<Interaction | null>(null);
-    const [announcement, setAnnouncement] = useState('');
-    const [error, setError] = useState('');
-    const [palette, setPalette] = useState<PaletteTarget | null>(null);
-    const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
-    const [saving, setSaving] = useState(false);
-    const gridRef = useRef<HTMLDivElement>(null);
-    const pointerRef = useRef<{x: number; y: number; moved: boolean} | null>(null);
-    const interactionRef = useRef<Interaction | null>(null);
-    const canonicalRef = useRef<LayoutItem[]>([]);
-    const displayLayoutRef = useRef<LayoutItem[]>([]);
-    const columnCountRef = useRef(1);
-    const dataRef = useRef<DashboardData | null>(null);
-    const siteDefault = isSiteDefault();
-
-    /**
-     * Fetch a full dashboard payload and reset the canonical layout to match it.
-     *
-     * Called on mount and after any server-side mutation the client cannot safely predict the
-     * result of (adding a block, removing one, resetting to the site default) - see get_dashboard.
-     */
-    const load = useCallback(async() => {
-        try {
-            const response = await getDashboard(siteDefault);
-            setData(response);
-            dataRef.current = response;
-            setCanonical(response.layout);
-            canonicalRef.current = response.layout;
-            setError('');
-            return response;
-        } catch (caught) {
-            setError(caught instanceof Error ? caught.message : String(caught));
-            return null;
-        }
-    }, [siteDefault]);
-
-    useEffect(() => {
-        void load();
-    }, [load]);
-
+/**
+ * Run a freshly loaded dashboard's collected block JavaScript, and report the dashboard as
+ * pending (via core/pending) until any resulting DOM churn settles.
+ *
+ * A block's own async fetch-and-replace of its rendered content (e.g. Course overview, Recently
+ * accessed items) is invisible to anything watching M.util.pending_js - Behat's
+ * wait_for_pending_js() included - unless that block's own code says so, which this project's
+ * acceptance criteria rules out asking every block to do (a backwards-compatible block API
+ * extension to do this properly is filed as a follow-up on the parent epic). Detect it
+ * generically instead: such a replacement is always a structural (childList) DOM mutation
+ * somewhere under the grid, so treat the dashboard as still settling from the moment this
+ * reload's collected JS starts running until the grid goes quiet for a short window - bounded by
+ * a hard ceiling in case some future block's own mutations (or a genuine failure) never quiesce,
+ * so this can never hang a caller indefinitely. Only childList is watched (not
+ * attributes/characterData), so unrelated noise - drag positioning, resize-driven style changes -
+ * never resets it.
+ *
+ * @param data The current dashboard payload, or null before the first load resolves.
+ * @param gridRef The grid element to watch for mutations under.
+ */
+const useCollectedBlockJavascript = (
+    data: DashboardData | null,
+    gridRef: React.RefObject<HTMLDivElement>,
+): void => {
     useEffect(() => {
         if (!data?.javascript) {
             return undefined;
@@ -166,18 +141,6 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         // already replaced the tile content it was written to target.
         let superseded = false;
 
-        // A block's own async fetch-and-replace of its rendered content (e.g. Course overview,
-        // Recently accessed items) is invisible to anything watching M.util.pending_js - Behat's
-        // wait_for_pending_js() included - unless that block's own code says so, which this
-        // project's acceptance criteria rules out asking every block to do (a backwards-
-        // compatible block API extension to do this properly is filed as a follow-up on the
-        // parent epic). Detect it generically instead: such a replacement is always a
-        // structural (childList) DOM mutation somewhere under the grid, so treat the dashboard
-        // as still settling from the moment this reload's collected JS starts running until the
-        // grid goes quiet for a short window - bounded by a hard ceiling in case some future
-        // block's own mutations (or a genuine failure) never quiesce, so this can never hang a
-        // caller indefinitely. Only childList is watched (not attributes/characterData), so
-        // unrelated noise - drag positioning, resize-driven style changes - never resets it.
         let settled = false;
         let quietTimer: ReturnType<typeof setTimeout> | undefined;
         let hardTimer: ReturnType<typeof setTimeout> | undefined;
@@ -221,11 +184,31 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
             settle();
         };
     }, [data]);
+};
+
+/**
+ * Track the grid's current responsive column count from its own rendered width.
+ *
+ * Returns both the reactive state (for rendering/memoization) and a ref mirroring the same value
+ * (for imperative reads from callbacks - e.g. commit() in Dashboard below - that must see the
+ * latest column count even when invoked from a stale closure, such as a pointerup listener
+ * registered several renders ago).
+ *
+ * @param gridRef The grid element to measure.
+ * @param data The current dashboard payload; re-measures whenever a fresh one loads.
+ * @return A tuple of [columnCount, columnCountRef].
+ */
+const useResponsiveColumnCount = (
+    gridRef: React.RefObject<HTMLDivElement>,
+    data: DashboardData | null,
+): [number, React.RefObject<number>] => {
+    const [columnCount, setColumnCount] = useState(1);
+    const columnCountRef = useRef(1);
 
     useEffect(() => {
         const grid = gridRef.current;
         if (!grid) {
-            return;
+            return undefined;
         }
         const measure = () => {
             const next = columnsForWidth(grid.getBoundingClientRect().width);
@@ -237,6 +220,59 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         measure();
         return () => observer.disconnect();
     }, [data]);
+
+    return [columnCount, columnCountRef];
+};
+
+interface DashboardProps {
+    loadingLabel?: string;
+    initialLayout?: LayoutItem[];
+}
+
+const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
+    const [data, setData] = useState<DashboardData | null>(null);
+    const [canonical, setCanonical] = useState<LayoutItem[]>([]);
+    const [interaction, setInteraction] = useState<Interaction | null>(null);
+    const [announcement, setAnnouncement] = useState('');
+    const [error, setError] = useState('');
+    const [palette, setPalette] = useState<PaletteTarget | null>(null);
+    const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+    const [saving, setSaving] = useState(false);
+    const gridRef = useRef<HTMLDivElement>(null);
+    const pointerRef = useRef<{x: number; y: number; moved: boolean} | null>(null);
+    const interactionRef = useRef<Interaction | null>(null);
+    const canonicalRef = useRef<LayoutItem[]>([]);
+    const displayLayoutRef = useRef<LayoutItem[]>([]);
+    const dataRef = useRef<DashboardData | null>(null);
+    const siteDefault = isSiteDefault();
+
+    /**
+     * Fetch a full dashboard payload and reset the canonical layout to match it.
+     *
+     * Called on mount and after any server-side mutation the client cannot safely predict the
+     * result of (adding a block, removing one, resetting to the site default) - see get_dashboard.
+     */
+    const load = useCallback(async() => {
+        try {
+            const response = await getDashboard(siteDefault);
+            setData(response);
+            dataRef.current = response;
+            setCanonical(response.layout);
+            canonicalRef.current = response.layout;
+            setError('');
+            return response;
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : String(caught));
+            return null;
+        }
+    }, [siteDefault]);
+
+    useEffect(() => {
+        void load();
+    }, [load]);
+
+    useCollectedBlockJavascript(data, gridRef);
+    const [columnCount, columnCountRef] = useResponsiveColumnCount(gridRef, data);
 
     const displayLayout = useMemo(() => packLayout(canonical, columnCount), [canonical, columnCount]);
     displayLayoutRef.current = displayLayout;
