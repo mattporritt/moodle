@@ -240,6 +240,112 @@ describe('core_my Dashboard application', () => {
         expect(moved).toMatchObject({column: 1, row: 0});
     });
 
+    it('discards a keyboard interaction on Escape without saving', async() => {
+        const fetchOneSpy = mockDashboardApi({getResponses: [buildData()]});
+
+        render(<Dashboard />);
+        await screen.findByText('First block');
+
+        const moveHandle = screen.getByRole('button', {name: 'Move First block block'});
+        fireEvent.keyDown(moveHandle, {key: ' '});
+        fireEvent.keyDown(moveHandle, {key: 'ArrowRight'});
+        fireEvent.keyDown(moveHandle, {key: 'Escape'});
+
+        expect(fetchOneSpy.mock.calls.some(([request]) =>
+            (request as {methodname: string}).methodname === 'core_my_update_dashboard')).toBe(false);
+    });
+
+    it('rejects a keyboard resize that would fall below the minimum tile size', async() => {
+        const fetchOneSpy = mockDashboardApi({getResponses: [buildData()]});
+
+        render(<Dashboard />);
+        await screen.findByText('First block');
+
+        // Both tiles' resize handles share the generic "Resize block" label; scope to the first
+        // block's own tile to disambiguate.
+        const firstTile = screen.getByRole('region', {name: 'First block block'});
+        const resizeHandle = within(firstTile).getByRole('button', {name: 'Resize block'});
+        fireEvent.keyDown(resizeHandle, {key: ' '});
+        // The first block is 2 rows tall; MIN_ROWS is 2, so shrinking up once more is rejected.
+        fireEvent.keyDown(resizeHandle, {key: 'ArrowUp'});
+        await act(async() => {
+            fireEvent.keyDown(resizeHandle, {key: ' '});
+        });
+
+        const saveCall = fetchOneSpy.mock.calls.find(([request]) =>
+            (request as {methodname: string}).methodname === 'core_my_update_dashboard')!;
+        // Committing still saves (Space always commits the current draft) - but the rejected
+        // shrink left the draft's row span unchanged at 2, proving the minimum-size guard, not
+        // the commit path itself, is what's under test here.
+        const args = (saveCall[0] as {args: {layout: LayoutItem[]}}).args;
+        expect(args.layout.find(item => item.id === 101)?.rows).toBe(2);
+    });
+
+    // A full pixel-based pointer drag (pointerdown, a pointermove past the drag threshold, then
+    // pointerup committing a new cell) is not exercised here: jsdom's PointerEvent support does
+    // not propagate clientX/clientY through dispatched events, so the drag-distance math in
+    // pointerDown's `move` handler has no reliable pixel input to work from in this environment.
+    // The "no movement at all" path below (a plain click) does not depend on those coordinates and
+    // is covered; the drag-distance-to-grid-cell math itself is covered directly by the pure
+    // layout.ts helpers it delegates to (see layout.test.ts), which pointerDown's own comment
+    // documents as the same clamping logic shift()/keyDown exercise here via the keyboard.
+    it('reveals move/resize controls on a plain pointer click that never drags', async() => {
+        mockDashboardApi({getResponses: [buildData()]});
+
+        render(<Dashboard />);
+        await screen.findByText('First block');
+
+        const moveHandle = screen.getByRole('button', {name: 'Move First block block'});
+        await act(async() => {
+            fireEvent.pointerDown(moveHandle, {clientX: 0, clientY: 0});
+            fireEvent.pointerUp(window);
+        });
+
+        expect(screen.getByRole('group', {name: 'Move block controls'})).toBeInTheDocument();
+    });
+
+    it('places a newly added block into the specific empty cell that was clicked', async() => {
+        const newBlock = {
+            id: 103, name: 'calendar_month', title: 'Calendar', content: '<p>Cal</p>',
+            footer: '', region: 'content', weight: 2, actions: [],
+        };
+        // The server appends the new block wherever it likes (here, far from where the user
+        // clicked) - the client is expected to notice and immediately re-save it into the cell.
+        const afterAdd = buildData({
+            blocks: [...buildData().blocks, newBlock],
+            layout: [...baseLayout, {id: 103, column: 0, row: 6, columns: 2, rows: 2}],
+        });
+        const fetchOneSpy = mockDashboardApi({
+            getResponses: [buildData(), afterAdd],
+            updateImpl: (action) => Promise.resolve({status: true, blockid: action === 'add' ? 103 : 0}),
+        });
+
+        const {container} = render(<Dashboard />);
+        await screen.findByText('First block');
+        // The column-count measurement effect (ResizeObserver + an immediate manual measure())
+        // runs after the grid first mounts, one render after the block text itself appears -
+        // wait for it, so the empty cell this test targets (column index 2) actually exists yet.
+        await waitFor(() => expect(container.querySelector('.core-my-dashboard-grid'))
+            .toHaveAttribute('data-columns', '6'));
+
+        const emptyCell = screen.getByRole('button', {name: 'Empty cell, Row 1, column 3'});
+        fireEvent.click(emptyCell);
+        fireEvent.click(await screen.findByRole('button', {name: 'Calendar'}));
+
+        await waitFor(() => {
+            const calls = fetchOneSpy.mock.calls.filter(([request]) =>
+                (request as {methodname: string}).methodname === 'core_my_update_dashboard');
+            expect(calls).toHaveLength(2);
+        });
+        const calls = fetchOneSpy.mock.calls.filter(([request]) =>
+            (request as {methodname: string}).methodname === 'core_my_update_dashboard');
+        const [, secondCall] = calls;
+        const args = (secondCall[0] as {args: {action: string; layout: LayoutItem[]}}).args;
+        expect(args.action).toBe('save');
+        const placed = args.layout.find(item => item.id === 103);
+        expect(placed).toMatchObject({column: 2, row: 0});
+    });
+
     it('removes a block after confirmation and reloads the dashboard', async() => {
         const afterRemoval = buildData({
             blocks: secondBlockOnly,

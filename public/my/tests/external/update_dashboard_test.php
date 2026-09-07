@@ -17,6 +17,7 @@
 namespace core_my\external;
 
 use core_external\external_api;
+use core_my\local\dashboard;
 
 /**
  * Tests for the responsive dashboard update external function.
@@ -147,5 +148,145 @@ final class update_dashboard_test extends \advanced_testcase {
         update_dashboard::execute('reset', false);
 
         $this->assertFalse($DB->record_exists('my_pages', ['id' => $page->id]));
+    }
+
+    /**
+     * Reset is meaningless for the site default: there is nothing above it to revert to, and
+     * the site-wide "reset everyone's dashboard" admin action (my/indexsys.php) is a distinct,
+     * deliberately separate code path.
+     */
+    public function test_execute_rejects_reset_of_site_default(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $_POST['sesskey'] = sesskey();
+
+        $this->expectException(\invalid_parameter_exception::class);
+        update_dashboard::execute('reset', true);
+    }
+
+    /**
+     * A layout referencing a block id that isn't part of the dashboard being saved - here,
+     * simply invented - is rejected rather than silently ignored or persisted.
+     */
+    public function test_execute_rejects_layout_with_unknown_block(): void {
+        global $PAGE, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $USER->editing = 1;
+        $_POST['sesskey'] = sesskey();
+
+        $payload = get_dashboard::execute(false);
+        $payload['layout'][0]['id'] = max(array_column($payload['layout'], 'id')) + 1000;
+        $PAGE = new \moodle_page();
+
+        $this->expectException(\invalid_parameter_exception::class);
+        update_dashboard::execute('save', false, $payload['layout']);
+    }
+
+    /**
+     * The same block id may not appear twice in one layout.
+     */
+    public function test_execute_rejects_layout_with_duplicate_block(): void {
+        global $PAGE, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $USER->editing = 1;
+        $_POST['sesskey'] = sesskey();
+
+        $payload = get_dashboard::execute(false);
+        $this->assertGreaterThanOrEqual(2, count($payload['layout']));
+        $payload['layout'][1]['id'] = $payload['layout'][0]['id'];
+        $PAGE = new \moodle_page();
+
+        $this->expectException(\invalid_parameter_exception::class);
+        update_dashboard::execute('save', false, $payload['layout']);
+    }
+
+    /**
+     * A layout omitting a block that still exists on the dashboard is rejected: every block
+     * needs a position, and this endpoint has no way to know an omission means "remove it".
+     */
+    public function test_execute_rejects_layout_missing_a_block(): void {
+        global $PAGE, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $USER->editing = 1;
+        $_POST['sesskey'] = sesskey();
+
+        $payload = get_dashboard::execute(false);
+        $this->assertNotEmpty($payload['layout']);
+        array_pop($payload['layout']);
+        $PAGE = new \moodle_page();
+
+        $this->expectException(\invalid_parameter_exception::class);
+        update_dashboard::execute('save', false, $payload['layout']);
+    }
+
+    /**
+     * Each dimension of an invalid grid rectangle is rejected: negative column/row, a size
+     * smaller than the minimum, and a rectangle overflowing the grid's right edge.
+     *
+     * @dataProvider invalid_rectangle_provider
+     * @param array $overrides Fields to override on the first layout item.
+     */
+    public function test_execute_rejects_invalid_rectangle(array $overrides): void {
+        global $PAGE, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $USER->editing = 1;
+        $_POST['sesskey'] = sesskey();
+
+        $payload = get_dashboard::execute(false);
+        $this->assertNotEmpty($payload['layout']);
+        $payload['layout'][0] = array_merge($payload['layout'][0], $overrides);
+        $PAGE = new \moodle_page();
+
+        $this->expectException(\invalid_parameter_exception::class);
+        update_dashboard::execute('save', false, $payload['layout']);
+    }
+
+    /**
+     * Data provider for test_execute_rejects_invalid_rectangle.
+     *
+     * @return array
+     */
+    public static function invalid_rectangle_provider(): array {
+        return [
+            'negative column' => [['column' => -1]],
+            'negative row' => [['row' => -1]],
+            'too few columns' => [['columns' => 0]],
+            'too few rows' => [['rows' => 0]],
+            'overflows the grid' => [['column' => dashboard::MAX_COLUMNS - 1, 'columns' => 2]],
+        ];
+    }
+
+    /**
+     * Adding a block type that either does not exist or is not addable (e.g. already added and
+     * not addable more than once) is rejected rather than silently creating nothing.
+     */
+    public function test_execute_rejects_adding_an_unaddable_block_type(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $_POST['sesskey'] = sesskey();
+
+        $this->expectException(\moodle_exception::class);
+        update_dashboard::execute('add', false, [], 'thisblockdoesnotexist');
+    }
+
+    /**
+     * Removing a block id that does not exist on the dashboard - or at all - is rejected the
+     * same way removing a block the user has no permission over would be.
+     */
+    public function test_execute_rejects_removing_an_unknown_block(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $_POST['sesskey'] = sesskey();
+
+        $this->expectException(\moodle_exception::class);
+        update_dashboard::execute('remove', false, [], '', 999999);
     }
 }

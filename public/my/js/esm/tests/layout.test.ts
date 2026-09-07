@@ -15,6 +15,8 @@
 import {
     columnsForWidth,
     disturbedCount,
+    maxRow,
+    packInOrder,
     packLayout,
     packWithPinned,
     writeBack,
@@ -148,5 +150,81 @@ describe('core_my responsive dashboard layout', () => {
         const packed = packWithPinned(layout, 6, {...layout[0], rows: 4});
 
         expect(packed.find(item => item.id === 2)).toMatchObject({column: 0, row: 4});
+    });
+
+    it('falls back to the first free cell when a collision is diagonal (neither same row nor column)', () => {
+        // The pinned block occupies columns 1-2, rows 1-2; the other item's original rectangle
+        // (columns 2-3, rows 0-1) overlaps it without sharing either its row or its column, so
+        // neither pushRight nor pushDown apply and firstFreeCell must resolve it instead.
+        const layout: LayoutItem[] = [
+            {id: 1, column: 1, row: 1, columns: 2, rows: 2},
+            {id: 2, column: 2, row: 0, columns: 2, rows: 2},
+        ];
+
+        const packed = packWithPinned(layout, 6, layout[0]);
+
+        const other = packed.find(item => item.id === 2)!;
+        expect(packed.find(item => item.id === 1)).toMatchObject({column: 1, row: 1});
+        // Landed somewhere that does not overlap the pinned block, not necessarily row 0.
+        const overlapsPinned = other.column < 3 && other.column + other.columns > 1 &&
+            other.row < 3 && other.row + other.rows > 1;
+        expect(overlapsPinned).toBe(false);
+    });
+
+    it('falls back to pushDown when pushRight has no room in a single-column grid', () => {
+        // With only one column available, pushRight (which only ever moves within the same row)
+        // can never find room, so the row-neighbour case must fall back to pushDown instead.
+        // packWithPinned enforces MIN_ROWS on the pinned block, so it occupies rows 0-1 even
+        // though it was only given rows: 1 - the other item is displaced to row 2, not row 1.
+        const layout: LayoutItem[] = [
+            {id: 1, column: 0, row: 0, columns: 1, rows: 1},
+            {id: 2, column: 0, row: 0, columns: 1, rows: 1},
+        ];
+
+        const packed = packWithPinned(layout, 1, layout[0]);
+
+        expect(packed.find(item => item.id === 2)).toMatchObject({column: 0, row: 2});
+    });
+
+    it('places every item in reading order, ignoring its original column/row', () => {
+        const items: LayoutItem[] = [
+            {id: 1, column: 5, row: 5, columns: 2, rows: 2},
+            {id: 2, column: 0, row: 0, columns: 3, rows: 1},
+        ];
+
+        const packed = packInOrder(items, 4);
+
+        // Processed in array order (not sorted): item 1 takes columns 0-1 across two rows first,
+        // leaving no room for item 2's 3-column span until the row after that.
+        expect(packed.find(item => item.id === 1)).toMatchObject({column: 0, row: 0});
+        expect(packed.find(item => item.id === 2)).toMatchObject({column: 0, row: 2});
+    });
+
+    it('re-packs in reading order when writeBack is given no pinned block (e.g. after a remove)', () => {
+        const narrow = packLayout(canonical, 2);
+        const remaining = narrow.filter(item => item.id !== 2);
+
+        const restored = writeBack(canonical, remaining);
+
+        expect(restored.map(item => item.id).sort()).toEqual([1, 3]);
+        expect(restored.find(item => item.id === 1)?.columns).toBe(4);
+        // No pinned id: falls to packInOrder, which never overlaps blocks.
+        const [first, second] = [...restored].sort((left, right) => left.row - right.row);
+        const overlap = first.column < second.column + second.columns &&
+            first.column + first.columns > second.column &&
+            first.row < second.row + second.rows && first.row + first.rows > second.row;
+        expect(overlap).toBe(false);
+    });
+
+    it('returns zero for an empty layout', () => {
+        expect(maxRow([])).toBe(0);
+    });
+
+    it('returns the furthest occupied row plus its height', () => {
+        expect(maxRow(canonical)).toBe(4);
+    });
+
+    it('returns an empty layout unchanged rather than erroring', () => {
+        expect(packLayout([], 4)).toEqual([]);
     });
 });
