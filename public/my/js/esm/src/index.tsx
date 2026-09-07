@@ -13,7 +13,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {Badge, Button, Link} from '@moodlehq/design-system';
 import {getString} from '@moodle/lms/core/stringUtils';
 import {requireManyAsync} from '@moodle/lms/core/amd';
@@ -205,7 +205,10 @@ const useResponsiveColumnCount = (
     const [columnCount, setColumnCount] = useState(1);
     const columnCountRef = useRef(1);
 
-    useEffect(() => {
+    // UseLayoutEffect, not useEffect: the initial columnCount=1 default must be corrected
+    // before the browser paints, not after - otherwise the grid visibly repacks from one
+    // column to the real column count on every load, a large, confirmed layout shift.
+    useLayoutEffect(() => {
         const grid = gridRef.current;
         if (!grid) {
             return undefined;

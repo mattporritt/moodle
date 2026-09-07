@@ -13,7 +13,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {columnsForWidth, packLayout, ROW_HEIGHT, type LayoutItem} from '../layout';
 
 interface DashboardLoadingProps {
@@ -36,7 +36,10 @@ const PositionedGrid = ({layout}: {layout: LayoutItem[]}) => {
     const gridRef = useRef<HTMLDivElement>(null);
     const [columnCount, setColumnCount] = useState(1);
 
-    useEffect(() => {
+    // UseLayoutEffect, not useEffect: see the matching comment on useResponsiveColumnCount
+    // in index.tsx - the same one-column-then-repack shift happens here on every load if this
+    // correction runs after paint instead of before it.
+    useLayoutEffect(() => {
         const grid = gridRef.current;
         if (!grid) {
             return undefined;
