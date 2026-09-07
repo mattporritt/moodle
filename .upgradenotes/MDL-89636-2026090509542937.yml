@@ -1,0 +1,11 @@
+issueNumber: MDL-89636
+notes:
+  core_block:
+    - message: >-
+        core_block_external::get_dashboard_blocks() is deprecated for the
+        default dashboard (mypage = MY_PAGE_DEFAULT): its region and weight no
+        longer reflect the flexible dashboard's real grid layout once a user
+        edits it. Use core_my_get_dashboard_blocks instead. This function is
+        unaffected, and remains correct, for the My courses page (mypage =
+        MY_PAGE_COURSES).
+      type: deprecated

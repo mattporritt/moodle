@@ -650,4 +650,17 @@ $definitions = array(
         'staticacceleration' => true,
         'staticaccelerationsize' => 1,
     ],
+
+    // The rendered dashboard response (\core_my\local\dashboard::get()) for the current user's
+    // own dashboard - keyed by 'view' or 'edit'. Rendering every block is the expensive part of
+    // that response, so this is scoped to the session (the response is per-user data, never
+    // shared) and purged proactively whenever the dashboard itself changes. The short ttl is only
+    // a safety net for staleness from something else changing in the meantime, for example
+    // completing an activity on another page.
+    'my_dashboard' => [
+        'mode' => cache_store::MODE_SESSION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 60,
+    ],
 );

@@ -1,0 +1,8 @@
+issueNumber: MDL-89636
+notes:
+  core_my:
+    - message: >-
+        Added core_my_get_dashboard_blocks, a mobile-safe read of the current
+        user's flexible dashboard: blocks and their real grid position, in
+        reading order. Available to the official mobile service.
+      type: improved
