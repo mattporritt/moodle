@@ -330,4 +330,59 @@ describe('core_my Dashboard application', () => {
         expect(runTemplateJS).toHaveBeenCalledTimes(1);
         expect(runTemplateJS).toHaveBeenCalledWith('window.__ran = "second";');
     });
+
+    it('keeps the dashboard pending until the grid\'s DOM mutations from a reload settle', async() => {
+        const data = buildData({javascript: 'window.__ran = "settle-mutate";'});
+        mockDashboardApi({getResponses: [data]});
+        (requireManyAsync as jest.Mock).mockImplementation(() => Promise.resolve([
+            {processCollectedJavascript: (source: string) => source},
+            {runTemplateJS: jest.fn()},
+        ]));
+        const pendingSpy = jest.spyOn((globalThis as {M: {util: {js_pending: Function}}}).M.util, 'js_pending');
+        const completeSpy = jest.spyOn((globalThis as {M: {util: {js_complete: Function}}}).M.util, 'js_complete');
+
+        const {container} = render(<Dashboard />);
+        await screen.findByText('First block');
+
+        await waitFor(() => expect(pendingSpy.mock.calls.some(
+            ([key]) => (key as string).startsWith('core_my/dashboard:settling:'),
+        )).toBe(true));
+        const settlingKey = pendingSpy.mock.calls
+            .map(([key]) => key as string)
+            .find(key => key.startsWith('core_my/dashboard:settling:'))!;
+
+        // Simulate a block's own async fetch replacing its placeholder content - a structural
+        // (childList) mutation somewhere under the grid - well within the quiet window.
+        const grid = container.querySelector('.core-my-dashboard-grid')!;
+        await act(async() => {
+            grid.appendChild(document.createElement('div'));
+        });
+
+        expect(completeSpy).not.toHaveBeenCalledWith(settlingKey);
+
+        await waitFor(() => expect(completeSpy).toHaveBeenCalledWith(settlingKey), {timeout: 2000});
+    });
+
+    it('settles quickly when a reload causes no DOM mutations at all', async() => {
+        const data = buildData({javascript: 'window.__ran = "settle-quiet";'});
+        mockDashboardApi({getResponses: [data]});
+        (requireManyAsync as jest.Mock).mockImplementation(() => Promise.resolve([
+            {processCollectedJavascript: (source: string) => source},
+            {runTemplateJS: jest.fn()},
+        ]));
+        const pendingSpy = jest.spyOn((globalThis as {M: {util: {js_pending: Function}}}).M.util, 'js_pending');
+        const completeSpy = jest.spyOn((globalThis as {M: {util: {js_complete: Function}}}).M.util, 'js_complete');
+
+        render(<Dashboard />);
+        await screen.findByText('First block');
+
+        await waitFor(() => expect(pendingSpy.mock.calls.some(
+            ([key]) => (key as string).startsWith('core_my/dashboard:settling:'),
+        )).toBe(true));
+        const settlingKey = pendingSpy.mock.calls
+            .map(([key]) => key as string)
+            .find(key => key.startsWith('core_my/dashboard:settling:'))!;
+
+        await waitFor(() => expect(completeSpy).toHaveBeenCalledWith(settlingKey), {timeout: 2000});
+    });
 });

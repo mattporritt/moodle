@@ -17,6 +17,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Badge, Button, Link} from '@moodlehq/design-system';
 import {getString} from '@moodle/lms/core/stringUtils';
 import {requireManyAsync} from '@moodle/lms/core/amd';
+import Pending from '@moodle/lms/core/pending';
 import DashboardTile from './components/DashboardTile';
 import ConfirmationDialog from './components/ConfirmationDialog';
 import BlockPalette from './components/BlockPalette';
@@ -96,6 +97,11 @@ interface PaletteTarget {
 
 type ConfirmAction = {type: 'remove'; id: number} | {type: 'reset'};
 
+// See the settling MutationObserver in the collected-JS effect below for what these guard.
+const DASHBOARD_SETTLE_QUIET_MS = 250;
+const DASHBOARD_SETTLE_TIMEOUT_MS = 5000;
+let dashboardSettleCounter = 0;
+
 const isSiteDefault = (): boolean => window.location.pathname.endsWith('/my/indexsys.php');
 
 const layoutChanged = (original: LayoutItem, draft: LayoutItem): boolean =>
@@ -153,6 +159,48 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         // Guard against a superseded reload's async script running after a newer one has
         // already replaced the tile content it was written to target.
         let superseded = false;
+
+        // A block's own async fetch-and-replace of its rendered content (e.g. Course overview,
+        // Recently accessed items) is invisible to anything watching M.util.pending_js - Behat's
+        // wait_for_pending_js() included - unless that block's own code says so, which this
+        // project's acceptance criteria rules out asking every block to do (a backwards-
+        // compatible block API extension to do this properly is filed as a follow-up on the
+        // parent epic). Detect it generically instead: such a replacement is always a
+        // structural (childList) DOM mutation somewhere under the grid, so treat the dashboard
+        // as still settling from the moment this reload's collected JS starts running until the
+        // grid goes quiet for a short window - bounded by a hard ceiling in case some future
+        // block's own mutations (or a genuine failure) never quiesce, so this can never hang a
+        // caller indefinitely. Only childList is watched (not attributes/characterData), so
+        // unrelated noise - drag positioning, resize-driven style changes - never resets it.
+        let settled = false;
+        let quietTimer: ReturnType<typeof setTimeout> | undefined;
+        let hardTimer: ReturnType<typeof setTimeout> | undefined;
+        let observer: MutationObserver | undefined;
+        const pending = new Pending(`core_my/dashboard:settling:${dashboardSettleCounter++}`);
+        const settle = () => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            clearTimeout(quietTimer);
+            clearTimeout(hardTimer);
+            observer?.disconnect();
+            pending.resolve();
+        };
+        hardTimer = setTimeout(settle, DASHBOARD_SETTLE_TIMEOUT_MS);
+        const grid = gridRef.current;
+        if (grid) {
+            observer = new MutationObserver(() => {
+                clearTimeout(quietTimer);
+                quietTimer = setTimeout(settle, DASHBOARD_SETTLE_QUIET_MS);
+            });
+            observer.observe(grid, {childList: true, subtree: true});
+        }
+        // Nothing may ever mutate at all (every block already rendered its final content
+        // server-side) - start the quiet window immediately too, not only on the observer's
+        // first callback.
+        quietTimer = setTimeout(settle, DASHBOARD_SETTLE_QUIET_MS);
+
         void requireManyAsync(['core/fragment', 'core/templates']).then(([fragment, templates]) => {
             if (superseded) {
                 return undefined;
@@ -164,6 +212,7 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         });
         return () => {
             superseded = true;
+            settle();
         };
     }, [data]);
 
