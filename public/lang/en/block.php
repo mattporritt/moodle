@@ -47,6 +47,7 @@ $string['deleteblockinprogress'] = 'Block {$a} removal in progress...';
 $string['deleteblockwarning'] = '<p>You are about to delete a block that appears elsewhere.</p><p>Original block location: {$a->location}<br />Display on page types: {$a->pagetype}</p><p>Are you sure you want to continue?</p>';
 $string['hideblock'] = 'Hide {$a} block';
 $string['hidepanel'] = 'Hide panel';
+$string['managepermissions'] = 'Manage permissions';
 $string['moveblock'] = 'Move {$a} block';
 $string['moveblockafter'] = 'Move block to after {$a} block';
 $string['moveblockbefore'] = 'Move block to before {$a} block';

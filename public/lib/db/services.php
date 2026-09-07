@@ -1680,6 +1680,25 @@ $functions = array(
         'type'          => 'write',
         'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'core_my_get_dashboard' => [
+        'classname' => '\core_my\external\get_dashboard',
+        'description' => 'Fetch the responsive dashboard grid, rendered blocks and available block types.',
+        'type' => 'read',
+        'ajax' => true,
+    ],
+    'core_my_update_dashboard' => [
+        'classname' => '\core_my\external\update_dashboard',
+        'description' => 'Persist a dashboard layout or add, remove or reset dashboard blocks.',
+        'type' => 'write',
+        'ajax' => true,
+    ],
+    'core_my_get_dashboard_blocks' => [
+        'classname' => '\core_my\external\get_dashboard_blocks',
+        'description' => 'Fetch the current user\'s dashboard blocks and their real grid position, in reading order.',
+        'type' => 'read',
+        'ajax' => true,
+        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
     'core_notes_create_notes' => array(
         'classname' => 'core_notes_external',
         'methodname' => 'create_notes',

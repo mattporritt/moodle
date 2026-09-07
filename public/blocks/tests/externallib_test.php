@@ -334,6 +334,8 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         // Check for the default blocks.
         $result = core_block_external::get_dashboard_blocks($user->id);
+        // This is deprecated for the default dashboard - see MDL-89636.
+        $this->assertDebuggingCalled();
         // We need to execute the return values cleaning process to simulate the web service server.
         $result = \core_external\external_api::clean_returnvalue(core_block_external::get_dashboard_blocks_returns(), $result);
         // Expect all default blocks defined in blocks_add_default_system_blocks().
@@ -389,6 +391,8 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         // Check for the default blocks plus the sticky.
         $result = core_block_external::get_dashboard_blocks($user->id);
+        // This is deprecated for the default dashboard - see MDL-89636.
+        $this->assertDebuggingCalled();
         // We need to execute the return values cleaning process to simulate the web service server.
         $result = \core_external\external_api::clean_returnvalue(core_block_external::get_dashboard_blocks_returns(), $result);
         // Expect all default blocks defined in blocks_add_default_system_blocks() plus sticky one.
@@ -441,6 +445,8 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         // Check for the new block as admin for a user.
         $result = core_block_external::get_dashboard_blocks($user->id);
+        // This is deprecated for the default dashboard - see MDL-89636.
+        $this->assertDebuggingCalled();
         // We need to execute the return values cleaning process to simulate the web service server.
         $result = \core_external\external_api::clean_returnvalue(core_block_external::get_dashboard_blocks_returns(), $result);
         // Expect all default blocks defined in blocks_add_default_system_blocks() plus the one we added.
@@ -469,8 +475,13 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         $this->setUser($user1);
 
-        $this->expectException('moodle_exception');
-        core_block_external::get_dashboard_blocks($user2->id);
+        try {
+            core_block_external::get_dashboard_blocks($user2->id);
+            $this->fail('Exception expected due to missing capability.');
+        } catch (\moodle_exception $e) {
+            // This is deprecated for the default dashboard - see MDL-89636.
+            $this->assertDebuggingCalled();
+        }
     }
 
     /**
@@ -502,6 +513,9 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         // Check for the default blocks.
         $result = core_block_external::get_dashboard_blocks($user->id, false, MY_PAGE_COURSES);
+        // This emits a deprecation notice regardless of $mypage - see MDL-89636.
+        // It remains correct for MY_PAGE_COURSES; only the default dashboard has a replacement.
+        $this->assertDebuggingCalled();
         // We need to execute the return values cleaning process to simulate the web service server.
         $result = \core_external\external_api::clean_returnvalue(core_block_external::get_dashboard_blocks_returns(), $result);
         // Expect all default blocks defined in blocks_add_default_system_blocks().
@@ -542,9 +556,14 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
         // Disable My courses.
         $CFG->enablemycourses = 0;
 
-        $this->expectException('moodle_exception');
-        $this->expectExceptionMessage(get_string('error:mycoursesisdisabled', 'my'));
-        core_block_external::get_dashboard_blocks($user->id, false, MY_PAGE_COURSES);
+        try {
+            core_block_external::get_dashboard_blocks($user->id, false, MY_PAGE_COURSES);
+            $this->fail('Exception expected because My courses is disabled.');
+        } catch (\moodle_exception $e) {
+            // This emits a deprecation notice regardless of $mypage - see MDL-89636.
+            $this->assertDebuggingCalled();
+            $this->assertStringContainsString(get_string('error:mycoursesisdisabled', 'my'), $e->getMessage());
+        }
     }
 
     /**
@@ -559,9 +578,13 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         $this->setUser($user);
 
-        $this->expectException('moodle_exception');
-        // Check for the default blocks with a fake page, no need to assign as it'll throw.
-        core_block_external::get_dashboard_blocks($user->id, false, 'fakepage');
-
+        try {
+            // Check for the default blocks with a fake page, no need to assign as it'll throw.
+            core_block_external::get_dashboard_blocks($user->id, false, 'fakepage');
+            $this->fail('Exception expected due to an invalid page type.');
+        } catch (\moodle_exception $e) {
+            // This is deprecated for the default dashboard - see MDL-89636.
+            $this->assertDebuggingCalled();
+        }
     }
 }

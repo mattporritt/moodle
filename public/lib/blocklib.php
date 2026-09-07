@@ -1330,6 +1330,22 @@ class block_manager {
         }
     }
 
+    /**
+     * Refresh rendered block content while keeping the loaded block instances.
+     *
+     * This is useful when a page header has rendered a block region, but the
+     * same block content needs to be rendered again into a separately collected
+     * fragment response.
+     */
+    public function refresh_cached_content(): void {
+        $this->visibleblockcontent = [];
+        foreach ($this->blockinstances as $instances) {
+            foreach ($instances as $instance) {
+                $instance->refresh_content();
+            }
+        }
+    }
+
 /// Process actions from the URL ===============================================
 
     /**
@@ -1420,7 +1436,7 @@ class block_manager {
         if (has_capability('moodle/role:review', $block->context) or get_overridable_roles($block->context)) {
             $rolesurl = new moodle_url('/admin/roles/permissions.php', array('contextid' => $block->context->id,
                 'returnurl' => $this->page->url->out_as_local_url()));
-            $str = get_string('permissions', 'role');
+            $str = get_string('managepermissions', 'block');
             $controls[] = new action_menu_link_secondary(
                 $rolesurl,
                 new pix_icon('i/permissions', $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
@@ -1975,6 +1991,17 @@ class block_manager {
             $config->$field = $value;
         }
         $block->instance_config_save($config);
+
+        if ($this->page->pagelayout === 'mydashboard') {
+            // The flexible dashboard grid (MDL-89636) owns each block's page position
+            // (block_positions.gridcolumn/gridrow/gridcolumns/gridrows) via
+            // core_my\local\dashboard, not the region/weight/visible fields below - which
+            // block_edit_form hides here for that reason. Falling through would still delete or
+            // overwrite that same block_positions row (matching region/weight/visible against the
+            // instance's own defaults, as a freshly grid-added block always does, deletes it
+            // outright), destroying the grid position data it holds.
+            return;
+        }
 
         $bp = new stdClass;
         $bp->visible = $data->bui_visible;

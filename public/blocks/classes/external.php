@@ -224,7 +224,17 @@ class core_block_external extends external_api {
      *
      * @return external_function_parameters
      * @since Moodle 3.6
+     * @deprecated Since Moodle 5.3 MDL-89636, for the default dashboard only.
      */
+    #[\core\attribute\deprecated(
+        'core_my_get_dashboard_blocks',
+        since: '5.3',
+        reason: 'The default dashboard (mypage = MY_PAGE_DEFAULT) now stores its layout as a two-dimensional ' .
+            'grid rather than in block region/weight order, so the region and weight this function returns no ' .
+            'longer reflect what the user actually sees once they have edited their layout. This function is ' .
+            'unaffected, and continues to be the correct call, for the My courses page (mypage = MY_PAGE_COURSES).',
+        mdl: 'MDL-89636',
+    )]
     public static function get_dashboard_blocks_parameters() {
         return new external_function_parameters(
             array(
@@ -244,9 +254,21 @@ class core_block_external extends external_api {
      * @return array Blocks list and possible warnings
      * @throws moodle_exception
      * @since Moodle 3.6
+     * @deprecated Since Moodle 5.3 MDL-89636, for the default dashboard only.
      */
+    #[\core\attribute\deprecated(
+        'core_my_get_dashboard_blocks',
+        since: '5.3',
+        reason: 'The default dashboard (mypage = MY_PAGE_DEFAULT) now stores its layout as a two-dimensional ' .
+            'grid rather than in block region/weight order, so the region and weight this function returns no ' .
+            'longer reflect what the user actually sees once they have edited their layout. This function is ' .
+            'unaffected, and continues to be the correct call, for the My courses page (mypage = MY_PAGE_COURSES).',
+        mdl: 'MDL-89636',
+    )]
     public static function get_dashboard_blocks($userid = 0, $returncontents = false, $mypage = MY_PAGE_DEFAULT) {
         global $CFG, $USER, $PAGE;
+
+        \core\deprecation::emit_deprecation(__METHOD__);
 
         require_once($CFG->dirroot . '/my/lib.php');
 
@@ -306,7 +328,17 @@ class core_block_external extends external_api {
      *
      * @return external_single_structure
      * @since Moodle 3.6
+     * @deprecated Since Moodle 5.3 MDL-89636, for the default dashboard only.
      */
+    #[\core\attribute\deprecated(
+        'core_my_get_dashboard_blocks',
+        since: '5.3',
+        reason: 'The default dashboard (mypage = MY_PAGE_DEFAULT) now stores its layout as a two-dimensional ' .
+            'grid rather than in block region/weight order, so the region and weight this function returns no ' .
+            'longer reflect what the user actually sees once they have edited their layout. This function is ' .
+            'unaffected, and continues to be the correct call, for the My courses page (mypage = MY_PAGE_COURSES).',
+        mdl: 'MDL-89636',
+    )]
     public static function get_dashboard_blocks_returns() {
 
         return new external_single_structure(
@@ -315,5 +347,14 @@ class core_block_external extends external_api {
                 'warnings'  => new external_warnings(),
             )
         );
+    }
+
+    /**
+     * Mark get_dashboard_blocks as deprecated.
+     *
+     * @return bool
+     */
+    public static function get_dashboard_blocks_is_deprecated(): bool {
+        return true;
     }
 }

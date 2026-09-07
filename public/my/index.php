@@ -23,12 +23,20 @@
  * - the administrators can define a default site dashboard for users who have
  *   not created their own dashboard
  *
- * This script implements the user's view of the dashboard, and allows editing
- * of the dashboard.
+ * This script sets up the page (context, editing state, blocks) exactly as the classic
+ * dashboard always has, then hands off rendering to the responsive React grid (MDL-89636,
+ * see {@see \core_my\local\dashboard}) instead of the legacy block-region template output:
+ * this file's own output is just a page shell and a mount point, plus a server-rendered
+ * loading placeholder shaped like the user's real layout so the first paint (before the
+ * React bundle has even loaded) already looks like their dashboard. All of the actual grid
+ * data - blocks, layout, available block types, capabilities - is fetched by the React
+ * application itself over the web service in {@see \core_my\external\get_dashboard}, not
+ * assembled here.
  *
  * @package    moodlecore
  * @subpackage my
  * @copyright  2010 Remote-Learner.net
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @author     Hubert Chathi <hubert@remote-learner.net>
  * @author     Olav Jordan <olav.jordan@remote-learner.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -100,9 +108,11 @@ $PAGE->set_context($context);
 $PAGE->set_url('/my/index.php', $params);
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_docs_path('dashboard');
-$PAGE->add_body_class('limitedwidth');
+$PAGE->add_body_class('core-my-dashboard-page');
 $PAGE->set_pagetype('my-index');
 $PAGE->blocks->add_region('content');
+$PAGE->blocks->show_only_fake_blocks(true);
+$PAGE->force_lock_all_blocks();
 $PAGE->set_subpage($currentpage->id);
 $PAGE->set_title($pagetitle);
 $PAGE->set_heading($pagetitle);
@@ -170,14 +180,6 @@ if (empty($CFG->forcedefaultmymoodle) && $PAGE->user_allowed_editing()) {
         $editstring = get_string('updatemymoodleon');
     } else {
         $editstring = get_string('updatemymoodleoff');
-        $resetbutton = $OUTPUT->single_button(
-            new moodle_url('/my/index.php', ['edit' => 1, 'reset' => 1]),
-            get_string('resetpage', 'my'),
-            options: [
-                'data-modal' => 'confirmation',
-                'data-modal-content-str' => json_encode(['resetpageconfirm', 'my']),
-            ],
-        );
     }
 
     $url = new moodle_url("$CFG->wwwroot/my/index.php", $params);
@@ -191,15 +193,28 @@ if (empty($CFG->forcedefaultmymoodle) && $PAGE->user_allowed_editing()) {
     $USER->editing = $edit = 0;
 }
 
+// Dashboard blocks may supply AMD initialisers as part of the dashboard data response.
+// Ensure the page-level loader is available before the React application receives them.
+$PAGE->requires->js_call_amd('core/first');
+
 echo $OUTPUT->header();
 
 if (core_userfeedback::should_display_reminder()) {
     core_userfeedback::print_reminder_block();
 }
 
-echo $OUTPUT->addblockbutton('content');
-
-echo $OUTPUT->custom_block_region('content');
+// The mount point's contents (get_loading_placeholder()'s output) are only ever seen for the
+// brief window before the React bundle finishes loading and replaces them; get_skeleton_layout()
+// reads the persisted grid shape cheaply (no block instantiation) so that placeholder already
+// matches the user's real layout instead of a generic grid. data-react-component/data-react-props
+// are read by the page's generic React auto-init (core/react_autoinit), which finds this element,
+// mounts core_my/index.tsx onto it and passes initialLayout/loadingLabel through as props.
+$loadinglabel = get_string('loading');
+$initiallayout = \core_my\local\dashboard::get_skeleton_layout(false);
+echo html_writer::div(\core_my\local\dashboard::get_loading_placeholder($initiallayout), 'core-my-dashboard-mount', [
+    'data-react-component' => '@moodle/lms/core_my/index',
+    'data-react-props' => json_encode(['loadingLabel' => $loadinglabel, 'initialLayout' => $initiallayout]),
+]);
 
 echo $OUTPUT->footer();
 
