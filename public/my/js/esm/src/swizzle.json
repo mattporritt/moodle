@@ -1,0 +1,34 @@
+{
+    "index": {
+        "eject": "risky",
+        "wrap": "safe"
+    },
+    "components/DashboardTile": {
+        "eject": "safe",
+        "wrap": "safe"
+    },
+    "components/DashboardHandle": {
+        "eject": "safe",
+        "wrap": "safe"
+    },
+    "components/DashboardLoading": {
+        "eject": "safe",
+        "wrap": "safe"
+    },
+    "components/GridCell": {
+        "eject": "safe",
+        "wrap": "safe"
+    },
+    "components/GridControls": {
+        "eject": "safe",
+        "wrap": "safe"
+    },
+    "components/BlockPalette": {
+        "eject": "safe",
+        "wrap": "safe"
+    },
+    "components/ConfirmationDialog": {
+        "eject": "safe",
+        "wrap": "safe"
+    }
+}
