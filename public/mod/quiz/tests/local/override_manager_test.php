@@ -1174,6 +1174,52 @@ final class override_manager_test extends \advanced_testcase {
     }
 
     /**
+     * Test the deprecated get_effective_open_close_times() returns an empty array when there
+     * are no overrides at all.
+     *
+     * @covers \mod_quiz\local\override_manager::get_effective_open_close_times
+     */
+    public function test_get_effective_open_close_times_no_overrides(): void {
+        $this->setAdminUser();
+        $this->resetAfterTest();
+
+        [$quizobj, $course] = $this->create_quiz_and_course();
+        $user = $this->getDataGenerator()->create_and_enrol($course);
+
+        $this->assertSame(
+            [],
+            override_manager::get_effective_open_close_times($quizobj->get_quizid(), $user->id),
+        );
+        $this->assertDebuggingCalled();
+    }
+
+    /**
+     * Test the deprecated get_effective_open_close_times() strips the 'duedate' key when only
+     * a duedate override is set, with no timeopen/timeclose override.
+     *
+     * @covers \mod_quiz\local\override_manager::get_effective_open_close_times
+     */
+    public function test_get_effective_open_close_times_duedate_only_override(): void {
+        $this->setAdminUser();
+        $this->resetAfterTest();
+
+        [$quizobj, $course] = $this->create_quiz_and_course();
+        $user = $this->getDataGenerator()->create_and_enrol($course);
+
+        $manager = $quizobj->get_override_manager();
+        $manager->save_override([
+            'userid' => $user->id,
+            'duedate' => 450,
+        ]);
+
+        $this->assertSame(
+            [],
+            override_manager::get_effective_open_close_times($quizobj->get_quizid(), $user->id),
+        );
+        $this->assertDebuggingCalled();
+    }
+
+    /**
      * Test get_effective_times() applies a group override to its members.
      */
     public function test_get_effective_times_group_override(): void {
