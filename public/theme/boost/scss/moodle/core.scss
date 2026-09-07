@@ -1760,6 +1760,13 @@ nav.navbar .logo img {
     }
 }
 
+// core/welcome (public/lib/templates/welcome.mustache), rendered by core_renderer::full_header()
+// on any page configured as the site homepage. Default spacing matches the classic mb-2 utility;
+// theme_boost/my.scss overrides this for the flexible dashboard layout.
+.core-welcome-message {
+    margin-bottom: 0.5rem;
+}
+
 /** Header-bar styles **/
 .page-context-header {
     // We need to be explicit about the height of the header.

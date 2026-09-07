@@ -220,7 +220,12 @@ $blocks-plus-gutter: calc(#{$blocks-column-width} + (#{$grid-gutter-width} * 0.5
         margin-top: 0;
     }
 }
-#block-region-side-pre {
+// The flexible dashboard grid (MDL-89636) has no block-region markup: DashboardTile sets
+// data-blockregion to 'side-pre' instead, based on the tile's own rendered width - narrow
+// there for the same reason the classic side region is: not enough room for the pagination
+// bar's negative margin to sit correctly.
+#block-region-side-pre,
+[data-blockregion="side-pre"] {
     .block_recentlyaccessedcourses {
         .paging-bar-container {
             margin-top: 0;
@@ -237,7 +242,15 @@ $blocks-plus-gutter: calc(#{$blocks-column-width} + (#{$grid-gutter-width} * 0.5
         width: 40px;
         height: 40px;
     }
-    aside[id^="block-region-side-"] & .card:nth-of-type(n+4) {
+    // The flexible dashboard grid (MDL-89636) has no block-region markup: DashboardTile sets
+    // data-blockregion to 'side-pre' or 'content' instead, based on the tile's own rendered
+    // width - not, as on classic pages, on whether the block sits in the boundless main content
+    // area. Every dashboard tile is space-constrained, so both values need the same truncation
+    // there; the button-hiding rule below stays classic-only, since it exists for the boundless
+    // main content area, which the dashboard grid has no equivalent of.
+    aside[id^="block-region-side-"] & .card:nth-of-type(n+4),
+    [data-blockregion="side-pre"] & .card:nth-of-type(n+4),
+    [data-blockregion="content"] & .card:nth-of-type(n+4) {
         display: none;
     }
     #block-region-content & [data-region="more-items-button-container"] {

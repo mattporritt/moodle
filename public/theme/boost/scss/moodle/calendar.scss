@@ -690,6 +690,12 @@ table.calendartable caption {
                                     margin-top: calc(100% - 26px);
                                 }
 
+                                // Beats #region-main .maincalendar .calendarwrapper td > div's fixed
+                                // 11.5em height, which otherwise leaks into embedded/side calendars.
+                                & > div {
+                                    height: auto !important; // stylelint-disable-line declaration-no-important
+                                }
+
                                 &.clickable:hover {
                                     background-color: inherit;
                                 }
