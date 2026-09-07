@@ -75,6 +75,13 @@ const occupy = (occupied: Set<string>, item: LayoutItem): void => {
     }
 };
 
+/**
+ * Lay every item out fresh in reading order (top-to-bottom, left-to-right), ignoring each item's
+ * existing column/row entirely and only respecting its size - the first free cell (scanning row
+ * by row) that fits each item's (possibly narrowed) column span wins. Used by writeBack() as the
+ * fallback when there is no pinned item to pack around: e.g. after a remove, where the simplest
+ * correct layout is just "every remaining block, in the same relative order as before".
+ */
 export const packInOrder = (items: LayoutItem[], columnCount: number): LayoutItem[] => {
     const occupied = new Set<string>();
     return items.map(item => {
@@ -124,6 +131,19 @@ const shiftToFit = (items: LayoutItem[], columnCount: number): LayoutItem[] | nu
         .map(item => ({...item, column: item.column - shift, sourceColumns: item.sourceColumns ?? item.columns}));
 };
 
+/**
+ * Resolve the canonical (persisted, up-to-MAX_COLUMNS-wide) layout into one that fits the grid's
+ * current responsive column count, for display.
+ *
+ * Tries shiftToFit() first (see its own comment) so that narrowing the viewport only reflows
+ * blocks when their content would actually be clipped, not merely when empty margin columns
+ * would be. Only once that is not possible does this fall back to placing every item at its
+ * clamped size (`Math.min(item.columns, columnCount)`) as close to its original column/row as
+ * a free cell allows, scanning in row-major reading order from there if the original spot is
+ * already taken. Every clamped item's original (canonical) column count survives in
+ * `sourceColumns`, so writeBack() can restore it once the interaction that produced a new
+ * `displayLayout` is saved back at full width.
+ */
 export const packLayout = (items: LayoutItem[], columnCount: number): LayoutItem[] => {
     const shifted = shiftToFit(items, columnCount);
     if (shifted) {
@@ -279,6 +299,20 @@ export const packWithPinned = (
     return result;
 };
 
+/**
+ * Turn a `derived` layout - produced by packLayout()/packWithPinned() at the current, possibly
+ * narrowed, responsive column count - back into a canonical layout safe to persist at the full
+ * MAX_COLUMNS width the server always stores.
+ *
+ * Column spans that packLayout() narrowed for display are restored from `sourceColumns` (falling
+ * back to the item's width in the previous canonical layout, or its current width as a last
+ * resort) for every item except the one the caller is actively resizing (`pinnedId`), whose new
+ * width is the whole point of the change and must be kept as-is. Once every item's width is back
+ * to canonical, the set is re-packed at MAX_COLUMNS - around the pinned item if there is one
+ * (packWithPinned, so the rest of the layout displaces around it exactly as it did on-screen), or
+ * in reading order if not (packInOrder, e.g. after a remove) - because restoring widths alone can
+ * reintroduce overlaps a narrower layout had already resolved away.
+ */
 export const writeBack = (
     canonical: LayoutItem[],
     derived: LayoutItem[],

@@ -26,6 +26,14 @@ use core_my\local\dashboard;
 /**
  * Persist layout changes and perform dashboard block actions.
  *
+ * A single endpoint for every dashboard mutation (save/add/remove/reset), rather than one
+ * function per action, keeps the client to one call shape for every button on the grid; the
+ * capability check for the requested action is left to the corresponding
+ * {@see \core_my\local\dashboard} method itself (each of save(), add(), remove() and reset()
+ * calls require_capability()/require_edit_capability() before touching anything), since which
+ * capability applies can depend on the action (reset(), for example, is only ever meaningful for
+ * a user's own dashboard, never the site default).
+ *
  * @package    core_my
  * @category   external
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
@@ -86,15 +94,24 @@ final class update_dashboard extends external_api {
         $newblockid = 0;
         switch ($params['action']) {
             case 'save':
+                // Persist a full drag/resize layout, e.g. after the user releases a drag handle.
                 dashboard::save($params['sitedefault'], $params['layout']);
                 break;
             case 'add':
+                // A new block's position and rendered content are both server-assigned, so the
+                // client cannot draw it optimistically; it reloads via get_dashboard afterwards.
                 $newblockid = dashboard::add($params['sitedefault'], $params['blockname']);
                 break;
             case 'remove':
                 dashboard::remove($params['sitedefault'], $params['blockid']);
                 break;
             case 'reset':
+                // Resetting a user's own dashboard means "discard my customisation and revert to
+                // the site default" (see dashboard::reset(), which calls my_reset_page()) - a
+                // concept that is meaningless for the site default dashboard itself, since there
+                // is nothing above it to revert to. Resetting every user's dashboard at once is a
+                // distinct, deliberately separate admin action (see my/indexsys.php's resetall
+                // flow), not something this generic per-scope endpoint should also be able to do.
                 if ($params['sitedefault']) {
                     throw new \invalid_parameter_exception('The site-default dashboard cannot reset itself.');
                 }

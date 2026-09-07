@@ -24,7 +24,11 @@ use core_external\external_value;
 use core_my\local\dashboard;
 
 /**
- * Fetch the responsive dashboard data.
+ * Fetch the responsive dashboard data: blocks, layout, capabilities and UI labels the React
+ * application needs to render a full dashboard load (see {@see \core_my\local\dashboard::get()}).
+ * Called once on initial mount and again after any change that the client cannot safely predict
+ * the server-side result of (e.g. adding a block, since its assigned position and rendered
+ * content both come from the server).
  *
  * @package    core_my
  * @category   external
@@ -45,6 +49,12 @@ final class get_dashboard extends external_api {
 
     /**
      * Execute the request.
+     *
+     * The site-default dashboard is a shared, admin-managed resource (context_system), so reading
+     * it is gated by moodle/my:configsyspages; a user's own dashboard (context_user) needs no such
+     * check here; whether the requesting user is even allowed to see it at all is already settled
+     * by validate_context(), and whether they may edit it is a separate, less restrictive
+     * capability check ('canedit' in the returned payload, not an access-control decision).
      *
      * @param bool $sitedefault Whether to fetch the site default.
      * @return array

@@ -132,6 +132,12 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
     const dataRef = useRef<DashboardData | null>(null);
     const siteDefault = isSiteDefault();
 
+    /**
+     * Fetch a full dashboard payload and reset the canonical layout to match it.
+     *
+     * Called on mount and after any server-side mutation the client cannot safely predict the
+     * result of (adding a block, removing one, resetting to the site default) - see get_dashboard.
+     */
     const load = useCallback(async() => {
         try {
             const response = await getDashboard(siteDefault);
@@ -251,10 +257,20 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
     }, [displayLayout, interaction, previewLayout]);
     const blocksById = useMemo(() => new Map((data?.blocks ?? []).map(block => [block.id, block])), [data]);
 
+    /** Set the live region's text so screen readers announce a move/resize outcome. */
     const announce = useCallback(async(key: string, value?: string | Record<string, unknown>) => {
         setAnnouncement(await getString(key, 'my', value));
     }, []);
 
+    /**
+     * Begin a move or resize interaction on a tile.
+     *
+     * `origin` distinguishes how the interaction started (keyboard activation, a mouse click that
+     * turns out not to be a drag, or an active pointer drag) because several things downstream -
+     * whether the on-screen move/resize controls are shown, whether other tiles animate out of the
+     * way live, whether Escape/Enter apply - only make sense for some of these (see showControls
+     * and shouldAnimatePosition where Interaction is consumed further down).
+     */
     const start = useCallback((id: number, mode: 'move' | 'resize', origin: Interaction['origin'] = 'keyboard') => {
         const item = displayLayout.find(candidate => candidate.id === id);
         const block = blocksById.get(id);
@@ -267,6 +283,14 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         void announce(mode === 'move' ? 'dashboardmovebegin' : 'dashboardresizebegin', block.title);
     }, [announce, blocksById, displayLayout]);
 
+    /**
+     * Nudge the in-progress interaction's draft rectangle by whole grid cells - one keypress, one
+     * cell. (pointerDown's own `move` handler needs sub-cell drag position for the tile to track
+     * the pointer smoothly, so it recomputes the equivalent clamping itself rather than reusing
+     * this; see the comment there.) A resize that would fall below the minimum tile size is
+     * rejected (with an announcement) rather than clamped, so the keyboard controls never go
+     * silently unresponsive at the limit.
+     */
     const shift = useCallback((horizontal: number, vertical: number) => {
         setInteraction(current => {
             if (!current) {
@@ -292,6 +316,19 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         });
     }, [announce, columnCount]);
 
+    /**
+     * Persist the in-progress interaction's draft rectangle as the new canonical layout.
+     *
+     * Reads from refs (currentData/currentDisplay/currentCanonical/currentColumns), not state,
+     * because this can be invoked from a pointerup listener registered once per drag in
+     * pointerDown's closure - by the time the user releases, several renders may have happened
+     * and captured state there would be stale. packWithPinned resolves any other tiles the
+     * committed rectangle now overlaps (recorded in `disturbed`, purely for the a11y announcement);
+     * writeBack then restores every item's canonical (full-width) column span and re-packs at
+     * that width, so the persisted layout matches what was just resolved on-screen rather than
+     * whatever the current, possibly narrower, responsive column count would produce (see the
+     * writeBack/packLayout comments in layout.ts).
+     */
     const commit = useCallback(async() => {
         const current = interactionRef.current;
         const currentData = dataRef.current;
@@ -326,6 +363,7 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         }
     }, [announce, siteDefault]);
 
+    /** Abandon the in-progress interaction, discarding its draft rectangle unsaved. */
     const cancel = useCallback(() => {
         if (interaction) {
             void announce('dashboardoperationdiscarded');
@@ -334,6 +372,11 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         setInteraction(null);
     }, [announce, interaction]);
 
+    /**
+     * Keyboard-driven move/resize: Space/Enter starts or commits an interaction, Escape cancels
+     * it, and the arrow keys nudge it one cell via shift() - a full keyboard-only equivalent of
+     * the pointer drag pointerDown offers with a mouse.
+     */
     const keyDown = useCallback((event: React.KeyboardEvent, id: number, mode: 'move' | 'resize') => {
         if (!interaction && (event.key === ' ' || event.key === 'Enter')) {
             event.preventDefault();
@@ -361,6 +404,24 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         }
     }, [cancel, commit, interaction, shift, start]);
 
+    /**
+     * Mouse/touch-driven move or resize, tracked with raw window pointer listeners rather than
+     * React drag events so the drag keeps following the pointer even outside the tile or the grid.
+     *
+     * Two coordinate systems are maintained together throughout the drag: `draft` (whole grid
+     * cells - column/row/columns/rows, exactly what shift()/keyDown also produce, and the only
+     * form the server ever sees) and `drag` (raw sub-cell pixel offsets/dimensions, used only to
+     * animate the dragged tile smoothly under the pointer - see DashboardTile). `columnStride` and
+     * `rowStride` are one cell plus one gap each, i.e. the pixel distance between equivalent points
+     * on adjacent cells; dividing a pixel delta by a stride and rounding is what turns a drag
+     * distance into a whole number of cells for `draft`. A move is capped so the tile's whole
+     * rectangle - not just its origin corner - stays on the grid (`columnCount - draft.columns`,
+     * never negative row); a resize is capped so it never shrinks below the minimum tile size and
+     * never grows past the grid's right edge. `pointer.moved` (a small 4px threshold, to absorb
+     * hand tremor on a click that was never meant to be a drag) is what pointerup below uses to
+     * decide whether this was a genuine drag to commit, or a plain click that should instead just
+     * reveal the on-screen move/resize controls (see the `up` handler and Interaction.origin).
+     */
     const pointerDown = useCallback((event: React.PointerEvent, id: number, mode: 'move' | 'resize') => {
         event.preventDefault();
         start(id, mode, 'pointer');
@@ -454,6 +515,7 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         window.addEventListener('pointercancel', abort);
     }, [cancel, columnCount, commit, displayLayout, start]);
 
+    /** Delete a block instance (after the caller has already confirmed) and reload the dashboard. */
     const remove = useCallback(async(id: number) => {
         if (!data) {
             return;
@@ -470,6 +532,19 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         }
     }, [announce, data, load, siteDefault]);
 
+    /**
+     * Add a new block instance, then, if the palette was opened from a specific empty cell or
+     * from the top/bottom toolbar buttons, immediately place it there instead of leaving it
+     * wherever the server appended it.
+     *
+     * A newly-added block's id and default size are only known once the server responds, so this
+     * cannot be done optimistically: it reloads via load() first, finds the new block in the
+     * fresh layout, then - only if the user targeted a specific empty cell (palette.column/row) or
+     * the start of the grid (palette.position === 'start') - repacks around a pinned rectangle at
+     * that position and saves again. Opening the palette from the bottom toolbar button needs no
+     * second save: the block already lands at the bottom, which is where dashboard::add() (server
+     * side) puts it by default.
+     */
     const add = useCallback(async(block: AvailableBlock) => {
         if (!data) {
             return;
@@ -510,6 +585,10 @@ const Dashboard = ({loadingLabel = '', initialLayout = []}: DashboardProps) => {
         }
     }, [announce, columnCount, data, load, palette, siteDefault]);
 
+    /**
+     * Discard the user's own dashboard customisation and revert to the site default.
+     * Own dashboard only - see the 'reset' case in update_dashboard.php.
+     */
     const reset = useCallback(async() => {
         if (!data) {
             return;

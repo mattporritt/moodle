@@ -16,20 +16,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * My Moodle -- a user's personal dashboard
+ * My Moodle -- the site-default dashboard, editable by admins for users who have not customised
+ * their own.
  *
- * - each user can currently have their own page (cloned from system and then customised)
- * - only the user can see their own dashboard
- * - users can add any blocks they want
- * - the administrators can define a default site dashboard for users who have
- *   not created their own dashboard
- *
- * This script implements the user's view of the dashboard, and allows editing
- * of the dashboard.
+ * This is the admin-facing sibling of my/index.php: same page setup (context, blocks, mount
+ * point) but for the shared system dashboard rather than a single user's own. It renders the same
+ * core_my/index.tsx React component into the same kind of mount point; the two pages pass no
+ * explicit "is this the site default" flag through data-react-props; the React application itself
+ * tells them apart from the current URL (see index.tsx) since that in turn determines which web
+ * service calls (and which capability, moodle/my:configsyspages vs moodle/my:manageblocks) are
+ * appropriate for the rest of the session.
  *
  * @package    moodlecore
  * @subpackage my
  * @copyright  2010 Remote-Learner.net
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @author     Hubert Chathi <hubert@remote-learner.net>
  * @author     Olav Jordan <olav.jordan@remote-learner.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -60,6 +61,11 @@ $PAGE->set_heading($pagetitle);
 $PAGE->set_secondary_navigation(false);
 $PAGE->set_primary_active_tab('myhome');
 
+// Resetting every user's dashboard back to this site default can take a while on a large site
+// (my_reset_page_for_all_users() iterates every customised page), so this is a distinct,
+// synchronous admin action outside the React application entirely: the session is closed early
+// so the progress bar's output actually reaches the browser as it happens, rather than being
+// buffered until the whole loop finishes.
 // If we are resetting all, just output a progress bar.
 if ($resetall && confirm_sesskey()) {
     echo $OUTPUT->header($pagetitle);
@@ -90,6 +96,8 @@ $PAGE->set_button($button . $PAGE->button);
 
 echo $OUTPUT->header();
 
+// See my/index.php for what this mount point and placeholder are for; get_skeleton_layout(true)
+// reads the site-default dashboard's persisted layout instead of the current user's own.
 $loadinglabel = get_string('loading');
 $initiallayout = \core_my\local\dashboard::get_skeleton_layout(true);
 echo html_writer::div(\core_my\local\dashboard::get_loading_placeholder($initiallayout), 'core-my-dashboard-mount', [
