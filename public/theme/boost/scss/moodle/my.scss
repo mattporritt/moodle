@@ -174,7 +174,7 @@
 
 .core-my-dashboard-tile__actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-shrink: 0;
     gap: var(--mds-spacing-xxs);
     align-items: center;
 }
