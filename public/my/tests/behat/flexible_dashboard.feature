@@ -107,13 +107,20 @@ Feature: Arrange dashboard blocks in a responsive grid
     And I log in as "admin"
     When I turn editing mode on
     And I click on "More actions for Course overview" "button" in the "Course overview" "block"
-    Then I should see "Configure Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
+    # Course overview has no fields of its own to edit - with the where-this-block-appears
+    # fields hidden on the dashboard, Configure would otherwise open an empty modal.
+    Then I should not see "Configure Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And I should see "Manage permissions" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And I should see "Check permissions" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And I should not see "Move Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And I should not see "Delete Course overview block" in the ".core-my-dashboard-block-actions__menu" "css_element"
     And "Hide Course overview block" "button" should not exist
     And the block actions menu sits to the right of the delete control
+    # A block with fields of its own, like Text, still offers Configure.
+    When I click on "Add a block at the start of the dashboard" "button"
+    And I click on "Text" "button" in the "Add a block" "dialogue"
+    And I click on ".core-my-dashboard-block-actions__trigger" "css_element" in the ".core-my-dashboard-tile[data-block='html']" "css_element"
+    Then I should see "Configure (new text block) block" in the ".core-my-dashboard-block-actions__menu" "css_element"
 
   @javascript
   Scenario: An administrator can switch between their own dashboard and the site default while editing

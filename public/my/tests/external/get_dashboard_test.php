@@ -110,10 +110,13 @@ final class get_dashboard_test extends \advanced_testcase {
     }
 
     /**
-     * In Edit mode, each block's actions menu is capped to Permissions and Check permissions -
-     * the dashboard is a personal, per-user page, so a block's own Configure and Assign roles
-     * controls are redundant here, on top of Move, Hide/show and Delete already being replaced
-     * or relocated elsewhere in the tile.
+     * In Edit mode, each block's actions menu is capped to Configure, Permissions and Check
+     * permissions - the dashboard is a personal, per-user page, so a block's own Assign roles
+     * control is redundant here, on top of Move, Hide/show and Delete already being replaced or
+     * relocated elsewhere in the tile. Configure only appears for blocks with fields of their own
+     * to edit: with the where-this-block-appears fields hidden on the dashboard (see
+     * block_edit_form), a block with none, like Course overview, would otherwise open an empty
+     * modal.
      */
     public function test_execute_caps_the_block_menu_at_permissions_actions(): void {
         global $USER;
@@ -121,6 +124,9 @@ final class get_dashboard_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
         $USER->editing = 1;
+        \core_my\local\dashboard::add(false, 'html');
+        $PAGE = new \moodle_page();
+        $GLOBALS['PAGE'] = $PAGE;
 
         $result = get_dashboard::execute(false);
         $result = external_api::clean_returnvalue(get_dashboard::execute_returns(), $result);
@@ -139,9 +145,16 @@ final class get_dashboard_test extends \advanced_testcase {
 
         $myoverview = current(array_filter($result['blocks'], static fn ($block) => $block['name'] === 'myoverview'));
         $ids = array_column($myoverview['actions'], 'id');
-        $this->assertContains('edit', $ids, 'The Course overview block is missing its Configure action.');
+        $this->assertNotContains(
+            'edit',
+            $ids,
+            'The Course overview block has no fields of its own, so should have no Configure action.',
+        );
         $this->assertContains('permissions', $ids, 'The Course overview block is missing its Permissions action.');
         $this->assertContains('checkroles', $ids, 'The Course overview block is missing its Check permissions action.');
+
+        $html = current(array_filter($result['blocks'], static fn ($block) => $block['name'] === 'html'));
+        $this->assertContains('edit', array_column($html['actions'], 'id'), 'The Text block is missing its Configure action.');
     }
 
     /**

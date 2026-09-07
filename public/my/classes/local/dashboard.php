@@ -186,7 +186,7 @@ final class dashboard {
                     'footer' => (string) $content->footer,
                     'region' => $region,
                     'weight' => (int) $instance->instance->weight,
-                    'actions' => self::get_menu_actions($content->controls),
+                    'actions' => self::get_menu_actions($content->controls, $instance->instance->blockname),
                 ];
             }
         }
@@ -262,9 +262,10 @@ final class dashboard {
      * delete button, or simply redundant on a personal, per-user page.
      *
      * @param \action_link[] $controls The block's editing controls, from block_contents::$controls.
+     * @param string $blockname The block's Frankenstyle name, e.g. 'html' or 'myoverview'.
      * @return array
      */
-    private static function get_menu_actions(array $controls): array {
+    private static function get_menu_actions(array $controls, string $blockname): array {
         $actions = [];
         foreach ($controls as $control) {
             $classes = explode(' ', (string) ($control->attributes['class'] ?? ''));
@@ -278,6 +279,11 @@ final class dashboard {
             if ($id === null || !in_array($id, self::MENU_ACTION_ALLOWED, true)) {
                 continue;
             }
+            if ($id === 'edit' && !self::block_has_specific_config($blockname)) {
+                // Configure would otherwise open a modal with nothing but the (hidden, on the
+                // dashboard) where-this-block-appears fields to look at - see block_edit_form.
+                continue;
+            }
             $actions[] = [
                 'id' => $id,
                 'label' => (string) $control->text,
@@ -286,6 +292,23 @@ final class dashboard {
             ];
         }
         return $actions;
+    }
+
+    /**
+     * Whether a block type's edit form has any fields of its own beyond the base class's.
+     *
+     * The base {@see \block_edit_form} contributes nothing but the where-this-block-appears
+     * fields, which are hidden on the dashboard (see that class). A block whose own edit form
+     * (e.g. block_html_edit_form) does not override specific_definition() would therefore open a
+     * Configure modal with nothing in it to edit - so this decides whether to offer it at all.
+     *
+     * @param string $blockname The block's Frankenstyle name, e.g. 'html' or 'myoverview'.
+     * @return bool
+     */
+    private static function block_has_specific_config(string $blockname): bool {
+        $formclass = \block_manager::get_block_edit_form_class($blockname);
+        $method = new \ReflectionMethod($formclass, 'specific_definition');
+        return $method->getDeclaringClass()->getName() !== \block_edit_form::class;
     }
 
     /** Row height in pixels, matching the client's ROW_HEIGHT in js/esm/src/layout.ts. */
