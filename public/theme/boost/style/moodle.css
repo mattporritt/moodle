@@ -34478,7 +34478,7 @@ img.icon {
   width: 40px;
   height: 40px;
 }
-aside[id^=block-region-side-] .block_recentlyaccesseditems .card:nth-of-type(n+4) {
+aside[id^=block-region-side-] .block_recentlyaccesseditems .card:nth-of-type(n+4), [data-blockregion=side-pre] .block_recentlyaccesseditems .card:nth-of-type(n+4), [data-blockregion=content] .block_recentlyaccesseditems .card:nth-of-type(n+4) {
   display: none;
 }
 #block-region-content .block_recentlyaccesseditems [data-region=more-items-button-container] {
