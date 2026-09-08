@@ -27,11 +27,23 @@ use PHPUnit\Framework\Attributes\CoversClass;
  */
 #[CoversClass(api::class)]
 final class api_test extends \advanced_testcase {
+    /**
+     * Clear the static registration cache so each test/tearDown sees the current database state.
+     *
+     * \core\hub\registration caches the registration record in a static property that
+     * resetAfterTest() does not clear, so without this a record from an earlier test could leak
+     * into whichever test class runs next in the same process.
+     */
+    private function reset_registration_cache(): void {
+        $property = new \ReflectionProperty(registration::class, 'registration');
+        $property->setValue(null, null);
+    }
+
     protected function tearDown(): void {
         // Registration caches the current registration record in a static property that
         // resetAfterTest() does not clear, so a confirmed registration created here would
         // otherwise leak into whichever test class runs next in the same process.
-        registration::reset_caches();
+        $this->reset_registration_cache();
         parent::tearDown();
     }
 
@@ -52,7 +64,7 @@ final class api_test extends \advanced_testcase {
             'secret' => 'sometoken',
             'timemodified' => time(),
         ]);
-        registration::reset_caches();
+        $this->reset_registration_cache();
     }
 
     /**
@@ -63,7 +75,7 @@ final class api_test extends \advanced_testcase {
     private function register_site(string $secret): void {
         global $DB;
 
-        registration::reset_caches();
+        $this->reset_registration_cache();
         $DB->insert_record('registration_hubs', [
             'token' => 'sometoken',
             'hubname' => 'moodle',
@@ -197,7 +209,7 @@ final class api_test extends \advanced_testcase {
         $this->register_site('secretone');
         $first = $this->sign_registration_update('https://example.com');
 
-        registration::reset_caches();
+        $this->reset_registration_cache();
         global $DB;
         $DB->delete_records('registration_hubs', ['huburl' => HUB_MOODLEORGHUBURL]);
         $this->register_site('secrettwo');

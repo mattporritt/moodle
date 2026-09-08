@@ -36,6 +36,13 @@ final class registration_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
 
+        $this->reset_registration_cache();
+    }
+
+    /**
+     * Clear the static registration cache so a mid-test change to the database is picked up.
+     */
+    private function reset_registration_cache(): void {
         $property = new \ReflectionProperty(\core\hub\registration::class, 'registration');
         $property->setValue(null, null);
     }
@@ -563,7 +570,7 @@ final class registration_test extends \advanced_testcase {
     public function test_register_creates_unconfirmed_registration_and_redirects(): void {
         global $DB;
         $this->resetAfterTest();
-        registration::reset_caches();
+        $this->reset_registration_cache();
 
         try {
             registration::register('');
@@ -677,7 +684,7 @@ final class registration_test extends \advanced_testcase {
         $hub->confirmed = 0;
         $hub->timemodified = time();
         $id = $DB->insert_record('registration_hubs', $hub);
-        registration::reset_caches();
+        $this->reset_registration_cache();
 
         return $id;
     }
