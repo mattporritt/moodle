@@ -1057,14 +1057,51 @@ class page_requirements_manager {
             ),
         );
 
-        return html_writer::tag(
+        $importmapdata = $importmap->jsonSerialize();
+
+        // The importmap script tag must be emitted before any modulepreload link (or module
+        // script): browsers only honour an import map for specifier resolution if it is
+        // registered before the first module-related resource is processed. A modulepreload
+        // link emitted ahead of the importmap here would silently break bare specifier
+        // resolution ("react", "@moodlehq/design-system", ...) for every module on the page.
+        $output = html_writer::tag(
             'script',
             json_encode(
-                $importmap,
+                $importmapdata,
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
             ),
             ['type' => 'importmap'],
         );
+        $output .= $this->get_import_map_preload_links($importmapdata);
+
+        return $output;
+    }
+
+    /**
+     * Returns modulepreload link tags for the concrete, active import map entries.
+     *
+     * A handful of foundational entries (react, react-dom and the design-system bundle) are
+     * already known up front from the import map itself, so preloading them lets the browser
+     * start those fetches in parallel with page parsing instead of waiting for import-graph
+     * discovery to reach them one level at a time.
+     *
+     * Directory-prefix entries are skipped, since there is no single file to preload for those.
+     *
+     * @param array $importmapdata The serialized import map data, as returned by import_map::jsonSerialize().
+     * @return string
+     */
+    protected function get_import_map_preload_links(array $importmapdata): string {
+        $output = '';
+        foreach ($importmapdata['imports'] as $specifier => $url) {
+            if (str_ends_with($specifier, '/') || str_contains($specifier, '/theme-')) {
+                continue;
+            }
+            $output .= html_writer::empty_tag('link', [
+                'rel' => 'modulepreload',
+                'href' => $url,
+            ]);
+        }
+        return $output;
     }
 
     /**
