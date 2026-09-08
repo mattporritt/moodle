@@ -215,6 +215,85 @@ final class registration_test extends \advanced_testcase {
     }
 
     /**
+     * Test that get_site_info() excludes fields pending admin confirmation when requested.
+     */
+    public function test_get_site_info_excludes_unconfirmed_fields(): void {
+        $this->resetAfterTest();
+
+        $this->register_site();
+
+        // Pretend the admin last confirmed just before the 'aiusage' field was introduced,
+        // so it is still pending confirmation.
+        set_config('site_regupdateversion', 2023072300, 'hub');
+
+        $fullsiteinfo = registration::get_site_info();
+        $this->assertArrayHasKey('aiusage', $fullsiteinfo);
+
+        $filteredsiteinfo = registration::get_site_info([], registration::get_new_registration_fields());
+        $this->assertArrayNotHasKey('aiusage', $filteredsiteinfo);
+
+        // Fields confirmed before the pending stamp must still be present.
+        $this->assertArrayHasKey('pluginusage', $filteredsiteinfo);
+        $this->assertArrayHasKey('dbtype', $filteredsiteinfo);
+    }
+
+    /**
+     * Test that the full payload resumes once the admin confirms the pending fields.
+     */
+    public function test_get_site_info_resumes_full_payload_after_confirmation(): void {
+        $this->resetAfterTest();
+
+        $this->register_site();
+
+        set_config('site_regupdateversion', 2023072300, 'hub');
+        $this->assertNotEmpty(registration::get_new_registration_fields());
+
+        // Simulate the admin submitting the registration form to confirm the new fields.
+        $formdata = new \stdClass();
+        foreach (registration::FORM_FIELDS as $field) {
+            $formdata->$field = null;
+        }
+        registration::save_site_info($formdata);
+
+        $this->assertEmpty(registration::get_new_registration_fields());
+        $this->assertEquals(
+            registration::get_site_info(),
+            registration::get_site_info([], registration::get_new_registration_fields())
+        );
+    }
+
+    /**
+     * Test that update_cron() keeps updating registration, instead of returning early, while fields are
+     * pending admin confirmation.
+     */
+    public function test_update_cron_continues_while_fields_pending_confirmation(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $id = $this->register_site();
+        $registration = $DB->get_record('registration_hubs', ['id' => $id]);
+
+        // Pretend the admin last confirmed just before 'aiusage' was introduced, so it is still
+        // pending confirmation and update_cron() would previously have returned early.
+        set_config('site_regupdateversion', 2023072300, 'hub');
+        $this->assertNotEmpty(registration::get_new_registration_fields());
+
+        // Ensure the timestamp comparison below is meaningful.
+        $this->waitForSecond();
+
+        $this->expectOutputRegex('~Registration information has been changed.*Site registration updated~s');
+
+        // Fake a successful response from the hub for hub_update_site_info, which returns a
+        // JSON scalar (true) on success.
+        \curl::mock_response(json_encode(true));
+        registration::update_cron();
+
+        $updated = $DB->get_record('registration_hubs', ['id' => $registration->id]);
+        $this->assertGreaterThan($registration->timemodified, $updated->timemodified);
+    }
+
+    /**
      * Register the site locally so is_registered() returns true.
      *
      * @return int id of the inserted registration_hubs record
