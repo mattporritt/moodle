@@ -36,7 +36,7 @@ final class dashboard {
     public const DEFAULT_ROWS = 3;
 
     /** Default grid row span for the first legacy block in each stack (taller than the rest). */
-    public const DEFAULT_ROWS_FIRST = 4;
+    public const DEFAULT_ROWS_FIRST = 5;
 
     /** Legacy regions which may still be attached to dashboard blocks. */
     private const REGIONS = ['content', 'side-pre', 'side-post'];

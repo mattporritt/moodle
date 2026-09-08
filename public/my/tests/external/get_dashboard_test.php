@@ -91,10 +91,10 @@ final class get_dashboard_test extends \advanced_testcase {
         }
 
         $expected = [
-            'myoverview' => ['column' => 1, 'row' => 0, 'columns' => 3, 'rows' => 4],
-            'timeline' => ['column' => 1, 'row' => 4, 'columns' => 3, 'rows' => 3],
-            'calendar_month' => ['column' => 4, 'row' => 0, 'columns' => 1, 'rows' => 4],
-            'recentlyaccesseditems' => ['column' => 4, 'row' => 4, 'columns' => 1, 'rows' => 3],
+            'myoverview' => ['column' => 1, 'row' => 0, 'columns' => 3, 'rows' => 5],
+            'timeline' => ['column' => 1, 'row' => 5, 'columns' => 3, 'rows' => 3],
+            'calendar_month' => ['column' => 4, 'row' => 0, 'columns' => 1, 'rows' => 5],
+            'recentlyaccesseditems' => ['column' => 4, 'row' => 5, 'columns' => 1, 'rows' => 3],
         ];
         foreach ($expected as $blockname => $expectedposition) {
             $this->assertArrayHasKey(
