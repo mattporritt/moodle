@@ -190,7 +190,7 @@ class registration {
         // Statistical data.
         $siteinfo['courses'] = $DB->count_records('course') - 1;
         $siteinfo['users'] = $DB->count_records('user', array('deleted' => 0));
-        $siteinfo['activeusers'] = $DB->count_records_select('user', 'deleted = ? AND lastlogin > ?', [0, time() - DAYSECS * 30]);
+        $siteinfo['activeusers'] = $DB->count_records_select('user', 'deleted = ? AND lastaccess > ?', [0, time() - DAYSECS * 30]);
         $siteinfo['enrolments'] = $DB->count_records('role_assignments');
         $siteinfo['posts'] = $DB->count_records('forum_posts');
         $siteinfo['questions'] = $DB->count_records('question');
