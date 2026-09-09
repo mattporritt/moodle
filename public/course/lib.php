@@ -2104,7 +2104,7 @@ function update_course($data, $editoroptions = NULL) {
  * Front page enrolments are excluded.
  *
  * @param bool $onlyactive Consider only active enrolments in enabled plugins and obey the enrolment time restrictions.
- * @param int $lastloginsince If specified, count only users who logged in after this timestamp.
+ * @param int $lastloginsince If specified, count only users active (see user.lastaccess) after this timestamp.
  * @return float
  */
 function average_number_of_participants(bool $onlyactive = false, ?int $lastloginsince = null): float {
@@ -2141,7 +2141,7 @@ function average_number_of_participants(bool $onlyactive = false, ?int $lastlogi
     }
 
     if ($lastloginsince) {
-        $sql .= "AND u.lastlogin > :lastlogin ";
+        $sql .= "AND u.lastaccess > :lastlogin ";
         $params['lastlogin'] = $lastloginsince;
     }
 

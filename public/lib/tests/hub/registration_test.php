@@ -61,6 +61,41 @@ final class registration_test extends \advanced_testcase {
     }
 
     /**
+     * The activeusers stat must reflect user.lastaccess (updated on any activity), not
+     * user.lastlogin (which lags one login behind, see update_user_login_times(), and is 0 for
+     * a user who has only ever logged in once). Otherwise recently active users are undercounted.
+     *
+     * Each case below is deliberately asserted against the running total (rather than a single
+     * final count), so that a filter on the wrong column shows up as a wrong delta and cannot
+     * cancel out against another case.
+     */
+    public function test_get_site_info_activeusers(): void {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $now = time();
+
+        $activeusers = fn() => registration::get_site_info()['activeusers'];
+        $before = $activeusers();
+
+        // Simulates a user's first-ever session: lastlogin is still 0 (see
+        // update_user_login_times()), but lastaccess reflects their current activity.
+        // A lastlogin-based filter would never count this user; a lastaccess-based one must.
+        $generator->create_user(['lastlogin' => 0, 'lastaccess' => $now]);
+        $this->assertEquals($before + 1, $activeusers());
+
+        // Logged in within the last 30 days, but with no activity since (lastaccess predates
+        // the 30-day window). A lastlogin-based filter would count this user; a lastaccess-based
+        // one must not.
+        $generator->create_user(['lastlogin' => $now - DAYSECS, 'lastaccess' => $now - DAYSECS * 60]);
+        $this->assertEquals($before + 1, $activeusers());
+
+        // Not active within the last 30 days by either measure: not counted.
+        $generator->create_user(['lastlogin' => $now - DAYSECS * 60, 'lastaccess' => $now - DAYSECS * 60]);
+        $this->assertEquals($before + 1, $activeusers());
+    }
+
+    /**
      * Test getting the plugin usage data.
      */
     public function test_get_plugin_usage(): void {

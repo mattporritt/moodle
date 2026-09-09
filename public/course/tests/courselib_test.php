@@ -7190,11 +7190,11 @@ final class courselib_test extends advanced_testcase {
         // If there are no users, expect zero number of participants per course.
         $this->assertEquals(0, average_number_of_participants());
 
-        $t1 = $generator->create_user(['lastlogin' => $now]);
-        $s1 = $generator->create_user(['lastlogin' => $now]);
-        $s2 = $generator->create_user(['lastlogin' => $now - WEEKSECS]);
-        $s3 = $generator->create_user(['lastlogin' => $now - WEEKSECS]);
-        $s4 = $generator->create_user(['lastlogin' => $now - YEARSECS]);
+        $t1 = $generator->create_user(['lastaccess' => $now]);
+        $s1 = $generator->create_user(['lastaccess' => $now]);
+        $s2 = $generator->create_user(['lastaccess' => $now - WEEKSECS]);
+        $s3 = $generator->create_user(['lastaccess' => $now - WEEKSECS]);
+        $s4 = $generator->create_user(['lastaccess' => $now - YEARSECS]);
 
         // We have courses, we have users, but no enrolments yet.
         $this->assertEquals(0, average_number_of_participants());
@@ -7232,16 +7232,38 @@ final class courselib_test extends advanced_testcase {
         $this->assertEquals(4, average_number_of_participants());
         $this->assertEquals(2, average_number_of_participants(true));
 
-        // Consider only t1 and s1 who logged in recently.
+        // Consider only t1 and s1 who were active recently.
         $this->assertEquals(1.5, average_number_of_participants(false, $now - DAYSECS));
 
-        // Consider only t1, s1, s2 and s3 who logged in in recent weeks.
+        // Consider only t1, s1, s2 and s3 who were active in recent weeks.
         $this->assertEquals(3, average_number_of_participants(false, $now - 4 * WEEKSECS));
 
         // Hidden courses are excluded from stats.
         $DB->set_field('course', 'visible', 0, ['id' => $c1->id]);
         $this->assertEquals(3, average_number_of_participants());
         $this->assertEquals(1, average_number_of_participants(true));
+    }
+
+    /**
+     * A user who has only ever logged in once has lastlogin = 0 (see update_user_login_times()),
+     * so filtering on lastlogin would never count them, no matter how recently they used the
+     * site in that single session. Filtering on lastaccess instead must still count them.
+     *
+     * @covers ::average_number_of_participants
+     */
+    public function test_average_number_of_participants_counts_single_login_user(): void {
+        $this->resetAfterTest(true);
+
+        $generator = $this->getDataGenerator();
+        $now = time();
+        $course = $generator->create_course();
+
+        // Simulates a user on their first-ever session: lastlogin is still 0, but lastaccess
+        // reflects their current activity (see update_user_login_times()).
+        $user = $generator->create_user(['lastlogin' => 0, 'lastaccess' => $now]);
+        $generator->enrol_user($user->id, $course->id, 'student');
+
+        $this->assertEquals(1, average_number_of_participants(false, $now - DAYSECS));
     }
 
     /**
