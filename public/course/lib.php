@@ -2311,8 +2311,8 @@ function average_number_of_participants(bool $onlyactive = false, ?int $lastlogi
     }
 
     if ($lastloginsince) {
-        $sql .= "AND u.lastaccess > :lastlogin ";
-        $params['lastlogin'] = $lastloginsince;
+        $sql .= "AND u.lastaccess > :lastaccesssince ";
+        $params['lastaccesssince'] = $lastloginsince;
     }
 
     $sql = "SELECT COUNT(*)
