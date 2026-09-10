@@ -4489,6 +4489,23 @@ function delete_course($courseorid, $showfeedback = true, bool $asyncpreferred =
         return false;
     }
 
+    // Mark a course for deletion, regardless of whether synchronous or asynchronous deletion takes place,
+    // to prevent interference between backup/restore processes.
+    \core_course\management\helper::action_course_mark_for_deletioninprogress($course);
+
+    // Eventually delete the course asynchronously.
+    if ($asyncpreferred && !empty(get_config('moodlecourse', 'enablecourseasyncdeletion'))) {
+        // Trigger an adhoc task to delete the course asynchronously .
+        $task = new \core_course\task\course_async_deletion();
+        $task->set_custom_data(['courseid' => (int) $courseid]);
+        \core\task\manager::queue_adhoc_task($task, true);
+
+        // Early exit, because the course will be deleted later. The pre_course_delete callbacks and
+        // before_course_deleted hook below must not run yet, otherwise the deferred call to this
+        // function from \core_course\task\course_async_deletion will trigger them a second time.
+        return true;
+    }
+
     // Allow plugins to use this course before we completely delete it.
     if ($pluginsfunction = get_plugins_with_function('pre_course_delete')) {
         foreach ($pluginsfunction as $plugintype => $plugins) {
@@ -4503,21 +4520,6 @@ function delete_course($courseorid, $showfeedback = true, bool $asyncpreferred =
         course: $course,
     );
     \core\di::get(\core\hook\manager::class)->dispatch($hook);
-
-    // Mark a course for deletion, regardless of whether synchronous or asynchronous deletion takes place,
-    // to prevent interference between backup/restore processes.
-    \core_course\management\helper::action_course_mark_for_deletioninprogress($course);
-
-    // Eventually delete the course asynchronously.
-    if ($asyncpreferred && !empty(get_config('moodlecourse', 'enablecourseasyncdeletion'))) {
-        // Trigger an adhoc task to delete the course asynchronously .
-        $task = new \core_course\task\course_async_deletion();
-        $task->set_custom_data(['courseid' => (int) $courseid]);
-        \core\task\manager::queue_adhoc_task($task, true);
-
-        // Early exit, because the course will be deleted later.
-        return true;
-    }
 
     // Tell the search manager we are about to delete a course. This prevents us sending updates
     // for each individual context being deleted.
