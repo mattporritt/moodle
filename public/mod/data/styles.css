@@ -159,6 +159,24 @@
     max-width: 100%;
 }
 
+/*
+ * Undo the theme's global table border reset (see boost/scss/moodle/undo.scss) for tables
+ * inside entry templates, so entries display as authored in the template with no border
+ * unless the template author opts in to Bootstrap table styling (e.g. class="table") or
+ * adds the theme's own class="table-reboot" escape hatch.
+ */
+#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table),
+#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) {
+    thead,
+    tbody,
+    tfoot,
+    tr,
+    td,
+    th {
+        border-style: none;
+    }
+}
+
 /* Date information displayed in templates/presets */
 .data-timeinfo {
     color: var(–gray);
