@@ -165,16 +165,19 @@
  * unless the template author opts in to Bootstrap table styling (e.g. class="table") or
  * adds the theme's own class="table-reboot" escape hatch.
  */
-#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table),
-#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) {
-    thead,
-    tbody,
-    tfoot,
-    tr,
-    td,
-    th {
-        border-style: none;
-    }
+#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) thead,
+#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) tbody,
+#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) tfoot,
+#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) tr,
+#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) td,
+#data-listview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) th,
+#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) thead,
+#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) tbody,
+#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) tfoot,
+#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) tr,
+#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) td,
+#data-singleview-content table:not(.table):not(.table-reboot):not(.ygtvtable):not(.yui3-datatable-table) th {
+    border-style: none;
 }
 
 /* Date information displayed in templates/presets */
