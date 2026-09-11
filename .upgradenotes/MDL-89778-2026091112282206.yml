@@ -1,0 +1,11 @@
+issueNumber: MDL-89778
+notes:
+  core_course:
+    - message: >-
+        delete_course() no longer runs the pre_course_delete plugin callbacks
+        and before_course_deleted hook twice for an asynchronously deleted
+        course. They now fire exactly once, at the point the deletion is queued
+        (the same timing as before asynchronous course deletion existed), rather
+        than once when queued and again when cron performs the deferred
+        deletion.
+      type: fixed

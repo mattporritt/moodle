@@ -4489,6 +4489,30 @@ function delete_course($courseorid, $showfeedback = true, bool $asyncpreferred =
         return false;
     }
 
+    // If the course is already marked as deletion-in-progress, the pre_course_delete callbacks and
+    // before_course_deleted hook below have already run for it, during the click-time call that
+    // queued the asynchronous deletion task. This is that deferred, cron-time call, so the callbacks
+    // must not run a second time.
+    $callbacksalreadyran = ((int) ($course->deletioninprogress ?? 0))
+        === \core_course\management\helper::COURSE_DELETION_IN_PROGRESS;
+
+    if (!$callbacksalreadyran) {
+        // Allow plugins to use this course before we completely delete it.
+        if ($pluginsfunction = get_plugins_with_function('pre_course_delete')) {
+            foreach ($pluginsfunction as $plugintype => $plugins) {
+                foreach ($plugins as $pluginfunction) {
+                    $pluginfunction($course);
+                }
+            }
+        }
+
+        // Dispatch the hook for pre course delete actions.
+        $hook = new \core_course\hook\before_course_deleted(
+            course: $course,
+        );
+        \core\di::get(\core\hook\manager::class)->dispatch($hook);
+    }
+
     // Mark a course for deletion, regardless of whether synchronous or asynchronous deletion takes place,
     // to prevent interference between backup/restore processes.
     \core_course\management\helper::action_course_mark_for_deletioninprogress($course);
@@ -4500,26 +4524,9 @@ function delete_course($courseorid, $showfeedback = true, bool $asyncpreferred =
         $task->set_custom_data(['courseid' => (int) $courseid]);
         \core\task\manager::queue_adhoc_task($task, true);
 
-        // Early exit, because the course will be deleted later. The pre_course_delete callbacks and
-        // before_course_deleted hook below must not run yet, otherwise the deferred call to this
-        // function from \core_course\task\course_async_deletion will trigger them a second time.
+        // Early exit, because the course will be deleted later.
         return true;
     }
-
-    // Allow plugins to use this course before we completely delete it.
-    if ($pluginsfunction = get_plugins_with_function('pre_course_delete')) {
-        foreach ($pluginsfunction as $plugintype => $plugins) {
-            foreach ($plugins as $pluginfunction) {
-                $pluginfunction($course);
-            }
-        }
-    }
-
-    // Dispatch the hook for pre course delete actions.
-    $hook = new \core_course\hook\before_course_deleted(
-        course: $course,
-    );
-    \core\di::get(\core\hook\manager::class)->dispatch($hook);
 
     // Tell the search manager we are about to delete a course. This prevents us sending updates
     // for each individual context being deleted.
