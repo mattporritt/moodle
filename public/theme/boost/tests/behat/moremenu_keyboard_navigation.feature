@@ -15,16 +15,16 @@ Feature: Keyboard navigation of the primary navigation "More" menu
       Mobile app|https://example.org/app
       """
     And I press "Save changes"
-    And I change viewport size to "700x800"
+    And I change viewport size to "850x800"
     And I am on homepage
 
   Scenario: Arrow key navigation can leave a nested submenu going forwards
     When I click on "More" "link" in the ".primary-navigation" "css_element"
     And I press the down key
     And I press the down key
+    And I press the down key
     And the focused element is "Courses" "link"
     And I press the enter key
-    And I press the down key
     And the focused element is "All courses" "link"
     And I press the down key
     And the focused element is "Course search" "link"
@@ -33,6 +33,7 @@ Feature: Keyboard navigation of the primary navigation "More" menu
 
   Scenario: Arrow key navigation can leave a nested submenu going backwards
     When I click on "More" "link" in the ".primary-navigation" "css_element"
+    And I press the down key
     And I press the down key
     And I press the down key
     And the focused element is "Courses" "link"
