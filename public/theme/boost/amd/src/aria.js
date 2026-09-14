@@ -153,7 +153,10 @@ const dropdownFix = () => {
         const triggerContainer = menu.parentElement;
         const sibling = direction > 0 ? triggerContainer.nextElementSibling : triggerContainer.previousElementSibling;
         if (sibling) {
-            return sibling.querySelector('[role="menuitem"]');
+            // The sibling may be the menuitem itself (a plain item with no wrapping container), or
+            // a container with the menuitem as a descendant (e.g. a legacy <li>, or another nested
+            // submenu's own wrapper, in which case this correctly lands on that submenu's trigger).
+            return sibling.matches('[role="menuitem"]') ? sibling : sibling.querySelector('[role="menuitem"]');
         }
         // No further sibling at this level either: keep looking outward.
         return findEscapeMenuItem(parentMenu, direction);
