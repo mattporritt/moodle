@@ -130,7 +130,50 @@ const dropdownFix = () => {
         }
     });
 
+    /**
+     * When Up/Down navigation reaches the start or end of a nested submenu, find the equivalent
+     * item just outside it: the sibling after/before its own trigger in the enclosing menu.
+     *
+     * Without this, a keyboard user who arrows into a nested submenu (e.g. a "Courses" item with
+     * its own sub-items inside the primary navigation's "More" dropdown) can never arrow back out
+     * to the enclosing menu's other items: reaching the first/last item of the submenu would
+     * otherwise just wrap within that submenu forever.
+     *
+     * @param {HTMLElement} menu The (possibly nested) menu currently being navigated.
+     * @param {number} direction 1 to look at the next sibling (Down), -1 for the previous (Up).
+     * @return {HTMLElement|null} The menuitem to focus outside the submenu, or null if menu is not
+     *                            nested inside another menu, or there is no further sibling.
+     */
+    const findEscapeMenuItem = (menu, direction) => {
+        const parentMenu = menu.parentElement ? menu.parentElement.closest('[role="menu"]') : null;
+        if (!parentMenu) {
+            return null;
+        }
+        // The node hosting both the submenu's own trigger and the submenu itself.
+        const triggerContainer = menu.parentElement;
+        const sibling = direction > 0 ? triggerContainer.nextElementSibling : triggerContainer.previousElementSibling;
+        if (sibling) {
+            // The sibling may be the menuitem itself (a plain item with no wrapping container), or
+            // a container with the menuitem as a descendant (e.g. a legacy <li>, or another nested
+            // submenu's own wrapper, in which case this correctly lands on that submenu's trigger).
+            return sibling.matches('[role="menuitem"]') ? sibling : sibling.querySelector('[role="menuitem"]');
+        }
+        // No further sibling at this level either: keep looking outward.
+        return findEscapeMenuItem(parentMenu, direction);
+    };
+
     // Keyboard navigation for arrow keys, home and end keys.
+    //
+    // Registered on the capture phase deliberately: Bootstrap's own dropdown keyboard handling
+    // (Dropdown.dataApiKeydownHandler in bootstrap/js/dist/dropdown.js) is also registered on
+    // document in the capture phase, a side effect of how Bootstrap implements delegated events
+    // (its EventHandler.on() passes the "is this delegated" flag straight through as the native
+    // addEventListener useCapture argument). Bootstrap's handler calls stopPropagation() for
+    // Up/Down keys, which stops the event before it ever reaches this listener's bubble-phase
+    // equivalent. Bootstrap's own dropdown navigation deliberately disables wrap-around once focus
+    // is already on one of its items, and has no concept of escaping a nested submenu back to its
+    // parent menu, so this needs to run regardless of Bootstrap's own handling, and correct its
+    // result afterwards via the delayed shiftFocus() below.
     document.addEventListener('keydown', e => {
 
         // We only want to set focus when users access the dropdown via keyboard as per
@@ -160,8 +203,8 @@ const dropdownFix = () => {
                     }
                 }
                 if (!next) {
-                    // Wrap to first item.
-                    next = menuItems[0];
+                    // Escape a nested submenu to the enclosing menu's next item, or wrap.
+                    next = findEscapeMenuItem(menu, 1) || menuItems[0];
                 }
             } else if (trigger == 'ArrowUp') {
                 // Up key.
@@ -172,8 +215,8 @@ const dropdownFix = () => {
                     }
                 }
                 if (!next) {
-                    // Wrap to last item.
-                    next = menuItems[menuItems.length - 1];
+                    // Escape a nested submenu to the enclosing menu's previous item, or wrap.
+                    next = findEscapeMenuItem(menu, -1) || menuItems[menuItems.length - 1];
                 }
             } else if (trigger == 'Home') {
                 // Home key.
@@ -191,7 +234,7 @@ const dropdownFix = () => {
             }
             return;
         }
-    });
+    }, true);
 
     // Trap focus if the dropdown is a dialog.
     document.addEventListener('shown.bs.dropdown', e => {
