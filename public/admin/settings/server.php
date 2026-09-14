@@ -261,6 +261,24 @@ if ($hassiteconfig) {
         ]
     ));
 
+    $temp->add(new admin_setting_configselect(
+        'messaginglifetime',
+        new lang_string('messaginglifetime', 'message'),
+        new lang_string('messaginglifetime_help', 'message'),
+        0,
+        [
+            0 => new lang_string('never'),
+            730 => new lang_string('numdays', '', 730),
+            365 => new lang_string('numdays', '', 365),
+            180 => new lang_string('numdays', '', 180),
+            90 => new lang_string('numdays', '', 90),
+            60 => new lang_string('numdays', '', 60),
+            30 => new lang_string('numdays', '', 30),
+            14 => new lang_string('numdays', '', 14),
+            7 => new lang_string('numdays', '', 7),
+        ]
+    ));
+
     $temp->add(new admin_setting_configselect('tempdatafoldercleanup', new lang_string('tempdatafoldercleanup', 'admin'),
         new lang_string('configtempdatafoldercleanup', 'admin'), 168,
         [

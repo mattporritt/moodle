@@ -149,6 +149,15 @@ $tasks = array(
         'dayofweek' => '*',
         'month' => '*'
     ),
+    [
+        'classname' => 'core\task\message_cleanup_task',
+        'blocking' => 0,
+        'minute' => '*',
+        'hour' => '0',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*',
+    ],
     array(
         'classname' => 'core\task\completion_regular_task',
         'blocking' => 0,

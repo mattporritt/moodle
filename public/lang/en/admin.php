@@ -1586,6 +1586,7 @@ $string['taskgradehistorycleanup'] = 'Background processing for cleaning grade h
 $string['tasklegacycron'] = 'Legacy cron processing for plugins';
 $string['tasklogcleanup'] = 'Cleanup of task logs';
 $string['tasklogs'] = 'Task logs';
+$string['taskmessagecleanup'] = 'Background processing for cleaning old messages';
 $string['taskmessagingcleanup'] = 'Background processing for messaging';
 $string['taskpasswordresetcleanup'] = 'Cleanup password reset attempts';
 $string['taskplagiarismcron'] = 'Background processing for legacy cron in plagiarism plugins';

@@ -1,0 +1,11 @@
+issueNumber: MDL-18749
+notes:
+  core:
+    - message: >-
+        Added a 'Message lifetime' setting on Site administration > Server >
+        Cleanup and a new core\task\message_cleanup_task scheduled task that
+        automatically deletes messages older than the configured lifetime, but
+        only once they have been read by all recipients in the conversation.
+        Unread messages are always retained. The default keeps existing
+        behaviour unchanged (messages kept forever).
+      type: improved
