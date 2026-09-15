@@ -2,5 +2,9 @@
   "String": {
     "eject": "risky",
     "wrap": "safe"
+  },
+  "EditModeSwitch": {
+    "eject": "risky",
+    "wrap": "risky"
   }
 }
