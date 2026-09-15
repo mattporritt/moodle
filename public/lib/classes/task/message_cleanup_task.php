@@ -47,7 +47,7 @@ class message_cleanup_task extends scheduled_task {
 
     /**
      * Delete messages older than the configured message lifetime, but only once they have
-     * been read by every other member of the conversation. Unread messages are never deleted.
+     * been read by every recipient of the conversation. Unread messages are never deleted.
      */
     public function execute() {
         global $CFG, $DB;
@@ -60,23 +60,33 @@ class message_cleanup_task extends scheduled_task {
         $starttime = time();
         $totaldeleted = 0;
 
-        // A message is eligible for deletion once every conversation member other than the
-        // sender has a "read" action recorded against it. Unread messages are always retained.
+        // A message's recipients are every conversation member other than the sender, except in
+        // a self-conversation, where the sender is also the sole recipient of their own message
+        // and must have a "read" action recorded against it like any other recipient. A message
+        // is eligible for deletion once every recipient has read it; unread messages are always
+        // retained. Expressed as a join/aggregate anti-join rather than a correlated NOT EXISTS
+        // subquery, so the database can evaluate it as a single set-based operation instead of
+        // once per candidate row, which matters on the large historical backlogs this task
+        // targets.
         $sql = "SELECT m.id
                   FROM {messages} m
+                  JOIN {message_conversations} mc ON mc.id = m.conversationid
+                  JOIN {message_conversation_members} mcm
+                    ON mcm.conversationid = m.conversationid
+                   AND (mc.type = :selftype OR mcm.userid <> m.useridfrom)
+             LEFT JOIN {message_user_actions} mua
+                    ON mua.messageid = m.id
+                   AND mua.userid = mcm.userid
+                   AND mua.action = :readaction
                  WHERE m.timecreated < :lifetime
-                   AND NOT EXISTS (
-                            SELECT 1
-                              FROM {message_conversation_members} mcm
-                         LEFT JOIN {message_user_actions} mua
-                                ON (mua.messageid = m.id AND mua.userid = mcm.userid
-                                    AND mua.action = :readaction)
-                             WHERE mcm.conversationid = m.conversationid
-                               AND mcm.userid <> m.useridfrom
-                               AND mua.id IS NULL
-                       )
+              GROUP BY m.id
+                HAVING SUM(CASE WHEN mua.id IS NULL THEN 1 ELSE 0 END) = 0
               ORDER BY m.id ASC";
-        $params = ['lifetime' => $lifetime, 'readaction' => \core_message\api::MESSAGE_ACTION_READ];
+        $params = [
+            'lifetime' => $lifetime,
+            'readaction' => \core_message\api::MESSAGE_ACTION_READ,
+            'selftype' => \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+        ];
 
         do {
             $messageids = array_keys($DB->get_records_sql($sql, $params, 0, self::BATCH_SIZE));

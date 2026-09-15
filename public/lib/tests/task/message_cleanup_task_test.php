@@ -146,4 +146,46 @@ final class message_cleanup_task_test extends \advanced_testcase {
 
         $this->assertFalse($DB->record_exists('messages', ['id' => $messageid]));
     }
+
+    /**
+     * A self-conversation ("message yourself") message must never be treated as read-by-default.
+     * The sender is the conversation's only member, so they are also its sole recipient and must
+     * have their own "read" action recorded before the message becomes eligible for deletion.
+     */
+    public function test_execute_self_conversation_message_requires_own_read_action(): void {
+        global $CFG, $DB;
+
+        $this->resetAfterTest();
+        $CFG->messaginglifetime = 30;
+
+        $user = $this->getDataGenerator()->create_user();
+        $conversation = \core_message\api::get_self_conversation($user->id);
+
+        $unreadid = testhelper::send_fake_message_to_conversation(
+            $user,
+            $conversation->id,
+            'Old self message, never read',
+            time() - (40 * self::DAYSECS)
+        );
+
+        $readid = testhelper::send_fake_message_to_conversation(
+            $user,
+            $conversation->id,
+            'Old self message, read',
+            time() - (40 * self::DAYSECS)
+        );
+        $read = $DB->get_record('messages', ['id' => $readid]);
+        \core_message\api::mark_message_as_read($user->id, $read);
+
+        $task = new message_cleanup_task();
+        ob_start();
+        $task->execute();
+        ob_end_clean();
+
+        $this->assertTrue(
+            $DB->record_exists('messages', ['id' => $unreadid]),
+            'An unread self-conversation message must never be automatically deleted.'
+        );
+        $this->assertFalse($DB->record_exists('messages', ['id' => $readid]));
+    }
 }
