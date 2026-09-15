@@ -141,13 +141,21 @@ const dropdownFix = () => {
      *
      * @param {HTMLElement} menu The (possibly nested) menu currently being navigated.
      * @param {number} direction 1 to look at the next sibling (Down), -1 for the previous (Up).
-     * @return {HTMLElement|null} The menuitem to focus outside the submenu, or null if menu is not
-     *                            nested inside another menu, or there is no further sibling.
+     * @return {HTMLElement|null} The menuitem to focus outside the submenu; if menu is not nested
+     *                            inside another menu, wraps within menu's own item list instead so
+     *                            a submenu sitting at the first/last position of its enclosing menu
+     *                            still escapes to that enclosing menu rather than wrapping inside
+     *                            itself. Null only if menu has no menu items at all.
      */
     const findEscapeMenuItem = (menu, direction) => {
         const parentMenu = menu.parentElement ? menu.parentElement.closest('[role="menu"]') : null;
         if (!parentMenu) {
-            return null;
+            // Menu has no further enclosing menu, so it is itself the outermost menu in this
+            // chain. Wrap within its own items rather than returning null back down the
+            // recursion, which would otherwise cause the caller to fall back on the innermost
+            // submenu's own item list instead of this (outermost) menu's.
+            const topMenuItems = menu.querySelectorAll('[role="menuitem"]');
+            return direction > 0 ? topMenuItems[0] : topMenuItems[topMenuItems.length - 1];
         }
         // The node hosting both the submenu's own trigger and the submenu itself.
         const triggerContainer = menu.parentElement;
