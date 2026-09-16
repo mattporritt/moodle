@@ -201,16 +201,29 @@ class core_renderer extends \core_renderer {
             } else {
                 $heading = $this->page->cm->get_formatted_name();
                 $iconurl = $this->page->cm->get_icon_url();
+                $isbranded = component_callback('mod_' . $this->page->activityname, 'is_branded', [], false);
                 $iconclass = $iconurl->get_param('filtericon') ? '' : 'nofilter';
-                $iconattrs = [
-                    'class' => "icon activityicon $iconclass",
-                    'aria-hidden' => 'true'
-                ];
-                $imagedata = html_writer::img($iconurl->out(false), '', $iconattrs);
+                // Branded and non-filterable icons keep their own colours, so they are left as a plain <img>.
+                // Recolourable icons use a CSS mask instead of the old SVG colour filter, which Safari and some
+                // Chromium versions fail to render reliably (see MDL-84630).
+                $usemask = !$isbranded && $iconclass === '';
+                if ($usemask) {
+                    $iconattrs = [
+                        'class' => "icon activityicon icon-mask $iconclass",
+                        'aria-hidden' => 'true',
+                        'style' => "mask-image: url('{$iconurl->out(false)}'); -webkit-mask-image: url('{$iconurl->out(false)}');",
+                    ];
+                    $imagedata = html_writer::tag('div', '', $iconattrs);
+                } else {
+                    $iconattrs = [
+                        'class' => "icon activityicon $iconclass",
+                        'aria-hidden' => 'true',
+                    ];
+                    $imagedata = html_writer::img($iconurl->out(false), '', $iconattrs);
+                }
                 $purposeclass = plugin_supports('mod', $this->page->activityname, FEATURE_MOD_PURPOSE);
                 $purposeclass .= ' activityiconcontainer me-2';
                 $purposeclass .= ' modicon_' . $this->page->activityname;
-                $isbranded = component_callback('mod_' . $this->page->activityname, 'is_branded', [], false);
                 $imagedata = html_writer::tag('div', $imagedata, ['class' => $purposeclass . ($isbranded ? ' isbranded' : '')]);
                 if (!empty($USER->editing)) {
                     $prefix = get_string('modulename', $this->page->activityname);

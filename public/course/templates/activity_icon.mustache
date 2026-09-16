@@ -27,13 +27,30 @@
         "branded": 0,
         "pluginname": "File",
         "title": "File",
-        "extraclasses": "mycustomclass"
+        "extraclasses": "mycustomclass",
+        "usemask": 1
     }
 }}
 <div
     class="activity-icon activityiconcontainer {{!
         }}{{purpose}} {{#branded}}isbranded{{/branded}} {{extraclasses}}"
 >
+    {{#usemask}}
+    <div
+        class="icon-mask {{iconclass}}"
+        style="mask-image: url('{{{icon}}}'); -webkit-mask-image: url('{{{icon}}}');"
+        data-region="activity-icon"
+        {{#title}}
+        role="img"
+        aria-label="{{#cleanstr}} activityicon, moodle, {{{pluginname}}} {{/cleanstr}}"
+        title="{{{title}}}"
+        {{/title}}
+        {{^title}}
+        aria-hidden="true"
+        {{/title}}
+    ></div>
+    {{/usemask}}
+    {{^usemask}}
     <img
         src="{{{icon}}}"
         class="{{iconclass}}"
@@ -41,4 +58,5 @@
         alt="{{#title}}{{#cleanstr}} activityicon, moodle, {{{pluginname}}} {{/cleanstr}}{{/title}}"
         {{#title}}title="{{{title}}}"{{/title}}
     >
+    {{/usemask}}
 </div>

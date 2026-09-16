@@ -27,10 +27,28 @@
         "branded": 0,
         "modname": "resource",
         "pluginname": "File",
-        "showtooltip": 1
+        "showtooltip": 1,
+        "usemask": 1
     }
 }}
 <div class="activity-icon activityiconcontainer smaller {{purpose}} {{#branded}}isbranded{{/branded}} courseicon align-self-start me-2">
+    {{#usemask}}
+    <div
+        class="activityicon icon-mask {{iconclass}}"
+        style="mask-image: url('{{{icon}}}'); -webkit-mask-image: url('{{{icon}}}');"
+        data-region="activity-icon"
+        data-id="{{cmid}}"
+        {{#showtooltip}}
+        role="img"
+        aria-label="{{#cleanstr}} activityicon, moodle, {{{pluginname}}} {{/cleanstr}}"
+        title="{{{pluginname}}}"
+        {{/showtooltip}}
+        {{^showtooltip}}
+        aria-hidden="true"
+        {{/showtooltip}}
+    ></div>
+    {{/usemask}}
+    {{^usemask}}
     <img
         src="{{{icon}}}"
         class="activityicon {{iconclass}}"
@@ -39,4 +57,5 @@
         alt="{{#showtooltip}}{{#cleanstr}} activityicon, moodle, {{{pluginname}}} {{/cleanstr}}{{/showtooltip}}"
         {{#showtooltip}}title="{{{pluginname}}}"{{/showtooltip}}
     >
+    {{/usemask}}
 </div>

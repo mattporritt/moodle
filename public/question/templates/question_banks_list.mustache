@@ -205,7 +205,12 @@
     <ul class="list-unstyled">
         <li class="d-flex mb-2 me-2">
             <div class="flex-shrink-0 {{purpose}} activityiconcontainer icon-size-6 modicon_{{modname}}">
+                {{#usemask}}
+                <div class="icon-mask activityicon" style="mask-image: url('{{iconurl}}'); -webkit-mask-image: url('{{iconurl}}');" aria-hidden="true"></div>
+                {{/usemask}}
+                {{^usemask}}
                 <img class="icon activityicon" src="{{iconurl}}" alt=""/>
+                {{/usemask}}
             </div>
             <div class="flex-grow-1 align-self-center ms-3">
                 {{#managequestions}}

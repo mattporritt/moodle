@@ -65,6 +65,7 @@ class event_icon_exporter extends exporter {
         $iconurl = '';
         $iconclass = '';
         $purpose = '';
+        $usemask = false;
 
         if ($isactivityevent) {
             $key = 'monologo';
@@ -83,6 +84,7 @@ class event_icon_exporter extends exporter {
             $iconurl = $activityicon->get_icon_url($renderer)->out(false);
             $iconclass = $activityicon->get_icon_classes($renderer);
             $purpose = $activityicon->get_purpose();
+            $usemask = $activityicon->use_mask($renderer);
         } else if ($event->get_component()) {
             // Guess the icon and the title for the component event. By default display calendar icon and the
             // plugin name as the alttext.
@@ -133,6 +135,7 @@ class event_icon_exporter extends exporter {
         $data->iconurl = $iconurl;
         $data->iconclass = $iconclass;
         $data->purpose = $purpose;
+        $data->usemask = $usemask;
 
         parent::__construct($data, $related);
     }
@@ -150,6 +153,7 @@ class event_icon_exporter extends exporter {
             'iconurl' => ['type' => PARAM_TEXT],
             'iconclass' => ['type' => PARAM_TEXT],
             'purpose' => ['type' => PARAM_TEXT],
+            'usemask' => ['type' => PARAM_BOOL],
         ];
     }
 
