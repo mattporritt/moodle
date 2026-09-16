@@ -50,7 +50,18 @@
             >
                 {{#icon}}
                 {{#iconurl}}
+                    {{#usemask}}
+                    <div
+                        class="icon-mask {{iconclass}}"
+                        style="mask-image: url('{{{iconurl}}}'); -webkit-mask-image: url('{{{iconurl}}}');"
+                        role="img"
+                        aria-label="{{alttext}}"
+                        title="{{alttext}}"
+                    ></div>
+                    {{/usemask}}
+                    {{^usemask}}
                     <img alt="{{alttext}}" title="{{alttext}}" src="{{{ iconurl }}}" class="icon {{iconclass}}">
+                    {{/usemask}}
                 {{/iconurl}}
                 {{^iconurl}}
                     {{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}

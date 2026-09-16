@@ -85,6 +85,35 @@ class content_item_readonly_repository implements content_item_readonly_reposito
     }
 
     /**
+     * Get the module icon HTML for a content item.
+     *
+     * Branded icons, and icons without a monologo asset, keep their own colours and are rendered as a plain <img>.
+     * Recolourable icons use a CSS mask instead of the old SVG colour filter, which Safari and some Chromium
+     * versions fail to render reliably (see MDL-84630).
+     *
+     * @param string $modname the module name.
+     * @param bool $isbranded whether the module declares itself as branded.
+     * @return string the icon HTML.
+     */
+    private function get_module_icon_html(string $modname, bool $isbranded): string {
+        global $OUTPUT;
+
+        $hasmonologoicon = core_component::has_monologo_icon('mod', $modname);
+        $iconclass = $hasmonologoicon ? '' : 'nofilter';
+
+        if (!$isbranded && $hasmonologoicon) {
+            $iconurl = $OUTPUT->image_url('monologo', $modname);
+            return \html_writer::tag('div', '', [
+                'class' => 'icon-mask activityicon',
+                'aria-hidden' => 'true',
+                'style' => "mask-image: url('{$iconurl->out(false)}'); -webkit-mask-image: url('{$iconurl->out(false)}');",
+            ]);
+        }
+
+        return $OUTPUT->pix_icon('monologo', '', $modname, ['class' => "icon activityicon $iconclass"]);
+    }
+
+    /**
      * Helper to get the contentitems from all subplugin hooks for a given module plugin.
      *
      * @param string $parentpluginname the name of the module plugin to check subplugins for.
@@ -178,7 +207,7 @@ class content_item_readonly_repository implements content_item_readonly_reposito
                 name: $mod->name,
                 title: new lang_string_title("modulename", $mod->name),
                 link: new \moodle_url(''), // No course scope, so just an empty link.
-                icon: $OUTPUT->pix_icon('monologo', '', $mod->name, ['class' => 'icon activityicon']),
+                icon: $this->get_module_icon_html($mod->name, $isbranded),
                 help: $help,
                 archetype: $archetype,
                 componentname: 'mod_' . $mod->name,
@@ -245,20 +274,12 @@ class content_item_readonly_repository implements content_item_readonly_reposito
             $isbranded = component_callback('mod_' . $mod->name, 'is_branded', [], false);
             $gradable = plugin_supports('mod', $mod->name, FEATURE_GRADE_HAS_GRADE, false);
 
-            $icon = 'monologo';
-            // Quick check for monologo icons.
-            // Plugins that don't have monologo icons will be displayed as is and CSS filter will not be applied.
-            $hasmonologoicons = core_component::has_monologo_icon('mod', $mod->name);
-            $iconclass = '';
-            if (!$hasmonologoicons) {
-                $iconclass = 'nofilter';
-            }
             $contentitem = new content_item(
                 id: $mod->id,
                 name: $mod->name,
                 title: new lang_string_title("modulename", $mod->name),
                 link: new \moodle_url('/course/mod.php', ['id' => $course->id, 'add' => $mod->name]),
-                icon: $OUTPUT->pix_icon($icon, '', $mod->name, ['class' => "activityicon $iconclass"]),
+                icon: $this->get_module_icon_html($mod->name, $isbranded),
                 help: $help,
                 archetype: $archetype,
                 componentname: 'mod_' . $mod->name,

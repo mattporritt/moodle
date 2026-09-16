@@ -33165,6 +33165,13 @@ body.behat-site .action-menu .dropdown-subpanel-content.show {
   outline: 0;
 }
 
+.icon-mask {
+  background-color: currentcolor;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
 .icon {
   max-width: 30px;
   max-height: 24px;
@@ -33394,50 +33401,32 @@ img.icon {
 
 .activityiconcontainer.administration:not(.isbranded) .activityicon:not(.nofilter),
 .activityiconcontainer.administration:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.8549019608 0 0 0 0 0.3450980392 0 0 0 0 0.937254902 0 0 0 1 0 "/></filter></svg>#recolor');
-}
-[data-bs-theme=dark] .activityiconcontainer.administration:not(.isbranded) .activityicon:not(.nofilter), [data-bs-theme=dark] .activityiconcontainer.administration:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.8980392157 0 0 0 0 0.5411764706 0 0 0 0 0.9568627451 0 0 0 1 0 "/></filter></svg>#recolor');
+  color: var(--activityadministration);
 }
 
 .activityiconcontainer.assessment:not(.isbranded) .activityicon:not(.nofilter),
 .activityiconcontainer.assessment:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.9764705882 0 0 0 0 0 0 0 0 0 0.5254901961 0 0 0 1 0 "/></filter></svg>#recolor');
-}
-[data-bs-theme=dark] .activityiconcontainer.assessment:not(.isbranded) .activityicon:not(.nofilter), [data-bs-theme=dark] .activityiconcontainer.assessment:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.9843137255 0 0 0 0 0.3019607843 0 0 0 0 0.6666666667 0 0 0 1 0 "/></filter></svg>#recolor');
+  color: var(--activityassessment);
 }
 
 .activityiconcontainer.collaboration:not(.isbranded) .activityicon:not(.nofilter),
 .activityiconcontainer.collaboration:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.3568627451 0 0 0 0 0.2509803922 0 0 0 0 1 0 0 0 1 0 "/></filter></svg>#recolor');
-}
-[data-bs-theme=dark] .activityiconcontainer.collaboration:not(.isbranded) .activityicon:not(.nofilter), [data-bs-theme=dark] .activityiconcontainer.collaboration:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.5490196078 0 0 0 0 0.4745098039 0 0 0 0 1 0 0 0 1 0 "/></filter></svg>#recolor');
+  color: var(--activitycollaboration);
 }
 
 .activityiconcontainer.communication:not(.isbranded) .activityicon:not(.nofilter),
 .activityiconcontainer.communication:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.9215686275 0 0 0 0 0.3843137255 0 0 0 0 0 0 0 0 1 0 "/></filter></svg>#recolor');
-}
-[data-bs-theme=dark] .activityiconcontainer.communication:not(.isbranded) .activityicon:not(.nofilter), [data-bs-theme=dark] .activityiconcontainer.communication:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.9450980392 0 0 0 0 0.568627451 0 0 0 0 0.3019607843 0 0 0 1 0 "/></filter></svg>#recolor');
+  color: var(--activitycommunication);
 }
 
 .activityiconcontainer.content:not(.isbranded) .activityicon:not(.nofilter),
 .activityiconcontainer.content:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.6 0 0 0 0 0.6784313725 0 0 0 1 0 "/></filter></svg>#recolor');
-}
-[data-bs-theme=dark] .activityiconcontainer.content:not(.isbranded) .activityicon:not(.nofilter), [data-bs-theme=dark] .activityiconcontainer.content:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.3019607843 0 0 0 0 0.7215686275 0 0 0 0 0.7764705882 0 0 0 1 0 "/></filter></svg>#recolor');
+  color: var(--activitycontent);
 }
 
 .activityiconcontainer.interactivecontent:not(.isbranded) .activityicon:not(.nofilter),
 .activityiconcontainer.interactivecontent:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.5529411765 0 0 0 0 0.2392156863 0 0 0 0 0.1058823529 0 0 0 1 0 "/></filter></svg>#recolor');
-}
-[data-bs-theme=dark] .activityiconcontainer.interactivecontent:not(.isbranded) .activityicon:not(.nofilter), [data-bs-theme=dark] .activityiconcontainer.interactivecontent:not(.isbranded) .icon:not(.nofilter) {
-  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="recolor" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.6862745098 0 0 0 0 0.4666666667 0 0 0 0 0.3725490196 0 0 0 1 0 "/></filter></svg>#recolor');
+  color: var(--activityinteractivecontent);
 }
 
 :root {

@@ -149,6 +149,7 @@ class activity_icon implements renderable, templatable {
             'purpose' => $this->purpose,
             'branded' => $this->isbranded,
             'extraclasses' => $this->extraclasses . $this->iconsize->classes(),
+            'usemask' => $this->use_mask($output),
         ];
 
         if (!empty($this->title)) {
@@ -229,6 +230,21 @@ class activity_icon implements renderable, templatable {
         $needfiltering = $this->colourize && $iconurl->get_param('filtericon');
         $result .= ($needfiltering) ? '' : ' nofilter';
         return $result;
+    }
+
+    /**
+     * Whether the icon should be rendered as a CSS mask so it can be recoloured.
+     *
+     * Branded icons, and icons that don't opt in to filtering, keep their own colours and are rendered as a plain
+     * <img> instead. A CSS mask is used rather than the old SVG colour filter, which Safari and some Chromium
+     * versions fail to render reliably (see MDL-84630).
+     *
+     * @param renderer_base $output
+     * @return bool
+     */
+    public function use_mask(renderer_base $output): bool {
+        $iconurl = $this->get_icon_url($output);
+        return $this->colourize && !$this->isbranded && (bool) $iconurl->get_param('filtericon');
     }
 
     /**

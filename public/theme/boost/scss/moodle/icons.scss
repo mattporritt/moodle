@@ -1,32 +1,14 @@
 // The only class we need for icons is .icon
 // Standardize the size, padding and alignment for all icons in Moodle.
 
-// This mixin change an icon color using filters.
-// The code is adapted from https://jsfiddle.net/Tegos/3fchp0qm/ example.
-@mixin recolor-icon($color: #000, $opacity: 1) {
-    // Extracting the color component using / 255 is deprecated in Sass.
-    // However, the alternative of using math.div is not working in moodle yet.
-    // The workaround to extract the color component is multiply by 1/255 as float.
-    $r: red($color) * 0.00392156862745098;
-    $g: green($color) * 0.00392156862745098;
-    $b: blue($color) * 0.00392156862745098;
-    $a: $opacity;
-    $svg-filter-id: "recolor";
-
-    $svg-url: 'data:image/svg+xml;utf8,' +
-        '<svg xmlns="http://www.w3.org/2000/svg">' +
-        '<filter id="#{$svg-filter-id}" color-interpolation-filters="sRGB">' +
-        '<feColorMatrix type="matrix" values="' +
-        '0 0 0 0 #{$r} ' +
-        '0 0 0 0 #{$g} ' +
-        '0 0 0 0 #{$b} ' +
-        '0 0 0 #{$a} 0 ' +
-        '"/>' +
-        '</filter>' +
-        '</svg>' +
-        '##{$svg-filter-id}';
-
-    filter: url($svg-url);
+// Icons recoloured via a CSS mask instead of an <img>. A colour filter SVG data-URI was used previously, but
+// Safari (webkit.org bug 104169) and some Chromium versions fail to render that filter reliably (see MDL-84630).
+// mask-image just needs the element to have a background colour to paint the masked shape with.
+.icon-mask {
+    background-color: currentcolor;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
 }
 
 .icon {
@@ -231,13 +213,9 @@ img.icon {
             .activityicon,
             .icon {
                 &:not(.nofilter) {
-                    @include recolor-icon($value, 1);
-
-                    // Recoloured with an SVG filter rather than a CSS colour, so the filter has to be reapplied with
-                    // a lighter tint. Several of the activity hues are unreadable against a dark page otherwise.
-                    @include dark-mode {
-                        @include recolor-icon(tint-color($value, 30%), 1);
-                    }
+                    // Colour is applied via the --activity#{$type} custom property, which is already redefined for
+                    // dark mode below, so no separate dark-mode override is needed here.
+                    color: var(--activity#{$type});
                 }
             }
         }
@@ -260,7 +238,7 @@ img.icon {
 // Icons in Moodle's monochrome pix namespaces carry no fill, so as an <img> they paint black whatever the colour
 // mode. Most reach the page as font icons through the icon system, but the ones with no Font Awesome equivalent, and
 // the few emitted as an <img> so that JavaScript can swap the src, need inverting. The activity icons above set
-// their own filter, which is more specific and so is not affected.
+// their own colour (and the recolourable ones are not even an <img>), so they are not matched by this selector.
 //
 // The /i/ namespace is a mixed one, so it is listed icon by icon rather than whole: inverting a coloured icon would
 // change its hue. The group mode icons are drawn in gray 900 and have no Font Awesome equivalent, so they arrive as
