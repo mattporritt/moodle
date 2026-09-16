@@ -508,10 +508,15 @@ EOF
 
         $html = $renderer->edit_switch();
 
+        $this->assertMatchesRegularExpression('/data-react-props=\'([^\']+)\'/', $html);
         preg_match('/data-react-props=\'([^\']+)\'/', $html, $matches);
         $props = json_decode($matches[1], true);
         $this->assertTrue($props['checked']);
-        $this->assertStringContainsString('checked', $html);
+
+        // The fallback markup always emits both icon spans (toggled via CSS opacity, not
+        // conditional markup), so assert the checkbox's checked attribute specifically rather
+        // than the literal substring 'checked', which is present regardless of switch state.
+        $this->assertMatchesRegularExpression('/<input[^>]*\bchecked\b[^>]*class="mds-switch-input"/', $html);
     }
 
     /**
