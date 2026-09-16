@@ -90,6 +90,10 @@ class cmicon implements named_templatable, renderable {
             'showtooltip' => $this->format->show_editor(),
             'purpose' => plugin_supports('mod', $mod->modname, FEATURE_MOD_PURPOSE, MOD_PURPOSE_OTHER),
             'branded' => $isbranded,
+            // Branded and non-filterable icons keep their own colours (plain <img>). Recolourable icons use a CSS
+            // mask instead of the old SVG colour filter, which Safari and some Chromium versions fail to render
+            // reliably (see MDL-84630).
+            'usemask' => !$isbranded && $iconclass === '',
         ];
 
         return $data;

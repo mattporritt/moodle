@@ -75,13 +75,20 @@ class question_bank_list implements \renderable, \templatable {
                 $instance->name,
             );
 
+            $iconurl = $instance->cminfo->get_icon_url();
+            $isbranded = component_callback('mod_' . $instance->cminfo->modname, 'is_branded', [], false);
+
             $banks[] = [
                 'purpose' => plugin_supports('mod', $instance->cminfo->modname, FEATURE_MOD_PURPOSE),
-                'iconurl' => $instance->cminfo->get_icon_url(),
+                'iconurl' => $iconurl,
                 'modname' => $instance->name,
                 'description' => $instance->cminfo->get_formatted_content(),
                 'managequestions' => $managequestions->export_for_template($output),
                 'managebank' => $managebankexport,
+                // Branded icons keep their own colours (plain <img>). Recolourable icons use a CSS mask instead of
+                // the old SVG colour filter, which Safari and some Chromium versions fail to render reliably
+                // (see MDL-84630).
+                'usemask' => !$isbranded && (bool) $iconurl->get_param('filtericon'),
             ];
         }
 
