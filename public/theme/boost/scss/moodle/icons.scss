@@ -4,6 +4,8 @@
 // Icons recoloured via a CSS mask instead of an <img>. A colour filter SVG data-URI was used previously, but
 // Safari (webkit.org bug 104169) and some Chromium versions fail to render that filter reliably (see MDL-84630).
 // mask-image just needs the element to have a background colour to paint the masked shape with.
+// Technique based on a community proof-of-concept by Jonathan Champ; the Chromium root cause was
+// diagnosed by Jason Brisson (both credited on MDL-84630).
 .icon-mask {
     background-color: currentcolor;
     mask-position: center;
