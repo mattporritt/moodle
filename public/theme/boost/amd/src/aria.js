@@ -130,7 +130,43 @@ const dropdownFix = () => {
         }
     });
 
+    /**
+     * Escape a nested submenu: at its start/end, jump to the previous/next item of the enclosing
+     * menu. Without this, arrowing out of a submenu (e.g. a "Courses" item with sub-items inside
+     * "More") just wraps inside the submenu forever.
+     *
+     * @param {HTMLElement} menu The (possibly nested) menu currently being navigated.
+     * @param {number} direction 1 for the next sibling (Down), -1 for the previous (Up).
+     * @return {HTMLElement|null} Menuitem to focus outside the submenu, or the first/last item of
+     *                            the outermost menu when there is no enclosing menu. Null only if
+     *                            the menu has no items.
+     */
+    const findEscapeMenuItem = (menu, direction) => {
+        const parentMenu = menu.parentElement ? menu.parentElement.closest('[role="menu"]') : null;
+        if (!parentMenu) {
+            // Outermost menu: wrap within its own items so a submenu at the first/last position
+            // still escapes here rather than wrapping inside the innermost submenu.
+            const topMenuItems = menu.querySelectorAll('[role="menuitem"]');
+            return direction > 0 ? topMenuItems[0] : topMenuItems[topMenuItems.length - 1];
+        }
+        // The node hosting both the submenu's own trigger and the submenu itself.
+        const triggerContainer = menu.parentElement;
+        const sibling = direction > 0 ? triggerContainer.nextElementSibling : triggerContainer.previousElementSibling;
+        if (sibling) {
+            // The sibling is either the menuitem itself (no wrapper) or a container with one as a
+            // descendant (e.g. a legacy <li> or another submenu's wrapper).
+            return sibling.matches('[role="menuitem"]') ? sibling : sibling.querySelector('[role="menuitem"]');
+        }
+        // No further sibling at this level either: keep looking outward.
+        return findEscapeMenuItem(parentMenu, direction);
+    };
+
     // Keyboard navigation for arrow keys, home and end keys.
+    //
+    // Capture phase on purpose: Bootstrap registers its dropdown keydown on document in the
+    // capture phase too, and stopPropagation()s Up/Down, so our bubble-phase listener never saw
+    // them. Bootstrap also disables wrap-around once on an item and can't escape a nested submenu,
+    // so we run first and correct the result via the delayed shiftFocus() below.
     document.addEventListener('keydown', e => {
 
         // We only want to set focus when users access the dropdown via keyboard as per
@@ -160,8 +196,8 @@ const dropdownFix = () => {
                     }
                 }
                 if (!next) {
-                    // Wrap to first item.
-                    next = menuItems[0];
+                    // Escape a nested submenu to the enclosing menu's next item, or wrap.
+                    next = findEscapeMenuItem(menu, 1) || menuItems[0];
                 }
             } else if (trigger == 'ArrowUp') {
                 // Up key.
@@ -172,8 +208,8 @@ const dropdownFix = () => {
                     }
                 }
                 if (!next) {
-                    // Wrap to last item.
-                    next = menuItems[menuItems.length - 1];
+                    // Escape a nested submenu to the enclosing menu's previous item, or wrap.
+                    next = findEscapeMenuItem(menu, -1) || menuItems[menuItems.length - 1];
                 }
             } else if (trigger == 'Home') {
                 // Home key.
@@ -191,7 +227,7 @@ const dropdownFix = () => {
             }
             return;
         }
-    });
+    }, true);
 
     // Trap focus if the dropdown is a dialog.
     document.addEventListener('shown.bs.dropdown', e => {
