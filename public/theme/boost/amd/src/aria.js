@@ -145,8 +145,12 @@ const dropdownFix = () => {
         const parentMenu = menu.parentElement ? menu.parentElement.closest('[role="menu"]') : null;
         if (!parentMenu) {
             // Outermost menu: wrap within its own items so a submenu at the first/last position
-            // still escapes here rather than wrapping inside the innermost submenu.
-            const topMenuItems = menu.querySelectorAll('[role="menuitem"]');
+            // still escapes here rather than wrapping inside the innermost submenu. Only this
+            // menu's direct items count: a descendant-wide query can return an item inside a
+            // collapsed submenu, which is display: none and so cannot take focus.
+            const allItems = menu.querySelectorAll('[role="menuitem"]');
+            const ownItems = [...allItems].filter((i) => i.closest('[role="menu"]') === menu);
+            const topMenuItems = ownItems.length ? ownItems : allItems;
             return direction > 0 ? topMenuItems[0] : topMenuItems[topMenuItems.length - 1];
         }
         // The node hosting both the submenu's own trigger and the submenu itself.
