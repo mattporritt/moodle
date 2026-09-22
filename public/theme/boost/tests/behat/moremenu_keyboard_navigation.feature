@@ -95,6 +95,25 @@ Feature: Keyboard navigation of the primary navigation "More" menu
     And I press the down key
     Then the focused element is "Mobile app" "link"
 
+  Scenario: Opening the "More" menu with Enter and pressing up wraps to its own last item
+    Given I navigate to "Appearance > Advanced theme settings" in site administration
+    And I set the field "Custom menu items" to multiline:
+      """
+      Mobile app|https://example.org/app
+      Courses
+      -All courses|/course/
+      -Course search|/course/search.php
+      """
+    And I press "Save changes"
+    And I change viewport size to "900x800"
+    And I am on homepage
+    When I click on "More" "link" in the ".primary-navigation" "css_element"
+    And I press the escape key
+    And I press the enter key
+    And the focused element is "Mobile app" "link"
+    And I press the up key
+    Then the focused element is "Courses" "link"
+
   Scenario: Arrow key navigation of the (non-nested) user menu still works after the primary navigation's capture-phase change
     When I click on "#user-menu-toggle" "css_element" in the ".usermenu" "css_element"
     And I press the down key
