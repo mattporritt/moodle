@@ -130,24 +130,12 @@ const dropdownFix = () => {
         }
     });
 
-    /**
-     * Escape a nested submenu: at its start/end, jump to the previous/next item of the enclosing
-     * menu. Without this, arrowing out of a submenu (e.g. a "Courses" item with sub-items inside
-     * "More") just wraps inside the submenu forever.
-     *
-     * @param {HTMLElement} menu The (possibly nested) menu currently being navigated.
-     * @param {number} direction 1 for the next sibling (Down), -1 for the previous (Up).
-     * @return {HTMLElement|null} Menuitem to focus outside the submenu, or the first/last item of
-     *                            the outermost menu when there is no enclosing menu. Null only if
-     *                            the menu has no items.
-     */
     const findEscapeMenuItem = (menu, direction) => {
         const parentMenu = menu.parentElement ? menu.parentElement.closest('[role="menu"]') : null;
         if (!parentMenu) {
             // Outermost menu: wrap within its own items so a submenu at the first/last position
-            // still escapes here rather than wrapping inside the innermost submenu. Only this
-            // menu's direct items count: a descendant-wide query can return an item inside a
-            // collapsed submenu, which is display: none and so cannot take focus.
+            // still escapes here. Only direct items count: a descendant-wide query can return an
+            // item inside a collapsed submenu, which is display: none and so cannot take focus.
             const allItems = menu.querySelectorAll('[role="menuitem"]');
             const ownItems = [...allItems].filter((i) => i.closest('[role="menu"]') === menu);
             const topMenuItems = ownItems.length ? ownItems : allItems;
