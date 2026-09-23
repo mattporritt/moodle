@@ -752,6 +752,29 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2025030600.03);
     }
 
+    // MDL-89876: moved ahead of the block removal steps below, since those queue an ad-hoc task
+    // with duplicate detection (queue_adhoc_task() with $checkforexisting = true) that queries
+    // this column. Uses three decimal places to fit between the already-shipped .03 and .04
+    // savepoints.
+    if ($oldversion < 2025030600.035) {
+        // Define field identityhash to be added to task_adhoc.
+        $table = new xmldb_table('task_adhoc');
+        $field = new xmldb_field('identityhash', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'firststartingtime');
+
+        // Conditionally launch add field identityhash.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Add a unique index on identityhash to enforce one row per non-null key.
+        $index = new xmldb_index('identityhash_uix', XMLDB_INDEX_UNIQUE, ['identityhash']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        upgrade_main_savepoint(true, 2025030600.035);
+    }
+
     // Remove block_mnet_hosts.
     if ($oldversion < 2025030600.04) {
         if (!file_exists($CFG->dirroot . "/blocks/mnet_hosts/version.php")) {
@@ -2274,25 +2297,6 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
         upgrade_main_savepoint(true, 2026081800.05);
-    }
-
-    if ($oldversion < 2026081800.06) {
-        // Define field identityhash to be added to task_adhoc.
-        $table = new xmldb_table('task_adhoc');
-        $field = new xmldb_field('identityhash', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'firststartingtime');
-
-        // Conditionally launch add field identityhash.
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        // Add a unique index on identityhash to enforce one row per non-null key.
-        $index = new xmldb_index('identityhash_uix', XMLDB_INDEX_UNIQUE, ['identityhash']);
-        if (!$dbman->index_exists($table, $index)) {
-            $dbman->add_index($table, $index);
-        }
-
-        upgrade_main_savepoint(true, 2026081800.06);
     }
 
     if ($oldversion < 2026090300.01) {
