@@ -1539,13 +1539,18 @@ class behat_navigation extends behat_base {
      * @Given I turn editing mode on
      */
     public function i_turn_editing_mode_on() {
-        $this->execute('behat_forms::i_set_the_field_to', [get_string('editmode'), 1]);
+        $this->set_editing_mode_field(1);
 
         if (!$this->running_javascript()) {
             $this->execute('behat_general::i_click_on', [
                 get_string('setmode', 'core'),
                 'button',
             ]);
+        } else {
+            // Toggling the field only dispatches the change event; core/edit_switch's own ajax
+            // call and its redirect-on-success both still need to settle before body's "editing"
+            // class reflects the new state, otherwise this check can read it mid-navigation.
+            $this->wait_for_pending_js();
         }
 
         if (!$this->is_editing_on()) {
@@ -1559,18 +1564,47 @@ class behat_navigation extends behat_base {
      * @Given I turn editing mode off
      */
     public function i_turn_editing_mode_off() {
-        $this->execute('behat_forms::i_set_the_field_to', [get_string('editmode'), 0]);
+        $this->set_editing_mode_field(0);
 
         if (!$this->running_javascript()) {
             $this->execute('behat_general::i_click_on', [
                 get_string('setmode', 'core'),
                 'button',
             ]);
+        } else {
+            // Toggling the field only dispatches the change event; core/edit_switch's own ajax
+            // call and its redirect-on-success both still need to settle before body's "editing"
+            // class reflects the new state, otherwise this check can read it mid-navigation.
+            $this->wait_for_pending_js();
         }
 
         if ($this->is_editing_on()) {
             throw new ExpectationException('The edit mode could not be turned off', $this->getSession());
         }
+    }
+
+    /**
+     * Sets the edit mode switch field, retrying against a freshly located field while it is stale.
+     *
+     * core/editswitch mounts the switch as a React component (core/EditModeSwitch), which replaces
+     * the server-rendered NonJS fallback node once its own ESM import resolves. On a page doing a
+     * lot of other concurrent React mounting (for example the dashboard, straight after a
+     * block-configuration save), that swap can keep the element unsettled for a moment, and a single
+     * retry is not always enough. spin() re-locates and re-attempts the field-set repeatedly until it
+     * succeeds or times out, which is the standard Behat stabiliser for exactly this class of
+     * "element replaced shortly after render" race.
+     *
+     * @param int $value 1 to turn editing on, 0 to turn it off.
+     */
+    protected function set_editing_mode_field(int $value): void {
+        $this->spin(
+            function () use ($value) {
+                $this->execute('behat_forms::i_set_the_field_to', [get_string('editmode'), $value]);
+                return true;
+            },
+            false,
+            self::get_extended_timeout(),
+        );
     }
 
     /**
