@@ -450,8 +450,6 @@ EOF
 
     /**
      * The Edit mode switch renders the design system Switch component with matching props.
-     *
-     * @covers ::edit_switch
      */
     public function test_edit_switch_renders_design_system_switch(): void {
         $this->resetAfterTest();
@@ -488,12 +486,16 @@ EOF
         // core/edit_switch.js and Behat's label-based field lookup keep working either way.
         $this->assertStringContainsString('id="' . $props['id'] . '"', $html);
         $this->assertStringContainsString('for="' . $props['id'] . '"', $html);
+
+        // The accessibility fix itself: the fallback must use the design system's "enable" variant
+        // and its thumb icon (both states rendered, toggled via CSS), not a bare unlabelled circle.
+        $this->assertStringContainsString('mds-switch--variant-enable', $html);
+        $this->assertStringContainsString('mds-switch-icon-item mds-switch-icon-item--unchecked', $html);
+        $this->assertStringContainsString('mds-switch-icon-item mds-switch-icon-item--checked', $html);
     }
 
     /**
      * The switch's checked state and props reflect that the current user has editing on.
-     *
-     * @covers ::edit_switch
      */
     public function test_edit_switch_reflects_editing_on(): void {
         global $USER;
@@ -521,8 +523,6 @@ EOF
 
     /**
      * The switch is not rendered at all for a user without editing capability.
-     *
-     * @covers ::edit_switch
      */
     public function test_edit_switch_returns_null_when_user_cannot_edit(): void {
         $this->resetAfterTest();

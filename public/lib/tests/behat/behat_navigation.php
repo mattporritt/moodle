@@ -1584,27 +1584,22 @@ class behat_navigation extends behat_base {
     }
 
     /**
-     * Sets the edit mode switch field, retrying against a freshly located field while it is stale.
+     * Sets the edit mode switch field, waiting first for any in-flight React mount to settle.
      *
      * core/editswitch mounts the switch as a React component (core/EditModeSwitch), which replaces
      * the server-rendered NonJS fallback node once its own ESM import resolves. On a page doing a
      * lot of other concurrent React mounting (for example the dashboard, straight after a
-     * block-configuration save), that swap can keep the element unsettled for a moment, and a single
-     * retry is not always enough. spin() re-locates and re-attempts the field-set repeatedly until it
-     * succeeds or times out, which is the standard Behat stabiliser for exactly this class of
-     * "element replaced shortly after render" race.
+     * block-configuration save), that swap can leave the element unsettled for a moment. Waiting for
+     * pending JS here, before locating the field, lets that mount finish first so the field lookup
+     * itself does not need its own retry loop.
      *
      * @param int $value 1 to turn editing on, 0 to turn it off.
      */
     protected function set_editing_mode_field(int $value): void {
-        $this->spin(
-            function () use ($value) {
-                $this->execute('behat_forms::i_set_the_field_to', [get_string('editmode'), $value]);
-                return true;
-            },
-            false,
-            self::get_extended_timeout(),
-        );
+        if ($this->running_javascript()) {
+            $this->wait_for_pending_js();
+        }
+        $this->execute('behat_forms::i_set_the_field_to', [get_string('editmode'), $value]);
     }
 
     /**

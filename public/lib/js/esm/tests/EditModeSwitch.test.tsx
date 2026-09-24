@@ -33,7 +33,7 @@ jest.mock('@moodlehq/design-system', () => ({
         id: string; label: string; defaultChecked?: boolean; variant?: string; labelSide?: string;
         [key: string]: unknown;
     }) => (
-        <div className="mds-switch">
+        <div className="mds-switch" data-variant={variant}>
             <input id={id} type="checkbox" role="switch" defaultChecked={defaultChecked} {...rest} />
             <label className="mds-switch-control" htmlFor={id}>{label}</label>
         </div>
@@ -42,15 +42,14 @@ jest.mock('@moodlehq/design-system', () => ({
 
 const initMock = jest.fn();
 
-// @moodle/lms/core/amd is the real requireAsync() this component uses to reach the legacy
-// core/edit_switch AMD module; stub it so init() is observable without a real AMD loader.
-jest.mock('@moodle/lms/core/amd', () => ({
-    requireAsync: jest.fn(() => Promise.resolve({init: initMock})),
-}), {virtual: true});
-
 describe('core/EditModeSwitch', () => {
     beforeEach(() => {
         initMock.mockClear();
+        // The legacy core/edit_switch AMD module is what EditModeSwitch's effect requires via the
+        // real requireAsync(); .jest/globalSetup.ts already mocks @moodle/lms/core/amd for every
+        // test, so register the module against that shared registry rather than re-mocking the
+        // whole package locally.
+        mockAmdModule('core/edit_switch', {init: initMock});
     });
 
     const PROPS = {
@@ -76,6 +75,12 @@ describe('core/EditModeSwitch', () => {
         const input = getByRole('switch');
         expect(input.getAttribute('data-context')).toBe(String(PROPS.context));
         expect(input.getAttribute('data-pageurl')).toBe(PROPS.pageurl);
+    });
+
+    it('renders the design system Switch with the enable variant, the accessibility fix itself', () => {
+        const {container} = render(<EditModeSwitch {...PROPS} />);
+
+        expect(container.querySelector('.mds-switch')?.getAttribute('data-variant')).toBe('enable');
     });
 
     it('initialises core/edit_switch with the same id once mounted', async() => {
