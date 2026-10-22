@@ -40,17 +40,30 @@ class course_tools_page implements \renderable {
      * @param int $courseid the id of the course.
      */
     public function __construct(int $courseid) {
-        global $DB;
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/ltix/constants.php');
 
         $context = \context_course::instance($courseid);
+        $coursecategory = get_course($courseid)->category; // Note: this is a course page renderable, so get_course() is free.
 
         // Page intro, zero state and 'add new' button.
         $canadd = has_capability('moodle/ltix:addcoursetool', $context);
         $sql = 'SELECT COUNT(1)
                   FROM {lti_types} tt
+             LEFT JOIN {lti_types_categories} tc
+                    ON (tc.typeid = tt.id)
                  WHERE tt.course IN(:siteid, :courseid)
-                   AND tt.coursevisible NOT IN(:coursevisible)';
-        $toolcount = $DB->count_records_sql($sql, ['siteid' => get_site()->id, 'courseid' => $courseid, 'coursevisible' => 0]);
+                   AND tt.coursevisible NOT IN(:coursevisible)
+                   AND (tc.id IS NULL OR tc.categoryid = :coursecategory)';
+        $toolcount = $DB->count_records_sql(
+            $sql,
+            [
+                'siteid' => get_site()->id,
+                'courseid' => $courseid,
+                'coursevisible' => \LTI_COURSEVISIBLE_NO,
+                'coursecategory' => $coursecategory,
+            ]
+        );
         $this->coursetoolspageheader = new course_tools_page_header($courseid, $toolcount, $canadd);
 
         // Course tools report itself.
