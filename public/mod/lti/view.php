@@ -131,6 +131,11 @@ if ($launchcontainer == \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOC
     $PAGE->set_pagelayout('incourse');
 }
 
+if (empty($link->get('typeid'))) {
+    // This page records the view below, so stop the legacy launch script recording it a second time.
+    $launchurl->param('triggerview', 0);
+}
+
 lti_view($lti, $course, $cm, $context);
 
 $pagetitle = strip_tags($course->shortname.': '.format_string($lti->name));
