@@ -1,0 +1,60 @@
+#!/bin/bash
+# ltip-run <tree> <db> <data> <command...>
+#
+# Runs <command> in a one-off container against the Moodle checkout <tree>, using the PostgreSQL database <db> and the
+# data directory $LTIP_DATA/<data>. Nothing outside those is touched, so it is safe next to a development site.
+# Inside the container the tree is /var/www/html and the lti-parity folder is /ltip (so /ltip/out holds results).
+#
+# Environment (all have defaults, only LTIP_DB_PASS is required):
+#   LTIP_DATA          data root for moodledata directories        (default: ~/lti-parity-data)
+#   LTIP_IMAGE         PHP image with the extensions Moodle needs   (default: moodlehq/moodle-php-apache:8.3)
+#   LTIP_NETWORK       docker network the database is on            (default: moodlemaster_default)
+#   LTIP_DB_HOST       database host on that network                (default: db)
+#   LTIP_DB_USER       database user                                (default: moodle)
+#   LTIP_DB_PASS       database password                            (required, never stored by these scripts)
+#   LTIP_WWWROOT       wwwroot written to a generated config.php    (default: https://webserver)
+#   LTIP_VENDOR        a composer vendor directory for the tree     (default: <tree>/vendor, must exist)
+set -euo pipefail
+TREE="$(cd "$1" && pwd)"; DB="$2"; DATA="$3"; shift 3
+HERE="$(cd "$(dirname "$0")/.." && pwd)"
+LTIP_DATA="${LTIP_DATA:-$HOME/lti-parity-data}"
+: "${LTIP_DB_PASS:?set LTIP_DB_PASS to the database password}"
+VENDOR="${LTIP_VENDOR:-$TREE/vendor}"
+[ -d "$VENDOR" ] || { echo "no vendor directory at $VENDOR (set LTIP_VENDOR)" >&2; exit 1; }
+
+D="$LTIP_DATA/$DATA"
+mkdir -p "$D/moodledata" "$HERE/out"
+chmod -R 777 "$D" "$HERE/out" 2>/dev/null || true
+
+# A config.php that takes everything from the environment, written only when the tree has none.
+if [ ! -f "$TREE/config.php" ]; then
+  cat > "$TREE/config.php" <<'PHP'
+<?php
+unset($CFG);
+global $CFG;
+$CFG = new stdClass();
+$CFG->dbtype = 'pgsql';
+$CFG->dblibrary = 'native';
+$CFG->dbhost = getenv('LTIP_DB_HOST');
+$CFG->dbname = getenv('LTIP_DB_NAME');
+$CFG->dbuser = getenv('LTIP_DB_USER');
+$CFG->dbpass = getenv('LTIP_DB_PASS');
+$CFG->prefix = 'mdl_';
+$CFG->dboptions = ['dbpersist' => false, 'dbsocket' => false, 'dbport' => ''];
+$CFG->wwwroot = getenv('LTIP_WWWROOT');
+$CFG->dataroot = '/var/www/moodledata';
+$CFG->admin = 'admin';
+$CFG->directorypermissions = 02777;
+require_once(__DIR__ . '/lib/setup.php');
+PHP
+fi
+
+exec docker run --rm -i --network "${LTIP_NETWORK:-moodlemaster_default}" --entrypoint "" -u www-data \
+  -e HOME=/tmp -e COMPOSER_HOME=/tmp/composer \
+  -e LTIP_DB_HOST="${LTIP_DB_HOST:-db}" -e LTIP_DB_NAME="$DB" -e LTIP_DB_USER="${LTIP_DB_USER:-moodle}" \
+  -e LTIP_DB_PASS -e LTIP_WWWROOT="${LTIP_WWWROOT:-https://webserver}" \
+  -v "$TREE":/var/www/html \
+  -v "$VENDOR":/var/www/html/vendor \
+  -v "$D/moodledata":/var/www/moodledata \
+  -v "$HERE":/ltip \
+  -w /var/www/html "${LTIP_IMAGE:-moodlehq/moodle-php-apache:8.3}" "$@"

@@ -1,0 +1,5 @@
+#!/bin/bash
+# mkdb <dbname>  (re)create an empty UTF8 PostgreSQL database
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+"$HERE/db" psql -d postgres -qc "DROP DATABASE IF EXISTS \"$1\"" -c "CREATE DATABASE \"$1\" ENCODING 'UTF8' TEMPLATE template0"

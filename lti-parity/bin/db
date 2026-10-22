@@ -1,0 +1,6 @@
+#!/bin/bash
+# db <pg-client-command> [args...]   e.g.  bin/db psql -d postgres -c 'select 1'  |  bin/db pg_dump -Fc -d mydb
+# Runs a PostgreSQL client tool inside the database container. $LTIP_DB_CONTAINER names it (default: moodlemaster-db-1).
+set -euo pipefail
+: "${LTIP_DB_PASS:?set LTIP_DB_PASS}"
+exec docker exec -i -e PGPASSWORD="$LTIP_DB_PASS" "${LTIP_DB_CONTAINER:-moodlemaster-db-1}" "$1" -U "${LTIP_DB_USER:-moodle}" "${@:2}"
