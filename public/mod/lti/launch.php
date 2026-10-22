@@ -83,7 +83,7 @@ if ($typeid) {
                 if ($triggerview) {
                     lti_view($lti, $course, $cm, $context);
                 }
-                echo \core_ltix\helper::initiate_login($cm->course, $cmid, $lti, $config, $msgtype, '', '', $foruserid);
+                echo \core_ltix\helper::initiate_login($cm->course, $cmid, $lti, $config, $msgtype, '', '', '', $foruserid);
                 exit;
             } else {
                 unset($SESSION->lti_initiatelogin_status);
