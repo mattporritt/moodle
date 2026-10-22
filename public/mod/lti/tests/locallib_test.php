@@ -2353,7 +2353,6 @@ MwIDAQAB
     /**
      * Test covering lti_get_types_for_add_instance(), which only exists to support the legacy, manually configured instance form.
      *
-     * @covers ::lti_get_types_for_add_instance
      * @return void
      */
     public function test_lti_get_types_for_add_instance(): void {
