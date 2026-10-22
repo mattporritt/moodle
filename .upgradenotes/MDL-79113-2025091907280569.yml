@@ -376,8 +376,9 @@ notes:
         \core_ltix\helper::get_tool_type_state_info() instead.
       type: deprecated
     - message: >-
-        get_tool_type_config() is deprecated without a
-        replacement.
+        get_tool_type_config() deprecated without a
+        replacement. Placement management is now managed in
+        core_ltix via the LTI External tools page.
       type: deprecated
     - message: >-
         get_tool_type_capability_groups() is deprecated. Please use
