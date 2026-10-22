@@ -26,7 +26,7 @@ namespace mod_lti\local\ltiopenid;
 /**
  * This class exposes functions for LTI 1.3 Key Management.
  *
- * @deprecated since Moodle 5.1
+ * @deprecated since Moodle 6.0
  * @see \core_ltix\local\ltiopenid\jwks_helper
  *
  * @package    mod_lti
@@ -35,7 +35,7 @@ namespace mod_lti\local\ltiopenid;
  */
 #[\core\attribute\deprecated(
     reason: 'Use \core_ltix\local\ltiopenid\jwks_helper instead',
-    since: '5.1',
+    since: '6.0',
     mdl: 'MDL-79113',
 )]
 class jwks_helper {
@@ -43,12 +43,12 @@ class jwks_helper {
     /**
      * Returns the private key to use to sign outgoing JWT.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return array keys are kid and key in PEM format.
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\local\ltiopenid\jwks_helper::get_private_key() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79113',
     )]
     public static function get_private_key() {
@@ -59,12 +59,12 @@ class jwks_helper {
     /**
      * Returns the JWK Key Set for this site.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return array keyset exposting the site public key.
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\local\ltiopenid\jwks_helper::get_jwks() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79113',
     )]
     public static function get_jwks() {
@@ -83,14 +83,14 @@ class jwks_helper {
      *
      * Keys not matching the above are left unchanged.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param array $jwks the keyset array.
      * @param string $jwt the JWT string.
      * @return array the fixed keyset array.
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\local\ltiopenid\jwks_helper::fix_jwks_alg() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79113',
     )]
     public static function fix_jwks_alg(array $jwks, string $jwt): array {

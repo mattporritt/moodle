@@ -37,7 +37,7 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  */
 #[\core\attribute\deprecated(
     reason: 'Use \core_ltix\external\get_tool_types_and_proxies_count instead',
-    since: '5.1',
+    since: '6.0',
     mdl: 'MDL-79518',
 )]
 class get_tool_types_and_proxies_count extends external_api {
@@ -45,12 +45,12 @@ class get_tool_types_and_proxies_count extends external_api {
     /**
      * Get parameter definition for get_tool_types_and_proxies_count().
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\external\get_tool_types_and_proxies_count::execute_parameters() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79518',
     )]
     public static function execute_parameters(): external_function_parameters {
@@ -65,14 +65,14 @@ class get_tool_types_and_proxies_count extends external_api {
     /**
      * Get count of every tool type and tool proxy.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $toolproxyid The tool proxy id
      * @param bool $orphanedonly Whether to get orphaned proxies only.
      * @return array
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\external\get_tool_types_and_proxies_count::execute() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79518',
     )]
     public static function execute($toolproxyid, $orphanedonly): array {
@@ -83,12 +83,12 @@ class get_tool_types_and_proxies_count extends external_api {
     /**
      * Get return definition for get_tool_types_and_proxies_count.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_single_structure
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\external\get_tool_types_and_proxies_count::execute_returns() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79518',
     )]
     public static function execute_returns(): external_single_structure {

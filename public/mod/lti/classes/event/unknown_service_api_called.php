@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
  *
  * Event for when something happens with an unknown lti service API call.
  *
- * @deprecated since Moodle 5.2 use \core_ltix\event\unknown_service_api_called instead.
+ * @deprecated since Moodle 6.0 use \core_ltix\event\unknown_service_api_called instead.
  * @package    mod_lti
  * @since      Moodle 2.6
  * @copyright  2013 Adrian Greeve <adrian@moodle.com>
@@ -38,7 +38,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 #[\core\attribute\deprecated(
     reason: 'Use \core_ltix\event\unknown_service_api_called instead',
-    since: '5.1',
+    since: '6.0',
     mdl: 'MDL-80231',
 )]
 class unknown_service_api_called extends \core\event\base {

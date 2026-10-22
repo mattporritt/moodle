@@ -34,7 +34,7 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  */
 #[\core\attribute\deprecated(
     reason: 'Use \core_ltix\external\delete_course_tool_type instead',
-    since: '5.1',
+    since: '6.0',
     mdl: 'MDL-79518',
 )]
 class delete_course_tool_type extends external_api {
@@ -42,12 +42,12 @@ class delete_course_tool_type extends external_api {
     /**
      * Get parameter definition.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\external\delete_course_tool_type::execute_parameters() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79518',
     )]
     public static function execute_parameters(): external_function_parameters {
@@ -59,14 +59,14 @@ class delete_course_tool_type extends external_api {
     /**
      * Delete a course tool type.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $tooltypeid the id of the course external tool type.
      * @return bool true
      * @throws \invalid_parameter_exception if the provided id refers to a site level tool which cannot be deleted.
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\external\delete_course_tool_type::execute() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79518',
     )]
     public static function execute(int $tooltypeid): bool {
@@ -77,12 +77,12 @@ class delete_course_tool_type extends external_api {
     /**
      * Get service returns definition.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_value
      */
     #[\core\attribute\deprecated(
         reason: 'Use \core_ltix\external\delete_course_tool_type::execute_returns() instead',
-        since: '5.1',
+        since: '6.0',
         mdl: 'MDL-79518',
     )]
     public static function execute_returns(): external_value {

@@ -63,12 +63,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns structure be used for returning a tool type from a web service.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_single_structure
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\structs::tool_type_return_structure() instead',
         mdl: 'MDL-79518',
     )]
@@ -79,12 +79,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of a tool proxy
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\structs::tool_proxy_return_structure() instead',
         mdl: 'MDL-79518',
     )]
@@ -95,12 +95,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_proxies::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -111,14 +111,14 @@ class mod_lti_external extends external_api {
     /**
      * Returns the tool types.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param bool $orphanedonly Retrieve only tool proxies that do not have a corresponding tool type
      * @return array of tool types
      * @since Moodle 3.1
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_proxies::execute() instead',
         mdl: 'MDL-79518',
     )]
@@ -138,12 +138,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_proxies::execute_returns() instead',
         mdl: 'MDL-79518',
     )]
@@ -431,12 +431,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\create_tool_proxy::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -447,7 +447,7 @@ class mod_lti_external extends external_api {
     /**
      * Creates a new tool proxy
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param string $name Tool proxy name
      * @param string $registrationurl Registration url
      * @param string[] $capabilityoffered List of capabilities this tool proxy should be offered
@@ -457,7 +457,7 @@ class mod_lti_external extends external_api {
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\create_tool_proxy::execute() instead',
         mdl: 'MDL-79518',
     )]
@@ -477,12 +477,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\create_tool_proxy::execute_returns() instead',
         mdl: 'MDL-79518',
     )]
@@ -493,12 +493,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\delete_tool_proxy::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -509,14 +509,14 @@ class mod_lti_external extends external_api {
     /**
      * Trigger the course module viewed event and update the module completion status.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $id the lti instance id
      * @return object The tool proxy
      * @since Moodle 3.1
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\delete_tool_proxy::execute() instead',
         mdl: 'MDL-79518',
     )]
@@ -536,12 +536,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\delete_tool_proxy::execute_returns() instead',
         mdl: 'MDL-79518',
     )]
@@ -552,12 +552,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_proxy_registration_request::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -568,14 +568,14 @@ class mod_lti_external extends external_api {
     /**
      * Returns the registration request for a tool proxy.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $id the lti instance id
      * @return array of registration parameters
      * @since Moodle 3.1
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_proxy_registration_request::execute() instead',
         mdl: 'MDL-79518',
     )]
@@ -605,12 +605,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_types::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -621,14 +621,14 @@ class mod_lti_external extends external_api {
     /**
      * Returns the tool types.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $toolproxyid The tool proxy id
      * @return array of tool types
      * @since Moodle 3.1
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_types::execute() instead',
         mdl: 'MDL-79518',
     )]
@@ -648,12 +648,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\get_tool_types::execute_returns() instead',
         mdl: 'MDL-79518',
     )]
@@ -664,12 +664,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\create_tool_type::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -680,7 +680,7 @@ class mod_lti_external extends external_api {
     /**
      * Creates a tool type.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param string $cartridgeurl Url of the xml cartridge representing the LTI tool
      * @param string $key The consumer key to identify this consumer
      * @param string $secret The secret
@@ -689,7 +689,7 @@ class mod_lti_external extends external_api {
      * @throws moodle_exception If the tool type could not be created
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external::create_tool_type instead',
         mdl: 'MDL-79518',
     )]
@@ -709,12 +709,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\create_tool_type::execute_returns() instead',
         mdl: 'MDL-79518',
     )]
@@ -725,12 +725,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\update_tool_type::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -741,7 +741,7 @@ class mod_lti_external extends external_api {
     /**
      * Update a tool type.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $id The id of the tool type to update
      * @param string $name The name of the tool type
      * @param string $description The name of the tool type
@@ -751,7 +751,7 @@ class mod_lti_external extends external_api {
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external::update_tool_type instead',
         mdl: 'MDL-79518',
     )]
@@ -771,12 +771,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\update_tool_type::execute_returns() instead',
         mdl: 'MDL-79518',
     )]
@@ -787,12 +787,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\delete_tool_type::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -803,14 +803,14 @@ class mod_lti_external extends external_api {
     /**
      * Delete a tool type.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $id The id of the tool type to be deleted
      * @return array deleted tool type
      * @since Moodle 3.1
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external::delete_tool_type instead',
         mdl: 'MDL-79518',
     )]
@@ -830,12 +830,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\delete_tool_type::execute_returns() instead',
         mdl: 'MDL-79518',
     )]
@@ -846,12 +846,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method parameters
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\is_cartridge::execute_parameters() instead',
         mdl: 'MDL-79518',
     )]
@@ -862,14 +862,14 @@ class mod_lti_external extends external_api {
     /**
      * Determine if the url to a tool is for a cartridge.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param string $url Url that may or may not be an xml cartridge
      * @return bool True if the url is for a cartridge.
      * @since Moodle 3.1
      * @throws moodle_exception
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external::is_cartridge instead',
         mdl: 'MDL-79518',
     )]
@@ -889,12 +889,12 @@ class mod_lti_external extends external_api {
     /**
      * Returns description of method result value
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return \core_external\external_description
      * @since Moodle 3.1
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\external\is_cartridge::execute_returns() instead',
         mdl: 'MDL-79518',
     )]

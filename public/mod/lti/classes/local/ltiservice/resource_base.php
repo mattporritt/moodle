@@ -31,14 +31,14 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
 /**
  * The mod_lti\local\ltiservice\resource_base class.
  *
- * @deprecated since Moodle 5.1 use \core_ltix\local\ltiservice\resource_base instead
+ * @deprecated since Moodle 6.0 use \core_ltix\local\ltiservice\resource_base instead
  * @package    mod_lti
  * @since      Moodle 2.8
  * @copyright  2014 Vital Source Technologies http://vitalsource.com
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\core\attribute\deprecated(
-    since: '5.1',
+    since: '6.0',
     reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
     mdl: 'MDL-80231',
 )]
@@ -73,10 +73,10 @@ abstract class resource_base {
      * Class constructor.
      *
      * @param service_base $service Service instance
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -98,10 +98,10 @@ abstract class resource_base {
      * Get the resource ID.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -115,10 +115,10 @@ abstract class resource_base {
      * Get the resource template.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -132,10 +132,10 @@ abstract class resource_base {
      * Get the resource path.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -149,10 +149,10 @@ abstract class resource_base {
      * Get the resource type.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -166,10 +166,10 @@ abstract class resource_base {
      * Get the resource's service.
      *
      * @return service_base
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -183,10 +183,10 @@ abstract class resource_base {
      * Get the resource methods.
      *
      * @return array
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -200,10 +200,10 @@ abstract class resource_base {
      * Get the resource media types.
      *
      * @return array
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -217,10 +217,10 @@ abstract class resource_base {
      * Get the resource template variables.
      *
      * @return array
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -234,10 +234,10 @@ abstract class resource_base {
      * Get the resource fully qualified endpoint.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -267,10 +267,10 @@ abstract class resource_base {
      * Execute the request for this resource.
      *
      * @param response $response  Response object for this request.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -284,10 +284,10 @@ abstract class resource_base {
      * @param string[] $scopes              Array of scope(s) required for incoming request
      *
      * @return boolean
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]
@@ -424,10 +424,10 @@ abstract class resource_base {
      * @param string $value String to be parsed
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\resource_base instead',
         mdl: 'MDL-80231',
     )]

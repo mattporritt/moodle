@@ -38,14 +38,14 @@ use core_ltix\oauth_helper;
 /**
  * The mod_lti\local\ltiservice\service_base class.
  *
- * @deprecated since Moodle 5.1 use \core_ltix\local\ltiservice\service_base instead
+ * @deprecated since Moodle 6.0 use \core_ltix\local\ltiservice\service_base instead
  * @package    mod_lti
  * @since      Moodle 2.8
  * @copyright  2014 Vital Source Technologies http://vitalsource.com
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\core\attribute\deprecated(
-    since: '5.1',
+    since: '6.0',
     reason: 'Use \core_ltix\local\ltiservice\service_base instead',
     mdl: 'MDL-80231',
 )]
@@ -74,10 +74,10 @@ abstract class service_base {
 
     /**
      * Class constructor.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -98,10 +98,10 @@ abstract class service_base {
      * Get the service ID.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -115,10 +115,10 @@ abstract class service_base {
      * Get the service compoent ID.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -132,10 +132,10 @@ abstract class service_base {
      * Get the service name.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -149,10 +149,10 @@ abstract class service_base {
      * Get whether the service requests need to be signed.
      *
      * @return boolean
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -166,10 +166,10 @@ abstract class service_base {
      * Get the tool proxy object.
      *
      * @return stdClass
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -185,10 +185,10 @@ abstract class service_base {
      * @param object $toolproxy The tool proxy for this service request
      *
      * @var stdClass
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -202,10 +202,10 @@ abstract class service_base {
      * Get the type object.
      *
      * @return stdClass
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -221,10 +221,10 @@ abstract class service_base {
      * @param object $type The LTI type for this service request
      *
      * @var stdClass
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -238,10 +238,10 @@ abstract class service_base {
      * Get the type config array.
      *
      * @return array|null
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -257,10 +257,10 @@ abstract class service_base {
      * @param array $typeconfig The LTI type config for this service request
      *
      * @var array
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -274,10 +274,10 @@ abstract class service_base {
      * Get the resources for this service.
      *
      * @return resource_base[]
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -289,10 +289,10 @@ abstract class service_base {
      * A null value indicates that no scopes are required to access the service.
      *
      * @return array|null
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -307,10 +307,10 @@ abstract class service_base {
      * A null value indicates that no scopes are required to access the service.
      *
      * @return array|null
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -323,10 +323,10 @@ abstract class service_base {
      * Returns the configuration options for this service.
      *
      * @param \MoodleQuickForm $mform Moodle quickform object definition
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -338,10 +338,10 @@ abstract class service_base {
      * Called when a new LTI Instance is added.
      *
      * @param object $lti LTI Instance.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -353,10 +353,10 @@ abstract class service_base {
      * Called when a new LTI Instance is updated.
      *
      * @param object $lti LTI Instance.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -375,10 +375,10 @@ abstract class service_base {
      * @param null|object $lti LTI Instance.
      *
      * @return array containing the target link URL and the custom params string to use.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -392,10 +392,10 @@ abstract class service_base {
      * Called when a new LTI Instance is deleted.
      *
      * @param int $id LTI Instance.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -407,10 +407,10 @@ abstract class service_base {
      * Set the form data when displaying the LTI Instance form.
      *
      * @param object $defaultvalues Default form values.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -439,12 +439,12 @@ abstract class service_base {
      *
      * @param int $typeid The tool lti type id.
      * @param int $courseid The course id.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      *
      * @return bool returns True if tool is used in context, false otherwise.
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -461,10 +461,10 @@ abstract class service_base {
      * @param int $typeid The tool lti type id.
      * @param int $courseid The course id.
      * @return bool returns True if tool is allowed in context, false otherwise.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -488,10 +488,10 @@ abstract class service_base {
      * The type is passed to check the configuration and not return parameters for services not used.
      *
      * @return array Key/value pairs to add as launch parameters.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -505,10 +505,10 @@ abstract class service_base {
      * to be transformed to LTI 1.3 claims.
      *
      * @return array Key/value pairs of params to claim mapping.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -523,10 +523,10 @@ abstract class service_base {
      * @param string $value Value to be parsed
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -542,10 +542,10 @@ abstract class service_base {
      * @param string $value  Value to be parsed
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]
@@ -572,10 +572,10 @@ abstract class service_base {
      * @param string[] $scopes  Array of required scope(s) for incoming request
      *
      * @return boolean
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiservice\service_base instead',
         mdl: 'MDL-80231',
     )]

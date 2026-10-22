@@ -349,7 +349,7 @@ abstract class resource_base {
      */
     #[\core\attribute\deprecated(
         '::parse_val',
-        since: '5.3',
+        since: '6.0',
         reason: 'parse_value() is deprecated. Please use parse_val() instead.',
         mdl: 'MDL-79109'
     )]
