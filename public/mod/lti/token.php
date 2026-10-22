@@ -24,6 +24,9 @@
 
 use core_ltix\helper;
 
+define('NO_DEBUG_DISPLAY', true);
+define('NO_MOODLE_COOKIES', true);
+
 require_once(__DIR__ . '/../../config.php');
 
 helper::get_token_endpoint();
