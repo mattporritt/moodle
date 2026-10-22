@@ -93,51 +93,6 @@ function xmldb_lti_upgrade($oldversion) {
     // Automatically generated Moodle v5.3.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2026100501) {
-        // Capabilities have been renamed - modify any existing roles with custom changes.
-
-        // The following capabilities have already been assigned to all relevant roles at site context (during core upgrade)
-        // Now, ensure any custom role overrides are updated such that they reflect the new capability, at which point any users
-        // who had the old capability now have the replacement capability in any relevant contexts.
-        $capmapping = [
-            'mod/lti:manage' => 'moodle/ltix:manage',
-            'mod/lti:addcoursetool' => 'moodle/ltix:addcoursetool',
-            'mod/lti:addpreconfiguredinstance' => 'moodle/ltix:viewcoursetools',
-            'mod/lti:requesttooladd' => 'moodle/ltix:requesttooladd',
-        ];
-        foreach ($capmapping as $oldcap => $newcap) {
-
-            $sql = "UPDATE {role_capabilities}
-                   SET capability = :newcapname
-                 WHERE capability = :oldcapname
-                   AND contextid != :sitecontextid
-                   AND id NOT IN (SELECT rc.id
-                                    FROM (SELECT id, roleid, contextid, capability FROM {role_capabilities}) AS rc
-                                    JOIN {role} r ON r.id = rc.roleid
-                                   WHERE rc.capability = :newcapname2
-                                     AND rc.contextid = :sitecontextid2)";
-            $params = [
-                'newcapname' => $newcap,
-                'oldcapname' => $oldcap,
-                'sitecontextid' => 1,
-                'newcapname2' => $newcap,
-                'sitecontextid2' => 1,
-            ];
-            $DB->execute($sql, $params);
-        }
-
-        // The capability 'moodle/ltix:admin' is not given to any roles by default, so we can migrate all records unconditionally.
-        $sql = "UPDATE {role_capabilities}
-                   SET capability = :newcapname
-                 WHERE capability = :oldcapname";
-        $params = ['newcapname' => 'moodle/ltix:admin', 'oldcapname' => 'mod/lti:admin'];
-        $DB->execute($sql, $params);
-
-        // Lti savepoint reached.
-        upgrade_mod_savepoint(true, 2026100501, 'lti');
-
-    }
-
     if ($oldversion < 2026100503) {
         // Force-load the new mod_lti placement types to ensure the migration helper can access them.
         // Normally, they'd be loaded after plugin upgrade. Here, they're needed by lti_migration_upgrade_helper.

@@ -2865,6 +2865,7 @@ $capabilities = array(
     'moodle/ltix:addcoursetool' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
+        'clonepermissionsfrom' => 'mod/lti:addcoursetool',
         'archetypes' => [
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
@@ -2879,6 +2880,7 @@ $capabilities = array(
 
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
+        'clonepermissionsfrom' => 'mod/lti:manage',
         'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
@@ -2893,13 +2895,15 @@ $capabilities = array(
         'riskbitmask' => RISK_PERSONAL, // A bit of a guess, but seems likely.
 
         'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE
+        'contextlevel' => CONTEXT_MODULE,
+        'clonepermissionsfrom' => 'mod/lti:admin',
     ],
 
     // Controls users ability to view the course tools.
     'moodle/ltix:viewcoursetools' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
+        'clonepermissionsfrom' => 'mod/lti:addpreconfiguredinstance',
         'archetypes' => [
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
@@ -2911,6 +2915,7 @@ $capabilities = array(
     'moodle/ltix:requesttooladd' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
+        'clonepermissionsfrom' => 'mod/lti:requesttooladd',
         'archetypes' => array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
