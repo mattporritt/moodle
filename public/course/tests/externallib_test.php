@@ -2841,7 +2841,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             foreach ($course['options'] as $option) {
                 $navoptions->{$option['name']} = $option['available'];
             }
-            $this->assertCount(11, $course['options']);
+            $this->assertCount(12, $course['options']);
             if ($course['id'] == SITEID) {
                 $this->assertTrue($navoptions->blogs);
                 $this->assertFalse($navoptions->notes);
