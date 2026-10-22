@@ -34,6 +34,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// This script is deliberately standalone so CI can run it without a site, so it does not include config.php. Refuse web access.
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState
 if (PHP_SAPI !== 'cli') {
     exit(1);
 }
