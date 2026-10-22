@@ -3894,8 +3894,17 @@ class helper {
         }
         if ($ok) {
             $launchid = $ltimessagehint->launchid;
+            // The launch data is only in the session until the first auth request uses it.
+            if (!isset($SESSION->$launchid)) {
+                throw new moodle_exception('invalidrequest', 'error');
+            }
             list($courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64) =
                 explode(',', $SESSION->$launchid);
+            // An activity launch is single use. A content item selection keeps its entry because
+            // contentitem_return.php reads the placement type from it and removes it.
+            if ($id) {
+                unset($SESSION->$launchid);
+            }
             $config = self::get_type_type_config($typeid);
             $ok = ($clientid === $config->lti_clientid);
             if (!$ok) {

@@ -42,6 +42,8 @@ final class auth_endpoint_test extends \advanced_testcase {
         $typeid = $generator->get_plugin_generator('core_ltix')->create_tool_types([
             'name' => 'LTI 1.3 tool',
             'baseurl' => 'https://tool.example.com/launch',
+            'state' => 1, // Configured.
+            'coursevisible' => 1, // Preconfigured, so the activity placement can be enabled for the tool.
             'lti_ltiversion' => 'LTI-1p3',
             'lti_clientid' => 'client1',
             'lti_initiatelogin' => 'https://tool.example.com/login',
@@ -49,6 +51,7 @@ final class auth_endpoint_test extends \advanced_testcase {
             'lti_publickeytype' => 'JWK_KEYSET',
             'lti_publickeyset' => 'https://tool.example.com/jwks',
         ]);
+        $this->ensure_activity_placement($typeid);
         $instance = $generator->create_module('lti', ['course' => $course->id, 'typeid' => $typeid]);
         $cm = get_coursemodule_from_instance('lti', $instance->id);
         $config = helper::get_type_type_config($typeid);
@@ -69,6 +72,25 @@ final class auth_endpoint_test extends \advanced_testcase {
         ];
 
         return [$user, $cm, json_decode($request['lti_message_hint'])->launchid];
+    }
+
+    /**
+     * Give the tool an activity placement where placements exist and the tool was not given one when it was created.
+     *
+     * @param int $typeid the tool type id.
+     */
+    private function ensure_activity_placement(int $typeid): void {
+        global $DB;
+        if (!$DB->get_manager()->table_exists('lti_placement')) {
+            return;
+        }
+        $placementtypeid = $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement'], MUST_EXIST);
+        if (!$DB->record_exists('lti_placement', ['toolid' => $typeid, 'placementtypeid' => $placementtypeid])) {
+            $this->getDataGenerator()->get_plugin_generator('core_ltix')->create_tool_placements([
+                'toolid' => $typeid,
+                'placementtypeid' => $placementtypeid,
+            ]);
+        }
     }
 
     /**
@@ -128,5 +150,21 @@ final class auth_endpoint_test extends \advanced_testcase {
         $this->assertStringContainsString('ltiAuthForm', $output);
         $this->assertStringContainsString('name="state" value="state1"', $output);
         $this->assertStringNotContainsString('name="error"', $output);
+    }
+
+    /**
+     * The launch data is removed once used, so replaying the same auth request is refused.
+     */
+    public function test_auth_request_cannot_be_replayed(): void {
+        global $SESSION;
+        $this->resetAfterTest();
+
+        [, , $launchid] = $this->setup_launch();
+        $this->assertStringContainsString('ltiAuthForm', $this->run_auth_endpoint());
+        $this->assertFalse(isset($SESSION->$launchid));
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('invalidrequest', 'error'));
+        $this->run_auth_endpoint();
     }
 }
