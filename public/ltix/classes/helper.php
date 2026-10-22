@@ -3935,6 +3935,8 @@ class helper {
             if ($id) {
                 $cm = get_coursemodule_from_id('lti', $id, 0, false, MUST_EXIST);
                 require_login($course, true, $cm);
+                // Fail closed: the user must be able to view this activity, whatever require_login() decided about visibility.
+                require_capability("mod/{$cm->modname}:view", \context_module::instance($cm->id));
                 $lti = $DB->get_record('lti', array('id' => $cm->instance), '*', MUST_EXIST);
                 $lti->cmid = $cm->id;
                 list($endpoint, $params) = self::get_launch_data($lti, $nonce, $messagetype, $foruserid);
