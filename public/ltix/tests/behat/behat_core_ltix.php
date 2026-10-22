@@ -27,6 +27,9 @@
 
 require_once(__DIR__ . '/../../../lib/behat/behat_base.php');
 
+use Behat\Mink\Exception\ElementNotFoundException;
+use Behat\Mink\Exception\ExpectationException;
+
 /**
  * Steps definitions related to core_ltix.
  */
@@ -74,5 +77,32 @@ class behat_core_ltix extends behat_base {
             default:
                 throw new Exception('Unrecognised core_ltix page type "' . $type . '."');
         }
+    }
+
+    /**
+     * Waits until the specified element is no longer visible, or has been removed from the page.
+     *
+     * Use this instead of 'should not be visible' after an action whose JS hides the element asynchronously (e.g. a form hideIf
+     * rule), because 'should not be visible' checks only once.
+     *
+     * @Given /^I wait until "(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" is not visible$/
+     * @param string $element the element locator.
+     * @param string $selectortype the selector type.
+     */
+    public function i_wait_until_is_not_visible(string $element, string $selectortype): void {
+        $this->require_javascript('Waiting for an element to be hidden requires JavaScript.');
+        $this->spin(
+            function ($context) use ($element, $selectortype) {
+                try {
+                    $node = $context->find($selectortype, $element, false, false, 1);
+                } catch (ElementNotFoundException $e) {
+                    return true;
+                }
+                return !$node->isVisible();
+            },
+            [],
+            false,
+            new ExpectationException('"' . $element . '" "' . $selectortype . '" is still visible', $this->getSession())
+        );
     }
 }
