@@ -500,11 +500,11 @@ function lti_uninstall() {
 /**
  * Returns available Basic LTI types
  *
- * @deprecated since Moodle 5.1
+ * @deprecated since Moodle 6.0
  * @return array of basicLTI types
  */
 #[\core\attribute\deprecated(
-    since: '5.1',
+    since: '6.0',
     reason: 'Please use \core_ltix\helper::get_lti_types() instead',
     mdl: 'MDL-79113',
 )]
@@ -518,12 +518,12 @@ function lti_get_lti_types() {
  * Returns available Basic LTI types that match the given
  * tool proxy id
  *
- * @deprecated since Moodle 5.1
+ * @deprecated since Moodle 6.0
  * @param int $toolproxyid Tool proxy id
  * @return array of basicLTI types
  */
 #[\core\attribute\deprecated(
-    since: '5.1',
+    since: '6.0',
     reason: 'Please use \core_ltix\helper::get_lti_types_from_proxy_id() instead',
     mdl: 'MDL-79113',
 )]

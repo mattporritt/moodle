@@ -284,7 +284,7 @@ $string['viewsubmissions'] = 'View submissions and grading screen';
 // Deprecated since Moodle 4.5.
 $string['selectcontentvalidationerror'] = 'You need to select content for this activity.';
 
-// Deprecated since Moodle 5.1.
+// Deprecated since Moodle 6.0.
 $string['entitycourseexternaltools'] = 'LTI External tools';
 $string['deletecoursetool'] = 'Delete {$a}';
 $string['deletecoursetoolconfirm'] = 'This will delete {$a} from the available LTI tools in your course.';

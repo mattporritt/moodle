@@ -31,14 +31,14 @@ defined('MOODLE_INTERNAL') || die;
 /**
  * The mod_lti\local\ltiservice\response class.
  *
- * @deprecated since Moodle 5.1 use \core_ltix\local\ltiservice\response instead
+ * @deprecated since Moodle 6.0 use \core_ltix\local\ltiservice\response instead
  * @package    mod_lti
  * @since      Moodle 2.8
  * @copyright  2014 Vital Source Technologies http://vitalsource.com
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\core\attribute\deprecated(
-    since: '5.1',
+    since: '6.0',
     reason: 'Use \core_ltix\local\ltiservice\response instead',
     mdl: 'MDL-80231',
 )]
@@ -65,10 +65,10 @@ class response {
 
     /**
      * Class constructor.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -107,10 +107,10 @@ class response {
      * Get the response code.
      *
      * @return int
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -123,10 +123,10 @@ class response {
      * Set the response code.
      *
      * @param int $code Response code
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -140,10 +140,10 @@ class response {
      * Get the response reason.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -167,10 +167,10 @@ class response {
      * Set the response reason.
      *
      * @param string $reason Reason
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -183,10 +183,10 @@ class response {
      * Get the request method.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -199,10 +199,10 @@ class response {
      * Get the request accept header.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -215,10 +215,10 @@ class response {
      * Set the request accept header.
      *
      * @param string $accept Accept header value
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -231,10 +231,10 @@ class response {
      * Get the response content type.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -247,10 +247,10 @@ class response {
      * Set the response content type.
      *
      * @param string $contenttype Content type
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -263,10 +263,10 @@ class response {
      * Get the request body.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -279,10 +279,10 @@ class response {
      * Set the response body.
      *
      * @param string $data Body data
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -295,10 +295,10 @@ class response {
      * Get the response body.
      *
      * @return string
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -311,10 +311,10 @@ class response {
      * Set the response body.
      *
      * @param string $body Body data
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -327,10 +327,10 @@ class response {
      * Add an additional header.
      *
      * @param string $header The new header
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]
@@ -341,10 +341,10 @@ class response {
 
     /**
      * Send the response.
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Class \mod_lti\local\ltiservice\response is deprecated, please use \core_ltix\local\ltiservice\response instead',
         mdl: 'MDL-80231',
     )]

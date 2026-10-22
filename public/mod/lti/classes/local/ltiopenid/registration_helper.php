@@ -34,7 +34,7 @@ use stdClass;
 /**
  * This class exposes functions for LTI Dynamic Registration.
  *
- * @deprecated since Moodle 5.1
+ * @deprecated since Moodle 6.0
  * @see \core_ltix\local\ltiopenid\registration_helper
  *
  * @package    mod_lti
@@ -42,7 +42,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\core\attribute\deprecated(
-    since: '5.1',
+    since: '6.0',
     reason: 'Use \core_ltix\local\ltiopenid\registration_helper instead',
     mdl: 'MDL-79113',
 )]
@@ -77,14 +77,14 @@ class registration_helper {
     /**
      * Transforms an LTI 1.3 Registration to a Moodle LTI Config.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param array $registrationpayload the registration data received from the tool.
      * @param string $clientid the clientid to be issued for that tool.
      *
      * @return object the Moodle LTI config.
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiopenid\registration_helper::registration_to_config() instead',
         mdl: 'MDL-79113',
     )]
@@ -96,7 +96,7 @@ class registration_helper {
     /**
      * Transforms a moodle LTI 1.3 Config to an OAuth/LTI Client Registration.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param object $config Moodle LTI Config.
      * @param int $typeid which is the LTI deployment id.
      * @param object $type tool instance in case the tool already exists.
@@ -104,7 +104,7 @@ class registration_helper {
      * @return array the Client Registration as an associative array.
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiopenid\registration_helper::config_to_registration() instead',
         mdl: 'MDL-79113',
     )]
@@ -117,13 +117,13 @@ class registration_helper {
      * Validates the registration token is properly signed and not used yet.
      * Return the client id to use for this registration.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param string $registrationtokenjwt registration token
      *
      * @return array with 2 keys: clientid for the registration, type but only if it's an update
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiopenid\registration_helper::validate_registration_token() instead',
         mdl: 'MDL-79113',
     )]
@@ -135,12 +135,12 @@ class registration_helper {
     /**
      * Initializes an array with the scopes for services supported by the LTI module.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      *
      * @return array List of scopes
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiopenid\registration_helper::lti_get_service_scopes() instead',
         mdl: 'MDL-79113',
     )]
@@ -152,12 +152,12 @@ class registration_helper {
     /**
      * Generates a new client id string.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      *
      * @return string generated client id
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiopenid\registration_helper::new_clientid() instead',
         mdl: 'MDL-79113',
     )]
@@ -169,7 +169,7 @@ class registration_helper {
     /**
      * Base64 encoded signature for LTI 1.1 migration.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param string $key LTI 1.1 key
      * @param string $salt Salt value
      * @param string $secret LTI 1.1 secret
@@ -177,7 +177,7 @@ class registration_helper {
      * @return string base64encoded hash
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiopenid\registration_helper::sign() instead',
         mdl: 'MDL-79113',
     )]
@@ -189,13 +189,13 @@ class registration_helper {
     /**
      * Returns a tool proxy
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $proxyid
      *
      * @return mixed Tool Proxy details
      */
     #[\core\attribute\deprecated(
-        since: '5.1',
+        since: '6.0',
         reason: 'Use \core_ltix\local\ltiopenid\registration_helper::get_tool_proxy() instead',
         mdl: 'MDL-79113',
     )]
