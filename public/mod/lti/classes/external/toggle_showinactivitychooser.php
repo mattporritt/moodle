@@ -40,7 +40,7 @@ class toggle_showinactivitychooser extends external_api {
     /**
      * Get parameter definition.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_function_parameters
      */
     public static function execute_parameters(): external_function_parameters {
@@ -54,13 +54,13 @@ class toggle_showinactivitychooser extends external_api {
     /**
      * Toggles showinactivitychooser setting.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @param int $tooltypeid the id of the course external tool type.
      * @param int $courseid the id of the course we are in.
      * @param bool $showinactivitychooser Show in activity chooser setting.
      * @return bool true or false
      */
-    #[\core\attribute\deprecated(null, since: '5.1', reason: 'This method should not be used', mdl: 'MDL-85927')]
+    #[\core\attribute\deprecated(null, since: '6.0', reason: 'This method should not be used', mdl: 'MDL-85927')]
     public static function execute(int $tooltypeid, int $courseid, bool $showinactivitychooser): bool {
         \core\deprecation::emit_deprecation_if_present([self::class, __FUNCTION__]);
 
@@ -125,7 +125,7 @@ class toggle_showinactivitychooser extends external_api {
     /**
      * Get service returns definition.
      *
-     * @deprecated since Moodle 5.1
+     * @deprecated since Moodle 6.0
      * @return external_value
      */
     public static function execute_returns(): external_value {
