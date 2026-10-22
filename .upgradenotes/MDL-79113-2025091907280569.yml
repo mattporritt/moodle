@@ -74,8 +74,9 @@ notes:
         \core_ltix\helper::params_to_string() instead.
       type: deprecated
     - message: >-
-        content_item_to_form() is deprecated. Please use
-        \core_ltix\helper::content_item_to_form() instead.
+        content_item_to_form() is deprecated. There is no direct replacement;
+        the logic has moved to
+        \mod_lti\lti\placement\contentitemformatter\form\content_item_to_form_formatter.
       type: deprecated
     - message: >-
         lti_convert_content_items() is deprecated. Please use
