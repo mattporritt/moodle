@@ -15,7 +15,7 @@ Feature: Configure placements for a tool
     And the field "Placements" matches value ""
     And I expand the "Placements" autocomplete
     And I should see "Mock placement" in the "Placements" "autocomplete"
-    And "Placement: Mock placement" "fieldset" should not be visible
+    And I wait until "Placement: Mock placement" "fieldset" is not visible
     And the following fields in the "Placement: Mock placement" "fieldset" match these values:
       | Default state                |  |
       | Deep Linking Request URL     |  |
@@ -35,7 +35,7 @@ Feature: Configure placements for a tool
     And I click on "Edit" "link"
     And the field "Placements" matches value ""
     # The placement fieldset and its fields should be hidden when no placement is selected.
-    And "Placement: Mock placement" "fieldset" should not be visible
+    And I wait until "Placement: Mock placement" "fieldset" is not visible
     And I should not see "Deep Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Resource Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Icon URL" in the "Placement: Mock placement" "fieldset"
@@ -85,7 +85,7 @@ Feature: Configure placements for a tool
     And I choose "Edit" in the open action menu
     And the field "Placements" matches value ""
     # The placement fieldset and its fields should be hidden when no placement is selected.
-    And "Placement: Mock placement" "fieldset" should not be visible
+    And I wait until "Placement: Mock placement" "fieldset" is not visible
     And I should not see "Deep Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Resource Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Icon URL" in the "Placement: Mock placement" "fieldset"
@@ -143,7 +143,7 @@ Feature: Configure placements for a tool
       | Text                         | Some text for the tool (edited) |
     # Deselect the placement and verify the related configurations are removed upon saving.
     And I click on "Mock placement" "autocomplete_selection"
-    And "Placement: Mock placement" "fieldset" should not be visible
+    And I wait until "Placement: Mock placement" "fieldset" is not visible
     And I should not see "Deep Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Resource Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Icon URL" in the "Placement: Mock placement" "fieldset"
@@ -151,7 +151,7 @@ Feature: Configure placements for a tool
     And I press "Save changes"
     And I click on "Edit" "link"
     And "Mock placement" "autocomplete_selection" should not exist in the "Placement" "fieldset"
-    And "Placement: Mock placement" "fieldset" should not be visible
+    And I wait until "Placement: Mock placement" "fieldset" is not visible
     And the following fields in the "Placement: Mock placement" "fieldset" match these values:
       | Default state                |   |
       | Deep Linking Request URL     |   |
@@ -199,7 +199,7 @@ Feature: Configure placements for a tool
       | Text                         | Some text for the tool (edited) |
     # Deselect the placement and verify the related configurations are removed upon saving.
     And I click on "Mock placement" "autocomplete_selection"
-    And "Placement: Mock placement" "fieldset" should not be visible
+    And I wait until "Placement: Mock placement" "fieldset" is not visible
     And I should not see "Deep Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Resource Linking Request URL" in the "Placement: Mock placement" "fieldset"
     And I should not see "Icon URL" in the "Placement: Mock placement" "fieldset"
@@ -209,7 +209,7 @@ Feature: Configure placements for a tool
     And I open the action menu in "Course Tool 1" "table_row"
     And I choose "Edit" in the open action menu
     And "Mock placement" "autocomplete_selection" should not exist in the "Placement" "fieldset"
-    And "Placement: Mock placement" "fieldset" should not be visible
+    And I wait until "Placement: Mock placement" "fieldset" is not visible
     And the following fields in the "Placement: Mock placement" "fieldset" match these values:
       | Deep Linking Request URL     |   |
       | Resource Linking Request URL |   |
