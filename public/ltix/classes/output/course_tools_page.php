@@ -40,8 +40,7 @@ class course_tools_page implements \renderable {
      * @param int $courseid the id of the course.
      */
     public function __construct(int $courseid) {
-        global $CFG, $DB;
-        require_once($CFG->dirroot . '/ltix/constants.php');
+        global $DB;
 
         $context = \context_course::instance($courseid);
         $coursecategory = get_course($courseid)->category; // Note: this is a course page renderable, so get_course() is free.
@@ -60,7 +59,7 @@ class course_tools_page implements \renderable {
             [
                 'siteid' => get_site()->id,
                 'courseid' => $courseid,
-                'coursevisible' => \LTI_COURSEVISIBLE_NO,
+                'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_NO,
                 'coursecategory' => $coursecategory,
             ]
         );
