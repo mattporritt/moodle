@@ -59,6 +59,8 @@
 function xmldb_lti_upgrade($oldversion) {
     global $CFG, $DB, $OUTPUT;
 
+    require_once($CFG->dirroot . '/mod/lti/db/upgradelib.php');
+
     $dbman = $DB->get_manager();
 
     // Automatically generated Moodle v4.4.0 release upgrade line.
@@ -90,6 +92,15 @@ function xmldb_lti_upgrade($oldversion) {
 
     // Automatically generated Moodle v5.3.0 release upgrade line.
     // Put any upgrade step following this.
+
+    if ($oldversion < 2026100502) {
+        // Every existing lti activity instance needs a corresponding lti_resource_link record.
+        $migrationhelper = new \mod_lti\lti_migration_upgrade_helper();
+        $migrationhelper->create_resource_links();
+
+        // Lti savepoint reached.
+        upgrade_mod_savepoint(true, 2026100502, 'lti');
+    }
 
     return true;
 }
