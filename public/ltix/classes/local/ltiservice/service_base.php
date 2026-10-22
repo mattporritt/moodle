@@ -344,7 +344,7 @@ abstract class service_base {
      */
     #[\core\attribute\deprecated(
         '::get_launch_params',
-        since: '5.3',
+        since: '6.0',
         reason: 'get_launch_parameters() is deprecated. Please use get_launch_params() instead.',
         mdl: 'MDL-79109'
     )]
