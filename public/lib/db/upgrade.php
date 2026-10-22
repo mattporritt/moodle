@@ -2461,7 +2461,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026102100.01);
     }
 
-    if ($oldversion < 2026102100.02) {
+    if ($oldversion < 2026102100.03) {
         // Define table lti_resource_link to be created.
         $table = new xmldb_table('lti_resource_link');
 
@@ -2496,7 +2496,7 @@ function xmldb_main_upgrade($oldversion) {
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2026102100.02);
+        upgrade_main_savepoint(true, 2026102100.03);
     }
 
     return true;
