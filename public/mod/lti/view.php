@@ -108,20 +108,28 @@ $link = \core_ltix\local\lticore\models\resource_link::get_record([
 //  well, at which point get_tool_url_for_link() will no longer be needed as a public API.
 // TODO: Also, the DB is hit several times unnecessarily using the code below, which is also a smell.
 $launchcontainer = placement_service::get_launch_container_for_link($link);
-$toolurl = placement_service::get_tool_url_for_link($link);
+
+// Manually-configured legacy instances have no registered tool (typeid 0), so core_ltix can resolve neither a tool URL nor a
+// launch route for them. Until MDL-88222 adds proper support, use the URL stored on the instance and the legacy launch script,
+// which handles these instances.
+if (empty($link->get('typeid'))) {
+    $toolurl = new moodle_url($lti->toolurl);
+    $launchurl = new moodle_url('/mod/lti/launch.php', ['id' => $cm->id]);
+} else {
+    $toolurl = placement_service::get_tool_url_for_link($link);
+    $launchurl = placement_service::get_launch_url_for_link($link);
+}
 
 if ($launchcontainer == \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS) {
     $PAGE->set_pagelayout('incourse');
     $PAGE->blocks->show_only_fake_blocks(); // Disable blocks for layouts which do include pre-post blocks.
 } else if ($launchcontainer == \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW) {
     if (!$forceview) {
-        $launchurl = placement_service::get_launch_url_for_link($link);
         redirect($launchurl);
     }
 } else { // Handles LTI_LAUNCH_CONTAINER_DEFAULT, LTI_LAUNCH_CONTAINER_EMBED, LTI_LAUNCH_CONTAINER_WINDOW.
     $PAGE->set_pagelayout('incourse');
 }
-$launchurl = placement_service::get_launch_url_for_link($link);
 
 lti_view($lti, $course, $cm, $context);
 
