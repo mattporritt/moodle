@@ -30,6 +30,7 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  *
  * Names used here and where they move to (see the P7 report):
  *  - lti_get_launch_data()      => \core_ltix\helper::get_launch_data()
+ *  - mod_lti_external (WS)      => core_ltix external functions (the mod_lti ones stay as deprecated wrappers)
  *  - lti_initiate_login()       => \core_ltix\helper::initiate_login()
  *  - lti_delete_type()          => \core_ltix\helper::delete_type()
  *  - jwks_helper (mod_lti)      => \core_ltix\local\ltiopenid\jwks_helper
@@ -348,5 +349,16 @@ trait characterisation_trait {
             $items[] = (array) $record;
         }
         return $items;
+    }
+
+    /**
+     * Get the launch data of an activity through the web service the Moodle app uses.
+     *
+     * @param int $ltiid the activity.
+     * @return array the web service result: endpoint and a list of name and value parameters.
+     */
+    protected function lti_ws_get_tool_launch_data(int $ltiid): array {
+        $result = \mod_lti_external::get_tool_launch_data($ltiid);
+        return \core_external\external_api::clean_returnvalue(\mod_lti_external::get_tool_launch_data_returns(), $result);
     }
 }
