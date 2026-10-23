@@ -19,6 +19,8 @@ namespace core_ltix\local\placement\service;
 use core\context;
 use core_ltix\constants;
 use core_ltix\local\lticore\models\resource_link;
+use core_ltix\local\placement\placement_repository;
+use core_ltix\local\placement\placements_manager;
 
 /**
  * Placement resource link manager class.
@@ -35,8 +37,8 @@ class resource_link_manager {
      * Creates a resource link.
      *
      * This method allows creation of resource links for a specified placement in a given tool.
-     * Before creation is allowed, the context is validated. Placement and tool validation arrive with the placements
-     * backend (slice 3b).
+     * Before creation is allowed, validation checks are performed to ensure that both the placement and the tool are in
+     * a valid state for the creation process to proceed.
      *
      * @param string $placementtype The placement type string. e.g. 'mod_lti:activityplacement'.
      * @param string $component The component associated with the placement type.
@@ -60,6 +62,8 @@ class resource_link_manager {
             int $itemid, string $url, string $title, ?string $text = null, string $textformat = FORMAT_MOODLE,
             bool $gradable = false, ?string $servicesalt = null, ?string $launchcontainer = constants::LTI_LAUNCH_CONTAINER_DEFAULT,
             ?string $icon = null, ?string $customparams = null): resource_link {
+        global $DB;
+
         // Validate if resource links can be created for the given tool.
 
         // Validate the context. Currently, tools can only be used within the course or module context. This check ensures
@@ -68,6 +72,32 @@ class resource_link_manager {
         // to be revisited and updated accordingly.
         if (!($context instanceof \core\context\course || $context instanceof \core\context\module)) {
             throw new \coding_exception("Invalid context.");
+        }
+
+        // Validate the passed placement type.
+        if (!placements_manager::is_valid_placement_type($placementtype)) {
+            throw new \coding_exception("Invalid placement type.");
+        }
+
+        $placementtyperecord = $DB->get_record('lti_placement_type', ['type' => $placementtype], 'component');
+
+        // Validate the passed component.
+        if ($component !== $placementtyperecord->component) {
+            throw new \coding_exception("Invalid component.");
+        }
+
+        // In some cases, tool instances may have a typeid set to 0. These include legacy tool instances (e.g., manually
+        // configured tools), instances created via the backup and restore process, etc. In such cases, stricter validation
+        // cannot be performed. Therefore, callers should use caution and avoid passing 0 unless absolutely necessary,
+        // as doing so bypasses important validation checks. These checks ensure that the tool is properly configured
+        // and visible in the course, and that the placement is enabled for the tool.
+        $coursecontext = ($context instanceof \core\context\course) ? $context : $context->get_course_context();
+        $isplacementenabledfortool = placement_repository::is_placement_enabled_for_tool_in_course($placementtype,
+            $toolid, $coursecontext->instanceid);
+
+        if (!empty($toolid) && !$isplacementenabledfortool) {
+            throw new \coding_exception(
+                "The resource link cannot be created for the specified placement in the given tool.");
         }
 
         $resourcelink = new resource_link(0, (object) [
