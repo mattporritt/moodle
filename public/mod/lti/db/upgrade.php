@@ -102,7 +102,7 @@ function xmldb_lti_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026100502, 'lti');
     }
 
-    if ($oldversion < 2026100503) {
+    if ($oldversion < 2026100504) {
         // Force-load the new mod_lti placement types to ensure the migration helper can access them.
         // Normally, they'd be loaded after plugin upgrade. Here, they're needed by lti_migration_upgrade_helper.
         \core_ltix\local\placement\placements_manager::update_placement_types('mod_lti');
@@ -112,7 +112,7 @@ function xmldb_lti_upgrade($oldversion) {
         $migrationhelper->create_resource_links();
 
         // Lti savepoint reached.
-        upgrade_mod_savepoint(true, 2026100503, 'lti');
+        upgrade_mod_savepoint(true, 2026100504, 'lti');
     }
 
     return true;
