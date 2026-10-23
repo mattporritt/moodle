@@ -317,21 +317,4 @@ trait launch_scenarios_trait {
 
         $this->assertSame($expected, $signature, 'The launch is not signed with the expected key and secret');
     }
-
-    /**
-     * Sort associative arrays by key, recursively, so that comparison ignores the order of keys but not the order of lists.
-     *
-     * @param mixed $value the value.
-     * @return mixed the value.
-     */
-    private static function canonical(mixed $value): mixed {
-        if (!is_array($value)) {
-            return $value;
-        }
-        $value = array_map([self::class, 'canonical'], $value);
-        if (!array_is_list($value)) {
-            ksort($value);
-        }
-        return $value;
-    }
 }

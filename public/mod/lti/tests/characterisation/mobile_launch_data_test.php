@@ -56,10 +56,7 @@ final class mobile_launch_data_test extends \advanced_testcase {
         $this->resetAfterTest();
         [$actual, $tokens] = $this->launch_scenario($name);
 
-        $file = __DIR__ . "/../fixtures/characterisation/launch/{$name}.json";
-        $expected = json_decode(strtr(file_get_contents($file), $tokens), true, 512, JSON_THROW_ON_ERROR);
-
-        $this->assertSame(self::canonical($expected), self::canonical($actual));
+        $this->lti_assert_matches_fixture("launch/{$name}.json", $actual, $tokens);
     }
 
     /**

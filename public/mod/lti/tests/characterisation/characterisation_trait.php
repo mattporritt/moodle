@@ -361,4 +361,82 @@ trait characterisation_trait {
         $result = \mod_lti_external::get_tool_launch_data($ltiid);
         return \core_external\external_api::clean_returnvalue(\mod_lti_external::get_tool_launch_data_returns(), $result);
     }
+
+    /**
+     * Call an LTI service endpoint as a tool does, in process, with a bearer token granted the scope.
+     *
+     * @param string $resourceclass the class of the endpoint's resource, e.g. the NRPS context memberships resource.
+     * @param string $serviceclass the class of the service that owns the resource.
+     * @param int $typeid the tool making the call.
+     * @param string $method the HTTP method.
+     * @param string $pathinfo the path of the request after services.php.
+     * @param string[] $scopes the scopes the token is granted.
+     * @param string $accept the Accept header, or the Content-Type for a POST.
+     * @param string $body the request body.
+     * @param array $query query parameters.
+     * @return \mod_lti\local\ltiservice\response the response.
+     */
+    protected function lti_service_call(
+        string $resourceclass,
+        string $serviceclass,
+        int $typeid,
+        string $method,
+        string $pathinfo,
+        array $scopes,
+        string $accept = '',
+        string $body = '',
+        array $query = []
+    ): \mod_lti\local\ltiservice\response {
+        $token = lti_new_access_token($typeid, $scopes);
+        $_SERVER['REQUEST_METHOD'] = $method;
+        $_SERVER['PATH_INFO'] = $pathinfo;
+        $_SERVER['HTTP_Authorization'] = 'Bearer ' . $token->token;
+        $_SERVER[$method === 'GET' ? 'HTTP_ACCEPT' : 'CONTENT_TYPE'] = $accept;
+        $_GET = $query + ['type_id' => (string) $typeid];
+
+        $response = new \mod_lti\local\ltiservice\response();
+        if ($method === 'GET') {
+            $response->set_accept($accept);
+        } else {
+            $response->set_content_type($accept);
+        }
+        $response->set_request_data($body);
+        $resource = new $resourceclass(new $serviceclass());
+        $resource->execute($response);
+        $_GET = [];
+        return $response;
+    }
+
+    /**
+     * Assert that data is exactly what a recorded fixture holds.
+     *
+     * Placeholders in the fixture are replaced by the values the test created. Keys are compared without regard to their
+     * order, lists with regard to theirs.
+     *
+     * @param string $fixture the path of the JSON fixture, relative to tests/fixtures/characterisation.
+     * @param array $actual the data.
+     * @param array $tokens placeholder => value, applied to the fixture text before it is decoded.
+     */
+    protected function lti_assert_matches_fixture(string $fixture, array $actual, array $tokens): void {
+        $json = file_get_contents(__DIR__ . "/../fixtures/characterisation/{$fixture}");
+        $expected = json_decode(strtr($json, $tokens), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame($this->lti_canonical($expected), $this->lti_canonical($actual), "The data differs from $fixture");
+    }
+
+    /**
+     * Sort associative arrays by key, recursively, so that comparison ignores the order of keys but not the order of lists.
+     *
+     * @param mixed $value the value.
+     * @return mixed the value.
+     */
+    protected function lti_canonical(mixed $value): mixed {
+        if (!is_array($value)) {
+            return $value;
+        }
+        $value = array_map([$this, 'lti_canonical'], $value);
+        if (!array_is_list($value)) {
+            ksort($value);
+        }
+        return $value;
+    }
 }
