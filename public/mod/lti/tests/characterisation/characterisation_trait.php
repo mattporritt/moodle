@@ -264,4 +264,63 @@ trait characterisation_trait {
             $show
         );
     }
+
+    /**
+     * Add a line item that belongs to the tool, not to an activity, as a tool does with a POST to the AGS line items endpoint.
+     *
+     * @param int $courseid the course.
+     * @param int $typeid the tool type.
+     * @param string $label the line item's label.
+     * @param float $maximumscore the line item's maximum score.
+     * @param string|null $resourceid the tool's resource id for the line item.
+     * @param string|null $tag the tool's tag for the line item.
+     * @return int the grade item id.
+     */
+    protected function lti_add_standalone_line_item(
+        int $courseid,
+        int $typeid,
+        string $label,
+        float $maximumscore,
+        ?string $resourceid,
+        ?string $tag
+    ): int {
+        $service = new \ltiservice_gradebookservices\local\service\gradebookservices();
+        return $service->add_standalone_lineitem(
+            (string) $courseid,
+            $label,
+            $maximumscore,
+            'https://tool.example.com/lineitem',
+            null,
+            $resourceid,
+            $tag,
+            $typeid
+        );
+    }
+
+    /**
+     * The AGS line items of a course, in a form that does not depend on any id: what the tool sees of them.
+     *
+     * @param int $courseid the course.
+     * @return array[] one entry per line item, sorted by label.
+     */
+    protected function lti_line_items(int $courseid): array {
+        global $DB;
+        $sql = "SELECT gbs.id, gi.itemname AS label, gi.grademax, gbs.resourceid, gbs.tag, gbs.subreviewurl, gbs.subreviewparams,
+                       l.name AS activity, gbs.typeid, gi.courseid AS gradeitemcourse
+                  FROM {ltiservice_gradebookservices} gbs
+                  JOIN {grade_items} gi ON gi.id = gbs.gradeitemid
+             LEFT JOIN {lti} l ON l.id = gbs.ltilinkid AND l.course = gbs.courseid
+                 WHERE gbs.courseid = :courseid
+              ORDER BY gi.itemname";
+        $items = [];
+        foreach ($DB->get_records_sql($sql, ['courseid' => $courseid]) as $record) {
+            unset($record->id);
+            $record->grademax = (float) $record->grademax;
+            // A line item without a submission review is null or empty depending on how it got there; the tool sees the same.
+            $record->subreviewurl = $record->subreviewurl ?: null;
+            $record->subreviewparams = $record->subreviewparams ?: null;
+            $items[] = (array) $record;
+        }
+        return $items;
+    }
 }
