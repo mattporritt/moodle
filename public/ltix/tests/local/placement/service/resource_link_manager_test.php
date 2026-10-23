@@ -32,6 +32,7 @@ final class resource_link_manager_test extends \advanced_testcase {
      *
      * @param array|null $toolsettings The array containing tool related configuration settings, or null there is no
      *                                 requirement for tool creation in the test.
+     * @param array $placementsettings The array containing placement related configuration settings.
      * @param array $args The array containing the arguments used when calling the method.
      * @param array $expectedpropertyvalues The array containing the expected values for the properties of the created
      *                                      resource link.
@@ -39,12 +40,8 @@ final class resource_link_manager_test extends \advanced_testcase {
      * @return void
      * @dataProvider create_resource_link_provider
      */
-    public function test_create_resource_link(
-        ?array $toolsettings,
-        array $args,
-        array $expectedpropertyvalues,
-        ?string $expectedexception = null
-    ): void {
+    public function test_create_resource_link(?array $toolsettings, array $placementsettings, array $args,
+            array $expectedpropertyvalues, ?string $expectedexception = null): void {
         global $SITE;
 
         $this->resetAfterTest();
@@ -59,6 +56,20 @@ final class resource_link_manager_test extends \advanced_testcase {
             'lti_coursevisible' => $toolsettings['coursevisible'],
             'state' => $toolsettings['state'],
         ]) : 0;
+
+        // Create a placement type.
+        $placementtype = $ltigenerator->create_placement_type([
+            'component' => 'core_ltix',
+            'placementtype' => 'core_ltix:validplacement'
+        ]);
+
+        // Create a placement.
+        $ltigenerator->create_tool_placements([
+            'toolid' => $toolid,
+            'placementtypeid' => $placementtype->id,
+            'config_default_usage' => $placementsettings['default_usage'],
+            'config_supports_deep_linking' => 0,
+        ]);
 
         // Verify that no resource link exists for the given itemid and placement type.
         $resourcelink = resource_link_manager::get_resource_link_by_item($args['itemid'], $args['placementtype']);
@@ -94,10 +105,51 @@ final class resource_link_manager_test extends \advanced_testcase {
         global $SITE;
 
         return [
+            'Invalid argument provided: placement type' => [
+                [
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
+                    'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
+                ],
+                [
+                    'default_usage' => 'enabled'
+                ],
+                [
+                    'placementtype' => 'core_ltix:invalidplacement',
+                    'component' => 'core_ltix',
+                    'context' => \core\context\course::instance($SITE->id),
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                ],
+                [],
+                'Invalid placement type.',
+            ],
+            'Invalid argument provided: component' => [
+                [
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
+                    'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
+                ],
+                [
+                    'default_usage' => 'enabled'
+                ],
+                [
+                    'placementtype' => 'core_ltix:validplacement',
+                    'component' => 'core_message',
+                    'context' => \core\context\course::instance($SITE->id),
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                ],
+                [],
+                'Invalid component.',
+            ],
             'Invalid argument provided: context' => [
                 [
                     'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
+                ],
+                [
+                    'default_usage' => 'enabled'
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -110,35 +162,10 @@ final class resource_link_manager_test extends \advanced_testcase {
                 [],
                 'Invalid context.',
             ],
-            'Legacy tool (manually configured), only required arguments provided' => [
+            'Legacy tool (manually configured), placement disabled, only required arguments provided' => [
                 null,
                 [
-                    'placementtype' => 'core_ltix:validplacement',
-                    'component' => 'core_ltix',
-                    'context' => \core\context\course::instance($SITE->id),
-                    'itemid' => 1,
-                    'url' => 'http://example.com/tool/1/resource/1',
-                    'title' => 'Resource title',
-                ],
-                [
-                    'component' => 'core_ltix',
-                    'itemtype' => 'core_ltix:validplacement',
-                    'itemid' => 1,
-                    'url' => 'http://example.com/tool/1/resource/1',
-                    'title' => 'Resource title',
-                    'text' => null,
-                    'textformat' => FORMAT_MOODLE,
-                    'gradable' => false,
-                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
-                    'customparams' => null,
-                    'icon' => null,
-                    'servicesalt' => null,
-                ],
-            ],
-            'Valid tool, only required arguments provided' => [
-                [
-                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-                    'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+                    'default_usage' => 'disabled'
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -163,10 +190,140 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'servicesalt' => null,
                 ],
             ],
-            'Valid tool, all arguments provided' => [
+            'Tool is pending, placement enabled, only required arguments provided' => [
+                [
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
+                    'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
+                ],
+                [
+                    'default_usage' => 'enabled'
+                ],
+                [
+                    'placementtype' => 'core_ltix:validplacement',
+                    'component' => 'core_ltix',
+                    'context' => \core\context\course::instance($SITE->id),
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                ],
+                [
+                    'component' => 'core_ltix',
+                    'itemtype' => 'core_ltix:validplacement',
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                    'text' => null,
+                    'textformat' => FORMAT_MOODLE,
+                    'gradable' => false,
+                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
+                    'customparams' => null,
+                    'icon' => null,
+                    'servicesalt' => null,
+                ],
+                'The resource link cannot be created for the specified placement in the given tool.',
+            ],
+            'Tool is not visible in course, placement enabled, only required arguments provided' => [
+                [
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_NO,
+                    'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
+                ],
+                [
+                    'default_usage' => 'enabled'
+                ],
+                [
+                    'placementtype' => 'core_ltix:validplacement',
+                    'component' => 'core_ltix',
+                    'context' => \core\context\course::instance($SITE->id),
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                ],
+                [
+                    'component' => 'core_ltix',
+                    'itemtype' => 'core_ltix:validplacement',
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                    'text' => null,
+                    'textformat' => FORMAT_MOODLE,
+                    'gradable' => false,
+                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
+                    'customparams' => null,
+                    'icon' => null,
+                    'servicesalt' => null,
+                ],
+                'The resource link cannot be created for the specified placement in the given tool.',
+            ],
+            'Valid tool, placement disabled, only required arguments provided' => [
                 [
                     'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+                ],
+                [
+                    'default_usage' => 'disabled'
+                ],
+                [
+                    'placementtype' => 'core_ltix:validplacement',
+                    'component' => 'core_ltix',
+                    'context' => \core\context\course::instance($SITE->id),
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                ],
+                [
+                    'component' => 'core_ltix',
+                    'itemtype' => 'core_ltix:validplacement',
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                    'text' => null,
+                    'textformat' => FORMAT_MOODLE,
+                    'gradable' => false,
+                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
+                    'customparams' => null,
+                    'icon' => null,
+                    'servicesalt' => null,
+                ],
+                'The resource link cannot be created for the specified placement in the given tool.',
+            ],
+            'Valid tool, placement enabled, only required arguments provided' => [
+                [
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
+                    'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+                ],
+                [
+                    'default_usage' => 'enabled'
+                ],
+                [
+                    'placementtype' => 'core_ltix:validplacement',
+                    'component' => 'core_ltix',
+                    'context' => \core\context\course::instance($SITE->id),
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                ],
+                [
+                    'component' => 'core_ltix',
+                    'itemtype' => 'core_ltix:validplacement',
+                    'itemid' => 1,
+                    'url' => 'http://example.com/tool/1/resource/1',
+                    'title' => 'Resource title',
+                    'text' => null,
+                    'textformat' => FORMAT_MOODLE,
+                    'gradable' => false,
+                    'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
+                    'customparams' => null,
+                    'icon' => null,
+                    'servicesalt' => null,
+                ],
+            ],
+            'Valid tool, placement enabled, all arguments provided' => [
+                [
+                    'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
+                    'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+                ],
+                [
+                    'default_usage' => 'enabled'
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -219,6 +376,20 @@ final class resource_link_manager_test extends \advanced_testcase {
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+        ]);
+
+        // Create a placement type.
+        $placementtype = $ltigenerator->create_placement_type([
+            'component' => 'core_ltix',
+            'placementtype' => 'core_ltix:validplacement'
+        ]);
+
+        // Create a placement.
+        $ltigenerator->create_tool_placements([
+            'toolid' => $toolid,
+            'placementtypeid' => $placementtype->id,
+            'config_default_usage' => 'enabled',
+            'config_supports_deep_linking' => 0,
         ]);
 
         // Create 2 resource links.
@@ -286,6 +457,20 @@ final class resource_link_manager_test extends \advanced_testcase {
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+        ]);
+
+        // Create a placement type.
+        $placementtype = $ltigenerator->create_placement_type([
+            'component' => 'core_ltix',
+            'placementtype' => 'core_ltix:validplacement'
+        ]);
+
+        // Create a placement.
+        $ltigenerator->create_tool_placements([
+            'toolid' => $toolid,
+            'placementtypeid' => $placementtype->id,
+            'config_default_usage' => 'enabled',
+            'config_supports_deep_linking' => 0,
         ]);
 
         // Create a resource link.
@@ -362,6 +547,20 @@ final class resource_link_manager_test extends \advanced_testcase {
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+        ]);
+
+        // Create a placement type.
+        $placementtype = $ltigenerator->create_placement_type([
+            'component' => 'core_ltix',
+            'placementtype' => 'core_ltix:validplacement'
+        ]);
+
+        // Create a placement.
+        $ltigenerator->create_tool_placements([
+            'toolid' => $toolid,
+            'placementtypeid' => $placementtype->id,
+            'config_default_usage' => 'enabled',
+            'config_supports_deep_linking' => 0,
         ]);
 
         // Create a new resource link for the given placement type.
@@ -492,6 +691,19 @@ final class resource_link_manager_test extends \advanced_testcase {
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
+        ]);
+
+        $placementtype = $ltigenerator->create_placement_type([
+            'component' => 'core_ltix',
+            'placementtype' => 'core_ltix:validplacement'
+        ]);
+
+        // Create a placement.
+        $ltigenerator->create_tool_placements([
+            'toolid' => $toolid,
+            'placementtypeid' => $placementtype->id,
+            'config_default_usage' => 'enabled',
+            'config_supports_deep_linking' => 0,
         ]);
 
         // Create a resource link.

@@ -472,6 +472,8 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
      * @return int The ID of the created course tool
      */
     private function create_course_tool(int $courseid): int {
+        global $DB;
+
         $ltigenerator = $this->getDataGenerator()->get_plugin_generator('core_ltix');
         $coursetoolid = $ltigenerator->create_course_tool_types([
             'baseurl' => 'https://www.moodle.org',
@@ -479,6 +481,15 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
+        // Create and enable 'mod_lti:activityplacement' placement in the course tool.
+        $placementtypeid = $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement']);
+        $ltigenerator->create_tool_placements([
+            'toolid' => $coursetoolid,
+            'placementtypeid' => $placementtypeid,
+            'config_default_usage' => 'enabled',
+            'config_supports_deep_linking' => 0,
+        ]);
+
         return $coursetoolid;
     }
 }
