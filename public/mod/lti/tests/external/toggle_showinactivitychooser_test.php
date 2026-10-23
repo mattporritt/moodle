@@ -65,18 +65,13 @@ final class toggle_showinactivitychooser_test extends externallib_advanced_testc
         $result = external_api::clean_returnvalue(toggle_showinactivitychooser::execute_returns(), $result);
         $this->assertTrue($result);
 
-        $sql = "SELECT lt.coursevisible coursevisible
-                  FROM {lti_types} lt
-                 WHERE lt.id = ?";
-        $actual = $DB->get_record_sql($sql, [$typeid]);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED, $actual->coursevisible);
+        $this->assertFalse($this->is_shown_in_activity_chooser($typeid, $course->id));
 
         $result = toggle_showinactivitychooser::execute($typeid, $course->id, true);
         $this->assertDebuggingCalled();
         $result = external_api::clean_returnvalue(toggle_showinactivitychooser::execute_returns(), $result);
         $this->assertTrue($result);
-        $actual = $DB->get_record_sql($sql, [$typeid]);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $actual->coursevisible);
+        $this->assertTrue($this->is_shown_in_activity_chooser($typeid, $course->id));
     }
 
     /**
@@ -107,23 +102,14 @@ final class toggle_showinactivitychooser_test extends externallib_advanced_testc
         $result = external_api::clean_returnvalue(toggle_showinactivitychooser::execute_returns(), $result);
         $this->assertTrue($result);
 
-        $sql = "SELECT lt.coursevisible coursevisible1, lc.coursevisible AS coursevisible2
-                  FROM {lti_types} lt
-             LEFT JOIN {lti_coursevisible} lc ON lt.id = lc.typeid
-                 WHERE lt.id = ?
-                   AND lc.courseid = ?";
-        $actual = $DB->get_record_sql($sql, [$typeid, $course->id]);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $actual->coursevisible1);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED, $actual->coursevisible2);
+        $this->assertFalse($this->is_shown_in_activity_chooser($typeid, $course->id));
 
         $result = toggle_showinactivitychooser::execute($typeid, $course->id, true);
         $this->assertDebuggingCalled();
         $result = external_api::clean_returnvalue(toggle_showinactivitychooser::execute_returns(), $result);
         $this->assertTrue($result);
 
-        $actual = $DB->get_record_sql($sql, [$typeid, $course->id]);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $actual->coursevisible1);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $actual->coursevisible2);
+        $this->assertTrue($this->is_shown_in_activity_chooser($typeid, $course->id));
     }
 
     /**
@@ -165,14 +151,7 @@ final class toggle_showinactivitychooser_test extends externallib_advanced_testc
         $result = external_api::clean_returnvalue(toggle_showinactivitychooser::execute_returns(), $result);
         $this->assertTrue($result);
 
-        $sql = "SELECT lt.coursevisible coursevisible1, lc.coursevisible AS coursevisible2
-                  FROM {lti_types} lt
-             LEFT JOIN {lti_coursevisible} lc ON lt.id = lc.typeid
-                 WHERE lt.id = ?
-                   AND lc.courseid = ?";
-        $actual = $DB->get_record_sql($sql, [$tool1id, $course->id]);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $actual->coursevisible1);
-        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED, $actual->coursevisible2);
+        $this->assertFalse($this->is_shown_in_activity_chooser($tool1id, $course->id));
 
         // Teacher in course 1, category 1 is NOT allowed to toggle the coursevisible for the tool in category 2.
         $caught = null;
@@ -213,5 +192,17 @@ final class toggle_showinactivitychooser_test extends externallib_advanced_testc
         $this->assertDebuggingCalled();
         $result = external_api::clean_returnvalue(toggle_showinactivitychooser::execute_returns(), $result);
         $this->assertFalse($result);
+    }
+
+    /**
+     * Whether the activity placement of a tool is enabled in a course, which is what shows it in the activity chooser.
+     *
+     * @param int $typeid The tool ID.
+     * @param int $courseid The course ID.
+     * @return bool
+     */
+    private function is_shown_in_activity_chooser(int $typeid, int $courseid): bool {
+        return \core_ltix\local\placement\placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement', $typeid, $courseid);
     }
 }
