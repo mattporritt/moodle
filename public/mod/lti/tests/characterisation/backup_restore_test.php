@@ -139,7 +139,8 @@ final class backup_restore_test extends \advanced_testcase {
         $this->expectOutputRegex('/Course copy: Copy completed/');
         $formdata = (object) [
             'courseid' => $this->course->id, 'fullname' => 'Copied course', 'shortname' => 'COPIED',
-            'category' => $this->course->category, 'visible' => 1, 'startdate' => time(), 'enddate' => 0, 'idnumber' => 'copied', 'userdata' => 0,
+            'category' => $this->course->category, 'visible' => 1, 'startdate' => time(), 'enddate' => 0,
+            'idnumber' => 'copied', 'userdata' => 0,
         ];
         $result = \copy_helper::create_copy(\copy_helper::process_formdata($formdata));
         $newcourseid = \restore_controller::load_controller($result['restoreid'])->get_courseid();

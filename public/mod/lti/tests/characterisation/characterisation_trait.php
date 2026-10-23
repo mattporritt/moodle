@@ -166,19 +166,45 @@ trait characterisation_trait {
      * @return array [output, throwable or null]
      */
     protected function lti_auth_request(array $params): array {
+        return $this->lti_run_script('/mod/lti/auth.php', [], $params);
+    }
+
+    /**
+     * Run a Moodle script, as the current user, in process, and return what it printed and what it threw.
+     *
+     * The script is found from a path or URL of the site, as a browser would reach it, so that a script that moves is followed
+     * by the URLs Moodle itself hands out. PHP warnings are silenced for the call. A script that ends with exit cannot be run.
+     *
+     * @param string $path the path or URL of the script, relative to the site root.
+     * @param array $get query parameters, in addition to any in the path.
+     * @param array $post form parameters.
+     * @return array [output, throwable or null]
+     */
+    protected function lti_run_script(string $path, array $get = [], array $post = []): array {
         global $CFG, $SESSION, $USER, $DB, $PAGE, $OUTPUT;
-        $_POST = $_REQUEST = $params;
+        $path = preg_replace('~^' . preg_quote($CFG->wwwroot, '~') . '~', '', $path);
+        parse_str(parse_url($path, PHP_URL_QUERY) ?? '', $query);
+        $script = $CFG->dirroot . parse_url($path, PHP_URL_PATH);
+        $this->assertFileExists($script, "There is no script at $path");
+
+        $_GET = $get + $query;
+        $_POST = $post;
+        $_REQUEST = $_GET + $_POST;
+        // Scripts load config.php by a relative path, so run them from their own directory like the web server does.
+        $workingdirectory = getcwd();
+        chdir(dirname($script));
         set_error_handler(fn() => true, E_ALL);
         $thrown = null;
         ob_start();
         try {
-            include($CFG->dirroot . '/mod/lti/auth.php');
+            include($script);
         } catch (\Throwable $e) {
             $thrown = $e;
         }
         $output = ob_get_clean();
         restore_error_handler();
-        $_POST = $_REQUEST = [];
+        chdir($workingdirectory);
+        $_GET = $_POST = $_REQUEST = [];
         return [$output, $thrown];
     }
 
