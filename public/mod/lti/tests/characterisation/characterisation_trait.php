@@ -439,4 +439,25 @@ trait characterisation_trait {
         }
         return $value;
     }
+
+    /**
+     * The scripts that start an LTI 1.3 launch by calling the login initiation function, and the function they call.
+     *
+     * @return array script path (relative to the code root) => [function name or class and method, ...]
+     */
+    protected function lti_login_initiation_callers(): array {
+        return [
+            'mod/lti/launch.php' => ['lti_initiate_login'],
+            'mod/lti/contentitem.php' => ['lti_initiate_login'],
+        ];
+    }
+
+    /**
+     * The parameter names of the login initiation function, in order.
+     *
+     * @return string[]
+     */
+    protected function lti_login_initiation_parameters(): array {
+        return array_map(fn($parameter) => $parameter->getName(), (new \ReflectionFunction('lti_initiate_login'))->getParameters());
+    }
 }
