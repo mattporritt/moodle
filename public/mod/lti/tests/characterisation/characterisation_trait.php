@@ -144,7 +144,14 @@ trait characterisation_trait {
     ): array {
         $config = lti_get_type_type_config($typeid);
         $form = lti_initiate_login(
-            $courseid, $lti->cmid ?? 0, $lti, $config, $messagetype, 'Selected title', 'Selected text', $foruserid
+            $courseid,
+            $lti->cmid ?? 0,
+            $lti,
+            $config,
+            $messagetype,
+            'Selected title',
+            'Selected text',
+            $foruserid
         );
         return $this->lti_form_fields($form);
     }
@@ -217,5 +224,44 @@ trait characterisation_trait {
      */
     protected function lti_platform_key_set(): array {
         return \mod_lti\local\ltiopenid\jwks_helper::get_jwks();
+    }
+
+    /**
+     * The LTI entries in the activity chooser, as the user sees them in a course.
+     *
+     * The chooser is core's content item service, so this only names the service, not any LTI code. It includes the "External
+     * tool" entry that adds an activity with no tool.
+     *
+     * @param \stdClass $user the user.
+     * @param \stdClass $course the course.
+     * @return string[] the links of the entries that belong to LTI, by title.
+     */
+    protected function lti_chooser_entries(\stdClass $user, \stdClass $course): array {
+        $service = new \core_course\local\service\content_item_service(
+            new \core_course\local\repository\content_item_readonly_repository()
+        );
+        $entries = [];
+        foreach ($service->get_content_items_for_user_in_course($user, $course) as $item) {
+            if ($item->componentname === 'mod_lti') {
+                $entries[$item->title] = $item->link;
+            }
+        }
+        return $entries;
+    }
+
+    /**
+     * Show or hide a site tool in one course's activity chooser, as a teacher does on the course tools page.
+     *
+     * @param int $typeid the tool type.
+     * @param int $courseid the course.
+     * @param bool $show whether to show it.
+     */
+    protected function lti_set_chooser_visibility(int $typeid, int $courseid, bool $show): void {
+        \mod_lti\local\types_helper::override_type_showinactivitychooser(
+            $typeid,
+            $courseid,
+            \core\context\course::instance($courseid),
+            $show
+        );
     }
 }
