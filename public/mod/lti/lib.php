@@ -128,7 +128,7 @@ function lti_add_instance($lti, $mform) {
         $lti->name,
         $lti->intro,
         $lti->introformat,
-        $lti->instructorchoiceacceptgrades,
+        true, // Gradable means the link supports AGS and grading, not that the activity accepts grades.
         $lti->servicesalt,
         $launchcontainer,
         $icon,
@@ -195,7 +195,7 @@ function lti_update_instance($lti, $mform) {
         'title' => $lti->name,
         'text' => $lti->intro,
         'textformat' => $lti->introformat,
-        'gradable' => $lti->instructorchoiceacceptgrades,
+        'gradable' => true, // Gradable means the link supports AGS and grading, not that the activity accepts grades.
         ...(!isset($lti->launchcontainer) ? ['launchcontainer' => $lti->launchcontainer] : []),
         ...(!empty($lti->icon) ? ['icon' => $lti->icon] : []),
         ...(!empty($lti->instructorcustomparameters) ? ['customparams' => $lti->instructorcustomparameters] : []),

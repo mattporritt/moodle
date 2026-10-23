@@ -26,7 +26,14 @@
 
 namespace core_ltix\local\ltiservice;
 
+use core_ltix\helper;
 use core_ltix\local\lticore\message\context\collection\launch_context;
+use core_ltix\local\lticore\message\context\item\course_context;
+use core_ltix\local\lticore\message\context\item\message_context;
+use core_ltix\local\lticore\message\context\item\resource_link_context;
+use core_ltix\local\lticore\message\type\message_type_factory;
+use core_ltix\local\lticore\models\resource_link;
+use core_ltix\local\placement\service\resource_link_manager;
 use stdClass;
 
 
@@ -349,7 +356,15 @@ abstract class service_base {
         mdl: 'MDL-79109'
     )]
     public function get_launch_parameters($messagetype, $courseid, $userid, $typeid, $modlti = null) {
-        return array();
+        // Services only implement get_launch_params(). Build the launch context that the old arguments describe, so that
+        // launches still using this method send the same parameters.
+        $this->set_type(helper::get_type($typeid));
+        $this->set_typeconfig(helper::get_type_config($typeid));
+
+        $cm = $modlti ? get_coursemodule_from_instance('lti', $modlti, $courseid) : false;
+
+        return $this->get_launch_params($this->build_legacy_launch_context($messagetype, get_course($courseid),
+            $cm ? $cm->id : null));
     }
 
     /**
@@ -396,18 +411,42 @@ abstract class service_base {
      * @return string
      */
     public function parse_value($value) {
+        global $COURSE;
 
-        if (empty($this->resources)) {
-            $this->resources = $this->get_resources();
-        }
-        if (!empty($this->resources)) {
-            foreach ($this->resources as $resource) {
-                $value = $resource->parse_value($value);
+        // Resources only implement parse_val(). The callers of this method pass no launch context, so take the course and
+        // the lti course module from where the resources used to read them: the current course and the request.
+        $cmid = optional_param('id', 0, PARAM_INT);
+        if (empty($cmid)) {
+            $hint = optional_param('lti_message_hint', '', PARAM_TEXT);
+            if ($hint) {
+                $hintdec = json_decode($hint);
+                if (isset($hintdec->cmid)) {
+                    $cmid = $hintdec->cmid;
+                }
             }
         }
 
-        return $value;
+        return $this->parse_val($value, $this->build_legacy_launch_context('basic-lti-launch-request', $COURSE, $cmid));
+    }
 
+    /**
+     * Builds the launch context described by the arguments of the deprecated launch methods.
+     *
+     * @param string $messagetype The message type, e.g. 'basic-lti-launch-request'.
+     * @param stdClass $course The course the launch is in.
+     * @param int|null $cmid The id of the lti course module the launch is for, if any.
+     * @return launch_context
+     */
+    private function build_legacy_launch_context(string $messagetype, stdClass $course, ?int $cmid = null): launch_context {
+        $contexts = [new course_context($course)];
+
+        // A launch that is not for an activity has no link. The services read an empty one as not gradable.
+        $resourcelink = $cmid ? resource_link_manager::get_resource_link_by_item($cmid, 'mod_lti:activityplacement') : null;
+        $contexts[] = new resource_link_context($resourcelink ?? new resource_link());
+
+        $messagetypefactory = \core\di::get(message_type_factory::class);
+
+        return launch_context::instance(new message_context($messagetypefactory->from_string($messagetype)), ...$contexts);
     }
 
     /**
