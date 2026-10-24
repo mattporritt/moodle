@@ -147,15 +147,24 @@ class course_external_tools_list extends system_report {
             new \lang_string('showinactivitychooser', 'core_ltix'),
             $tooltypesentity->get_entity_name()
         ))
+            // Site tools can be overridden on course level.
+            ->add_join("LEFT JOIN {lti_coursevisible} lc ON lc.typeid = {$entitymainalias}.id AND lc.courseid = " . $this->course->id)
             ->set_type(column::TYPE_INTEGER)
-            ->add_fields("{$entitymainalias}.id")
+            ->add_fields("{$entitymainalias}.id, {$entitymainalias}.coursevisible, lc.coursevisible as coursevisibleoverridden")
             ->set_is_sortable(false)
             ->set_callback(function(int $id, \stdClass $row): string {
                 global $PAGE;
+                $coursevisible = $row->coursevisible;
                 $courseid = $this->course->id;
-                // The option is held in the status of the activity placement in the course.
-                $coursevisible = \core_ltix\local\placement\placement_repository::is_placement_enabled_for_tool_in_course(
-                    'mod_lti:activityplacement', $row->id, $courseid);
+                if (!empty($row->coursevisibleoverridden)) {
+                    $coursevisible = $row->coursevisibleoverridden;
+                }
+
+                if ($coursevisible == \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER) {
+                    $coursevisible = true;
+                } else {
+                    $coursevisible = false;
+                }
 
                 $renderer = $PAGE->get_renderer('core_reportbuilder');
                 $attributes = [

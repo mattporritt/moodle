@@ -36,7 +36,6 @@ namespace core_ltix;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-use core_ltix\local\placement\placement_repository;
 use context_course;
 use core_ltix\local\placement\placement_status;
 
@@ -534,13 +533,14 @@ final class helper_test extends lti_testcase {
 
         $result = helper::override_type_showinactivitychooser($tool2id, $course->id, $context, true);
         $this->assertTrue($result);
-        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $tool2id,
-            $course->id));
+        $coursevisibleoverriden = $DB->get_field('lti_coursevisible', 'coursevisible',
+            ['typeid' => $tool2id, 'courseid' => $course->id]);
+        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $coursevisibleoverriden);
 
         $result = helper::override_type_showinactivitychooser($tool3id, $course->id, $context, false);
         $this->assertTrue($result);
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $tool3id,
-            $course->id));
+        $coursevisible = $DB->get_field('lti_types', 'coursevisible', ['id' => $tool3id]);
+        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED, $coursevisible);
 
         // Restricted category no allowed.
         $this->expectException('moodle_exception');
@@ -550,8 +550,9 @@ final class helper_test extends lti_testcase {
         // Restricted category allowed.
         $result = helper::override_type_showinactivitychooser($tool5id, $course->id, $context, false);
         $this->assertTrue($result);
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $tool5id,
-            $course->id));
+        $coursevisibleoverriden = $DB->get_field('lti_coursevisible', 'coursevisible',
+            ['typeid' => $tool5id, 'courseid' => $course->id]);
+        $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED, $coursevisibleoverriden);
 
         $this->setUser($teacher2);
         $this->expectException(\required_capability_exception::class);
@@ -1553,116 +1554,6 @@ final class helper_test extends lti_testcase {
                     [2],
                 ],
         ];
-    }
-
-    /**
-     * A tool saved with the "Show in activity chooser" option is shown in the activity chooser through its activity placement.
-     *
-     * @covers ::add_type
-     * @covers ::update_type
-     * @covers ::get_type_type_config
-     */
-    public function test_show_in_activity_chooser_option_is_held_in_the_activity_placement(): void {
-        global $DB;
-
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-        $placementtypeid = $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement']);
-
-        // A tool saved as preconfigured only has no placement, so it is not in the activity chooser.
-        $type = (object) ['state' => constants::LTI_TOOL_STATE_CONFIGURED, 'name' => 'Tool', 'baseurl' => 'http://example.com'];
-        $config = (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_PRECONFIGURED];
-        $typeid = helper::add_type($type, $config);
-        $this->assertFalse($DB->record_exists('lti_placement', ['toolid' => $typeid]));
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
-
-        // Saving it with the option shows it. The tool stays preconfigured and the form reads the option back.
-        $type = (object) ['id' => $typeid];
-        helper::update_type($type, (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]);
-        $this->assertEquals(constants::LTI_COURSEVISIBLE_PRECONFIGURED, $DB->get_field('lti_types', 'coursevisible',
-            ['id' => $typeid]));
-        $this->assertEquals('enabled', $DB->get_field_sql(
-            "SELECT pc.value
-               FROM {lti_placement} p
-               JOIN {lti_placement_config} pc ON pc.placementid = p.id AND pc.name = 'default_usage'
-              WHERE p.toolid = :toolid AND p.placementtypeid = :placementtypeid",
-            ['toolid' => $typeid, 'placementtypeid' => $placementtypeid]));
-        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
-        $this->assertArrayHasKey($typeid, placement_repository::get_tools_with_enabled_placement_in_course(
-            'mod_lti:activityplacement', $course->id));
-        $this->assertEquals(constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, helper::get_type_type_config($typeid)->lti_coursevisible);
-
-        // Saving it without the option hides it again.
-        $type = (object) ['id' => $typeid];
-        helper::update_type($type, (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_PRECONFIGURED]);
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
-        $this->assertEquals(constants::LTI_COURSEVISIBLE_PRECONFIGURED, helper::get_type_type_config($typeid)->lti_coursevisible);
-
-        // Updating a tool without touching the option leaves it as it is.
-        helper::update_type((object) ['id' => $typeid], (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]);
-        helper::update_type((object) ['id' => $typeid, 'name' => 'Renamed'], (object) []);
-        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
-    }
-
-    /**
-     * A tool created with the option is in the activity chooser of a teacher, who can add it, and deleting it leaves no
-     * placement rows behind.
-     *
-     * @covers ::add_type
-     * @covers ::delete_type
-     */
-    public function test_tool_created_with_the_option_is_in_the_activity_chooser_and_deleting_it_removes_its_placements(): void {
-        global $DB;
-
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
-
-        $type = (object) ['state' => constants::LTI_TOOL_STATE_CONFIGURED, 'name' => 'Chooser tool',
-            'baseurl' => 'http://example.com/chooser'];
-        $typeid = helper::add_type($type, (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]);
-
-        $this->setUser($teacher);
-        $items = $this->get_activity_chooser_lti_items($course, $teacher);
-        $this->assertContains('Chooser tool', array_map(fn($item) => $item->get_title()->get_value(), $items));
-
-        // The teacher can add an activity that uses it.
-        $lti = $this->getDataGenerator()->create_module('lti', ['course' => $course->id, 'typeid' => $typeid]);
-        $this->assertNotEmpty($lti->cmid);
-
-        // Hiding the tool in the course removes it from the chooser of the course.
-        $this->assertTrue(helper::override_type_showinactivitychooser($typeid, $course->id,
-            \core\context\course::instance($course->id), false));
-        $items = $this->get_activity_chooser_lti_items($course, $teacher);
-        $this->assertNotContains('Chooser tool', array_map(fn($item) => $item->get_title()->get_value(), $items));
-
-        // Deleting the tool leaves no placement rows.
-        $placementids = $DB->get_fieldset_select('lti_placement', 'id', 'toolid = ?', [$typeid]);
-        $this->assertNotEmpty($placementids);
-        helper::delete_type($typeid);
-        $this->assertFalse($DB->record_exists('lti_placement', ['toolid' => $typeid]));
-        [$insql, $inparams] = $DB->get_in_or_equal($placementids);
-        $this->assertFalse($DB->record_exists_select('lti_placement_config', "placementid $insql", $inparams));
-        $this->assertFalse($DB->record_exists_select('lti_placement_status', "placementid $insql", $inparams));
-    }
-
-    /**
-     * Gets the LTI tools that the activity chooser of a course lists for a user.
-     *
-     * @param \stdClass $course The course.
-     * @param \stdClass $user The user.
-     * @return \core_course\local\entity\content_item[] The content items of the LTI tools.
-     */
-    private function get_activity_chooser_lti_items(\stdClass $course, \stdClass $user): array {
-        $items = (new \core_course\local\repository\content_item_readonly_repository())->find_all_for_course($course, $user);
-
-        return array_filter($items, fn($item) => str_contains($item->get_name(), 'lti_type'));
     }
 
     /**

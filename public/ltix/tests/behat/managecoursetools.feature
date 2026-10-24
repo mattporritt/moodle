@@ -258,9 +258,6 @@ Feature: Manage course tools
     And the following "core_ltix > course tools" exist:
       | name          | description         | baseurl                  | course |
       | Course Tool 1 | Example description | https://example.com/tool | C1     |
-    And the following "core_ltix > tool placements" exist:
-      | tool          | placementtype             | config_default_usage |
-      | Course Tool 1 | mod_lti:activityplacement | enabled              |
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
     And I add a "Teaching Tool 1" to section "1" using the activity chooser
