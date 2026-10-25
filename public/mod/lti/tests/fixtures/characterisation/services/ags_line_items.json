@@ -1,6 +1,6 @@
 [
     {
-        "id": "{{wwwroot}}/mod/lti/services.php/{{course}}/lineitems/{{gradeitem}}/lineitem?type_id={{type}}",
+        "id": "{{wwwroot}}/ltix/services.php/{{course}}/lineitems/{{gradeitem}}/lineitem?type_id={{type}}",
         "label": "Graded activity",
         "ltiLinkId": "{{instance}}",
         "resourceId": "resource-1",
@@ -9,7 +9,7 @@
         "tag": "tag-1"
     },
     {
-        "id": "{{wwwroot}}/mod/lti/services.php/{{course}}/lineitems/{{standalone}}/lineitem?type_id={{type}}",
+        "id": "{{wwwroot}}/ltix/services.php/{{course}}/lineitems/{{standalone}}/lineitem?type_id={{type}}",
         "label": "Standalone item",
         "resourceId": "resource-2",
         "scoreMaximum": 55,

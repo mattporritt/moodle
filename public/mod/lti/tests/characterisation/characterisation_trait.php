@@ -63,7 +63,7 @@ trait characterisation_trait {
         string $messagetype = '',
         int $foruserid = 0
     ): array {
-        return lti_get_launch_data($lti, $nonce, $messagetype, $foruserid);
+        return \core_ltix\helper::get_launch_data($lti, $nonce, $messagetype, $foruserid);
     }
 
     /**
@@ -73,7 +73,9 @@ trait characterisation_trait {
      * @return int the tool type id.
      */
     protected function lti_create_tool(array $config): int {
-        return $this->getDataGenerator()->get_plugin_generator('mod_lti')->create_tool_types($config);
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_ltix');
+        [$config, $visibility] = $this->lti_split_visibility($config + $this->lti_chooser_default());
+        return $this->lti_add_activity_placement($generator->create_tool_types($config), $config, $visibility);
     }
 
     /**
@@ -83,7 +85,60 @@ trait characterisation_trait {
      * @return int the tool type id.
      */
     protected function lti_create_course_tool(array $config): int {
-        return $this->getDataGenerator()->get_plugin_generator('mod_lti')->create_course_tool_types($config);
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_ltix');
+        [$config, $visibility] = $this->lti_split_visibility($config + $this->lti_chooser_default());
+        return $this->lti_add_activity_placement($generator->create_course_tool_types($config), $config, $visibility);
+    }
+
+    /**
+     * Turn the visibility a test asks for (0 hidden, 1 preconfigured, 2 in the activity chooser) into what slice 5 stores.
+     *
+     * Slice 5 has no chooser visibility on the tool: a visible tool is preconfigured, and its activity placement decides.
+     *
+     * @param array $config the tool configuration, with coursevisible.
+     * @return array the configuration to store, and the visibility that was asked for.
+     */
+    private function lti_split_visibility(array $config): array {
+        $visibility = (int) $config['coursevisible'];
+        $config['coursevisible'] = $config['lti_coursevisible'] = $visibility ? 1 : 0;
+        return [$config, $visibility];
+    }
+
+    /**
+     * Give a tool the activity placement that its visibility and deep linking settings ask for, as the placement form does.
+     *
+     * @param int $typeid the tool.
+     * @param array $config the tool configuration.
+     * @param int $visibility the visibility the test asked for.
+     * @return int the tool.
+     */
+    private function lti_add_activity_placement(int $typeid, array $config, int $visibility): int {
+        global $DB;
+        if ($visibility) {
+            $data = [
+                'toolid' => $typeid,
+                'placementtypeid' => $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement']),
+                'config_default_usage' => $visibility == 2 ? 'enabled' : 'disabled',
+            ];
+            if (!empty($config['lti_contentitem'])) {
+                $data['config_supports_deep_linking'] = 1;
+                if (!empty($config['lti_toolurl_ContentItemSelectionRequest'])) {
+                    $data['config_deep_linking_url'] = $config['lti_toolurl_ContentItemSelectionRequest'];
+                }
+            }
+            $this->getDataGenerator()->get_plugin_generator('core_ltix')->create_tool_placements($data);
+        }
+        return $typeid;
+    }
+
+    /**
+     * The visibility a tool gets when a test does not set one: shown in the activity chooser, which gives it the activity
+     * placement that an activity needs. The generator did this itself before slice 3b.
+     *
+     * @return array
+     */
+    private function lti_chooser_default(): array {
+        return ['coursevisible' => 2, 'lti_coursevisible' => 2];
     }
 
     /**
@@ -107,7 +162,7 @@ trait characterisation_trait {
      * @param int $typeid the tool type id.
      */
     protected function lti_delete_tool(int $typeid): void {
-        lti_delete_type($typeid);
+        \core_ltix\helper::delete_type($typeid);
     }
 
     /**
@@ -127,7 +182,7 @@ trait characterisation_trait {
      * @return array the key and value to add to the tool configuration.
      */
     protected function lti_service_setting(string $setting, int $value): array {
-        return ["ltiservice_{$setting}" => $value];
+        return ["ltixservice_{$setting}" => $value];
     }
 
     /**
@@ -147,18 +202,43 @@ trait characterisation_trait {
         string $messagetype = 'basic-lti-launch-request',
         int $foruserid = 0
     ): array {
-        $config = lti_get_type_type_config($typeid);
-        $form = lti_initiate_login(
+        // Since slice 4b an activity logs in through the launch service, which signs the login hint, as the parity capture does.
+        // Submission review and deep linking launches have no launch service yet, so they still start with the helper.
+        if ($lti && $messagetype === 'basic-lti-launch-request' && !$foruserid) {
+            return $this->lti_start_activity_login($lti);
+        }
+        $config = \core_ltix\helper::get_type_type_config($typeid);
+        // Since slice 3b the login initiation takes the placement type, which a content selection needs.
+        $placementtype = $lti ? '' : 'mod_lti:activityplacement';
+        $form = \core_ltix\helper::initiate_login(
             $courseid,
             $lti->cmid ?? 0,
             $lti,
             $config,
             $messagetype,
+            $placementtype,
             'Selected title',
             'Selected text',
             $foruserid
         );
         return $this->lti_form_fields($form);
+    }
+
+    /**
+     * Start an LTI 1.3 launch of an activity with the launch service, as the current user.
+     *
+     * @param \stdClass $lti the activity, with ->cmid set.
+     * @return array the login request fields: iss, target_link_uri, login_hint, lti_message_hint, client_id and so on.
+     */
+    private function lti_start_activity_login(\stdClass $lti): array {
+        global $USER;
+        $link = \core_ltix\local\lticore\models\resource_link::get_record([
+            'component' => 'mod_lti', 'itemtype' => 'mod_lti:activityplacement', 'itemid' => $lti->cmid,
+        ], MUST_EXIST);
+        $service = \core\di::get(
+            \core_ltix\local\lticore\message\launchrequest\service\v1p3\v1p3_resource_link_launch_service::class
+        );
+        return $service->launch((int) $link->get('id'), $USER)->get_parameters();
     }
 
     /**
@@ -171,7 +251,29 @@ trait characterisation_trait {
      * @return array [output, throwable or null]
      */
     protected function lti_auth_request(array $params): array {
-        return $this->lti_run_script('/mod/lti/auth.php', [], $params);
+        global $USER;
+        // Since slice 4b the endpoint ends with exit, which PHPUnit cannot survive, so the authenticator it uses is called here.
+        $authenticator = new \core_ltix\local\ltiopenid\lti_oidc_authenticator(
+            new \core_ltix\local\ltiopenid\lti_user_authenticator($USER),
+            new \core_ltix\local\lticore\repository\tool_registration_repository(),
+            new \core_ltix\local\lticore\message\payload\lti_1px_payload_converter(
+                new \core_ltix\local\lticore\message\payload\lis_vocab_converter()
+            ),
+            new \core_ltix\local\lticore\message\substitution\factory\variable_substitutor_factory(
+                new \core_ltix\local\ltiservice\plugin_substitution_service(
+                    new \core_ltix\local\ltiservice\service_plugin_registry()
+                )
+            ),
+            \core_ltix\local\ltiopenid\jwks_helper::get_jwks()
+        );
+        $thrown = null;
+        ob_start();
+        try {
+            echo $authenticator->authenticate($params)->to_html_form();
+        } catch (\Throwable $e) {
+            $thrown = $e;
+        }
+        return [ob_get_clean(), $thrown];
     }
 
     /**
@@ -243,8 +345,8 @@ trait characterisation_trait {
      */
     protected function lti_sessionless_endpoint_scripts(): array {
         return [
-            'mod/lti/service.php', 'mod/lti/services.php', 'mod/lti/token.php', 'mod/lti/certs.php',
-            'mod/lti/openid-configuration.php', 'mod/lti/openid-registration.php',
+            'ltix/service.php', 'ltix/services.php', 'ltix/token.php', 'ltix/certs.php',
+            'ltix/openid-configuration.php', 'ltix/openid-registration.php',
         ];
     }
 
@@ -254,7 +356,7 @@ trait characterisation_trait {
      * @return array
      */
     protected function lti_platform_key_set(): array {
-        return \mod_lti\local\ltiopenid\jwks_helper::get_jwks();
+        return \core_ltix\local\ltiopenid\jwks_helper::get_jwks();
     }
 
     /**
@@ -288,12 +390,19 @@ trait characterisation_trait {
      * @param bool $show whether to show it.
      */
     protected function lti_set_chooser_visibility(int $typeid, int $courseid, bool $show): void {
-        \mod_lti\local\types_helper::override_type_showinactivitychooser(
-            $typeid,
-            $courseid,
-            \core\context\course::instance($courseid),
-            $show
-        );
+        // Slice 5 holds the course choice in the status of the tool's activity placement.
+        global $DB;
+        $placementtypeid = $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement']);
+        $params = ['toolid' => $typeid, 'placementtypeid' => $placementtypeid];
+        $params = ['placementid' => $DB->get_field('lti_placement', 'id', $params, MUST_EXIST),
+            'contextid' => \core\context\course::instance($courseid)->id];
+        $status = $show ? \core_ltix\local\placement\placement_status::ENABLED->value :
+            \core_ltix\local\placement\placement_status::DISABLED->value;
+        if ($record = $DB->get_record('lti_placement_status', $params)) {
+            $DB->set_field('lti_placement_status', 'status', $status, ['id' => $record->id]);
+        } else {
+            $DB->insert_record('lti_placement_status', (object) ($params + ['status' => $status]));
+        }
     }
 
     /**
@@ -315,7 +424,7 @@ trait characterisation_trait {
         ?string $resourceid,
         ?string $tag
     ): int {
-        $service = new \ltiservice_gradebookservices\local\service\gradebookservices();
+        $service = new \ltixservice_gradebookservices\local\service\gradebookservices();
         return $service->add_standalone_lineitem(
             (string) $courseid,
             $label,
@@ -391,15 +500,18 @@ trait characterisation_trait {
         string $accept = '',
         string $body = '',
         array $query = []
-    ): \mod_lti\local\ltiservice\response {
-        $token = lti_new_access_token($typeid, $scopes);
+    ): \core_ltix\local\ltiservice\response {
+        // The tests name the service classes by their old plugin names.
+        $resourceclass = preg_replace('/^\\\\?ltiservice_/', 'ltixservice_', $resourceclass);
+        $serviceclass = preg_replace('/^\\\\?ltiservice_/', 'ltixservice_', $serviceclass);
+        $token = \core_ltix\helper::new_access_token($typeid, $scopes);
         $_SERVER['REQUEST_METHOD'] = $method;
         $_SERVER['PATH_INFO'] = $pathinfo;
         $_SERVER['HTTP_Authorization'] = 'Bearer ' . $token->token;
         $_SERVER[$method === 'GET' ? 'HTTP_ACCEPT' : 'CONTENT_TYPE'] = $accept;
         $_GET = $query + ['type_id' => (string) $typeid];
 
-        $response = new \mod_lti\local\ltiservice\response();
+        $response = new \core_ltix\local\ltiservice\response();
         if ($method === 'GET') {
             $response->set_accept($accept);
         } else {
@@ -453,7 +565,7 @@ trait characterisation_trait {
     protected function lti_login_initiation_callers(): array {
         return [
             'mod/lti/launch.php' => [$this->lti_login_initiation_function()],
-            'mod/lti/contentitem.php' => [$this->lti_login_initiation_function()],
+            'ltix/contentitemselection.php' => [$this->lti_login_initiation_function()],
         ];
     }
 
@@ -463,8 +575,8 @@ trait characterisation_trait {
      * @return string[]
      */
     protected function lti_login_initiation_parameters(): array {
-        $function = new \ReflectionFunction($this->lti_login_initiation_function());
-        return array_map(fn($parameter) => $parameter->getName(), $function->getParameters());
+        $method = new \ReflectionMethod(\core_ltix\helper::class, $this->lti_login_initiation_function());
+        return array_map(fn($parameter) => $parameter->getName(), $method->getParameters());
     }
 
     /**
@@ -473,7 +585,7 @@ trait characterisation_trait {
      * @return string
      */
     protected function lti_login_initiation_function(): string {
-        return 'lti_initiate_login';
+        return 'initiate_login';
     }
 
     /**
@@ -482,7 +594,7 @@ trait characterisation_trait {
      * @return string the table name, without the prefix.
      */
     protected function lti_gradebookservices_table(): string {
-        return 'ltiservice_gradebookservices';
+        return 'ltixservice_gradebookservices';
     }
 
     /**
@@ -505,7 +617,7 @@ trait characterisation_trait {
      * @return array [parameter name, value]
      */
     protected function lti_deep_linking_return_scope(\stdClass $course): array {
-        return ['course', (int) $course->id];
+        return ['contextid', \core\context\course::instance($course->id)->id];
     }
 
     /**
@@ -514,7 +626,7 @@ trait characterisation_trait {
      * @return string[]
      */
     protected function lti_activity_bound_tables(): array {
-        return [];
+        return ['lti_resource_link'];
     }
 
     /**
@@ -524,7 +636,8 @@ trait characterisation_trait {
      * @return int
      */
     protected function lti_resource_links_for_tool(int $typeid): int {
-        return 0;
+        global $DB;
+        return $DB->count_records('lti_resource_link', ['typeid' => $typeid]);
     }
 
     /**
@@ -534,6 +647,11 @@ trait characterisation_trait {
      * @return int
      */
     protected function lti_resource_links_without_activity(int $typeid): int {
-        return 0;
+        global $DB;
+        $sql = "SELECT COUNT(rl.id)
+                  FROM {lti_resource_link} rl
+                 WHERE rl.typeid = :typeid AND rl.component = 'mod_lti'
+                       AND NOT EXISTS (SELECT 1 FROM {course_modules} cm WHERE cm.id = rl.itemid)";
+        return (int) $DB->get_field_sql($sql, ['typeid' => $typeid]);
     }
 }
