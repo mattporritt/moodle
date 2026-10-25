@@ -47,7 +47,17 @@ use ltixservice_basicoutcomes\local\service\basicoutcomes;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
-
+    /**
+     * Get the tools matching a domain that are usable in a course.
+     *
+     * Site tools and tools of the given course are returned, limited to those whose course category
+     * restrictions allow the course's category.
+     *
+     * @param string|null $domain The tool domain, as returned by {@see self::get_domain_from_url()}.
+     * @param int|null $state Only return tools in this state (LTI_TOOL_STATE_*), or any state when empty.
+     * @param int|null $courseid The course the tools are wanted for.
+     * @return \stdClass[] The matching lti_types records, indexed by id.
+     */
     public static function get_tools_by_domain($domain, $state = null, $courseid = null) {
         global $DB, $SITE;
 
@@ -76,10 +86,16 @@ class helper {
             'siteid' => $SITE->id,
             'tooldomain' => $domain,
             'state' => $state,
-            'categoryid' => $coursecategory
+            'categoryid' => $coursecategory,
         ]);
     }
 
+    /**
+     * Get the domain part of a tool URL.
+     *
+     * @param string|null $url The tool URL.
+     * @return string|null The domain, or null when the URL does not match.
+     */
     public static function get_domain_from_url($url) {
         $matches = [];
 
@@ -88,18 +104,42 @@ class helper {
         }
     }
 
+    /**
+     * Get the tools that share the domain of a URL.
+     *
+     * @param string $url The tool URL.
+     * @param int|null $state Only return tools in this state (LTI_TOOL_STATE_*), or any state when empty.
+     * @param int|null $courseid The course the tools are wanted for.
+     * @return \stdClass[] The matching lti_types records, indexed by id.
+     */
     public static function get_tools_by_url($url, $state, $courseid = null) {
         $domain = self::get_domain_from_url($url);
 
         return self::get_tools_by_domain($domain, $state, $courseid);
     }
 
+    /**
+     * Get the tool whose base URL best matches a URL.
+     *
+     * @param string $url The tool URL.
+     * @param int|null $courseid The course the tool is wanted for.
+     * @param int $state Only consider tools in this state (LTI_TOOL_STATE_*).
+     * @return \stdClass|null The best matching lti_types record, or null when there is none.
+     */
     public static function get_tool_by_url_match($url, $courseid = null, $state = LTI_TOOL_STATE_CONFIGURED) {
         $possibletools = self::get_tools_by_url($url, $state, $courseid);
 
         return self::get_best_tool_by_url($url, $possibletools, $courseid);
     }
 
+    /**
+     * Pick the tool with the best matching base URL from a list of candidates.
+     *
+     * @param string $url The tool URL.
+     * @param \stdClass[] $tools The candidate lti_types records.
+     * @param int|null $courseid The course the tool is wanted for.
+     * @return \stdClass|null The best match, or null when no candidate matches.
+     */
     public static function get_best_tool_by_url($url, $tools, $courseid = null) {
         if (count($tools) === 0) {
             return null;
@@ -129,14 +169,13 @@ class helper {
             }
         }
 
-        $bestmatch = array_reduce($tools, function($value, $tool) {
+        $bestmatch = array_reduce($tools, function ($value, $tool) {
             if ($tool->_matchscore > $value->_matchscore) {
                 return $tool;
             } else {
                 return $value;
             }
-
-        }, (object) array('_matchscore' => -1));
+        }, (object) ['_matchscore' => -1]);
 
         // None of the tools are suitable for this URL.
         if ($bestmatch->_matchscore <= 0) {
@@ -146,6 +185,14 @@ class helper {
         return $bestmatch;
     }
 
+    /**
+     * Reduce a URL to host, path and query, so URLs can be compared.
+     *
+     * The scheme and a leading "www." are ignored.
+     *
+     * @param string $url The URL.
+     * @return string The thumbprint of the URL.
+     */
     public static function get_url_thumbprint($url) {
         // Parse URL requires a schema otherwise everything goes into 'path'.  Fixed 5.4.7 or later.
         if (preg_match('/https?:\/\//', $url) !== 1) {
@@ -202,7 +249,7 @@ class helper {
         if (isset($config->lti_services)) {
             $toolproxy->serviceoffered = implode("\n", $config->lti_services);
         } else {
-            $func = function($s) {
+            $func = function ($s) {
                 return $s->get_id();
             };
             $servicenames = array_map($func, self::get_services());
@@ -237,7 +284,7 @@ class helper {
      * @return array List of services
      */
     public static function get_services() {
-        $services = array();
+        $services = [];
         $definedltixservices = core_component::get_plugin_list('ltixservice');
 
         foreach ($definedltixservices as $name => $location) {
@@ -269,12 +316,12 @@ class helper {
      */
     public static function delete_tool_proxy($id) {
         global $DB;
-        $DB->delete_records('lti_tool_settings', array('toolproxyid' => $id));
-        $tools = $DB->get_records('lti_types', array('toolproxyid' => $id));
+        $DB->delete_records('lti_tool_settings', ['toolproxyid' => $id]);
+        $tools = $DB->get_records('lti_types', ['toolproxyid' => $id]);
         foreach ($tools as $tool) {
             self::delete_type($tool->id);
         }
-        $DB->delete_records('lti_tool_proxies', array('id' => $id));
+        $DB->delete_records('lti_tool_proxies', ['id' => $id]);
     }
 
     /**
@@ -333,7 +380,6 @@ class helper {
         }
 
         return $requestparams;
-
     }
 
     /**
@@ -358,8 +404,10 @@ class helper {
         // Check lti_message_type. Show debugging if it's not set to ContentItemSelection.
         // No need to throw exceptions for now since lti_message_type does not seem to be used in this processing at the moment.
         if ($messagetype !== 'ContentItemSelection') {
-            debugging("lti_message_type is invalid: {$messagetype}. It should be set to 'ContentItemSelection'.",
-                DEBUG_DEVELOPER);
+            debugging(
+                "lti_message_type is invalid: {$messagetype}. It should be set to 'ContentItemSelection'.",
+                DEBUG_DEVELOPER
+            );
         }
 
         // Check LTI versions from our side and the response's side. Show debugging if they don't match.
@@ -420,12 +468,12 @@ class helper {
         if (isset($item->text)) {
             $config->introeditor = [
                 'text' => $item->text,
-                'format' => FORMAT_PLAIN
+                'format' => FORMAT_PLAIN,
             ];
         } else {
             $config->introeditor = [
                 'text' => '',
-                'format' => FORMAT_PLAIN
+                'format' => FORMAT_PLAIN,
             ];
         }
         if (isset($item->icon->{'@id'})) {
@@ -472,10 +520,10 @@ class helper {
                     $config->lineitemsubreviewurl = '';
                     $config->lineitemsubreviewparams = '';
                     if (isset($lineitem->assignedActivity) && isset($lineitem->assignedActivity->activityId)) {
-                        $config->lineitemresourceid = $lineitem->assignedActivity->activityId?:'';
+                        $config->lineitemresourceid = $lineitem->assignedActivity->activityId ?: '';
                     }
                     if (isset($lineitem->tag)) {
-                        $config->lineitemtag = $lineitem->tag?:'';
+                        $config->lineitemtag = $lineitem->tag ?: '';
                     }
                     if (isset($lineitem->submissionReview)) {
                         $subreview = $lineitem->submissionReview;
@@ -679,7 +727,7 @@ class helper {
         $retval = [];
         foreach ($lines as $line) {
             $pos = strpos($line, '=');
-            if ( $pos === false || $pos < 1 ) {
+            if ($pos === false || $pos < 1) {
                 continue;
             }
             $key = trim(core_text::substr($line, 0, $pos));
@@ -706,9 +754,9 @@ class helper {
         foreach ($splitted as $key => $val) {
             $val = self::parse_custom_parameter($toolproxy, $tool, $params, $val, $islti2);
             $key2 = self::map_keyname($key);
-            $retval['custom_'.$key2] = $val;
+            $retval['custom_' . $key2] = $val;
             if (($islti2 || ($tool->ltiversion === LTI_VERSION_1P3)) && ($key != $key2)) {
-                $retval['custom_'.$key] = $val;
+                $retval['custom_' . $key] = $val;
             }
         }
         return $retval;
@@ -729,9 +777,9 @@ class helper {
         foreach ($parameters as $key => $val) {
             $key2 = self::map_keyname($key);
             $val = self::parse_custom_parameter($toolproxy, $tool, $params, $val, true);
-            $retval['custom_'.$key2] = $val;
+            $retval['custom_' . $key2] = $val;
             if ($key != $key2) {
-                $retval['custom_'.$key] = $val;
+                $retval['custom_' . $key] = $val;
             }
         }
         return $retval;
@@ -768,8 +816,8 @@ class helper {
                             } else {
                                 $valarr = explode('->', substr($val, 1), 2);
                                 $value = "{${$valarr[0]}->{$valarr[1]}}";
-                                $value = str_replace('<br />' , ' ', $value);
-                                $value = str_replace('<br>' , ' ', $value);
+                                $value = str_replace('<br />', ' ', $value);
+                                $value = str_replace('<br>', ' ', $value);
                                 $value = format_string($value);
                             }
                         } else {
@@ -837,7 +885,7 @@ class helper {
         $parentid = $course->originalcourseid;
         while (!empty($parentid) && !in_array($parentid, $history)) {
             $history[] = $parentid;
-            $parentid = $DB->get_field('course', 'originalcourseid', array('id' => $parentid));
+            $parentid = $DB->get_field('course', 'originalcourseid', ['id' => $parentid]);
         }
         return $history;
     }
@@ -854,7 +902,7 @@ class helper {
             $newkey = '';
             $key = core_text::strtolower(trim($key));
             foreach (str_split($key) as $ch) {
-                if ( ($ch >= 'a' && $ch <= 'z') || ($ch >= '0' && $ch <= '9') ) {
+                if (($ch >= 'a' && $ch <= 'z') || ($ch >= '0' && $ch <= '9')) {
                     $newkey .= $ch;
                 } else {
                     $newkey .= '_';
@@ -911,7 +959,7 @@ class helper {
     public static function get_tool_proxy_from_guid($toolproxyguid) {
         global $DB;
 
-        $toolproxy = $DB->get_record('lti_tool_proxies', array('guid' => $toolproxyguid));
+        $toolproxy = $DB->get_record('lti_tool_proxies', ['guid' => $toolproxyguid]);
 
         return $toolproxy;
     }
@@ -928,8 +976,8 @@ class helper {
 
         return $DB->get_records_sql(
             'SELECT * FROM {lti_tool_proxies}
-        WHERE '.$DB->sql_compare_text('regurl', 256).' = :regurl',
-            array('regurl' => $regurl)
+        WHERE ' . $DB->sql_compare_text('regurl', 256) . ' = :regurl',
+            ['regurl' => $regurl]
         );
     }
 
@@ -943,7 +991,7 @@ class helper {
     public static function get_tool_proxy($id) {
         global $DB;
 
-        $toolproxy = $DB->get_record('lti_tool_proxies', array('id' => $id));
+        $toolproxy = $DB->get_record('lti_tool_proxies', ['id' => $id]);
         return $toolproxy;
     }
 
@@ -1005,11 +1053,11 @@ class helper {
 
         $settings = [];
         if ($toolproxyid > 0) {
-            $settingsstr = $DB->get_field('lti_tool_settings', 'settings', array('toolproxyid' => $toolproxyid,
-                'course' => $courseid, 'coursemoduleid' => $instanceid));
+            $settingsstr = $DB->get_field('lti_tool_settings', 'settings', ['toolproxyid' => $toolproxyid,
+                'course' => $courseid, 'coursemoduleid' => $instanceid]);
         } else {
-            $settingsstr = $DB->get_field('lti_tool_settings', 'settings', array('typeid' => -$toolproxyid,
-                'course' => $courseid, 'coursemoduleid' => $instanceid));
+            $settingsstr = $DB->get_field('lti_tool_settings', 'settings', ['typeid' => -$toolproxyid,
+                'course' => $courseid, 'coursemoduleid' => $instanceid]);
         }
         if ($settingsstr !== false) {
             $settings = json_decode($settingsstr, true);
@@ -1030,14 +1078,14 @@ class helper {
 
         $json = json_encode($settings);
         if ($toolproxyid >= 0) {
-            $record = $DB->get_record('lti_tool_settings', array('toolproxyid' => $toolproxyid,
-                'course' => $courseid, 'coursemoduleid' => $instanceid));
+            $record = $DB->get_record('lti_tool_settings', ['toolproxyid' => $toolproxyid,
+                'course' => $courseid, 'coursemoduleid' => $instanceid]);
         } else {
-            $record = $DB->get_record('lti_tool_settings', array('typeid' => -$toolproxyid,
-                'course' => $courseid, 'coursemoduleid' => $instanceid));
+            $record = $DB->get_record('lti_tool_settings', ['typeid' => -$toolproxyid,
+                'course' => $courseid, 'coursemoduleid' => $instanceid]);
         }
         if ($record !== false) {
-            $DB->update_record('lti_tool_settings', (object)array('id' => $record->id, 'settings' => $json, 'timemodified' => time()));
+            $DB->update_record('lti_tool_settings', (object)['id' => $record->id, 'settings' => $json, 'timemodified' => time()]);
         } else {
             $record = new \stdClass();
             if ($toolproxyid > 0) {
@@ -1054,6 +1102,12 @@ class helper {
         }
     }
 
+    /**
+     * Make a URL use https.
+     *
+     * @param string $url The URL, with or without a scheme.
+     * @return string The URL, with the https scheme.
+     */
     public static function ensure_url_is_https($url) {
         if (!strstr($url, '://')) {
             $url = 'https://' . $url;
@@ -1067,6 +1121,11 @@ class helper {
         return $url;
     }
 
+    /**
+     * Whether the site is served over https.
+     *
+     * @return bool True when $CFG->wwwroot starts with https://.
+     */
     public static function request_is_using_ssl() {
         global $CFG;
         return (stripos($CFG->wwwroot, 'https://') === 0);
@@ -1078,7 +1137,7 @@ class helper {
      * @return array List of capability names (without a dollar sign prefix)
      */
     public static function get_capabilities() {
-        $capabilities = array(
+        $capabilities = [
             'basic-lti-launch-request' => '',
             'ContentItemSelectionRequest' => '',
             'ToolProxyRegistrationRequest' => '',
@@ -1118,7 +1177,7 @@ class helper {
             'Result.autocreate' => 'lis_outcome_service_url',
             'BasicOutcome.sourcedId' => 'lis_result_sourcedid',
             'BasicOutcome.url' => 'lis_outcome_service_url',
-            'Moodle.Person.userGroupIds' => null);
+            'Moodle.Person.userGroupIds' => null];
 
         return $capabilities;
     }
@@ -1134,7 +1193,7 @@ class helper {
      */
     public static function load_cartridge($url, $map, $propertiesmap = []) {
         global $CFG;
-        require_once($CFG->libdir. "/filelib.php");
+        require_once($CFG->libdir . "/filelib.php");
 
         $curl = new curl();
         $response = $curl->get($url);
@@ -1231,10 +1290,11 @@ class helper {
         if (!defined('BEHAT_SITE_RUNNING') && !defined('PHPUNIT_TEST')) {
             // Even if it doesn't have .xml, load the url to check if it's a cartridge..
             try {
-                $toolinfo = self::load_cartridge($url,
-                    array(
-                        "launch_url" => "launchurl"
-                    )
+                $toolinfo = self::load_cartridge(
+                    $url,
+                    [
+                        "launch_url" => "launchurl",
+                    ]
                 );
                 if (!empty($toolinfo['launchurl'])) {
                     return true;
@@ -1246,7 +1306,7 @@ class helper {
         return false;
     }
 
-   /**
+    /**
      * Returns all LTI tool types (preconfigured tools) visible in the given course.
      *
      * This list will contain both site level tools and course-level tools.
@@ -1268,7 +1328,8 @@ class helper {
         [$coursevisibleoverriddensql, $coursevisoverriddenparams] = $DB->get_in_or_equal(
             $coursevisible,
             SQL_PARAMS_NAMED,
-            'coursevisibleoverridden');
+            'coursevisibleoverridden'
+        );
 
         $coursecond = implode(" OR ", ["t.course = :courseid", "t.course = :siteid"]);
         $coursecategory = $DB->get_field('course', 'category', ['id' => $courseid]);
@@ -1307,8 +1368,12 @@ class helper {
      * @param bool $showinactivitychooser Show or not show in activity chooser
      * @return bool True if the coursevisible was changed, false otherwise.
      */
-    public static function override_type_showinactivitychooser(int $tooltypeid, int $courseid, \core\context\course $context,
-        bool $showinactivitychooser): bool {
+    public static function override_type_showinactivitychooser(
+        int $tooltypeid,
+        int $courseid,
+        \core\context\course $context,
+        bool $showinactivitychooser
+    ): bool {
         global $DB;
 
         require_capability('moodle/ltix:addcoursetool', $context);
@@ -1382,8 +1447,10 @@ class helper {
                WHERE id = :typeid4";
 
         $typeconfig = [];
-        $configs = $DB->get_records_sql($query,
-            array('typeid1' => $typeid, 'typeid2' => $typeid, 'typeid3' => $typeid, 'typeid4' => $typeid));
+        $configs = $DB->get_records_sql(
+            $query,
+            ['typeid1' => $typeid, 'typeid2' => $typeid, 'typeid3' => $typeid, 'typeid4' => $typeid]
+        );
 
         if (!empty($configs)) {
             foreach ($configs as $config) {
@@ -1394,10 +1461,16 @@ class helper {
         return $typeconfig;
     }
 
+    /**
+     * Get a tool type.
+     *
+     * @param int $typeid The id of the lti_types record.
+     * @return \stdClass|false The lti_types record, or false when it does not exist.
+     */
     public static function get_type($typeid) {
         global $DB;
 
-        return $DB->get_record('lti_types', array('id' => $typeid));
+        return $DB->get_record('lti_types', ['id' => $typeid]);
     }
 
     /**
@@ -1412,7 +1485,7 @@ class helper {
 
         if (!empty($course)) {
             $where = "WHERE t.course = :course";
-            $params = array('course' => $course);
+            $params = ['course' => $course];
         } else {
             $where = '';
             $params = [];
@@ -1439,23 +1512,35 @@ class helper {
             $DB->update_record('lti', $instance);
         }*/
 
-        $DB->delete_records('lti_types', array('id' => $id));
-        $DB->delete_records('lti_types_config', array('typeid' => $id));
-        $DB->delete_records('lti_types_categories', array('typeid' => $id));
+        $DB->delete_records('lti_types', ['id' => $id]);
+        $DB->delete_records('lti_types_config', ['typeid' => $id]);
+        $DB->delete_records('lti_types_categories', ['typeid' => $id]);
     }
 
+    /**
+     * Set the state of a tool type.
+     *
+     * @param int $id The id of the lti_types record.
+     * @param int $state The new state (LTI_TOOL_STATE_*).
+     */
     public static function set_state_for_type($id, $state) {
         global $DB;
 
-        $DB->update_record('lti_types', (object) array('id' => $id, 'state' => $state));
+        $DB->update_record('lti_types', (object) ['id' => $id, 'state' => $state]);
     }
 
+    /**
+     * Update a tool type and its configuration.
+     *
+     * @param \stdClass $type The lti_types record, with its id.
+     * @param \stdClass $config The type configuration, with settings keyed as lti_* and ltiservice_*.
+     */
     public static function update_type($type, $config) {
         global $DB, $CFG;
 
         self::prepare_type_for_save($type, $config);
 
-        if (helper::request_is_using_ssl() && !empty($type->secureicon)) {
+        if (self::request_is_using_ssl() && !empty($type->secureicon)) {
             $clearcache = !isset($config->oldicon) || ($config->oldicon !== $type->secureicon);
         } else {
             $clearcache = isset($type->icon) && (!isset($config->oldicon) || ($config->oldicon !== $type->icon));
@@ -1482,8 +1567,8 @@ class helper {
             if (isset($type->toolproxyid) && $type->ltiversion === LTI_VERSION_1P3) {
                 // We need to remove the tool proxy for this tool to function under 1.3.
                 $toolproxyid = $type->toolproxyid;
-                $DB->delete_records('lti_tool_settings', array('toolproxyid' => $toolproxyid));
-                $DB->delete_records('lti_tool_proxies', array('id' => $toolproxyid));
+                $DB->delete_records('lti_tool_settings', ['toolproxyid' => $toolproxyid]);
+                $DB->delete_records('lti_tool_proxies', ['id' => $toolproxyid]);
                 $type->toolproxyid = null;
                 $DB->update_record('lti_types', $type);
             }
@@ -1515,13 +1600,21 @@ class helper {
         }
     }
 
+    /**
+     * Prepare a tool type record from its configuration, before it is saved.
+     *
+     * Settings that are stored in the type record are moved there and removed from the configuration.
+     *
+     * @param \stdClass $type The lti_types record, updated in place.
+     * @param \stdClass $config The type configuration, updated in place.
+     */
     public static function prepare_type_for_save($type, $config) {
         if (isset($config->lti_toolurl)) {
             $type->baseurl = $config->lti_toolurl;
             if (isset($config->lti_tooldomain)) {
                 $type->tooldomain = $config->lti_tooldomain;
             } else {
-                $type->tooldomain = helper::get_domain_from_url($config->lti_toolurl);
+                $type->tooldomain = self::get_domain_from_url($config->lti_toolurl);
             }
         }
         if (isset($config->lti_description)) {
@@ -1569,13 +1662,13 @@ class helper {
 
         $type->timemodified = time();
 
-        unset ($config->lti_typename);
-        unset ($config->lti_toolurl);
-        unset ($config->lti_description);
-        unset ($config->lti_ltiversion);
-        unset ($config->lti_clientid);
-        unset ($config->lti_icon);
-        unset ($config->lti_secureicon);
+        unset($config->lti_typename);
+        unset($config->lti_toolurl);
+        unset($config->lti_description);
+        unset($config->lti_ltiversion);
+        unset($config->lti_clientid);
+        unset($config->lti_icon);
+        unset($config->lti_secureicon);
     }
 
     /**
@@ -1588,7 +1681,7 @@ class helper {
     public static function update_config($config) {
         global $DB;
 
-        $old = $DB->get_record('lti_types_config', array('typeid' => $config->typeid, 'name' => $config->name));
+        $old = $DB->get_record('lti_types_config', ['typeid' => $config->typeid, 'name' => $config->name]);
 
         if ($old) {
             $config->id = $old->id;
@@ -1614,6 +1707,13 @@ class helper {
         }
     }
 
+    /**
+     * Add a tool type and its configuration.
+     *
+     * @param \stdClass $type The lti_types record to add.
+     * @param \stdClass $config The type configuration, with settings keyed as lti_* and ltiservice_*.
+     * @return int The id of the new type.
+     */
     public static function add_type($type, $config) {
         global $USER, $SITE, $DB;
 
@@ -1686,9 +1786,11 @@ class helper {
         return $DB->insert_record('lti_types_config', $config);
     }
 
-    /** get Organization ID using default if no value provided
-     * @param object $typeconfig
-     * @return string
+    /**
+     * Get the organization ID, using the default when no value is provided.
+     *
+     * @param array $typeconfig The type configuration.
+     * @return string The organization ID.
      */
     public static function get_organizationid($typeconfig) {
         global $CFG;
@@ -1714,7 +1816,7 @@ class helper {
     public static function get_type_type_config($id) {
         global $DB;
 
-        $basicltitype = $DB->get_record('lti_types', array('id' => $id));
+        $basicltitype = $DB->get_record('lti_types', ['id' => $id]);
         $config = self::get_type_config($id);
 
         $type = new \stdClass();
@@ -1864,7 +1966,7 @@ class helper {
             $typesparams['toolproxyid'] = $toolproxyid;
         }
 
-        $proxiessql = helper::get_tool_proxy_sql($orphanedonly, true);
+        $proxiessql = self::get_tool_proxy_sql($orphanedonly, true);
 
         $countsql = "SELECT ($typessql) + ($proxiessql) as total" . $DB->sql_null_from_clause();
 
@@ -1889,13 +1991,19 @@ class helper {
         global $DB;
 
         if ($orphanedonly) {
-            $orphanedproxiessql = helper::get_tool_proxy_sql($orphanedonly, false);
-            $countsql = helper::get_tool_proxy_sql($orphanedonly, true);
+            $orphanedproxiessql = self::get_tool_proxy_sql($orphanedonly, false);
+            $countsql = self::get_tool_proxy_sql($orphanedonly, true);
             $proxies  = $DB->get_records_sql($orphanedproxiessql, null, $offset, $limit);
             $totalproxiescount = $DB->count_records_sql($countsql);
         } else {
-            $proxies = $DB->get_records('lti_tool_proxies', null, 'name ASC, state DESC, timemodified DESC',
-                '*', $offset, $limit);
+            $proxies = $DB->get_records(
+                'lti_tool_proxies',
+                null,
+                'name ASC, state DESC, timemodified DESC',
+                '*',
+                $offset,
+                $limit
+            );
             $totalproxiescount = $DB->count_records('lti_tool_proxies');
         }
 
@@ -1907,8 +2015,14 @@ class helper {
             $typesparams['toolproxyid'] = $toolproxyid;
         }
 
-        $types = $DB->get_records('lti_types', $typesparams, 'name ASC, state DESC, timemodified DESC',
-            '*', $typesoffset, $typeslimit);
+        $types = $DB->get_records(
+            'lti_types',
+            $typesparams,
+            'name ASC, state DESC, timemodified DESC',
+            '*',
+            $typesoffset,
+            $typeslimit
+        );
 
         return [$proxies, array_map('\core_ltix\helper::serialise_tool_type', $types)];
     }
@@ -1945,13 +2059,13 @@ class helper {
                 break;
         }
 
-        return array(
+        return [
             'text' => $state,
             'pending' => $ispending,
             'configured' => $isconfigured,
             'rejected' => $isrejected,
-            'unknown' => $isunknown
-        );
+            'unknown' => $isunknown,
+        ];
     }
 
     /**
@@ -1962,7 +2076,7 @@ class helper {
      * @return array An array of text descriptions of each of the capabilities this tool type requires
      */
     public static function get_tool_type_capability_groups($type) {
-        $capabilities = helper::get_enabled_capabilities($type);
+        $capabilities = self::get_enabled_capabilities($type);
         $groups = [];
         $hascourse = false;
         $hasactivities = false;
@@ -2007,12 +2121,12 @@ class helper {
         // Make sure the token doesn't exist (even if it should be almost impossible with the random generation).
         $numtries = 0;
         do {
-            $numtries ++;
+            $numtries++;
             $generatedtoken = md5(uniqid((string) rand(), true));
             if ($numtries > 5) {
                 throw new moodle_exception('Failed to generate LTI access token');
             }
-        } while ($DB->record_exists('lti_access_tokens', array('token' => $generatedtoken)));
+        } while ($DB->record_exists('lti_access_tokens', ['token' => $generatedtoken]));
         $newtoken = new stdClass();
         $newtoken->typeid = $typeid;
         $newtoken->scope = json_encode(array_values($scopes));
@@ -2035,18 +2149,19 @@ class helper {
      * @throws moodle_exception if the cartridge could not be loaded correctly
      */
     public static function load_type_from_cartridge($url, $type) {
-        $toolinfo = helper::load_cartridge($url,
-            array(
+        $toolinfo = self::load_cartridge(
+            $url,
+            [
                 "title" => "lti_typename",
                 "launch_url" => "lti_toolurl",
                 "description" => "lti_description",
                 "icon" => "lti_icon",
-                "secure_icon" => "lti_secureicon"
-            ),
-            array(
+                "secure_icon" => "lti_secureicon",
+            ],
+            [
                 "icon_url" => "lti_extension_icon",
-                "secure_icon_url" => "lti_extension_secureicon"
-            )
+                "secure_icon_url" => "lti_extension_secureicon",
+            ]
         );
         // If an activity name exists, unset the cartridge name so we don't override it.
         if (isset($type->lti_typename)) {
@@ -2098,7 +2213,7 @@ class helper {
     public static function get_instance_type(object $instance): ?object {
         if (empty($instance->typeid)) {
             if (!$tool = self::get_tool_by_url_match($instance->toolurl, $instance->course)) {
-                $tool = self::get_tool_by_url_match($instance->securetoolurl,  $instance->course);
+                $tool = self::get_tool_by_url_match($instance->securetoolurl, $instance->course);
             }
             return $tool;
         }
@@ -2200,17 +2315,29 @@ class helper {
         }
         $services = self::get_services();
         foreach ($services as $service) {
-            [$endpoint, $customstr] = $service->override_endpoint($messagetype,
-                $endpoint, $customstr, $instance->course, $instance);
+            [$endpoint, $customstr] = $service->override_endpoint(
+                $messagetype,
+                $endpoint,
+                $customstr,
+                $instance->course,
+                $instance
+            );
         }
-        $requestparams = array_merge($requestparams, self::build_custom_parameters($toolproxy, $tool, $instance, $allparams, $customstr,
-            $instance->instructorcustomparameters, $islti2));
+        $requestparams = array_merge($requestparams, self::build_custom_parameters(
+            $toolproxy,
+            $tool,
+            $instance,
+            $allparams,
+            $customstr,
+            $instance->instructorcustomparameters,
+            $islti2
+        ));
 
         $launchcontainer = self::get_launch_container($instance, $typeconfig);
-        $returnurlparams = array('course' => $course->id,
+        $returnurlparams = ['course' => $course->id,
             'launch_container' => $launchcontainer,
             'instanceid' => $instance->id,
-            'sesskey' => sesskey());
+            'sesskey' => sesskey()];
 
         // Add the return URL. We send the launch container along to help us avoid frames-within-frames when the user returns.
         $url = new \moodle_url('/ltix/return.php', $returnurlparams);
@@ -2221,7 +2348,7 @@ class helper {
         }
 
         $target = '';
-        switch($launchcontainer) {
+        switch ($launchcontainer) {
             case LTI_LAUNCH_CONTAINER_EMBED:
             case LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS:
                 $target = 'iframe';
@@ -2243,11 +2370,21 @@ class helper {
         if ($typeid && !$islti2) {
             $services = self::get_services();
             foreach ($services as $service) {
-                $serviceparameters = $service->get_launch_parameters('basic-lti-launch-request',
-                    $course->id, $USER->id , $typeid, $instance->id);
+                $serviceparameters = $service->get_launch_parameters(
+                    'basic-lti-launch-request',
+                    $course->id,
+                    $USER->id,
+                    $typeid,
+                    $instance->id
+                );
                 foreach ($serviceparameters as $paramkey => $paramvalue) {
-                    $requestparams['custom_' . $paramkey] = self::parse_custom_parameter($toolproxy, $tool,
-                        $requestparams, $paramvalue, $islti2);
+                    $requestparams['custom_' . $paramkey] = self::parse_custom_parameter(
+                        $toolproxy,
+                        $tool,
+                        $requestparams,
+                        $paramvalue,
+                        $islti2
+                    );
                 }
             }
         }
@@ -2255,8 +2392,12 @@ class helper {
         // Allow request params to be updated by sub-plugins.
         $plugins = core_component::get_plugin_list('ltixsource');
         foreach (array_keys($plugins) as $plugin) {
-            $pluginparams = component_callback('ltixsource_'.$plugin, 'before_launch',
-                array($instance, $endpoint, $requestparams), []);
+            $pluginparams = component_callback(
+                'ltixsource_' . $plugin,
+                'before_launch',
+                [$instance, $endpoint, $requestparams],
+                []
+            );
 
             if (!empty($pluginparams) && is_array($pluginparams)) {
                 $requestparams = array_merge($requestparams, $pluginparams);
@@ -2281,14 +2422,13 @@ class helper {
                     }
                 }
             }
-
         } else {
             // If no key and secret, do the launch unsigned.
             $returnurlparams['unsigned'] = '1';
             $parms = $requestparams;
         }
 
-        return array($endpoint, $parms);
+        return [$endpoint, $parms];
     }
 
     /**
@@ -2298,9 +2438,9 @@ class helper {
      * @param int $foruserid for user param, optional
      * @return void Prints the HTML code containing the javascript code for the launch
      */
-    public static function launch_tool($instance, $foruserid=0) {
+    public static function launch_tool($instance, $foruserid = 0) {
 
-        list($endpoint, $parms) = self::get_launch_data($instance, '', '', $foruserid);
+        [$endpoint, $parms] = self::get_launch_data($instance, '', '', $foruserid);
         $debuglaunch = ( $instance->debuglaunch == 1 );
 
         $content = self::post_launch_html($parms, $endpoint, $debuglaunch);
@@ -2350,7 +2490,7 @@ class helper {
         $requestparams['tc_profile_url'] = $profileservice->parse_value('$ToolConsumerProfile.url');
 
         // Add the return URL.
-        $returnurlparams = array('id' => $toolproxy->id, 'sesskey' => sesskey());
+        $returnurlparams = ['id' => $toolproxy->id, 'sesskey' => sesskey()];
         $url = new \moodle_url('/ltix/externalregistrationreturn.php', $returnurlparams);
         $returnurl = $url->out(false);
 
@@ -2405,8 +2545,15 @@ class helper {
      *
      * @return array                    Request details
      */
-    public static function build_request($instance, $typeconfig, $course, $typeid = null, $islti2 = false,
-        $messagetype = 'basic-lti-launch-request', $foruserid = 0) {
+    public static function build_request(
+        $instance,
+        $typeconfig,
+        $course,
+        $typeid = null,
+        $islti2 = false,
+        $messagetype = 'basic-lti-launch-request',
+        $foruserid = 0
+    ) {
         global $USER, $CFG;
 
         if (empty($instance->cmid)) {
@@ -2415,14 +2562,14 @@ class helper {
 
         $role = self::get_ims_role($USER, $instance->cmid, $instance->course, $islti2);
 
-        $requestparams = array(
+        $requestparams = [
             'user_id' => $USER->id,
             'lis_person_sourcedid' => $USER->idnumber,
             'roles' => $role,
             'context_id' => $course->id,
             'context_label' => trim(html_to_text($course->shortname, 0)),
             'context_title' => trim(html_to_text($course->fullname, 0)),
-        );
+        ];
         if ($foruserid) {
             $requestparams['for_user_id'] = $foruserid;
         }
@@ -2454,7 +2601,8 @@ class helper {
             $requestparams['lis_course_section_sourcedid'] = $course->idnumber;
         }
 
-        if (!empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
+        if (
+            !empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
                 $typeconfig['acceptgrades'] == LTI_SETTING_ALWAYS ||
                 ($typeconfig['acceptgrades'] == LTI_SETTING_DELEGATE && $instance->instructorchoiceacceptgrades == LTI_SETTING_ALWAYS))
         ) {
@@ -2474,7 +2622,7 @@ class helper {
                 $forcessl = true;
             }
 
-            if ((isset($typeconfig['forcessl']) && ($typeconfig['forcessl'] == '1')) or $forcessl) {
+            if ((isset($typeconfig['forcessl']) && ($typeconfig['forcessl'] == '1')) || $forcessl) {
                 $serviceurl = self::ensure_url_is_https($serviceurl);
             }
 
@@ -2482,9 +2630,12 @@ class helper {
         }
 
         // Send user's name and email data if appropriate.
-        if ($islti2 || $typeconfig['sendname'] == LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendname'] == LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendname)
-                && $instance->instructorchoicesendname == LTI_SETTING_ALWAYS)
+        if (
+            $islti2 ||
+            $typeconfig['sendname'] == LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendname'] == LTI_SETTING_DELEGATE &&
+            isset($instance->instructorchoicesendname) &&
+                $instance->instructorchoicesendname == LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_name_given'] = $USER->firstname;
             $requestparams['lis_person_name_family'] = $USER->lastname;
@@ -2492,9 +2643,12 @@ class helper {
             $requestparams['ext_user_username'] = $USER->username;
         }
 
-        if ($islti2 || $typeconfig['sendemailaddr'] == LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendemailaddr'] == LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendemailaddr)
-                && $instance->instructorchoicesendemailaddr == LTI_SETTING_ALWAYS)
+        if (
+            $islti2 ||
+            $typeconfig['sendemailaddr'] == LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendemailaddr'] == LTI_SETTING_DELEGATE &&
+            isset($instance->instructorchoicesendemailaddr) &&
+                $instance->instructorchoicesendemailaddr == LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_contact_email_primary'] = $USER->email;
         }
@@ -2519,7 +2673,7 @@ class helper {
 
         if ($instance) {
             $requestparams['resource_link_id'] = $instance->id;
-            if (property_exists($instance, 'resource_link_id') and !empty($instance->resource_link_id)) {
+            if (property_exists($instance, 'resource_link_id') && !empty($instance->resource_link_id)) {
                 $requestparams['resource_link_id'] = $instance->resource_link_id;
             }
         }
@@ -2576,12 +2730,22 @@ class helper {
             $custom = self::split_custom_parameters($toolproxy, $tool, $params, $customstr, $islti2);
         }
         if ($instructorcustomstr) {
-            $custom = array_merge(self::split_custom_parameters($toolproxy, $tool, $params,
-                $instructorcustomstr, $islti2), $custom);
+            $custom = array_merge(self::split_custom_parameters(
+                $toolproxy,
+                $tool,
+                $params,
+                $instructorcustomstr,
+                $islti2
+            ), $custom);
         }
         if ($islti2) {
-            $custom = array_merge(self::split_custom_parameters($toolproxy, $tool, $params,
-                $tool->parameter, true), $custom);
+            $custom = array_merge(self::split_custom_parameters(
+                $toolproxy,
+                $tool,
+                $params,
+                $tool->parameter,
+                true
+            ), $custom);
             $settings = self::get_tool_settings($tool->toolproxyid);
             $custom = array_merge($custom, self::get_custom_parameters($toolproxy, $tool, $params, $settings));
             if (!empty($instance->course)) {
@@ -2589,8 +2753,12 @@ class helper {
                 $custom = array_merge($custom, self::get_custom_parameters($toolproxy, $tool, $params, $settings));
                 if (!empty($instance->id)) {
                     $settings = self::get_tool_settings($tool->toolproxyid, $instance->course, $instance->id);
-                    $custom = array_merge($custom, self::get_custom_parameters($toolproxy, $tool, $params,
-                        $settings));
+                    $custom = array_merge($custom, self::get_custom_parameters(
+                        $toolproxy,
+                        $tool,
+                        $params,
+                        $settings
+                    ));
                 }
             }
         }
@@ -2624,9 +2792,21 @@ class helper {
      * @throws moodle_exception When the LTI tool type does not exist.`
      * @throws coding_exception For invalid media type and presentation target parameters.
      */
-    public static function build_content_item_selection_request($id, $course, moodle_url $returnurl, $title = '', $text = '', $mediatypes = [],
-                                                    $presentationtargets = [], $autocreate = false, $multiple = true,
-                                                    $unsigned = false, $canconfirm = false, $copyadvice = false, $nonce = '') {
+    public static function build_content_item_selection_request(
+        $id,
+        $course,
+        moodle_url $returnurl,
+        $title = '',
+        $text = '',
+        $mediatypes = [],
+        $presentationtargets = [],
+        $autocreate = false,
+        $multiple = true,
+        $unsigned = false,
+        $canconfirm = false,
+        $copyadvice = false,
+        $nonce = ''
+    ) {
         global $USER;
 
         $tool = self::get_type($id);
@@ -2726,11 +2906,20 @@ class helper {
         if ($id && !$islti2) {
             $services = self::get_services();
             foreach ($services as $service) {
-                $serviceparameters = $service->get_launch_parameters('ContentItemSelectionRequest',
-                    $course->id, $USER->id , $id);
+                $serviceparameters = $service->get_launch_parameters(
+                    'ContentItemSelectionRequest',
+                    $course->id,
+                    $USER->id,
+                    $id
+                );
                 foreach ($serviceparameters as $paramkey => $paramvalue) {
-                    $requestparams['custom_' . $paramkey] = self::parse_custom_parameter($toolproxy, $tool,
-                        $requestparams, $paramvalue, $islti2);
+                    $requestparams['custom_' . $paramkey] = self::parse_custom_parameter(
+                        $toolproxy,
+                        $tool,
+                        $requestparams,
+                        $paramvalue,
+                        $islti2
+                    );
                 }
             }
         }
@@ -2830,6 +3019,13 @@ class helper {
         return implode("\n", $customparameters);
     }
 
+    /**
+     * Render the table of tools of a course or the site.
+     *
+     * @param \stdClass[] $tools The lti_types records to show.
+     * @param string $id The id attribute of the table.
+     * @return string The HTML of the table.
+     */
     public static function get_tool_table($tools, $id) {
         global $OUTPUT;
         $html = '';
@@ -2860,26 +3056,29 @@ class helper {
                 $delete = get_string('delete', 'core_ltix');
 
                 if (empty($type->toolproxyid)) {
-                    $baseurl = new \moodle_url('/ltix/typessettings.php', array(
+                    $baseurl = new \moodle_url('/ltix/typessettings.php', [
                             'action' => 'accept',
                             'id' => $type->id,
                             'sesskey' => sesskey(),
-                            'tab' => $id
-                        ));
+                            'tab' => $id,
+                        ]);
                     $ref = $type->baseurl;
                 } else {
-                    $baseurl = new \moodle_url('/ltix/toolssettings.php', array(
+                    $baseurl = new \moodle_url('/ltix/toolssettings.php', [
                             'action' => 'accept',
                             'id' => $type->id,
                             'sesskey' => sesskey(),
-                            'tab' => $id
-                        ));
+                            'tab' => $id,
+                        ]);
                     $ref = $type->tpname;
                 }
 
-                $accepthtml = $OUTPUT->action_icon($baseurl,
-                        new \pix_icon('t/check', $accept, '', array('class' => 'iconsmall')), null,
-                        array('title' => $accept, 'class' => 'editing_accept'));
+                $accepthtml = $OUTPUT->action_icon(
+                    $baseurl,
+                    new \pix_icon('t/check', $accept, '', ['class' => 'iconsmall']),
+                    null,
+                    ['title' => $accept, 'class' => 'editing_accept']
+                );
 
                 $deleteaction = 'delete';
 
@@ -2894,16 +3093,22 @@ class helper {
 
                 $updateurl = clone($baseurl);
                 $updateurl->param('action', 'update');
-                $updatehtml = $OUTPUT->action_icon($updateurl,
-                        new \pix_icon('t/edit', $update, '', array('class' => 'iconsmall')), null,
-                        array('title' => $update, 'class' => 'editing_update'));
+                $updatehtml = $OUTPUT->action_icon(
+                    $updateurl,
+                    new \pix_icon('t/edit', $update, '', ['class' => 'iconsmall']),
+                    null,
+                    ['title' => $update, 'class' => 'editing_update']
+                );
 
                 if (($type->state != LTI_TOOL_STATE_REJECTED) || empty($type->toolproxyid)) {
                     $deleteurl = clone($baseurl);
                     $deleteurl->param('action', $deleteaction);
-                    $deletehtml = $OUTPUT->action_icon($deleteurl,
-                            new \pix_icon('t/delete', $delete, '', array('class' => 'iconsmall')), null,
-                            array('title' => $delete, 'class' => 'editing_delete'));
+                    $deletehtml = $OUTPUT->action_icon(
+                        $deleteurl,
+                        new \pix_icon('t/delete', $delete, '', ['class' => 'iconsmall']),
+                        null,
+                        ['title' => $delete, 'class' => 'editing_delete']
+                    );
                 } else {
                     $deletehtml = '';
                 }
@@ -2967,22 +3172,25 @@ class helper {
                 $update = get_string('update', 'core_ltix');
                 $delete = get_string('delete', 'core_ltix');
 
-                $baseurl = new \moodle_url('/ltix/registersettings.php', array(
+                $baseurl = new \moodle_url('/ltix/registersettings.php', [
                         'action' => 'accept',
                         'id' => $toolproxy->id,
                         'sesskey' => sesskey(),
-                        'tab' => $id
-                    ));
+                        'tab' => $id,
+                    ]);
 
-                $registerurl = new \moodle_url('/ltix/register.php', array(
+                $registerurl = new \moodle_url('/ltix/register.php', [
                     'id' => $toolproxy->id,
                     'sesskey' => sesskey(),
-                    'tab' => 'tool_proxy'
-                ));
+                    'tab' => 'tool_proxy',
+                ]);
 
-                $accepthtml = $OUTPUT->action_icon($registerurl,
-                        new \pix_icon('t/check', $accept, '', array('class' => 'iconsmall')), null,
-                        array('title' => $accept, 'class' => 'editing_accept'));
+                $accepthtml = $OUTPUT->action_icon(
+                    $registerurl,
+                    new \pix_icon('t/check', $accept, '', ['class' => 'iconsmall']),
+                    null,
+                    ['title' => $accept, 'class' => 'editing_accept']
+                );
 
                 $deleteaction = 'delete';
 
@@ -2996,15 +3204,21 @@ class helper {
 
                 $updateurl = clone($baseurl);
                 $updateurl->param('action', 'update');
-                $updatehtml = $OUTPUT->action_icon($updateurl,
-                        new \pix_icon('t/edit', $update, '', array('class' => 'iconsmall')), null,
-                        array('title' => $update, 'class' => 'editing_update'));
+                $updatehtml = $OUTPUT->action_icon(
+                    $updateurl,
+                    new \pix_icon('t/edit', $update, '', ['class' => 'iconsmall']),
+                    null,
+                    ['title' => $update, 'class' => 'editing_update']
+                );
 
                 $deleteurl = clone($baseurl);
                 $deleteurl->param('action', $deleteaction);
-                $deletehtml = $OUTPUT->action_icon($deleteurl,
-                        new \pix_icon('t/delete', $delete, '', array('class' => 'iconsmall')), null,
-                        array('title' => $delete, 'class' => 'editing_delete'));
+                $deletehtml = $OUTPUT->action_icon(
+                    $deleteurl,
+                    new \pix_icon('t/delete', $delete, '', ['class' => 'iconsmall']),
+                    null,
+                    ['title' => $delete, 'class' => 'editing_delete']
+                );
                 $html .= <<< EOD
                 <tr>
                     <td>
@@ -3066,7 +3280,7 @@ class helper {
 
         if (!is_role_switched($courseid) && (is_siteadmin($user)) || has_capability('moodle/ltix:admin', $context)) {
             // Make sure admins do not have the Learner role, then set admin role.
-            $roles = array_diff($roles, array('Learner'));
+            $roles = array_diff($roles, ['Learner']);
             if (!$islti2) {
                 array_push($roles, 'urn:lti:sysrole:ims/lis/Administrator', 'urn:lti:instrole:ims/lis/Administrator');
             } else {
@@ -3077,6 +3291,14 @@ class helper {
         return join(',', $roles);
     }
 
+    /**
+     * Get the shared secrets that can sign messages for a consumer key.
+     *
+     * Looks at the configuration of configured tools, and at the instances of ad-hoc tools.
+     *
+     * @param string $key The consumer key.
+     * @return string[] The shared secrets, without duplicates.
+     */
     public static function get_shared_secrets_by_key($key) {
         global $DB;
 
@@ -3103,10 +3325,10 @@ class helper {
                    FROM {lti}
                   WHERE resourcekey = :key3";
 
-        $sharedsecrets = $DB->get_records_sql($query, array('configured1' => LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
-            'configured2' => LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key));
+        $sharedsecrets = $DB->get_records_sql($query, ['configured1' => LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
+            'configured2' => LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key]);
 
-        $values = array_map(function($item) {
+        $values = array_map(function ($item) {
             return $item->value;
         }, $sharedsecrets);
 
@@ -3141,7 +3363,7 @@ class helper {
     public static function get_type_config_from_instance($id) {
         global $DB;
 
-        $instance = $DB->get_record('lti', array('id' => $id));
+        $instance = $DB->get_record('lti', ['id' => $id]);
         $config = self::get_config($instance);
 
         $type = new \stdClass();
@@ -3176,7 +3398,7 @@ class helper {
      * @param bool $debug       Debug (true/false)
      * @return string
      */
-    public static function post_launch_html($newparms, $endpoint, $debug=false) {
+    public static function post_launch_html($newparms, $endpoint, $debug = false) {
         $r = "<form action=\"" . $endpoint .
             "\" name=\"ltiLaunchForm\" id=\"ltiLaunchForm\" method=\"post\" encType=\"application/x-www-form-urlencoded\">\n";
 
@@ -3184,7 +3406,7 @@ class helper {
         foreach ($newparms as $key => $value) {
             $key = htmlspecialchars($key, ENT_COMPAT);
             $value = htmlspecialchars($value, ENT_COMPAT);
-            if ( $key == "ext_submit" ) {
+            if ($key == "ext_submit") {
                 $r .= "<input type=\"submit\"";
             } else {
                 $r .= "<input type=\"hidden\" name=\"{$key}\"";
@@ -3194,7 +3416,7 @@ class helper {
             $r .= "\"/>\n";
         }
 
-        if ( $debug ) {
+        if ($debug) {
             $r .= "<script language=\"javascript\"> \n";
             $r .= "  //<![CDATA[ \n";
             $r .= "function basicltiDebugToggle() {\n";
@@ -3209,11 +3431,11 @@ class helper {
             $r .= "  //]]> \n";
             $r .= "</script>\n";
             $r .= "<a id=\"displayText\" href=\"javascript:basicltiDebugToggle();\">";
-            $r .= get_string("toggle_debug_data", "lti")."</a>\n";
+            $r .= get_string("toggle_debug_data", "lti") . "</a>\n";
             $r .= "<div id=\"basicltiDebug\" style=\"display:none\">\n";
-            $r .= "<b>".get_string("basiclti_endpoint", "lti")."</b><br/>\n";
+            $r .= "<b>" . get_string("basiclti_endpoint", "lti") . "</b><br/>\n";
             $r .= $endpoint . "<br/>\n&nbsp;<br/>\n";
-            $r .= "<b>".get_string("basiclti_parameters", "lti")."</b><br/>\n";
+            $r .= "<b>" . get_string("basiclti_parameters", "lti") . "</b><br/>\n";
             foreach ($newparms as $key => $value) {
                 $key = htmlspecialchars($key, ENT_COMPAT);
                 $value = htmlspecialchars($value, ENT_COMPAT);
@@ -3248,8 +3470,16 @@ class helper {
      * @param int            $foruserid Id of the user targeted by the launch
      * @return string
      */
-    public static function initiate_login($courseid, $cmid, $instance, $config, $messagetype = 'basic-lti-launch-request',
-            $title = '', $text = '', $foruserid = 0) {
+    public static function initiate_login(
+        $courseid,
+        $cmid,
+        $instance,
+        $config,
+        $messagetype = 'basic-lti-launch-request',
+        $title = '',
+        $text = '',
+        $foruserid = 0
+    ) {
         global $SESSION;
 
         $params = self::build_login_request($courseid, $cmid, $instance, $config, $messagetype, $foruserid, $title, $text);
@@ -3287,12 +3517,12 @@ class helper {
      * @param string         $text      Description of content item
      * @return array Login request parameters
      */
-    public static function build_login_request($courseid, $cmid, $instance, $config, $messagetype, $foruserid=0, $title = '', $text = '') {
+    public static function build_login_request($courseid, $cmid, $instance, $config, $messagetype, $foruserid = 0, $title = '', $text = '') {
         global $USER, $CFG, $SESSION;
         $ltihint = [];
         if (!empty($instance)) {
             $endpoint = !empty($instance->toolurl) ? $instance->toolurl : $config->lti_toolurl;
-            $launchid = 'ltilaunch'.$instance->id.'_'.rand();
+            $launchid = 'ltilaunch' . $instance->id . '_' . rand();
             $ltihint['cmid'] = $cmid;
             $SESSION->$launchid = "{$courseid},{$config->typeid},{$cmid},{$messagetype},{$foruserid},,";
         } else {
@@ -3300,7 +3530,7 @@ class helper {
             if (($messagetype === 'ContentItemSelectionRequest') && !empty($config->lti_toolurl_ContentItemSelectionRequest)) {
                 $endpoint = $config->lti_toolurl_ContentItemSelectionRequest;
             }
-            $launchid = "ltilaunch_$messagetype".rand();
+            $launchid = "ltilaunch_$messagetype" . rand();
             $SESSION->$launchid =
                 "{$courseid},{$config->typeid},,{$messagetype},{$foruserid}," . base64_encode($title) . ',' . base64_encode($text);
         }
@@ -3318,7 +3548,7 @@ class helper {
             $endpoint = 'http://' . $endpoint;
         }
 
-        $params = array();
+        $params = [];
         $params['iss'] = $CFG->wwwroot;
         $params['target_link_uri'] = $endpoint;
         $params['login_hint'] = $USER->id;
@@ -3328,6 +3558,16 @@ class helper {
         return $params;
     }
 
+    /**
+     * Get the launch container to use for an instance.
+     *
+     * The container of the tool configuration is used when the instance has the default container.
+     * Phones and tablets always get the whole window.
+     *
+     * @param \stdClass $lti The lti instance.
+     * @param array $toolconfig The tool configuration.
+     * @return int The launch container (LTI_LAUNCH_CONTAINER_*).
+     */
     public static function get_launch_container($lti, $toolconfig) {
         if (empty($lti->launchcontainer)) {
             $lti->launchcontainer = LTI_LAUNCH_CONTAINER_DEFAULT;
@@ -3350,7 +3590,7 @@ class helper {
         // Scrolling within the object element doesn't work on iOS or Android
         // Opening the popup window also had some issues in testing
         // For mobile devices, always take up the entire screen to ensure the best experience.
-        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET ) {
+        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET) {
             $launchcontainer = LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW;
         }
 
@@ -3377,7 +3617,7 @@ class helper {
         $logusers = [];
         if (!empty($CFG->ltix_log_users)) {
             $logusers = explode(',', $CFG->ltix_log_users);
-        } elseif (!empty($CFG->mod_lti_log_users)) {
+        } else if (!empty($CFG->mod_lti_log_users)) {
             $logusers = explode(',', $CFG->mod_lti_log_users);
         }
         if (empty($logusers)) {
@@ -3402,7 +3642,7 @@ class helper {
             return false;
         }
 
-        if (empty($requestuserid) or !in_array($requestuserid, $logusers)) {
+        if (empty($requestuserid) || !in_array($requestuserid, $logusers)) {
             return false;
         }
 
@@ -3416,7 +3656,7 @@ class helper {
      */
     public static function log_request($rawbody) {
         if ($tempdir = make_temp_directory('mod_lti', false)) {
-            if ($tempfile = tempnam($tempdir, 'mod_lti_request'.date('YmdHis'))) {
+            if ($tempfile = tempnam($tempdir, 'mod_lti_request' . date('YmdHis'))) {
                 $content  = "Request Headers:\n";
                 foreach (\core_ltix\OAuthUtil::get_headers() as $header => $value) {
                     $content .= "$header: $value\n";
@@ -3438,7 +3678,7 @@ class helper {
      */
     public static function log_response($responsexml, $e = null) {
         if ($tempdir = make_temp_directory('mod_lti', false)) {
-            if ($tempfile = tempnam($tempdir, 'mod_lti_response'.date('YmdHis'))) {
+            if ($tempfile = tempnam($tempdir, 'mod_lti_response' . date('YmdHis'))) {
                 $content = '';
                 if ($e instanceof \Exception) {
                     $info = get_exception_info($e);
@@ -3478,7 +3718,7 @@ class helper {
         if (!empty($typeid)) {
             return self::get_type_config($typeid);
         }
-        return array();
+        return [];
     }
 
     /**
@@ -3488,11 +3728,11 @@ class helper {
      * @param array $typeconfig
      */
     public static function force_type_config_settings($instance, array $typeconfig) {
-        $forced = array(
+        $forced = [
             'instructorchoicesendname'      => 'sendname',
             'instructorchoicesendemailaddr' => 'sendemailaddr',
             'instructorchoiceacceptgrades'  => 'acceptgrades',
-        );
+        ];
 
         foreach ($forced as $instanceparam => $typeconfigparam) {
             if (array_key_exists($typeconfigparam, $typeconfig) && $typeconfig[$typeconfigparam] != LTI_SETTING_DELEGATE) {
@@ -3524,7 +3764,6 @@ class helper {
         }
 
         return $service;
-
     }
 
     /**
@@ -3571,7 +3810,6 @@ class helper {
         }
 
         return $contexts;
-
     }
 
     /**
@@ -3592,7 +3830,6 @@ class helper {
         }
 
         return $id;
-
     }
 
     /**
@@ -3603,8 +3840,10 @@ class helper {
      * @return string The url to edit the tool type
      */
     public static function get_tool_type_edit_url(stdClass $type) {
-        $url = new moodle_url('/ltix/typessettings.php',
-                            array('action' => 'update', 'id' => $type->id, 'sesskey' => sesskey(), 'returnto' => 'toolconfigure'));
+        $url = new moodle_url(
+            '/ltix/typessettings.php',
+            ['action' => 'update', 'id' => $type->id, 'sesskey' => sesskey(), 'returnto' => 'toolconfigure']
+        );
         return $url->out();
     }
 
@@ -3616,8 +3855,10 @@ class helper {
      * @return string The url to edit the tool type
      */
     public static function get_tool_proxy_edit_url(stdClass $proxy) {
-        $url = new moodle_url('/ltix/registersettings.php',
-                            array('action' => 'update', 'id' => $proxy->id, 'sesskey' => sesskey(), 'returnto' => 'toolconfigure'));
+        $url = new moodle_url(
+            '/ltix/registersettings.php',
+            ['action' => 'update', 'id' => $proxy->id, 'sesskey' => sesskey(), 'returnto' => 'toolconfigure']
+        );
         return $url->out();
     }
 
@@ -3653,7 +3894,7 @@ class helper {
      */
     public static function get_tool_type_course_url(stdClass $type) {
         if ($type->course != 1) {
-            $url = new moodle_url('/course/view.php', array('id' => $type->course));
+            $url = new moodle_url('/course/view.php', ['id' => $type->course]);
             return $url->out();
         }
         return null;
@@ -3669,10 +3910,10 @@ class helper {
     public static function get_tool_type_urls(stdClass $type) {
         $courseurl = self::get_tool_type_course_url($type);
 
-        $urls = array(
+        $urls = [
             'icon' => self::get_tool_type_icon_url($type),
             'edit' => self::get_tool_type_edit_url($type),
-        );
+        ];
 
         if ($courseurl) {
             $urls['course'] = $courseurl;
@@ -3698,10 +3939,10 @@ class helper {
     public static function get_tool_proxy_urls(stdClass $proxy) {
         global $OUTPUT;
 
-        $urls = array(
+        $urls = [
             'icon' => $OUTPUT->image_url('i/lti', 'core')->out(),
             'edit' => self::get_tool_proxy_edit_url($proxy),
-        );
+        ];
 
         return $urls;
     }
@@ -3716,7 +3957,7 @@ class helper {
     public static function get_tool_type_instance_ids($type) {
         global $DB;
 
-        return array_keys($DB->get_fieldset_select('lti', 'id', 'typeid = ?', array($type->id)));
+        return array_keys($DB->get_fieldset_select('lti', 'id', 'typeid = ?', [$type->id]));
     }
 
     /**
@@ -3739,7 +3980,7 @@ class helper {
         } else {
             $description = get_string('editdescription', 'mod_lti');
         }
-        return array(
+        return [
             'id' => $type->id,
             'name' => $name,
             'description' => $description,
@@ -3753,8 +3994,8 @@ class helper {
             // Course ID of 1 means it's not linked to a course.
             'courseid' => $type->course == 1 ? 0 : $type->course,
             'instanceids' => $instanceids,
-            'instancecount' => count($instanceids)
-        );
+            'instancecount' => count($instanceids),
+        ];
     }
 
     /**
@@ -3778,19 +4019,20 @@ class helper {
      * @since Moodle 3.1
      */
     public static function load_tool_from_cartridge($url, $lti) {
-        $toolinfo = self::load_cartridge($url,
-            array(
+        $toolinfo = self::load_cartridge(
+            $url,
+            [
                 "title" => "name",
                 "launch_url" => "toolurl",
                 "secure_launch_url" => "securetoolurl",
                 "description" => "intro",
                 "icon" => "icon",
-                "secure_icon" => "secureicon"
-            ),
-            array(
+                "secure_icon" => "secureicon",
+            ],
+            [
                 "icon_url" => "extension_icon",
-                "secure_icon_url" => "extension_secureicon"
-            )
+                "secure_icon_url" => "extension_secureicon",
+            ]
         );
         // If an activity name exists, unset the cartridge name so we don't override it.
         if (isset($lti->name)) {
@@ -3833,7 +4075,7 @@ class helper {
     public static function get_lti_types_from_proxy_id($toolproxyid) {
         global $DB;
 
-        return $DB->get_records('lti_types', array('toolproxyid' => $toolproxyid), 'state DESC, timemodified DESC');
+        return $DB->get_records('lti_types', ['toolproxyid' => $toolproxyid], 'state DESC, timemodified DESC');
     }
 
     /**
@@ -3889,7 +4131,7 @@ class helper {
         }
         if ($ok) {
             $launchid = $ltimessagehint->launchid;
-            list($courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64) = explode(',', $SESSION->$launchid, 7);
+            [$courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64] = explode(',', $SESSION->$launchid, 7);
             unset($SESSION->$launchid);
             $config = self::get_type_type_config($typeid);
             $ok = ($clientid === $config->lti_clientid);
@@ -3931,15 +4173,15 @@ class helper {
         }
 
         if ($ok) {
-            $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+            $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
             if ($id) {
                 $cm = get_coursemodule_from_id('lti', $id, 0, false, MUST_EXIST);
                 require_login($course, true, $cm);
                 // Fail closed: the user must be able to view this activity, whatever require_login() decided about visibility.
                 require_capability("mod/{$cm->modname}:view", \context_module::instance($cm->id));
-                $lti = $DB->get_record('lti', array('id' => $cm->instance), '*', MUST_EXIST);
+                $lti = $DB->get_record('lti', ['id' => $cm->instance], '*', MUST_EXIST);
                 $lti->cmid = $cm->id;
-                list($endpoint, $params) = self::get_launch_data($lti, $nonce, $messagetype, $foruserid);
+                [$endpoint, $params] = self::get_launch_data($lti, $nonce, $messagetype, $foruserid);
             } else {
                 require_login($course);
                 $context = \context_course::instance($courseid);
@@ -3949,14 +4191,27 @@ class helper {
                 $returnurlparams = [
                     'course' => $courseid,
                     'id' => $typeid,
-                    'sesskey' => sesskey()
+                    'sesskey' => sesskey(),
                 ];
                 $returnurl = new \moodle_url('/ltix/contentitem_return.php', $returnurlparams);
                 // Prepare the request.
                 $title = base64_decode($titleb64);
                 $text = base64_decode($textb64);
-                $request = self::build_content_item_selection_request($typeid, $course, $returnurl, $title, $text,
-                    [], [], false, true, false, false, false, $nonce);
+                $request = self::build_content_item_selection_request(
+                    $typeid,
+                    $course,
+                    $returnurl,
+                    $title,
+                    $text,
+                    [],
+                    [],
+                    false,
+                    true,
+                    false,
+                    false,
+                    false,
+                    $nonce
+                );
                 $endpoint = $request->url;
                 $params = $request->params;
             }
@@ -4041,7 +4296,7 @@ class helper {
         }
 
         if ($ok) {
-            $tool = $DB->get_record('lti_types', array('clientid' => $claims['sub']));
+            $tool = $DB->get_record('lti_types', ['clientid' => $claims['sub']]);
             if ($tool) {
                 try {
                     \core_ltix\oauth_helper::verify_jwt_signature($tool->id, $claims['sub'], $clientassertion);
@@ -4057,7 +4312,7 @@ class helper {
         }
 
         if ($ok) {
-            $scopes = array();
+            $scopes = [];
             $requestedscopes = explode(' ', $scope);
             $typeconfig = self::get_type_config($tool->id);
             $permittedscopes = self::get_permitted_service_scopes($tool, $typeconfig);
@@ -4104,7 +4359,7 @@ class helper {
         $errorhandler = new service_exception_handler($logrequests);
 
         // Register our own error handler so we can always send valid XML response.
-        set_exception_handler(array($errorhandler, 'handle'));
+        set_exception_handler([$errorhandler, 'handle']);
 
         if ($logrequests) {
             self::log_request($rawbody);
@@ -4114,15 +4369,15 @@ class helper {
         $type = null;
         $toolproxy = false;
 
-        $consumerkey = \core_ltix\oauth_helper::get_oauth_key_from_headers(null, array(basicoutcomes::SCOPE_BASIC_OUTCOMES));
+        $consumerkey = \core_ltix\oauth_helper::get_oauth_key_from_headers(null, [basicoutcomes::SCOPE_BASIC_OUTCOMES]);
         if ($consumerkey === false) {
             throw new \Exception('Missing or invalid consumer key or access token.');
         } else if (is_string($consumerkey)) {
             $toolproxy = self::get_tool_proxy_from_guid($consumerkey);
             if ($toolproxy !== false) {
-                $secrets = array($toolproxy->secret);
+                $secrets = [$toolproxy->secret];
             } else if (!empty($tool)) {
-                $secrets = array($typeconfig['password']);
+                $secrets = [$typeconfig['password']];
             } else {
                 $secrets = self::get_shared_secrets_by_key($consumerkey);
             }
@@ -4151,7 +4406,7 @@ class helper {
             case 'replaceResultRequest':
                 $parsed = \core_ltix\local\ltiservice\service_helper::parse_grade_replace_message($xml);
 
-                $ltiinstance = $DB->get_record('lti', array('id' => $parsed->instanceid));
+                $ltiinstance = $DB->get_record('lti', ['id' => $parsed->instanceid]);
 
                 if (!\core_ltix\local\ltiservice\service_helper::accepts_grades($ltiinstance)) {
                     throw new \Exception('Tool does not accept grades');
@@ -4180,7 +4435,7 @@ class helper {
             case 'readResultRequest':
                 $parsed = \core_ltix\local\ltiservice\service_helper::parse_grade_read_message($xml);
 
-                $ltiinstance = $DB->get_record('lti', array('id' => $parsed->instanceid));
+                $ltiinstance = $DB->get_record('lti', ['id' => $parsed->instanceid]);
 
                 if (!\core_ltix\local\ltiservice\service_helper::accepts_grades($ltiinstance)) {
                     throw new \Exception('Tool does not accept grades');
@@ -4195,7 +4450,7 @@ class helper {
                 $grade = \core_ltix\local\ltiservice\service_helper::read_grade($ltiinstance, $parsed->userid);
 
                 $responsexml = \core_ltix\local\ltiservice\service_helper::get_response_xml(
-                    'success',  // Empty grade is also 'success'.
+                    'success', // Empty grade is also 'success'.
                     'Result read',
                     $parsed->messageid,
                     'readResultResponse'
@@ -4213,7 +4468,7 @@ class helper {
             case 'deleteResultRequest':
                 $parsed = \core_ltix\local\ltiservice\service_helper::parse_grade_delete_message($xml);
 
-                $ltiinstance = $DB->get_record('lti', array('id' => $parsed->instanceid));
+                $ltiinstance = $DB->get_record('lti', ['id' => $parsed->instanceid]);
 
                 if (!\core_ltix\local\ltiservice\service_helper::accepts_grades($ltiinstance)) {
                     throw new \Exception('Tool does not accept grades');
@@ -4250,8 +4505,8 @@ class helper {
                 $data->messagetype = $messagetype;
                 $data->consumerkey = $consumerkey;
                 $data->sharedsecret = $sharedsecret;
-                $eventdata = array();
-                $eventdata['other'] = array();
+                $eventdata = [];
+                $eventdata['other'] = [];
                 $eventdata['other']['messageid'] = $data->messageid;
                 $eventdata['other']['messagetype'] = $messagetype;
                 $eventdata['other']['consumerkey'] = $consumerkey;
@@ -4287,7 +4542,6 @@ class helper {
 
                 break;
         }
-
     }
 
     /**
@@ -4315,9 +4569,11 @@ class helper {
         foreach ($services as $service) {
             $resources = $service->get_resources();
             foreach ($resources as $resource) {
-                if (($isget && !empty($accept) && (strpos($accept, '*/*') === false) &&
+                if (
+                    ($isget && !empty($accept) && (strpos($accept, '*/*') === false) &&
                         !in_array($accept, $resource->get_formats())) ||
-                    ((!$isget && !$isdelete) && !in_array($contenttype, $resource->get_formats()))) {
+                    ((!$isget && !$isdelete) && !in_array($contenttype, $resource->get_formats()))
+                ) {
                     continue;
                 }
                 $template = $resource->get_template();
@@ -4344,7 +4600,5 @@ class helper {
             }
         }
         $response->send();
-
     }
-
 }

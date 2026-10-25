@@ -2884,8 +2884,8 @@ $capabilities = array(
         'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        ]
+            'manager' => CAP_ALLOW,
+        ],
     ],
 
     // When the user arrives at the external tool, if they have this capability
@@ -2906,19 +2906,19 @@ $capabilities = array(
         'clonepermissionsfrom' => 'mod/lti:addpreconfiguredinstance',
         'archetypes' => [
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        ]
+            'manager' => CAP_ALLOW,
+        ],
     ],
 
     // The ability to request the administrator to configure a particular
     // External tool globally.
-    'moodle/ltix:requesttooladd' => array(
+    'moodle/ltix:requesttooladd' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'clonepermissionsfrom' => 'mod/lti:requesttooladd',
-        'archetypes' => array(
+        'archetypes' => [
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    )
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 );

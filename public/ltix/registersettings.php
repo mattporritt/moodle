@@ -27,9 +27,9 @@
  */
 
 require_once('../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->dirroot.'/ltix/constants.php');
-require_once($CFG->dirroot.'/ltix/classes/form/register_form.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
+require_once($CFG->dirroot . '/ltix/classes/form/register_form.php');
 
 $action       = optional_param('action', null, PARAM_ALPHANUMEXT);
 $id           = optional_param('id', null, PARAM_INT);
@@ -55,7 +55,7 @@ $PAGE->set_url($pageurl);
 
 admin_externalpage_setup('ltixtoolproxies');
 
-$redirect = new moodle_url('/ltix/toolproxies.php', array('tab' => $tab));
+$redirect = new moodle_url('/ltix/toolproxies.php', ['tab' => $tab]);
 $redirect = $redirect->out();
 if (!empty($returnurl)) {
     $redirect = $returnurl;

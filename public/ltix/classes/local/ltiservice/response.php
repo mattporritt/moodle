@@ -37,7 +37,6 @@ defined('MOODLE_INTERNAL') || die;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class response {
-
     /** @var int HTTP response code. */
     private $code;
     /** @var string HTTP response reason. */
@@ -69,7 +68,7 @@ class response {
         $this->contenttype = '';
         $this->data = '';
         $this->body = '';
-        $this->responsecodes = array(
+        $this->responsecodes = [
             200 => 'OK',
             201 => 'Created',
             202 => 'Accepted',
@@ -83,10 +82,9 @@ class response {
             406 => 'Not Acceptable',
             415 => 'Unsupported Media Type',
             500 => 'Internal Server Error',
-            501 => 'Not Implemented'
-        );
-        $this->additionalheaders = array();
-
+            501 => 'Not Implemented',
+        ];
+        $this->additionalheaders = [];
     }
 
     /**
@@ -259,5 +257,4 @@ class response {
             echo json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         }
     }
-
 }

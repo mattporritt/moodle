@@ -34,7 +34,6 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class create_tool_type_test extends lti_testcase {
-
     /**
      * Setup method.
      *

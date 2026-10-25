@@ -33,7 +33,6 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class get_tool_proxy_registration_request_test extends lti_testcase {
-
     /**
      * Setup method.
      *
@@ -52,12 +51,14 @@ final class get_tool_proxy_registration_request_test extends lti_testcase {
      */
     public function test_get_tool_proxy_registration_request(): void {
         $this->setAdminUser();
-        $proxy = create_tool_proxy::execute('Test proxy', $this->getExternalTestFileUrl('/test.html'), array(), array());
+        $proxy = create_tool_proxy::execute('Test proxy', $this->getExternalTestFileUrl('/test.html'), [], []);
         $proxy = (object) external_api::clean_returnvalue(create_tool_proxy::execute_returns(), $proxy);
 
         $request = get_tool_proxy_registration_request::execute($proxy->id);
-        $request = external_api::clean_returnvalue(get_tool_proxy_registration_request::execute_returns(),
-            $request);
+        $request = external_api::clean_returnvalue(
+            get_tool_proxy_registration_request::execute_returns(),
+            $request
+        );
 
         $this->assertEquals('ToolProxyRegistrationRequest', $request['lti_message_type']);
         $this->assertEquals('LTI-2p0', $request['lti_version']);

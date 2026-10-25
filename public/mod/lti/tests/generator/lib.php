@@ -40,7 +40,6 @@ require_once("{$CFG->dirroot}/ltix/tests/generator/lib.php");
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_lti_generator extends core_ltix_generator {
-
     public function create_instance($record = null, ?array $options = null) {
         $record  = (object) (array) $record;
 

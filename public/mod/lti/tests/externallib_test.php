@@ -37,7 +37,6 @@ require_once($CFG->dirroot . '/mod/lti/lib.php');
  * @since      Moodle 3.0
  */
 final class externallib_test extends lti_testcase {
-
     /**
      * Set up for every test
      */
@@ -403,12 +402,13 @@ final class externallib_test extends lti_testcase {
         $this->setAdminUser();
         mod_lti_external::create_tool_proxy('Test proxy 1', $this->getExternalTestFileUrl('/test.html'), array(), array());
         $this->assertDebuggingCalled();
+        $caught = null;
         try {
-            mod_lti_external::create_tool_proxy('Test proxy 2', $this->getExternalTestFileUrl('/test.html'), array(), array());
+            mod_lti_external::create_tool_proxy('Test proxy 2', $this->getExternalTestFileUrl('/test.html'), [], []);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\moodle_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\moodle_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -419,12 +419,13 @@ final class externallib_test extends lti_testcase {
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
         $this->setUser($teacher);
+        $caught = null;
         try {
-            mod_lti_external::create_tool_proxy('Test proxy', $this->getExternalTestFileUrl('/test.html'), array(), array());
+            mod_lti_external::create_tool_proxy('Test proxy', $this->getExternalTestFileUrl('/test.html'), [], []);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\required_capability_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\required_capability_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -520,12 +521,13 @@ final class externallib_test extends lti_testcase {
      * Test create_tool_type failure from non existent file.
      */
     public function test_mod_lti_create_tool_type_nonexistant_file(): void {
+        $caught = null;
         try {
             mod_lti_external::create_tool_type($this->getExternalTestFileUrl('/doesntexist.xml'), '', '');
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\moodle_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\moodle_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -533,12 +535,13 @@ final class externallib_test extends lti_testcase {
      * Test create_tool_type failure from xml that is not a cartridge.
      */
     public function test_mod_lti_create_tool_type_bad_file(): void {
+        $caught = null;
         try {
             mod_lti_external::create_tool_type($this->getExternalTestFileUrl('/rsstest.xml'), '', '');
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\moodle_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\moodle_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -549,12 +552,13 @@ final class externallib_test extends lti_testcase {
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
         $this->setUser($teacher);
+        $caught = null;
         try {
             mod_lti_external::create_tool_type($this->getExternalTestFileUrl('/ims_cartridge_basic_lti_link.xml'), '', '');
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\required_capability_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\required_capability_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -605,12 +609,13 @@ final class externallib_test extends lti_testcase {
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
         $this->setUser($teacher);
+        $caught = null;
         try {
             mod_lti_external::delete_tool_type($type['id']);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\required_capability_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\required_capability_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 

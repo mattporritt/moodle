@@ -30,7 +30,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class update_tool_type extends external_api {
-
     /**
      * Parameters definition.
      *
@@ -38,12 +37,12 @@ class update_tool_type extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
-            array(
+            [
                 'id' => new external_value(PARAM_INT, 'Tool type id'),
                 'name' => new external_value(PARAM_RAW, 'Tool type name', VALUE_DEFAULT, null),
                 'description' => new external_value(PARAM_RAW, 'Tool type description', VALUE_DEFAULT, null),
-                'state' => new external_value(PARAM_INT, 'Tool type state', VALUE_DEFAULT, null)
-            )
+                'state' => new external_value(PARAM_INT, 'Tool type state', VALUE_DEFAULT, null),
+            ]
         );
     }
 
@@ -58,13 +57,15 @@ class update_tool_type extends external_api {
      * @throws \moodle_exception
      */
     public static function execute(int $id, ?string $name = null, ?string $description = null, ?int $state = null): array {
-        $params = self::validate_parameters(self::execute_parameters(),
-            array(
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
                 'id' => $id,
                 'name' => $name,
                 'description' => $description,
                 'state' => $state,
-            ));
+            ]
+        );
         $id = $params['id'];
         $name = $params['name'];
         $description = $params['description'];
@@ -77,7 +78,7 @@ class update_tool_type extends external_api {
         $type = helper::get_type($id);
 
         if (empty($type)) {
-            throw new \moodle_exception('unabletofindtooltype', 'core_ltix', '', array('id' => $id));
+            throw new \moodle_exception('unabletofindtooltype', 'core_ltix', '', ['id' => $id]);
         }
 
         if (!empty($name)) {
@@ -90,7 +91,7 @@ class update_tool_type extends external_api {
 
         if (!empty($state)) {
             // Valid state range.
-            if (in_array($state, array(1, 2, 3))) {
+            if (in_array($state, [1, 2, 3])) {
                 $type->state = $state;
             } else {
                 throw new \moodle_exception("Invalid state: $state - must be 1, 2, or 3");

@@ -70,27 +70,27 @@ $capabilities = array(
 $deprecatedcapabilities = [
     // The ability to add a manual instance (i.e. not from a preconfigured tool) to the course.
     'mod/lti:addmanualinstance' => [
-        'message' => 'Manual instance configuration is deprecated. Please create a course tool (moodle/ltix:addcoursetool) and ensure '.
-            'users are able to add an instance of the course tool via the activity chooser (mod/lti:addpreconfiguredinstance).'
+        'message' => 'Manual instance configuration is deprecated. Please create a course tool (moodle/ltix:addcoursetool) and ensure ' .
+            'users are able to add an instance of the course tool via the activity chooser (mod/lti:addpreconfiguredinstance).',
     ],
     'mod/lti:manage' => [
         'replacement' => 'moodle/ltix:manage',
-        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti'.
-            ' to core.'
+        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti' .
+            ' to core.',
     ],
     'mod/lti:admin' => [
         'replacement' => 'moodle/ltix:admin',
-        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti'.
-            ' to core.'
+        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti' .
+            ' to core.',
     ],
     'mod/lti:addcoursetool' => [
         'replacement' => 'moodle/ltix:addcoursetool',
-        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti'.
-            ' to core.'
+        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti' .
+            ' to core.',
     ],
     'mod/lti:requesttooladd' => [
         'replacement' => 'moodle/ltix:requesttooladd',
-        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti'.
-            ' to core.'
+        'message' => 'This capability has been replaced by an equivalent core capability as part of moving large parts of mod_lti' .
+            ' to core.',
     ],
 ];

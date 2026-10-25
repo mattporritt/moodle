@@ -2421,8 +2421,8 @@ function xmldb_main_upgrade($oldversion) {
     if ($oldversion < 2026102100.01) {
         // Move mod_lti keys into new core lti config.
         if (!empty(get_config('mod_lti', 'kid')) && !empty(get_config('mod_lti', 'privatekey'))) {
-            set_config('kid',  get_config('mod_lti', 'kid'), 'core_ltix');
-            set_config('privatekey',  get_config('mod_lti', 'privatekey'), 'core_ltix');
+            set_config('kid', get_config('mod_lti', 'kid'), 'core_ltix');
+            set_config('privatekey', get_config('mod_lti', 'privatekey'), 'core_ltix');
             set_config('kid', null, 'mod_lti');
             set_config('privatekey', null, 'mod_lti');
         }
@@ -2452,7 +2452,7 @@ function xmldb_main_upgrade($oldversion) {
         [$insql, $inparams] = $DB->get_in_or_equal($pluginconfigoptions, SQL_PARAMS_NAMED, 'name');
         $sql = "UPDATE {lti_types_config}
                    SET name = REPLACE(name, :oldprefix, :newprefix)
-                 WHERE name ".$insql;
+                 WHERE name " . $insql;
         $params = ['oldprefix' => 'ltiservice_', 'newprefix' => 'ltixservice_'];
         $DB->execute($sql, array_merge($params, $inparams));
 

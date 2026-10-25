@@ -30,7 +30,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class create_tool_type extends external_api {
-
     /**
      * Parameters definition.
      *
@@ -38,11 +37,11 @@ class create_tool_type extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
-            array(
+            [
                 'cartridgeurl' => new external_value(PARAM_URL, 'URL to cartridge to load tool information', VALUE_DEFAULT, ''),
                 'key' => new external_value(PARAM_TEXT, 'Consumer key', VALUE_DEFAULT, ''),
                 'secret' => new external_value(PARAM_TEXT, 'Shared secret', VALUE_DEFAULT, ''),
-            )
+            ]
         );
     }
 
@@ -59,12 +58,14 @@ class create_tool_type extends external_api {
         global $CFG;
         require_once($CFG->dirroot . '/ltix/constants.php');
 
-        $params = self::validate_parameters(self::execute_parameters(),
-            array(
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
                 'cartridgeurl' => $cartridgeurl,
                 'key' => $key,
-                'secret' => $secret
-            ));
+                'secret' => $secret,
+            ]
+        );
         $cartridgeurl = $params['cartridgeurl'];
         $key = $params['key'];
         $secret = $params['secret'];

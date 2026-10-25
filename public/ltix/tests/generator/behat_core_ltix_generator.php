@@ -24,7 +24,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_core_ltix_generator extends behat_generator_base {
-
     /**
      * Get list of entities for core_ltix behat tests.
      *
@@ -42,13 +41,13 @@ class behat_core_ltix_generator extends behat_generator_base {
                 'singular' => 'tool type',
                 'datagenerator' => 'tool_types',
                 'required' => ['baseurl'],
-                'switchids' => ['lti_coursecategories' => 'lti_coursecategories']
+                'switchids' => ['lti_coursecategories' => 'lti_coursecategories'],
             ],
             'course tools' => [
                 'singular' => 'course tool',
                 'datagenerator' => 'course_tool_types',
                 'required' => ['baseurl', 'course'],
-                'switchids' => ['course' => 'course']
+                'switchids' => ['course' => 'course'],
             ],
         ];
     }

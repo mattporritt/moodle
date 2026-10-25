@@ -28,7 +28,6 @@ use core_external\external_value;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class structs {
-
     /**
      * Returns structure be used for returning a tool type from a web service.
      *
@@ -36,7 +35,7 @@ class structs {
      */
     public static function tool_type_return_structure(): external_single_structure {
         return new external_single_structure(
-            array(
+            [
                 'id' => new external_value(PARAM_INT, 'Tool type id'),
                 'name' => new external_value(PARAM_NOTAGS, 'Tool type name'),
                 'description' => new external_value(PARAM_NOTAGS, 'Tool type description'),
@@ -44,36 +43,41 @@ class structs {
                 'clientid' => new external_value(PARAM_TEXT, 'Client ID'),
                 'deploymentid' => new external_value(PARAM_INT, 'Deployment ID'),
                 'urls' => new external_single_structure(
-                    array(
+                    [
                         'icon' => new external_value(PARAM_URL, 'Tool type icon URL'),
                         'edit' => new external_value(PARAM_URL, 'Tool type edit URL'),
                         'course' => new external_value(PARAM_URL, 'Tool type edit URL', VALUE_OPTIONAL),
                         'publickeyset' => new external_value(PARAM_URL, 'Public Keyset URL'),
                         'accesstoken' => new external_value(PARAM_URL, 'Access Token URL'),
                         'authrequest' => new external_value(PARAM_URL, 'Authorisation Request URL'),
-                    )
+                    ]
                 ),
                 'state' => new external_single_structure(
-                    array(
+                    [
                         'text' => new external_value(PARAM_TEXT, 'Tool type state name string'),
                         'pending' => new external_value(PARAM_BOOL, 'Is the state pending'),
                         'configured' => new external_value(PARAM_BOOL, 'Is the state configured'),
                         'rejected' => new external_value(PARAM_BOOL, 'Is the state rejected'),
                         'unknown' => new external_value(PARAM_BOOL, 'Is the state unknown'),
-                    )
+                    ]
                 ),
                 'hascapabilitygroups' => new external_value(PARAM_BOOL, 'Indicate if capabilitygroups is populated'),
                 'capabilitygroups' => new external_multiple_structure(
                     new external_value(PARAM_TEXT, 'Tool type capability groups enabled'),
-                    'Array of capability groups', VALUE_DEFAULT, array()
+                    'Array of capability groups',
+                    VALUE_DEFAULT,
+                    []
                 ),
                 'courseid' => new external_value(PARAM_INT, 'Tool type course', VALUE_DEFAULT, 0),
                 'instanceids' => new external_multiple_structure(
                     new external_value(PARAM_INT, 'LTI instance ID'),
-                    'IDs for the LTI instances using this type', VALUE_DEFAULT, array()
+                    'IDs for the LTI instances using this type',
+                    VALUE_DEFAULT,
+                    []
                 ),
-                'instancecount' => new external_value(PARAM_INT, 'The number of times this tool is being used')
-            ), 'Tool'
+                'instancecount' => new external_value(PARAM_INT, 'The number of times this tool is being used'),
+            ],
+            'Tool'
         );
     }
 
@@ -84,7 +88,7 @@ class structs {
      */
     public static function tool_proxy_return_structure(): external_single_structure {
         return new external_single_structure(
-            array(
+            [
                 'id' => new external_value(PARAM_INT, 'Tool proxy id'),
                 'name' => new external_value(PARAM_TEXT, 'Tool proxy name'),
                 'regurl' => new external_value(PARAM_URL, 'Tool proxy registration URL'),
@@ -98,7 +102,7 @@ class structs {
                 'timecreated' => new external_value(PARAM_INT, 'Tool proxy time created'),
                 'timemodified' => new external_value(PARAM_INT, 'Tool proxy modified'),
                 'createdby' => new external_value(PARAM_INT, 'Tool proxy created by userid'),
-            )
+            ]
         );
     }
 }

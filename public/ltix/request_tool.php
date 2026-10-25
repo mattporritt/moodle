@@ -24,7 +24,7 @@
  */
 
 require_once('../config.php');
-require_once($CFG->dirroot.'/ltix/constants.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
 
 $instanceid = required_param('instanceid', PARAM_INT);
 
@@ -41,7 +41,7 @@ require_capability('moodle/ltix:requesttooladd', context_course::instance($lti->
 
 $baseurl = \core_ltix\helper::get_domain_from_url($lti->toolurl);
 
-$url = new moodle_url('/ltix/request_tool.php', array('instanceid' => $instanceid));
+$url = new moodle_url('/ltix/request_tool.php', ['instanceid' => $instanceid]);
 $PAGE->set_url($url);
 
 $pagetitle = strip_tags($course->shortname);

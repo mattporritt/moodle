@@ -81,7 +81,7 @@ class registration_helper {
     private function get_parameter(array $payload, string $key, bool $required) {
         if (!isset($payload[$key]) || empty($payload[$key])) {
             if ($required) {
-                throw new registration_exception('missing required attribute '.$key, 400);
+                throw new registration_exception('missing required attribute ' . $key, 400);
             }
             return null;
         }
@@ -112,8 +112,11 @@ class registration_helper {
         $applicationtype = $this->get_parameter($registrationpayload, 'application_type', false);
         $logouri = $this->get_parameter($registrationpayload, 'logo_uri', false);
 
-        $ltitoolconfiguration = $this->get_parameter($registrationpayload,
-            'https://purl.imsglobal.org/spec/lti-tool-configuration', true);
+        $ltitoolconfiguration = $this->get_parameter(
+            $registrationpayload,
+            'https://purl.imsglobal.org/spec/lti-tool-configuration',
+            true
+        );
 
         $domain = $this->get_parameter($ltitoolconfiguration, 'domain', false);
         $targetlinkuri = $this->get_parameter($ltitoolconfiguration, 'target_link_uri', false);
@@ -128,7 +131,7 @@ class registration_helper {
             throw new registration_exception('missing_domain', 400);
         }
 
-        $targetlinkuri = $targetlinkuri ?: 'https://'.$domain;
+        $targetlinkuri = $targetlinkuri ?: 'https://' . $domain;
         // Stripping www as this is ignored for domain matching.
         $domain = helper::get_domain_from_url($domain);
         if ($domain !== helper::get_domain_from_url($targetlinkuri)) {
@@ -267,7 +270,7 @@ class registration_helper {
             $oauthconsumer = [];
             $oauthconsumer['key'] = $key;
             $oauthconsumer['nonce'] = random_string(random_int(10, 20));
-            $oauthconsumer['sign'] = hash('sha256', $key.$secret.$oauthconsumer['nonce']);
+            $oauthconsumer['sign'] = hash('sha256', $key . $secret . $oauthconsumer['nonce']);
             $lticonfig['oauth_consumer'] = $oauthconsumer;
         }
     }
@@ -380,7 +383,7 @@ class registration_helper {
         $clientid = $registrationtoken->sub;
         if ($registrationtoken->scope == self::REG_TOKEN_OP_NEW_REG) {
             // Checks if clientid is already registered.
-            if (!empty($DB->get_record('lti_types', array('clientid' => $clientid)))) {
+            if (!empty($DB->get_record('lti_types', ['clientid' => $clientid]))) {
                 throw new registration_exception("token_already_used", 401);
             }
             $response['clientid'] = $clientid;
@@ -405,7 +408,7 @@ class registration_helper {
     public function lti_get_service_scopes() {
 
         $services = helper::get_services();
-        $scopes = array();
+        $scopes = [];
         foreach ($services as $service) {
             $servicescopes = $service->get_scopes();
             if (!empty($servicescopes)) {
@@ -433,7 +436,7 @@ class registration_helper {
      * @return string base64encoded hash
      */
     public function sign(string $key, string $salt, string $secret): string {
-        return base64_encode(hash_hmac('sha-256', $key.$salt, $secret, true));
+        return base64_encode(hash_hmac('sha-256', $key . $salt, $secret, true));
     }
 
     /**

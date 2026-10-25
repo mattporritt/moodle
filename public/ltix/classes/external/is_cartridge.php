@@ -30,7 +30,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class is_cartridge extends external_api {
-
     /**
      * Parameters definition.
      *
@@ -38,9 +37,9 @@ class is_cartridge extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
-            array(
+            [
                 'url' => new external_value(PARAM_URL, 'Tool url'),
-            )
+            ]
         );
     }
 
@@ -51,10 +50,12 @@ class is_cartridge extends external_api {
      * @return array ['iscartrdige' => bool], indicating whether the URL is a cartridge or not.
      */
     public static function execute(string $url): array {
-        $params = self::validate_parameters(self::execute_parameters(),
-            array(
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
                 'url' => $url,
-            ));
+            ]
+        );
         $url = $params['url'];
 
         $context = \context_system::instance();
@@ -63,7 +64,7 @@ class is_cartridge extends external_api {
 
         $iscartridge = helper::is_cartridge($url);
 
-        return array('iscartridge' => $iscartridge);
+        return ['iscartridge' => $iscartridge];
     }
 
     /**
@@ -73,9 +74,9 @@ class is_cartridge extends external_api {
      */
     public static function execute_returns(): external_single_structure {
         return new external_single_structure(
-            array(
+            [
                 'iscartridge' => new external_value(PARAM_BOOL, 'True if the URL is a cartridge'),
-            )
+            ]
         );
     }
 }

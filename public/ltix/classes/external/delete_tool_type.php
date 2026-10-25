@@ -30,7 +30,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class delete_tool_type extends external_api {
-
     /**
      * Parameters definition.
      *
@@ -38,9 +37,9 @@ class delete_tool_type extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
-            array(
+            [
                 'id' => new external_value(PARAM_INT, 'Tool type id'),
-            )
+            ]
         );
     }
 
@@ -51,10 +50,12 @@ class delete_tool_type extends external_api {
      * @return array containing the deleted tool type id
      */
     public static function execute(int $id): array {
-        $params = self::validate_parameters(self::execute_parameters(),
-            array(
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
                 'id' => $id,
-            ));
+            ]
+        );
         $id = $params['id'];
 
         $context = \context_system::instance();
@@ -74,7 +75,7 @@ class delete_tool_type extends external_api {
             }
         }
 
-        return array('id' => $id);
+        return ['id' => $id];
     }
 
     /**
@@ -84,9 +85,9 @@ class delete_tool_type extends external_api {
      */
     public static function execute_returns(): external_single_structure {
         return new external_single_structure(
-            array(
+            [
                 'id' => new external_value(PARAM_INT, 'Tool type id'),
-            )
+            ]
         );
     }
 }

@@ -26,7 +26,6 @@ namespace core_ltix\event;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class unknown_service_api_called extends \core\event\base {
-
     /** @var \stdClass Data to be used by event observers. */
     protected $eventdata;
 

@@ -37,7 +37,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class toolsettings extends \core_ltix\local\ltiservice\service_base {
-
     /** Scope for managing tool settings */
     const SCOPE_TOOL_SETTINGS = 'https://purl.imsglobal.org/spec/lti-ts/scope/toolsetting';
 

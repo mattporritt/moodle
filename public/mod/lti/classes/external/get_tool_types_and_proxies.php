@@ -120,7 +120,7 @@ class get_tool_types_and_proxies extends external_api {
         ]);
     }
 
-   /**
+    /**
      * Mark the function as deprecated.
      * @return bool
      */

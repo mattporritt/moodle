@@ -35,7 +35,6 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @coversDefaultClass \mod_lti\external\toggle_showinactivitychooser
  */
 final class toggle_showinactivitychooser_test extends externallib_advanced_testcase {
-
     /**
      * Test toggle_showinactivitychooser for course tool.
      * @covers ::execute
@@ -100,7 +99,7 @@ final class toggle_showinactivitychooser_test extends externallib_advanced_testc
             'baseurl' => 'http://example.com/tool/1',
             'coursevisible' => LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'state' => LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat1->id
+            'lti_coursecategories' => $coursecat1->id,
         ]);
 
         $result = toggle_showinactivitychooser::execute($typeid, $course->id, false);
@@ -176,13 +175,14 @@ final class toggle_showinactivitychooser_test extends externallib_advanced_testc
         $this->assertEquals(LTI_COURSEVISIBLE_PRECONFIGURED, $actual->coursevisible2);
 
         // Teacher in course 1, category 1 is NOT allowed to toggle the coursevisible for the tool in category 2.
+        $caught = null;
         try {
             toggle_showinactivitychooser::execute($tool2id, $course->id, true);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\moodle_exception::class, $e);
-            $this->assertStringContainsString('You are not allowed to change this setting for this tool.', $e->getMessage());
+            $caught = $e;
         }
+        $this->assertInstanceOf(\moodle_exception::class, $caught);
+        $this->assertStringContainsString('You are not allowed to change this setting for this tool.', $caught->getMessage());
         $this->assertDebuggingCalled();
     }
 

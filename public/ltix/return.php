@@ -24,7 +24,7 @@
  */
 
 require_once('../config.php');
-require_once($CFG->dirroot.'/ltix/constants.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
 
 $courseid = required_param('course', PARAM_INT);
 $instanceid = optional_param('instanceid', 0, PARAM_INT);
@@ -49,7 +49,7 @@ require_login($course);
 require_sesskey();
 
 if (!empty($errormsg) || !empty($msg)) {
-    $url = new moodle_url('/ltix/return.php', array('course' => $courseid));
+    $url = new moodle_url('/ltix/return.php', ['course' => $courseid]);
     $PAGE->set_url($url);
 
     $pagetitle = strip_tags($course->shortname);
@@ -88,7 +88,7 @@ if (!empty($errormsg)) {
         }
 
         if (!empty($lti) && has_capability('moodle/ltix:requesttooladd', $contextcourse)) {
-            $adminrequesturl = new moodle_url('/ltix/request_tool.php', array('instanceid' => $lti->id, 'sesskey' => sesskey()));
+            $adminrequesturl = new moodle_url('/ltix/request_tool.php', ['instanceid' => $lti->id, 'sesskey' => sesskey()]);
             $links->admin_request_url = $adminrequesturl->out(false);
 
             echo get_string('ltix_launch_error_tool_request', 'core_ltix', $links);
@@ -124,7 +124,7 @@ if (!empty($errormsg)) {
             </script>
         ";
 
-        $clickhere = get_string('return_to_course', 'core_ltix', (object)array('link' => $url));
+        $clickhere = get_string('return_to_course', 'core_ltix', (object)['link' => $url]);
 
         $noscript = "
             <noscript>

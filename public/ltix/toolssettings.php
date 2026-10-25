@@ -27,8 +27,8 @@
  */
 
 require_once('../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->dirroot.'/ltix/constants.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
 
 $action       = optional_param('action', '', PARAM_ALPHANUMEXT);
 $id           = optional_param('id', '', PARAM_INT);
@@ -89,7 +89,7 @@ if (\core_ltix\helper::request_is_using_ssl() && !empty($type->lti_secureicon)) 
     $type->oldicon = $type->lti_icon;
 }
 
-$form = new \core_ltix\form\edit_types($pageurl, (object)array('isadmin' => true, 'istool' => true));
+$form = new \core_ltix\form\edit_types($pageurl, (object)['isadmin' => true, 'istool' => true]);
 
 if ($data = $form->get_data()) {
     $type = new stdClass();
@@ -108,7 +108,7 @@ if ($data = $form->get_data()) {
 $PAGE->set_title(get_string('toolsetup', 'core_ltix'));
 $PAGE->set_primary_active_tab('siteadminnode');
 $PAGE->set_secondary_active_tab('siteadminnode');
-$PAGE->navbar->add(get_string('lti_administration', 'core_ltix'), $CFG->wwwroot.'/'.$CFG->admin.'/settings.php?section=ltixsettings');
+$PAGE->navbar->add(get_string('lti_administration', 'core_ltix'), $CFG->wwwroot . '/' . $CFG->admin . '/settings.php?section=ltixsettings');
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('toolsetup', 'core_ltix'));

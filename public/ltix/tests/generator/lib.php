@@ -24,7 +24,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_ltix_generator extends testing_module_generator {
-
     /**
      * Create a tool proxy.
      *
@@ -133,5 +132,4 @@ class core_ltix_generator extends testing_module_generator {
         \core_ltix\helper::load_type_if_cartridge($config);
         return \core_ltix\helper::add_type(type: $type, config: $config);
     }
-
 }

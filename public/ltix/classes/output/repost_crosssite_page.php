@@ -76,4 +76,3 @@ class repost_crosssite_page implements renderable, templatable {
         return $renderdata;
     }
 }
-

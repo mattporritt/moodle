@@ -38,8 +38,8 @@ use moodleform;
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->libdir.'/formslib.php');
-require_once($CFG->dirroot.'/ltix/constants.php');
+require_once($CFG->libdir . '/formslib.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
 
 /**
  * LTI Edit Form
@@ -51,7 +51,6 @@ require_once($CFG->dirroot.'/ltix/constants.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class edit_types extends moodleform {
-
     /**
      * Define this form.
      */
@@ -72,12 +71,16 @@ class edit_types extends moodleform {
         $mform->addHelpButton('lti_typename', 'typename', 'core_ltix');
         $mform->addRule('lti_typename', null, 'required', null, 'client');
 
-        $mform->addElement('text', 'lti_toolurl', get_string('toolurl', 'core_ltix'), array('size' => '64'));
+        $mform->addElement('text', 'lti_toolurl', get_string('toolurl', 'core_ltix'), ['size' => '64']);
         $mform->setType('lti_toolurl', PARAM_URL);
         $mform->addHelpButton('lti_toolurl', 'toolurl', 'core_ltix');
 
-        $mform->addElement('textarea', 'lti_description', get_string('tooldescription', 'core_ltix'),
-            array('rows' => 4, 'cols' => 60));
+        $mform->addElement(
+            'textarea',
+            'lti_description',
+            get_string('tooldescription', 'core_ltix'),
+            ['rows' => 4, 'cols' => 60]
+        );
         $mform->setType('lti_description', PARAM_TEXT);
         $mform->addHelpButton('lti_description', 'tooldescription', 'core_ltix');
         if (!$istool) {
@@ -142,13 +145,17 @@ class edit_types extends moodleform {
             $mform->hideIf('lti_publickeyset', 'lti_ltiversion', 'neq', LTI_VERSION_1P3);
             $mform->setForceLtr('lti_publickeyset');
 
-            $mform->addElement('text', 'lti_initiatelogin', get_string('initiatelogin', 'core_ltix'), array('size' => '64'));
+            $mform->addElement('text', 'lti_initiatelogin', get_string('initiatelogin', 'core_ltix'), ['size' => '64']);
             $mform->setType('lti_initiatelogin', PARAM_URL);
             $mform->addHelpButton('lti_initiatelogin', 'initiatelogin', 'core_ltix');
             $mform->hideIf('lti_initiatelogin', 'lti_ltiversion', 'neq', LTI_VERSION_1P3);
 
-            $mform->addElement('textarea', 'lti_redirectionuris', get_string('redirectionuris', 'core_ltix'),
-                array('rows' => 3, 'cols' => 60));
+            $mform->addElement(
+                'textarea',
+                'lti_redirectionuris',
+                get_string('redirectionuris', 'core_ltix'),
+                ['rows' => 3, 'cols' => 60]
+            );
             $mform->setType('lti_redirectionuris', PARAM_TEXT);
             $mform->addHelpButton('lti_redirectionuris', 'redirectionuris', 'core_ltix');
             $mform->hideIf('lti_redirectionuris', 'lti_ltiversion', 'neq', LTI_VERSION_1P3);
@@ -156,15 +163,19 @@ class edit_types extends moodleform {
         }
 
         if ($istool) {
-            $mform->addElement('textarea', 'lti_parameters', get_string('parameter', 'core_ltix'),
-                array('rows' => 4, 'cols' => 60));
+            $mform->addElement(
+                'textarea',
+                'lti_parameters',
+                get_string('parameter', 'core_ltix'),
+                ['rows' => 4, 'cols' => 60]
+            );
             $mform->setType('lti_parameters', PARAM_TEXT);
             $mform->addHelpButton('lti_parameters', 'parameter', 'core_ltix');
             $mform->disabledIf('lti_parameters', null);
             $mform->setForceLtr('lti_parameters');
         }
 
-        $mform->addElement('textarea', 'lti_customparameters', get_string('custom', 'core_ltix'), array('rows' => 4, 'cols' => 60));
+        $mform->addElement('textarea', 'lti_customparameters', get_string('custom', 'core_ltix'), ['rows' => 4, 'cols' => 60]);
         $mform->setType('lti_customparameters', PARAM_TEXT);
         $mform->addHelpButton('lti_customparameters', 'custom', 'core_ltix');
         $mform->setForceLtr('lti_customparameters');
@@ -213,8 +224,12 @@ class edit_types extends moodleform {
             $mform->disabledIf('lti_contentitem', null);
         }
 
-        $mform->addElement('text', 'lti_toolurl_ContentItemSelectionRequest',
-            get_string('toolurl_contentitemselectionrequest', 'core_ltix'), array('size' => '64'));
+        $mform->addElement(
+            'text',
+            'lti_toolurl_ContentItemSelectionRequest',
+            get_string('toolurl_contentitemselectionrequest', 'core_ltix'),
+            ['size' => '64']
+        );
         $mform->setType('lti_toolurl_ContentItemSelectionRequest', PARAM_URL);
         $mform->addHelpButton('lti_toolurl_ContentItemSelectionRequest', 'toolurl_contentitemselectionrequest', 'core_ltix');
         $mform->disabledIf('lti_toolurl_ContentItemSelectionRequest', 'lti_contentitem', 'notchecked');
@@ -225,12 +240,12 @@ class edit_types extends moodleform {
         $mform->addElement('hidden', 'oldicon');
         $mform->setType('oldicon', PARAM_URL);
 
-        $mform->addElement('text', 'lti_icon', get_string('icon_url', 'core_ltix'), array('size' => '64'));
+        $mform->addElement('text', 'lti_icon', get_string('icon_url', 'core_ltix'), ['size' => '64']);
         $mform->setType('lti_icon', PARAM_URL);
         $mform->setAdvanced('lti_icon');
         $mform->addHelpButton('lti_icon', 'icon_url', 'core_ltix');
 
-        $mform->addElement('text', 'lti_secureicon', get_string('secure_icon_url', 'core_ltix'), array('size' => '64'));
+        $mform->addElement('text', 'lti_secureicon', get_string('secure_icon_url', 'core_ltix'), ['size' => '64']);
         $mform->setType('lti_secureicon', PARAM_URL);
         $mform->setAdvanced('lti_secureicon');
         $mform->addHelpButton('lti_secureicon', 'secure_icon_url', 'core_ltix');
@@ -288,7 +303,7 @@ class edit_types extends moodleform {
             if (!empty($CFG->ltix_forcessl)) {
                 $mform->setDefault('lti_forcessl', '1');
                 $mform->freeze('lti_forcessl');
-            } else if(!empty($CFG->mod_lti_forcessl)) {
+            } else if (!empty($CFG->mod_lti_forcessl)) {
                 debugging('mod_lti_forcessl is deprecated. Please use ltix_forcessl instead.', DEBUG_DEVELOPER);
                 $mform->setDefault('lti_forcessl', '1');
                 $mform->freeze('lti_forcessl');
@@ -307,8 +322,12 @@ class edit_types extends moodleform {
                 );
 
                 // TODO: all these lang strings need to come to core_ltix + check whether we can deprecate them in mod_lti.
-                $mform->addElement('select', 'lti_organizationid_default', get_string('organizationid_default', 'core_ltix'),
-                    $options);
+                $mform->addElement(
+                    'select',
+                    'lti_organizationid_default',
+                    get_string('organizationid_default', 'core_ltix'),
+                    $options
+                );
                 $mform->setType('lti_organizationid_default', PARAM_TEXT);
                 $mform->setDefault('lti_organizationid_default', LTI_DEFAULT_ORGID_SITEID);
                 $mform->addHelpButton('lti_organizationid_default', 'organizationid_default', 'core_ltix');

@@ -42,7 +42,6 @@ require_once($CFG->dirroot . '/ltix/TrivialStore.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class toolproxy extends \core_ltix\local\ltiservice\resource_base {
-
     /**
      * Class constructor.
      *

@@ -33,7 +33,6 @@ use Firebase\JWT\JWT;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class jwks_helper {
-
     /**
      *
      * See https://www.imsglobal.org/spec/security/v1p1#approved-jwt-signing-algorithms.
@@ -45,7 +44,7 @@ class jwks_helper {
         'RS512' => 'RSA',
         'ES256' => 'EC',
         'ES384' => 'EC',
-        'ES512' => 'EC'
+        'ES512' => 'EC',
     ];
 
     /**
@@ -58,7 +57,7 @@ class jwks_helper {
         $kid = get_config('core_ltix', 'kid');
         return [
             "key" => $privatekey,
-            "kid" => $kid
+            "kid" => $kid,
         ];
     }
 
@@ -67,7 +66,7 @@ class jwks_helper {
      * @return array keyset exposting the site public key.
      */
     public static function get_jwks() {
-        $jwks = array('keys' => array());
+        $jwks = ['keys' => []];
 
         $privatekey = self::get_private_key();
         $res = openssl_pkey_get_private($privatekey['key']);
@@ -78,7 +77,7 @@ class jwks_helper {
             throw new \moodle_exception('Error: essential openssl keys not set');
         }
 
-        $jwk = array();
+        $jwk = [];
         $jwk['kty'] = 'RSA';
         $jwk['alg'] = 'RS256';
         $jwk['kid'] = $privatekey['kid'];
@@ -124,8 +123,10 @@ class jwks_helper {
             }
 
             // The header alg must match the key type (family) specified in the JWK's kty.
-            if (!isset(static::$ltisupportedalgs[$jwtheader['alg']]) ||
-                    static::$ltisupportedalgs[$jwtheader['alg']] != $key['kty']) {
+            if (
+                !isset(static::$ltisupportedalgs[$jwtheader['alg']]) ||
+                    static::$ltisupportedalgs[$jwtheader['alg']] != $key['kty']
+            ) {
                 throw new \moodle_exception('Error: Alg specified in the JWT header is incompatible with the JWK key type');
             }
 
@@ -134,5 +135,4 @@ class jwks_helper {
 
         return $jwks;
     }
-
 }

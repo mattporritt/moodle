@@ -35,7 +35,6 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\core_ltix\external\delete_course_tool_type::class)]
 final class delete_course_tool_type_test extends lti_testcase {
-
     /**
      * Test delete_course_tool() for a course tool.
      */
@@ -49,12 +48,12 @@ final class delete_course_tool_type_test extends lti_testcase {
         $typeid = helper::add_type(
             (object) [
                 'state' => LTI_TOOL_STATE_CONFIGURED,
-                'course' => $course->id
+                'course' => $course->id,
             ],
             (object) [
                 'lti_typename' => "My course tool",
                 'lti_toolurl' => 'http://example.com',
-                'lti_ltiversion' => 'LTI-1p0'
+                'lti_ltiversion' => 'LTI-1p0',
             ]
         );
 

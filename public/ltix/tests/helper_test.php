@@ -50,17 +50,16 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class helper_test extends lti_testcase {
-
     /**
      * Test the split parameters function
      * @covers ::split_parameters
      */
     public function test_split_parameters(): void {
-        $this->assertEquals(helper::split_parameters(''), array());
-        $this->assertEquals(helper::split_parameters('a=1'), array('a' => '1'));
-        $this->assertEquals(helper::split_parameters("a=1\nb=2"), array('a' => '1', 'b' => '2'));
-        $this->assertEquals(helper::split_parameters("a=1\n\rb=2"), array('a' => '1', 'b' => '2'));
-        $this->assertEquals(helper::split_parameters("a=1\r\nb=2"), array('a' => '1', 'b' => '2'));
+        $this->assertEquals(helper::split_parameters(''), []);
+        $this->assertEquals(helper::split_parameters('a=1'), ['a' => '1']);
+        $this->assertEquals(helper::split_parameters("a=1\nb=2"), ['a' => '1', 'b' => '2']);
+        $this->assertEquals(helper::split_parameters("a=1\n\rb=2"), ['a' => '1', 'b' => '2']);
+        $this->assertEquals(helper::split_parameters("a=1\r\nb=2"), ['a' => '1', 'b' => '2']);
     }
 
     /**
@@ -74,31 +73,46 @@ final class helper_test extends lti_testcase {
         $tool->enabledcapability = '';
         $tool->parameter = '';
         $tool->ltiversion = 'LTI-1p0';
-        $this->assertEquals(helper::split_custom_parameters(null, $tool, array(), "x=1\ny=2", false),
-            array('custom_x' => '1', 'custom_y' => '2'));
+        $this->assertEquals(
+            helper::split_custom_parameters(null, $tool, [], "x=1\ny=2", false),
+            ['custom_x' => '1', 'custom_y' => '2']
+        );
 
         // Check params with caps.
-        $this->assertEquals(helper::split_custom_parameters(null, $tool, array(), "X=1", true),
-            array('custom_x' => '1', 'custom_X' => '1'));
+        $this->assertEquals(
+            helper::split_custom_parameters(null, $tool, [], "X=1", true),
+            ['custom_x' => '1', 'custom_X' => '1']
+        );
 
         // Removed repeat of previous test with a semicolon separator.
 
-        $this->assertEquals(helper::split_custom_parameters(null, $tool, array(), 'Review:Chapter=1.2.56', true),
-            array(
+        $this->assertEquals(
+            helper::split_custom_parameters(null, $tool, [], 'Review:Chapter=1.2.56', true),
+            [
                 'custom_review_chapter' => '1.2.56',
-                'custom_Review:Chapter' => '1.2.56'));
+            'custom_Review:Chapter' => '1.2.56']
+        );
 
-        $this->assertEquals(helper::split_custom_parameters(null, $tool, array(),
-            'Complex!@#$^*(){}[]KEY=Complex!@#$^*;(){}[]½Value', true),
-            array(
+        $this->assertEquals(
+            helper::split_custom_parameters(
+                null,
+                $tool,
+                [],
+                'Complex!@#$^*(){}[]KEY=Complex!@#$^*;(){}[]½Value',
+                true
+            ),
+            [
                 'custom_complex____________key' => 'Complex!@#$^*;(){}[]½Value',
-                'custom_Complex!@#$^*(){}[]KEY' => 'Complex!@#$^*;(){}[]½Value'));
+            'custom_Complex!@#$^*(){}[]KEY' => 'Complex!@#$^*;(){}[]½Value']
+        );
 
         // Test custom parameter that returns $USER property.
-        $user = $this->getDataGenerator()->create_user(array('middlename' => 'SOMETHING'));
+        $user = $this->getDataGenerator()->create_user(['middlename' => 'SOMETHING']);
         $this->setUser($user);
-        $this->assertEquals(array('custom_x' => '1', 'custom_y' => 'SOMETHING'),
-            helper::split_custom_parameters(null, $tool, array(), "x=1\ny=\$Person.name.middle", false));
+        $this->assertEquals(
+            ['custom_x' => '1', 'custom_y' => 'SOMETHING'],
+            helper::split_custom_parameters(null, $tool, [], "x=1\ny=\$Person.name.middle", false)
+        );
     }
 
     /**
@@ -112,7 +126,7 @@ final class helper_test extends lti_testcase {
             'url' => 'http://example.com/messages/launch',
             'title' => 'Test title',
             'text' => 'Test text',
-            'iframe' => []
+            'iframe' => [],
         ];
         $contentitems[] = [
             'type' => 'ltiResourceLink',
@@ -121,9 +135,9 @@ final class helper_test extends lti_testcase {
             'text' => 'Test text2',
             'iframe' => [
                 'height' => 200,
-                'width' => 300
+                'width' => 300,
             ],
-            'window' => []
+            'window' => [],
         ];
         $contentitems[] = [
             'type' => 'ltiResourceLink',
@@ -132,8 +146,8 @@ final class helper_test extends lti_testcase {
             'text' => 'Test text3',
             'window' => [
                 'targetName' => 'test-win',
-                'height' => 400
-            ]
+                'height' => 400,
+            ],
         ];
 
         $contentitems = json_encode($contentitems);
@@ -210,18 +224,20 @@ final class helper_test extends lti_testcase {
             'lineItem' => [
                 'resourceId' => 'r12345',
                 'tag' => 'final',
-                'scoreMaximum' => 10.0
+                'scoreMaximum' => 10.0,
             ],
-            'frame' => []
+            'frame' => [],
         ];
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = helper::tool_configuration_from_content_item($typeid,
+        $config = helper::tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
 
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
         $this->assertEquals(LTI_SETTING_ALWAYS, $config->instructorchoiceacceptgrades);
@@ -257,19 +273,21 @@ final class helper_test extends lti_testcase {
                 'tag' => 'final',
                 'scoreMaximum' => 10.0,
                 'submissionReview' => [
-                    'url' => ''
-                ]
+                    'url' => '',
+                ],
             ],
-            'frame' => []
+            'frame' => [],
         ];
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = helper::tool_configuration_from_content_item($typeid,
+        $config = helper::tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
 
         $this->assertEquals('DEFAULT', $config->lineitemsubreviewurl);
         $this->assertEquals('', $config->lineitemsubreviewparams);
@@ -299,18 +317,20 @@ final class helper_test extends lti_testcase {
                 'resourceId' => 'r12345',
                 'tag' => 'final',
                 'scoreMaximum' => 10.0,
-                'submissionReview' => []
+                'submissionReview' => [],
             ],
-            'frame' => []
+            'frame' => [],
         ];
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = helper::tool_configuration_from_content_item($typeid,
+        $config = helper::tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
 
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
         $this->assertEquals(LTI_SETTING_ALWAYS, $config->instructorchoiceacceptgrades);
@@ -345,9 +365,9 @@ final class helper_test extends lti_testcase {
             'text' => 'Test text',
             'icon' => [
                 'url' => 'http://lti.example.com/image.jpg',
-                'width' => 100
+                'width' => 100,
             ],
-            'frame' => []
+            'frame' => [],
         ];
         $contentitems[] = [
             'type' => 'ltiResourceLink',
@@ -359,21 +379,23 @@ final class helper_test extends lti_testcase {
                 'scoreMaximum' => 10.0,
                 'submissionReview' => [
                     'url' => 'https://testsub.url',
-                    'custom' => ['a' => 'b']
-                ]
+                    'custom' => ['a' => 'b'],
+                ],
             ],
-            'frame' => []
+            'frame' => [],
         ];
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = helper::tool_configuration_from_content_item($typeid,
+        $config = helper::tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
         $this->assertNotNull($config->multiple);
-        $this->assertEquals(2, count( $config->multiple ));
+        $this->assertEquals(2, count($config->multiple));
         $this->assertEquals($contentitems[0]['title'], $config->multiple[0]->name);
         $this->assertEquals($contentitems[0]['url'], $config->multiple[0]->toolurl);
         $this->assertEquals(LTI_SETTING_NEVER, $config->multiple[0]->instructorchoiceacceptgrades);
@@ -408,24 +430,25 @@ final class helper_test extends lti_testcase {
             'text' => 'Test text',
             'icon' => [
                 'url' => 'http://lti.example.com/image.jpg',
-                'width' => 100
+                'width' => 100,
             ],
-            'frame' => []
+            'frame' => [],
         ];
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = helper::tool_configuration_from_content_item($typeid,
+        $config = helper::tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
         $this->assertEquals($contentitems[0]['title'], $config->name);
         $this->assertEquals($contentitems[0]['text'], $config->introeditor['text']);
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
         $this->assertEquals($contentitems[0]['icon']['url'], $config->icon);
         $this->assertEquals(LTI_SETTING_NEVER, $config->instructorchoiceacceptgrades);
-
     }
 
     /**
@@ -467,42 +490,42 @@ final class helper_test extends lti_testcase {
                 'baseurl' => 'https://example.com/i/am/?where=here',
                 'tooldomain' => 'example.com',
                 'state' => LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'There',
                 'baseurl' => 'https://example.com/i/am/?where=there',
                 'tooldomain' => 'example.com',
                 'state' => LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Not here',
                 'baseurl' => 'https://example.com/i/am/?where=not/here',
                 'tooldomain' => 'example.com',
                 'state' => LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Here',
                 'baseurl' => 'https://example.com/i/am/',
                 'tooldomain' => 'example.com',
                 'state' => LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Here',
                 'baseurl' => 'https://example.com/i/was',
                 'tooldomain' => 'example.com',
                 'state' => LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Here',
                 'baseurl' => 'https://badexample.com/i/am/?where=here',
                 'tooldomain' => 'badexample.com',
                 'state' => LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
         ];
 
@@ -533,22 +556,22 @@ final class helper_test extends lti_testcase {
             ],
             [
                 'url' => 'https://nomatch.com/i/am/',
-                'expected' => null
+                'expected' => null,
             ],
             [
                 'url' => 'https://example.com',
-                'expected' => null
+                'expected' => null,
             ],
             [
                 'url' => 'https://example.com/i/am/?where=unknown',
-                'expected' => $tools[3]
-            ]
+                'expected' => $tools[3],
+            ],
         ];
 
         // Construct the final array as required by the provider API. Each row
         // of the array contains the URL to test, the expected tool, and
         // the complete list of tools.
-        return array_map(function($data) use ($tools) {
+        return array_map(function ($data) use ($tools) {
             return [$data['url'], $data['expected'], $tools];
         }, $data);
     }
@@ -583,7 +606,7 @@ final class helper_test extends lti_testcase {
             'description' => 'Good example description',
             'tooldomain' => 'example.com',
             'baseurl' => 'https://example.com/i/am/?where=here',
-            'state' => LTI_TOOL_STATE_CONFIGURED
+            'state' => LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         // Create a tool type with bad domain.
@@ -592,7 +615,7 @@ final class helper_test extends lti_testcase {
             'description' => 'Bad example description',
             'tooldomain' => 'badexample.com',
             'baseurl' => 'https://badexample.com/i/am/?where=here',
-            'state' => LTI_TOOL_STATE_CONFIGURED
+            'state' => LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         $records = helper::get_tools_by_domain('example.com', LTI_TOOL_STATE_CONFIGURED);
@@ -626,7 +649,7 @@ final class helper_test extends lti_testcase {
             'tooldomain' => 'exampleone.com',
             'baseurl' => 'https://exampleone.com/tool/1',
             'state' => LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat1->id
+            'lti_coursecategories' => $coursecat1->id,
         ]);
 
         // Create another tool type using the same domain, restricted to category2.
@@ -636,7 +659,7 @@ final class helper_test extends lti_testcase {
             'tooldomain' => 'exampleone.com',
             'baseurl' => 'https://exampleone.com/tool/2',
             'state' => LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
 
         // Create a tool type with domain restricting to a category2.
@@ -646,7 +669,7 @@ final class helper_test extends lti_testcase {
             'tooldomain' => 'exampletwo.com',
             'baseurl' => 'https://exampletwo.com/tool/3',
             'state' => LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
 
         // Get tool types for domain 'exampleone' in course 1 and verify only the one result under course category 1 is included.
@@ -723,7 +746,7 @@ final class helper_test extends lti_testcase {
         $course2 = $this->getDataGenerator()->create_course(['category' => $coursecat2->id]);
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
         $teacher2 = $this->getDataGenerator()->create_and_enrol($course2, 'editingteacher');
-        $context =  \core\context\course::instance($course->id);
+        $context = \core\context\course::instance($course->id);
 
         $this->setUser($teacher);
 
@@ -743,32 +766,32 @@ final class helper_test extends lti_testcase {
             'name' => 'site tool do not show',
             'baseurl' => 'http://example.com/tool/1',
             'coursevisible' => LTI_COURSEVISIBLE_NO,
-            'state' => LTI_TOOL_STATE_CONFIGURED
+            'state' => LTI_TOOL_STATE_CONFIGURED,
         ]);
         $tool2id = $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured only',
             'baseurl' => 'http://example.com/tool/2',
             'coursevisible' => LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => LTI_TOOL_STATE_CONFIGURED
+            'state' => LTI_TOOL_STATE_CONFIGURED,
         ]);
         $tool3id = $ltigenerator->create_course_tool_types([
             'name' => 'course tool preconfigured and activity chooser',
             'baseurl' => 'http://example.com/tool/3',
-            'course' => $course->id
+            'course' => $course->id,
         ]);
         $tool4id = $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser, restricted to category 2',
             'baseurl' => 'http://example.com/tool/4',
             'coursevisible' => LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'state' => LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
         $tool5id = $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser, restricted to category 1',
             'baseurl' => 'http://example.com/tool/5',
             'coursevisible' => LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'state' => LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat1->id
+            'lti_coursecategories' => $coursecat1->id,
         ]);
 
         // LTI_COURSEVISIBLE_NO can't be updated.
@@ -781,8 +804,11 @@ final class helper_test extends lti_testcase {
 
         $result = helper::override_type_showinactivitychooser($tool2id, $course->id, $context, true);
         $this->assertTrue($result);
-        $coursevisibleoverriden = $DB->get_field('lti_coursevisible', 'coursevisible',
-            ['typeid' => $tool2id, 'courseid' => $course->id]);
+        $coursevisibleoverriden = $DB->get_field(
+            'lti_coursevisible',
+            'coursevisible',
+            ['typeid' => $tool2id, 'courseid' => $course->id]
+        );
         $this->assertEquals(LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $coursevisibleoverriden);
 
         $result = helper::override_type_showinactivitychooser($tool3id, $course->id, $context, false);
@@ -798,8 +824,11 @@ final class helper_test extends lti_testcase {
         // Restricted category allowed.
         $result = helper::override_type_showinactivitychooser($tool5id, $course->id, $context, false);
         $this->assertTrue($result);
-        $coursevisibleoverriden = $DB->get_field('lti_coursevisible', 'coursevisible',
-            ['typeid' => $tool5id, 'courseid' => $course->id]);
+        $coursevisibleoverriden = $DB->get_field(
+            'lti_coursevisible',
+            'coursevisible',
+            ['typeid' => $tool5id, 'courseid' => $course->id]
+        );
         $this->assertEquals(LTI_COURSEVISIBLE_PRECONFIGURED, $coursevisibleoverriden);
 
         $this->setUser($teacher2);
@@ -861,7 +890,7 @@ final class helper_test extends lti_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
         $this->generate_tool_types_and_proxies(10);
-        list($proxies, $types) = helper::get_lti_types_and_proxies();
+        [$proxies, $types] = helper::get_lti_types_and_proxies();
 
         $this->assertCount(10, $proxies);
         $this->assertCount(10, $types);
@@ -877,19 +906,19 @@ final class helper_test extends lti_testcase {
         $this->generate_tool_types_and_proxies(10);
 
         // Get the middle 10 data sets (of 20 total).
-        list($proxies, $types) = helper::get_lti_types_and_proxies(10, 5);
+        [$proxies, $types] = helper::get_lti_types_and_proxies(10, 5);
 
         $this->assertCount(5, $proxies);
         $this->assertCount(5, $types);
 
         // Get the last 5 data sets with large limit (of 20 total).
-        list($proxies, $types) = helper::get_lti_types_and_proxies(50, 15);
+        [$proxies, $types] = helper::get_lti_types_and_proxies(50, 15);
 
         $this->assertCount(0, $proxies);
         $this->assertCount(5, $types);
 
         // Get the last 13 data sets with large limit (of 20 total).
-        list($proxies, $types) = helper::get_lti_types_and_proxies(50, 7);
+        [$proxies, $types] = helper::get_lti_types_and_proxies(50, 7);
 
         $this->assertCount(3, $proxies);
         $this->assertCount(10, $types);
@@ -905,19 +934,19 @@ final class helper_test extends lti_testcase {
         $this->generate_tool_types_and_proxies(10, 5);
 
         // Get the first 10 data sets (of 15 total).
-        list($proxies, $types) = helper::get_lti_types_and_proxies(10, 0, true);
+        [$proxies, $types] = helper::get_lti_types_and_proxies(10, 0, true);
 
         $this->assertCount(5, $proxies);
         $this->assertCount(5, $types);
 
         // Get the middle 10 data sets with large limit (of 15 total).
-        list($proxies, $types) = helper::get_lti_types_and_proxies(10, 2, true);
+        [$proxies, $types] = helper::get_lti_types_and_proxies(10, 2, true);
 
         $this->assertCount(3, $proxies);
         $this->assertCount(7, $types);
 
         // Get the last 5 data sets with large limit (of 15 total).
-        list($proxies, $types) = helper::get_lti_types_and_proxies(50, 10, true);
+        [$proxies, $types] = helper::get_lti_types_and_proxies(50, 10, true);
 
         $this->assertCount(0, $proxies);
         $this->assertCount(5, $types);
@@ -971,19 +1000,19 @@ final class helper_test extends lti_testcase {
 
         self::setUser($this->getDataGenerator()->create_user());
         $course   = $this->getDataGenerator()->create_course();
-        $instance = $this->getDataGenerator()->create_module('lti', array(
+        $instance = $this->getDataGenerator()->create_module('lti', [
             'intro'       => "<p>This</p>\nhas\r\n<p>some</p>\nnew\n\rlines",
             'introformat' => FORMAT_HTML,
             'course'      => $course->id,
-        ));
+        ]);
 
-        $typeconfig = array(
+        $typeconfig = [
             'acceptgrades'     => 1,
             'forcessl'         => 0,
             'sendname'         => 2,
             'sendemailaddr'    => 2,
             'customparameters' => '',
-        );
+        ];
 
         // Normal call, we expect $instance->id to be used as resource_link_id.
         $params = helper::build_request($instance, $typeconfig, $course, null);
@@ -1011,19 +1040,19 @@ final class helper_test extends lti_testcase {
 
         self::setUser($this->getDataGenerator()->create_user());
         $course   = $this->getDataGenerator()->create_course();
-        $instance = $this->getDataGenerator()->create_module('lti', array(
+        $instance = $this->getDataGenerator()->create_module('lti', [
             'intro'       => "<p>This</p>\nhas\r\n<p>some</p>\nnew\n\rlines",
             'introformat' => FORMAT_HTML,
             'course'      => $course->id,
-        ));
+        ]);
 
-        $typeconfig = array(
+        $typeconfig = [
             'acceptgrades'     => 1,
             'forcessl'         => 0,
             'sendname'         => 2,
             'sendemailaddr'    => 2,
             'customparameters' => '',
-        );
+        ];
 
         $params = helper::build_request($instance, $typeconfig, $course, null);
 
@@ -1143,7 +1172,8 @@ final class helper_test extends lti_testcase {
         $CFG->ltix_institution_name = 'some institution name lols';
 
         $course   = $this->getDataGenerator()->create_course();
-        $instance = $this->getDataGenerator()->create_module('lti',
+        $instance = $this->getDataGenerator()->create_module(
+            'lti',
             [
                 'course' => $course->id,
             ]
@@ -1168,7 +1198,8 @@ final class helper_test extends lti_testcase {
         $this->resetAfterTest();
 
         $course   = $this->getDataGenerator()->create_course();
-        $instance = $this->getDataGenerator()->create_module('lti',
+        $instance = $this->getDataGenerator()->create_module(
+            'lti',
             [
                 'course' => $course->id,
             ]
@@ -1212,7 +1243,7 @@ final class helper_test extends lti_testcase {
         $permittedscopes = helper::get_permitted_service_scopes($tool, $config);
 
         $expected = [
-            'https://purl.imsglobal.org/spec/lti-bo/scope/basicoutcome'
+            'https://purl.imsglobal.org/spec/lti-bo/scope/basicoutcome',
         ];
         $this->assertEquals($expected, $permittedscopes);
     }
@@ -1229,7 +1260,8 @@ final class helper_test extends lti_testcase {
         $USER->id = 123456789;
 
         $course   = $this->getDataGenerator()->create_course();
-        $instance = $this->getDataGenerator()->create_module('lti',
+        $instance = $this->getDataGenerator()->create_module(
+            'lti',
             [
                 'course' => $course->id,
             ]
@@ -1245,7 +1277,7 @@ final class helper_test extends lti_testcase {
         $this->assertEquals('http://some-lti-tool-url', $request['target_link_uri']);
         $this->assertEquals(123456789, $request['login_hint']);
         $this->assertTrue(strpos($request['lti_message_hint'], "\"cmid\":{$instance->cmid}") > 0);
-        $this->assertTrue(strpos($request['lti_message_hint'],  "\"launchid\":\"ltilaunch{$instance->id}_") > 0);
+        $this->assertTrue(strpos($request['lti_message_hint'], "\"launchid\":\"ltilaunch{$instance->id}_") > 0);
         $this->assertEquals('some-client-id', $request['client_id']);
         $this->assertEquals('some-type-id', $request['lti_deployment_id']);
     }
@@ -1270,7 +1302,7 @@ final class helper_test extends lti_testcase {
 
         if ($switchedto) {
             $this->setUser($user);
-            $role = $DB->get_record('role', array('shortname' => $switchedto));
+            $role = $DB->get_record('role', ['shortname' => $switchedto]);
             role_switch($role->id, \context_course::instance($course->id));
         }
 
@@ -1288,63 +1320,62 @@ final class helper_test extends lti_testcase {
                 'islti2' => false,
                 'rolename' => 'student',
                 'switchedto' => null,
-                'expected' => 'Learner'
+                'expected' => 'Learner',
             ],
             'Student, LTI 2.0, no role switch' => [
                 'islti2' => true,
                 'rolename' => 'student',
                 'switchedto' => null,
-                'expected' => 'Learner'
+                'expected' => 'Learner',
             ],
             'Teacher, LTI 1.1, no role switch' => [
                 'islti2' => false,
                 'rolename' => 'editingteacher',
                 'switchedto' => null,
-                'expected' => 'Instructor'
+                'expected' => 'Instructor',
             ],
             'Teacher, LTI 2.0, no role switch' => [
                 'islti2' => true,
                 'rolename' => 'editingteacher',
                 'switchedto' => null,
-                'expected' => 'Instructor'
+                'expected' => 'Instructor',
             ],
             'Admin, LTI 1.1, no role switch' => [
                 'islti2' => false,
                 'rolename' => 'admin',
                 'switchedto' => null,
-                'expected' => 'Instructor,urn:lti:sysrole:ims/lis/Administrator,urn:lti:instrole:ims/lis/Administrator'
+                'expected' => 'Instructor,urn:lti:sysrole:ims/lis/Administrator,urn:lti:instrole:ims/lis/Administrator',
             ],
             'Admin, LTI 2.0, no role switch' => [
                 'islti2' => true,
                 'rolename' => 'admin',
                 'switchedto' => null,
-                'expected' => 'Instructor,http://purl.imsglobal.org/vocab/lis/v2/person#Administrator'
+                'expected' => 'Instructor,http://purl.imsglobal.org/vocab/lis/v2/person#Administrator',
             ],
             'Admin, LTI 1.1, role switch student' => [
                 'islti2' => false,
                 'rolename' => 'admin',
                 'switchedto' => 'student',
-                'expected' => 'Learner'
+                'expected' => 'Learner',
             ],
             'Admin, LTI 2.0, role switch student' => [
                 'islti2' => true,
                 'rolename' => 'admin',
                 'switchedto' => 'student',
-                'expected' => 'Learner'
+                'expected' => 'Learner',
             ],
             'Admin, LTI 1.1, role switch teacher' => [
                 'islti2' => false,
                 'rolename' => 'admin',
                 'switchedto' => 'editingteacher',
-                'expected' => 'Instructor'
+                'expected' => 'Instructor',
             ],
             'Admin, LTI 2.0, role switch teacher' => [
                 'islti2' => true,
                 'rolename' => 'admin',
                 'switchedto' => 'editingteacher',
-                'expected' => 'Instructor'
+                'expected' => 'Instructor',
             ],
         ];
     }
-
 }

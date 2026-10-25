@@ -33,7 +33,6 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class create_tool_proxy_test extends lti_testcase {
-
     /**
      * Setup method.
      *
@@ -70,10 +69,10 @@ final class create_tool_proxy_test extends lti_testcase {
      */
     public function test_create_tool_proxy_duplicateurl(): void {
         $this->setAdminUser();
-        create_tool_proxy::execute('Test proxy 1', $this->getExternalTestFileUrl('/test.html'), array(), array());
+        create_tool_proxy::execute('Test proxy 1', $this->getExternalTestFileUrl('/test.html'), [], []);
 
         $this->expectException(\moodle_exception::class);
-        create_tool_proxy::execute('Test proxy 2', $this->getExternalTestFileUrl('/test.html'), array(), array());
+        create_tool_proxy::execute('Test proxy 2', $this->getExternalTestFileUrl('/test.html'), [], []);
     }
 
     /**
@@ -87,6 +86,6 @@ final class create_tool_proxy_test extends lti_testcase {
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
         $this->setUser($teacher);
         $this->expectException(\required_capability_exception::class);
-        create_tool_proxy::execute('Test proxy', $this->getExternalTestFileUrl('/test.html'), array(), array());
+        create_tool_proxy::execute('Test proxy', $this->getExternalTestFileUrl('/test.html'), [], []);
     }
 }

@@ -31,7 +31,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class create_tool_proxy extends external_api {
-
     /**
      * Parameters definition.
      *
@@ -39,18 +38,22 @@ class create_tool_proxy extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
-            array(
+            [
                 'name' => new external_value(PARAM_TEXT, 'Tool proxy name', VALUE_DEFAULT, ''),
                 'regurl' => new external_value(PARAM_URL, 'Tool proxy registration URL'),
                 'capabilityoffered' => new external_multiple_structure(
                     new external_value(PARAM_TEXT, 'Tool proxy capabilities offered'),
-                    'Array of capabilities', VALUE_DEFAULT, array()
+                    'Array of capabilities',
+                    VALUE_DEFAULT,
+                    []
                 ),
                 'serviceoffered' => new external_multiple_structure(
                     new external_value(PARAM_TEXT, 'Tool proxy services offered'),
-                    'Array of services', VALUE_DEFAULT, array()
-                )
-            )
+                    'Array of services',
+                    VALUE_DEFAULT,
+                    []
+                ),
+            ]
         );
     }
 
@@ -63,19 +66,25 @@ class create_tool_proxy extends external_api {
      * @param string[] $serviceoffered List of services this tool proxy should be offered
      * @return object The new tool proxy
      */
-    public static function execute(string $name, string $registrationurl, array $capabilityoffered = [],
-            array $serviceoffered = []): object {
+    public static function execute(
+        string $name,
+        string $registrationurl,
+        array $capabilityoffered = [],
+        array $serviceoffered = []
+    ): object {
 
         global $CFG;
         require_once($CFG->dirroot . '/ltix/constants.php');
 
-        $params = self::validate_parameters(self::execute_parameters(),
-            array(
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
                 'name' => $name,
                 'regurl' => $registrationurl,
                 'capabilityoffered' => $capabilityoffered,
-                'serviceoffered' => $serviceoffered
-            ));
+                'serviceoffered' => $serviceoffered,
+            ]
+        );
         $name = $params['name'];
         $regurl = $params['regurl'];
         $capabilityoffered = $params['capabilityoffered'];

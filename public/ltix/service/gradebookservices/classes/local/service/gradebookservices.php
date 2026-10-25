@@ -254,8 +254,10 @@ class gradebookservices extends service_base {
         $this->set_typeconfig(\core_ltix\helper::get_type_config($typeid));
         // Only inject parameters if the service is enabled for this tool.
         if (isset($this->get_typeconfig()['ltixservice_gradesynchronization'])) {
-            if ($this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_READ ||
-                    $this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_FULL) {
+            if (
+                $this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_READ ||
+                    $this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_FULL
+            ) {
                 // Check for used in context is only needed because there is no explicit site tool - course relation.
                 if ($this->is_allowed_in_context($typeid, $courseid)) {
                     $id = null;
@@ -455,7 +457,7 @@ class gradebookservices extends service_base {
         $item->itemtype = 'manual';
         $item->grademax = $maximumscore;
         $id = $item->insert('ltixservice_gradebookservices');
-        $DB->insert_record('ltixservice_gradebookservices', (object)array(
+        $DB->insert_record('ltixservice_gradebookservices', (object)[
                 'gradeitemid' => $id,
                 'courseid' => $courseid,
                 'toolproxyid' => $toolproxyid,
@@ -463,8 +465,8 @@ class gradebookservices extends service_base {
                 'baseurl' => $baseurl,
                 'ltilinkid' => $ltilinkid,
                 'resourceid' => $resourceid,
-                'tag' => $tag
-        ));
+                'tag' => $tag,
+        ]);
         return $id;
     }
 
@@ -744,7 +746,7 @@ class gradebookservices extends service_base {
                     $DB->update_record('ltixservice_gradebookservices', $gbs);
                 } else {
                     $baseurl = \core_ltix\helper::get_type_type_config($ltiinstance->typeid)->lti_toolurl;
-                    $DB->insert_record('ltixservice_gradebookservices', (object)array(
+                    $DB->insert_record('ltixservice_gradebookservices', (object)[
                         'gradeitemid' => $gradeitem->id,
                         'courseid' => $gradeitem->courseid,
                         'typeid' => $ltiinstance->typeid,
@@ -753,8 +755,8 @@ class gradebookservices extends service_base {
                         'resourceid' => $resourceid,
                         'tag' => $tag,
                         'subreviewurl' => $subreviewurlstr,
-                        'subreviewparams' => $subreviewparams
-                    ));
+                        'subreviewparams' => $subreviewparams,
+                    ]);
                 }
             }
         }
@@ -874,8 +876,10 @@ class gradebookservices extends service_base {
     public static function find_ltixservice_gradebookservice_for_lineitem($lineitemid) {
         global $DB;
         if ($lineitemid) {
-            return $DB->get_record('ltixservice_gradebookservices',
-                    array('gradeitemid' => $lineitemid));
+            return $DB->get_record(
+                'ltixservice_gradebookservices',
+                ['gradeitemid' => $lineitemid]
+            );
         }
     }
 

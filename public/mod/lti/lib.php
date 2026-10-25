@@ -364,8 +364,10 @@ function lti_get_coursemodule_info($coursemodule) {
 
     // We want to use the right icon based on whether the
     // current page is being requested over http or https.
-    if (\core_ltix\helper::request_is_using_ssl() &&
-        (!empty($lti->secureicon) || (isset($toolconfig['secureicon']) && !empty($toolconfig['secureicon'])))) {
+    if (
+        \core_ltix\helper::request_is_using_ssl() &&
+        (!empty($lti->secureicon) || (isset($toolconfig['secureicon']) && !empty($toolconfig['secureicon'])))
+    ) {
         if (!empty($lti->secureicon)) {
             $info->iconurl = new moodle_url($lti->secureicon);
         } else {

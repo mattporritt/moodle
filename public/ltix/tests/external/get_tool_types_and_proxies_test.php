@@ -34,7 +34,6 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class get_tool_types_and_proxies_test extends lti_testcase {
-
     /**
      * This method runs before every test.
      */
@@ -76,7 +75,7 @@ final class get_tool_types_and_proxies_test extends lti_testcase {
             $this->generate_tool_type($i, $proxy->id);
         }
 
-        $data = get_tool_types_and_proxies::execute(0, false,  5, 0);
+        $data = get_tool_types_and_proxies::execute(0, false, 5, 0);
         $data = external_api::clean_returnvalue(get_tool_types_and_proxies::execute_returns(), $data);
 
         $this->assertCount(2, $data['types']);
@@ -114,7 +113,7 @@ final class get_tool_types_and_proxies_test extends lti_testcase {
             $this->generate_tool_type($i, $proxy->id);
         }
 
-        $data = get_tool_types_and_proxies::execute(0, false,  0, 0);
+        $data = get_tool_types_and_proxies::execute(0, false, 0, 0);
         $data = external_api::clean_returnvalue(get_tool_types_and_proxies::execute_returns(), $data);
 
         $this->assertCount(10, $data['types']);

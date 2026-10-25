@@ -30,7 +30,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class toggle_showinactivitychooser extends external_api {
-
     /**
      * Get parameter definition.
      *
@@ -63,10 +62,14 @@ class toggle_showinactivitychooser extends external_api {
             'showinactivitychooser' => $showinactivitychooser,
         ]);
 
-        $context =  course::instance($courseid);
+        $context = course::instance($courseid);
         self::validate_context($context);
-        return helper::override_type_showinactivitychooser($tooltypeid, $courseid, $context,
-            $showinactivitychooser);
+        return helper::override_type_showinactivitychooser(
+            $tooltypeid,
+            $courseid,
+            $context,
+            $showinactivitychooser
+        );
     }
 
     /**

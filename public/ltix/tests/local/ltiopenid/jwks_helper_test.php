@@ -43,7 +43,6 @@ namespace core_ltix\local\ltiopenid;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\core_ltix\local\ltiopenid\jwks_helper::class)]
 final class jwks_helper_test extends \advanced_testcase {
-
     /**
      * Test the fix_jwks_alg method with a range of inputs.
      *

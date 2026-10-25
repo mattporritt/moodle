@@ -18,7 +18,7 @@ namespace core_ltix\reportbuilder\local\systemreports;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->dirroot.'/ltix/constants.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
 
 use core\output\html_writer;
 use core_reportbuilder\local\helpers\database;
@@ -206,8 +206,10 @@ class course_external_tools_list extends system_report {
                 if (get_site()->id == $row->course) {
                     return \html_writer::div(
                         \html_writer::div(
-                            $OUTPUT->pix_icon('t/locked', get_string('courseexternaltoolsnoeditpermissions', 'core_ltix')
-                        ), 'tool-action-icon-container'), 'd-flex justify-content-end'
+                            $OUTPUT->pix_icon('t/locked', get_string('courseexternaltoolsnoeditpermissions', 'core_ltix')),
+                            'tool-action-icon-container'
+                        ),
+                        'd-flex justify-content-end'
                     );
                 }
 
@@ -215,8 +217,10 @@ class course_external_tools_list extends system_report {
                 if (!has_capability('moodle/ltix:addcoursetool', \context_course::instance($row->course))) {
                     return \html_writer::div(
                         \html_writer::div(
-                            $OUTPUT->pix_icon('t/locked', get_string('courseexternaltoolsnoeditpermissions', 'core_ltix')
-                        ), 'tool-action-icon-container'), 'd-flex justify-content-end'
+                            $OUTPUT->pix_icon('t/locked', get_string('courseexternaltoolsnoeditpermissions', 'core_ltix')),
+                            'tool-action-icon-container'
+                        ),
+                        'd-flex justify-content-end'
                     );
                 }
 

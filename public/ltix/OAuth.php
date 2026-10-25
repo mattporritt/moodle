@@ -61,7 +61,7 @@
  * @copyright moodle
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace core_ltix;//Using a namespace as the basicLTI module imports classes with the same names
+namespace core_ltix;// Using a namespace as the basicLTI module imports classes with the same names
 
 defined('MOODLE_INTERNAL') || die;
 

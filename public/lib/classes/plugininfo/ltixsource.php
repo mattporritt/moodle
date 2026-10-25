@@ -25,6 +25,9 @@ namespace core\plugininfo;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Plugin information for LTI source plugins.
+ */
 class ltixsource extends base {
     /**
      * Returns the node name used in admin settings menu for this plugin settings (if applicable)
@@ -32,7 +35,7 @@ class ltixsource extends base {
      * @return null|string node name or null if plugin does not create settings node (default)
      */
     public function get_settings_section_name() {
-        return 'ltixsourcesetting'.$this->name;
+        return 'ltixsourcesetting' . $this->name;
     }
 
     /**
@@ -53,12 +56,16 @@ class ltixsource extends base {
         if (!$this->is_installed_and_upgraded()) {
             return;
         }
-        if (!$hassiteconfig or !file_exists($this->full_path('settings.php'))) {
+        if (!$hassiteconfig || !file_exists($this->full_path('settings.php'))) {
             return;
         }
         $section  = $this->get_settings_section_name();
-        $settings = new \admin_settingpage($section, $this->displayname,
-            'moodle/site:config', $this->is_enabled() === false);
+        $settings = new \admin_settingpage(
+            $section,
+            $this->displayname,
+            'moodle/site:config',
+            $this->is_enabled() === false
+        );
 
         include($this->full_path('settings.php')); // This may also set $settings to null.
 

@@ -52,7 +52,7 @@ class tool_configure_page implements renderable, templatable {
         $keyhelp = new help_icon('resourcekey', 'core_ltix');
         $secrethelp = new help_icon('password', 'core_ltix');
 
-        $url = new moodle_url('/ltix/typessettings.php', array('sesskey' => sesskey(), 'returnto' => 'toolconfigure'));
+        $url = new moodle_url('/ltix/typessettings.php', ['sesskey' => sesskey(), 'returnto' => 'toolconfigure']);
         $data->configuremanualurl = $url->out();
         $url = new moodle_url('/admin/settings.php?section=ltixsettings');
         $data->managetoolsurl = $url->out();

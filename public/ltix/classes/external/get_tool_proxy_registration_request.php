@@ -30,7 +30,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_tool_proxy_registration_request extends external_api {
-
     /**
      * Parameters definition.
      *
@@ -38,9 +37,9 @@ class get_tool_proxy_registration_request extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
-            array(
+            [
                 'id' => new external_value(PARAM_INT, 'Tool proxy id'),
-            )
+            ]
         );
     }
 
@@ -51,10 +50,12 @@ class get_tool_proxy_registration_request extends external_api {
      * @return array of registration parameters
      */
     public static function execute(int $id): array {
-        $params = self::validate_parameters(get_tool_proxy_registration_request::execute_parameters(),
-            array(
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
                 'id' => $id,
-            ));
+            ]
+        );
         $id = $params['id'];
 
         $context = \context_system::instance();
@@ -72,7 +73,7 @@ class get_tool_proxy_registration_request extends external_api {
      */
     public static function execute_returns(): external_single_structure {
         return new external_single_structure(
-            array(
+            [
                 'lti_message_type' => new external_value(PARAM_ALPHANUMEXT, 'LTI message type'),
                 'lti_version' => new external_value(PARAM_ALPHANUMEXT, 'LTI version'),
                 'reg_key' => new external_value(PARAM_TEXT, 'Tool proxy registration key'),
@@ -80,7 +81,7 @@ class get_tool_proxy_registration_request extends external_api {
                 'reg_url' => new external_value(PARAM_TEXT, 'Tool proxy registration url'),
                 'tc_profile_url' => new external_value(PARAM_URL, 'Tool consumers profile URL'),
                 'launch_presentation_return_url' => new external_value(PARAM_URL, 'URL to redirect on registration completion'),
-            )
+            ]
         );
     }
 }

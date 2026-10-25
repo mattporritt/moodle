@@ -44,7 +44,6 @@ use core_ltix\TrivialOAuthDataStore;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class oauth_helper {
-
     /**
      * Signs the petition to launch the external tool using OAuth
      *
@@ -132,12 +131,12 @@ class oauth_helper {
      * @return array
      */
     public static function get_jwt_message_type_mapping() {
-        return array(
+        return [
             'basic-lti-launch-request' => 'LtiResourceLinkRequest',
             'ContentItemSelectionRequest' => 'LtiDeepLinkingRequest',
             'LtiDeepLinkingResponse' => 'ContentItemSelection',
             'LtiSubmissionReviewRequest' => 'LtiSubmissionReviewRequest',
-        );
+        ];
     }
 
     /**
@@ -157,318 +156,318 @@ class oauth_helper {
                 'group' => 'deep_linking_settings',
                 'claim' => 'accept_copy_advice',
                 'isarray' => false,
-                'type' => 'boolean'
+                'type' => 'boolean',
             ],
             'accept_media_types' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'accept_media_types',
-                'isarray' => true
+                'isarray' => true,
             ],
             'accept_multiple' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'accept_multiple',
                 'isarray' => false,
-                'type' => 'boolean'
+                'type' => 'boolean',
             ],
             'accept_presentation_document_targets' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'accept_presentation_document_targets',
-                'isarray' => true
+                'isarray' => true,
             ],
             'accept_types' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'accept_types',
-                'isarray' => true
+                'isarray' => true,
             ],
             'accept_unsigned' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'accept_unsigned',
                 'isarray' => false,
-                'type' => 'boolean'
+                'type' => 'boolean',
             ],
             'auto_create' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'auto_create',
                 'isarray' => false,
-                'type' => 'boolean'
+                'type' => 'boolean',
             ],
             'can_confirm' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'can_confirm',
                 'isarray' => false,
-                'type' => 'boolean'
+                'type' => 'boolean',
             ],
             'content_item_return_url' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'deep_link_return_url',
-                'isarray' => false
+                'isarray' => false,
             ],
             'content_items' => [
                 'suffix' => 'dl',
                 'group' => '',
                 'claim' => 'content_items',
-                'isarray' => true
+                'isarray' => true,
             ],
             'data' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'data',
-                'isarray' => false
+                'isarray' => false,
             ],
             'text' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'text',
-                'isarray' => false
+                'isarray' => false,
             ],
             'title' => [
                 'suffix' => 'dl',
                 'group' => 'deep_linking_settings',
                 'claim' => 'title',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lti_msg' => [
                 'suffix' => 'dl',
                 'group' => '',
                 'claim' => 'msg',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lti_log' => [
                 'suffix' => 'dl',
                 'group' => '',
                 'claim' => 'log',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lti_errormsg' => [
                 'suffix' => 'dl',
                 'group' => '',
                 'claim' => 'errormsg',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lti_errorlog' => [
                 'suffix' => 'dl',
                 'group' => '',
                 'claim' => 'errorlog',
-                'isarray' => false
+                'isarray' => false,
             ],
             'context_id' => [
                 'suffix' => '',
                 'group' => 'context',
                 'claim' => 'id',
-                'isarray' => false
+                'isarray' => false,
             ],
             'context_label' => [
                 'suffix' => '',
                 'group' => 'context',
                 'claim' => 'label',
-                'isarray' => false
+                'isarray' => false,
             ],
             'context_title' => [
                 'suffix' => '',
                 'group' => 'context',
                 'claim' => 'title',
-                'isarray' => false
+                'isarray' => false,
             ],
             'context_type' => [
                 'suffix' => '',
                 'group' => 'context',
                 'claim' => 'type',
-                'isarray' => true
+                'isarray' => true,
             ],
             'for_user_id' => [
                 'suffix' => '',
                 'group' => 'for_user',
                 'claim' => 'user_id',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lis_course_offering_sourcedid' => [
                 'suffix' => '',
                 'group' => 'lis',
                 'claim' => 'course_offering_sourcedid',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lis_course_section_sourcedid' => [
                 'suffix' => '',
                 'group' => 'lis',
                 'claim' => 'course_section_sourcedid',
-                'isarray' => false
+                'isarray' => false,
             ],
             'launch_presentation_css_url' => [
                 'suffix' => '',
                 'group' => 'launch_presentation',
                 'claim' => 'css_url',
-                'isarray' => false
+                'isarray' => false,
             ],
             'launch_presentation_document_target' => [
                 'suffix' => '',
                 'group' => 'launch_presentation',
                 'claim' => 'document_target',
-                'isarray' => false
+                'isarray' => false,
             ],
             'launch_presentation_height' => [
                 'suffix' => '',
                 'group' => 'launch_presentation',
                 'claim' => 'height',
-                'isarray' => false
+                'isarray' => false,
             ],
             'launch_presentation_locale' => [
                 'suffix' => '',
                 'group' => 'launch_presentation',
                 'claim' => 'locale',
-                'isarray' => false
+                'isarray' => false,
             ],
             'launch_presentation_return_url' => [
                 'suffix' => '',
                 'group' => 'launch_presentation',
                 'claim' => 'return_url',
-                'isarray' => false
+                'isarray' => false,
             ],
             'launch_presentation_width' => [
                 'suffix' => '',
                 'group' => 'launch_presentation',
                 'claim' => 'width',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lis_person_contact_email_primary' => [
                 'suffix' => '',
                 'group' => null,
                 'claim' => 'email',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lis_person_name_family' => [
                 'suffix' => '',
                 'group' => null,
                 'claim' => 'family_name',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lis_person_name_full' => [
                 'suffix' => '',
                 'group' => null,
                 'claim' => 'name',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lis_person_name_given' => [
                 'suffix' => '',
                 'group' => null,
                 'claim' => 'given_name',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lis_person_sourcedid' => [
                 'suffix' => '',
                 'group' => 'lis',
                 'claim' => 'person_sourcedid',
-                'isarray' => false
+                'isarray' => false,
             ],
             'user_id' => [
                 'suffix' => '',
                 'group' => null,
                 'claim' => 'sub',
-                'isarray' => false
+                'isarray' => false,
             ],
             'user_image' => [
                 'suffix' => '',
                 'group' => null,
                 'claim' => 'picture',
-                'isarray' => false
+                'isarray' => false,
             ],
             'roles' => [
                 'suffix' => '',
                 'group' => '',
                 'claim' => 'roles',
-                'isarray' => true
+                'isarray' => true,
             ],
             'role_scope_mentor' => [
                 'suffix' => '',
                 'group' => '',
                 'claim' => 'role_scope_mentor',
-                'isarray' => false
+                'isarray' => false,
             ],
             'deployment_id' => [
                 'suffix' => '',
                 'group' => '',
                 'claim' => 'deployment_id',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lti_message_type' => [
                 'suffix' => '',
                 'group' => '',
                 'claim' => 'message_type',
-                'isarray' => false
+                'isarray' => false,
             ],
             'lti_version' => [
                 'suffix' => '',
                 'group' => '',
                 'claim' => 'version',
-                'isarray' => false
+                'isarray' => false,
             ],
             'resource_link_description' => [
                 'suffix' => '',
                 'group' => 'resource_link',
                 'claim' => 'description',
-                'isarray' => false
+                'isarray' => false,
             ],
             'resource_link_id' => [
                 'suffix' => '',
                 'group' => 'resource_link',
                 'claim' => 'id',
-                'isarray' => false
+                'isarray' => false,
             ],
             'resource_link_title' => [
                 'suffix' => '',
                 'group' => 'resource_link',
                 'claim' => 'title',
-                'isarray' => false
+                'isarray' => false,
             ],
             'tool_consumer_info_product_family_code' => [
                 'suffix' => '',
                 'group' => 'tool_platform',
                 'claim' => 'product_family_code',
-                'isarray' => false
+                'isarray' => false,
             ],
             'tool_consumer_info_version' => [
                 'suffix' => '',
                 'group' => 'tool_platform',
                 'claim' => 'version',
-                'isarray' => false
+                'isarray' => false,
             ],
             'tool_consumer_instance_contact_email' => [
                 'suffix' => '',
                 'group' => 'tool_platform',
                 'claim' => 'contact_email',
-                'isarray' => false
+                'isarray' => false,
             ],
             'tool_consumer_instance_description' => [
                 'suffix' => '',
                 'group' => 'tool_platform',
                 'claim' => 'description',
-                'isarray' => false
+                'isarray' => false,
             ],
             'tool_consumer_instance_guid' => [
                 'suffix' => '',
                 'group' => 'tool_platform',
                 'claim' => 'guid',
-                'isarray' => false
+                'isarray' => false,
             ],
             'tool_consumer_instance_name' => [
                 'suffix' => '',
                 'group' => 'tool_platform',
                 'claim' => 'name',
-                'isarray' => false
+                'isarray' => false,
             ],
             'tool_consumer_instance_url' => [
                 'suffix' => '',
                 'group' => 'tool_platform',
                 'claim' => 'url',
-                'isarray' => false
-            ]
+                'isarray' => false,
+            ],
         ]);
         return $mapping;
     }
@@ -495,7 +494,7 @@ class oauth_helper {
         }
         if (isset($parms['roles'])) {
             $roles = explode(',', $parms['roles']);
-            $newroles = array();
+            $newroles = [];
             foreach ($roles as $role) {
                 if (strpos($role, 'urn:lti:role:ims/lis/') === 0) {
                     $role = 'http://purl.imsglobal.org/vocab/lis/v2/membership#' . substr($role, 21);
@@ -516,11 +515,11 @@ class oauth_helper {
             $nonce = bin2hex(openssl_random_pseudo_bytes(10));
         }
         $claimmapping = self::get_jwt_claim_mapping();
-        $payload = array(
+        $payload = [
             'nonce' => $nonce,
             'iat' => $now,
             'exp' => $now + 60,
-        );
+        ];
         $payload['iss'] = $CFG->wwwroot;
         $payload['aud'] = $oauthconsumerkey;
         $payload[LTI_JWT_CLAIM_PREFIX . '/claim/deployment_id'] = strval($typeid);
@@ -559,7 +558,7 @@ class oauth_helper {
         $privatekey = jwks_helper::get_private_key();
         $jwt = JWT::encode($payload, $privatekey['key'], 'RS256', $privatekey['kid']);
 
-        $newparms = array();
+        $newparms = [];
         $newparms['id_token'] = $jwt;
 
         return $newparms;
@@ -679,7 +678,7 @@ class oauth_helper {
      */
     public static function convert_from_jwt($typeid, $jwtparam) {
 
-        $params = array();
+        $params = [];
         $parts = explode('.', $jwtparam);
         $ok = (count($parts) === 3);
         if ($ok) {
@@ -766,15 +765,14 @@ class oauth_helper {
 
         // If we already generated a valid key, no need to check.
         if (empty($key)) {
-
             // Create the private key.
             $kid = bin2hex(openssl_random_pseudo_bytes(10));
             set_config('kid', $kid, 'core_ltix');
-            $config = array(
+            $config = [
                 "digest_alg" => "sha256",
                 "private_key_bits" => 2048,
                 "private_key_type" => OPENSSL_KEYTYPE_RSA,
-            );
+            ];
             $res = openssl_pkey_new($config);
             openssl_pkey_export($res, $privatekey);
 
@@ -795,7 +793,7 @@ class oauth_helper {
      *
      * @return string|int|boolean  The OAuth consumer key, the LTI type ID for the validated bearer token,
                                  true for requests not requiring a scope, otherwise false.
-    */
+     */
     public static function get_oauth_key_from_headers($typeid = null, $scopes = null) {
         global $DB;
 
@@ -812,14 +810,14 @@ class oauth_helper {
                 return true;
             } else if (substr($requestheaders['Authorization'], 0, 7) == 'Bearer ') {
                 $tokenvalue = trim(substr($requestheaders['Authorization'], 7));
-                $conditions = array('token' => $tokenvalue);
+                $conditions = ['token' => $tokenvalue];
                 if (!empty($typeid)) {
                     $conditions['typeid'] = intval($typeid);
                 }
                 $token = $DB->get_record('lti_access_tokens', $conditions);
                 if ($token) {
                     // Log token access.
-                    $DB->set_field('lti_access_tokens', 'lastaccess', $now, array('id' => $token->id));
+                    $DB->set_field('lti_access_tokens', 'lastaccess', $now, ['id' => $token->id]);
                     $permittedscopes = json_decode($token->scope);
                     if ((intval($token->validuntil) > $now) && !empty(array_intersect($scopes, $permittedscopes))) {
                         return intval($token->typeid);
@@ -830,6 +828,15 @@ class oauth_helper {
         return false;
     }
 
+    /**
+     * Verify the OAuth signature of a request with a signed body.
+     *
+     * @param string $oauthconsumerkey The consumer key.
+     * @param string $oauthconsumersecret The shared secret.
+     * @param string $body The request body.
+     * @param array|null $requestheaders The request headers, or null to read them from the request.
+     * @throws \OAuthException When the request is not signed correctly.
+     */
     public static function handle_oauth_body_post($oauthconsumerkey, $oauthconsumersecret, $body, $requestheaders = null) {
 
         if ($requestheaders == null) {
@@ -838,7 +845,7 @@ class oauth_helper {
 
         // Must reject application/x-www-form-urlencoded.
         if (isset($requestheaders['Content-type'])) {
-            if ($requestheaders['Content-type'] == 'application/x-www-form-urlencoded' ) {
+            if ($requestheaders['Content-type'] == 'application/x-www-form-urlencoded') {
                 throw new OAuthException("OAuth request body signing must not use application/x-www-form-urlencoded");
             }
         }
@@ -848,7 +855,7 @@ class oauth_helper {
             $oauthbodyhash = $headerparameters['oauth_body_hash'];
         }
 
-        if ( ! isset($oauthbodyhash)  ) {
+        if (! isset($oauthbodyhash)) {
             throw new OAuthException("OAuth request body signing requires oauth_body_hash body");
         }
 
@@ -873,7 +880,7 @@ class oauth_helper {
 
         $hash = base64_encode(sha1($postdata, true));
 
-        if ( $hash != $oauthbodyhash ) {
+        if ($hash != $oauthbodyhash) {
             throw new OAuthException("OAuth oauth_body_hash mismatch");
         }
 

@@ -44,7 +44,6 @@ namespace core_ltix\local\ltiopenid;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class registration_helper_test extends \basic_testcase {
-
     /**
      * @var string A has-it-all client registration.
      */

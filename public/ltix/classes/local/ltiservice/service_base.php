@@ -38,7 +38,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class service_base {
-
     /** Label representing an LTI 2 message type */
     const LTI_VERSION2P0 = 'LTI-2p0';
     /** Service enabled */
@@ -48,7 +47,7 @@ abstract class service_base {
     protected $id;
     /** @var string Human readable name for the service. */
     protected $name;
-    /** @var boolean <code>true</code> if requests for this service do not need to be signed. */
+    /** @var bool <code>true</code> if requests for this service do not need to be signed. */
     protected $unsigned;
     /** @var stdClass Tool proxy object for the current service request. */
     private $toolproxy;
@@ -72,7 +71,6 @@ abstract class service_base {
         $this->type = null;
         $this->typeconfig = null;
         $this->resources = null;
-
     }
 
     /**
@@ -83,7 +81,6 @@ abstract class service_base {
     public function get_id() {
 
         return $this->id;
-
     }
 
     /**
@@ -94,7 +91,6 @@ abstract class service_base {
     public function get_component_id() {
 
         return 'ltixservice_' . $this->id;
-
     }
 
     /**
@@ -105,7 +101,6 @@ abstract class service_base {
     public function get_name() {
 
         return $this->name;
-
     }
 
     /**
@@ -116,7 +111,6 @@ abstract class service_base {
     public function is_unsigned() {
 
         return $this->unsigned;
-
     }
 
     /**
@@ -127,7 +121,6 @@ abstract class service_base {
     public function get_tool_proxy() {
 
         return $this->toolproxy;
-
     }
 
     /**
@@ -140,7 +133,6 @@ abstract class service_base {
     public function set_tool_proxy($toolproxy) {
 
         $this->toolproxy = $toolproxy;
-
     }
 
     /**
@@ -151,7 +143,6 @@ abstract class service_base {
     public function get_type() {
 
         return $this->type;
-
     }
 
     /**
@@ -164,7 +155,6 @@ abstract class service_base {
     public function set_type($type) {
 
         $this->type = $type;
-
     }
 
     /**
@@ -175,7 +165,6 @@ abstract class service_base {
     public function get_typeconfig() {
 
         return $this->typeconfig;
-
     }
 
     /**
@@ -188,7 +177,6 @@ abstract class service_base {
     public function set_typeconfig($typeconfig) {
 
         $this->typeconfig = $typeconfig;
-
     }
 
     /**
@@ -226,7 +214,6 @@ abstract class service_base {
      * @param \MoodleQuickForm $mform Moodle quickform object definition
      */
     public function get_configuration_options(&$mform) {
-
     }
 
     /**
@@ -235,7 +222,6 @@ abstract class service_base {
      * @param object $lti LTI Instance.
      */
     public function instance_added(object $lti): void {
-
     }
 
     /**
@@ -244,7 +230,6 @@ abstract class service_base {
      * @param object $lti LTI Instance.
      */
     public function instance_updated(object $lti): void {
-
     }
 
     /**
@@ -259,8 +244,13 @@ abstract class service_base {
      *
      * @return array containing the target link URL and the custom params string to use.
      */
-    public function override_endpoint(string $messagetype, string $targetlinkuri,
-            ?string $customstr, int $courseid, ?object $lti = null): array {
+    public function override_endpoint(
+        string $messagetype,
+        string $targetlinkuri,
+        ?string $customstr,
+        int $courseid,
+        ?object $lti = null
+    ): array {
         return [$targetlinkuri, $customstr];
     }
 
@@ -270,7 +260,6 @@ abstract class service_base {
      * @param int $id LTI Instance.
      */
     public function instance_deleted(int $id): void {
-
     }
 
     /**
@@ -279,7 +268,6 @@ abstract class service_base {
      * @param object $defaultvalues Default form values.
      */
     public function set_instance_form_values(object $defaultvalues): void {
-
     }
 
     /**
@@ -290,7 +278,7 @@ abstract class service_base {
      */
     public function get_configuration_parameter_names() {
         debugging('get_configuration_parameter_names() has been deprecated.', DEBUG_DEVELOPER);
-        return array();
+        return [];
     }
 
     /**
@@ -308,8 +296,8 @@ abstract class service_base {
     public function is_used_in_context($typeid, $courseid) {
         global $DB;
 
-        $ok = $DB->record_exists('lti', array('course' => $courseid, 'typeid' => $typeid));
-        return $ok || $DB->record_exists('lti_types', array('course' => $courseid, 'id' => $typeid));
+        $ok = $DB->record_exists('lti', ['course' => $courseid, 'typeid' => $typeid]);
+        return $ok || $DB->record_exists('lti_types', ['course' => $courseid, 'id' => $typeid]);
     }
 
     /**
@@ -323,7 +311,7 @@ abstract class service_base {
         global $DB;
 
         // Check if it is a Course tool for this course or a Site tool.
-        $type = $DB->get_record('lti_types', array('id' => $typeid));
+        $type = $DB->get_record('lti_types', ['id' => $typeid]);
 
         return $type && ($type->course == $courseid || $type->course == SITEID);
     }
@@ -342,7 +330,7 @@ abstract class service_base {
      * @return array Key/value pairs to add as launch parameters.
      */
     public function get_launch_parameters($messagetype, $courseid, $userid, $typeid, $modlti = null) {
-        return array();
+        return [];
     }
 
     /**
@@ -365,7 +353,6 @@ abstract class service_base {
         $url = new \moodle_url('/ltix/services.php');
 
         return $url->out(false);
-
     }
 
     /**
@@ -387,7 +374,6 @@ abstract class service_base {
         }
 
         return $value;
-
     }
 
     /**
@@ -440,7 +426,6 @@ abstract class service_base {
         }
 
         return $ok;
-
     }
 
     /**
@@ -479,7 +464,6 @@ abstract class service_base {
         }
 
         return $ok;
-
     }
 
     /**
@@ -535,6 +519,5 @@ abstract class service_base {
         }
 
         return $ok;
-
     }
 }

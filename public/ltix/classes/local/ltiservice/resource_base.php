@@ -35,7 +35,6 @@ namespace core_ltix\local\ltiservice;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class resource_base {
-
     /**  HTTP Post method */
     const HTTP_POST = 'POST';
     /**  HTTP Get method */
@@ -74,12 +73,11 @@ abstract class resource_base {
         $this->type = 'RestService';
         $this->id = null;
         $this->template = null;
-        $this->methods = array();
-        $this->variables = array();
-        $this->formats = array();
-        $this->methods = array();
+        $this->methods = [];
+        $this->variables = [];
+        $this->formats = [];
+        $this->methods = [];
         $this->params = null;
-
     }
 
     /**
@@ -90,7 +88,6 @@ abstract class resource_base {
     public function get_id() {
 
         return $this->id;
-
     }
 
     /**
@@ -101,7 +98,6 @@ abstract class resource_base {
     public function get_template() {
 
         return $this->template;
-
     }
 
     /**
@@ -112,7 +108,6 @@ abstract class resource_base {
     public function get_path() {
 
         return $this->get_template();
-
     }
 
     /**
@@ -123,7 +118,6 @@ abstract class resource_base {
     public function get_type() {
 
         return $this->type;
-
     }
 
     /**
@@ -134,7 +128,6 @@ abstract class resource_base {
     public function get_service() {
 
         return $this->service;
-
     }
 
     /**
@@ -145,7 +138,6 @@ abstract class resource_base {
     public function get_methods() {
 
         return $this->methods;
-
     }
 
     /**
@@ -156,7 +148,6 @@ abstract class resource_base {
     public function get_formats() {
 
         return $this->formats;
-
     }
 
     /**
@@ -167,7 +158,6 @@ abstract class resource_base {
     public function get_variables() {
 
         return $this->variables;
-
     }
 
     /**
@@ -193,7 +183,6 @@ abstract class resource_base {
         }
 
         return $url;
-
     }
 
     /**
@@ -246,7 +235,6 @@ abstract class resource_base {
         }
 
         return $ok;
-
     }
 
     /**
@@ -289,7 +277,6 @@ abstract class resource_base {
         }
 
         return $ok;
-
     }
 
     /**
@@ -317,8 +304,10 @@ abstract class resource_base {
                 }
             }
             if (!$ok) {
-                debugging('Requested service ' . $permissionrequested . ' not included in tool type: ' . $typeid,
-                    DEBUG_DEVELOPER);
+                debugging(
+                    'Requested service ' . $permissionrequested . ' not included in tool type: ' . $typeid,
+                    DEBUG_DEVELOPER
+                );
             }
         }
         return $ok;
@@ -335,7 +324,7 @@ abstract class resource_base {
     public function get_permissions($ltitype) {
         debugging('get_permissions() is deprecated to allow LTI 1 connections to support services. ' .
                   'Please use resource_base::check_tool() instead.', DEBUG_DEVELOPER);
-        return array();
+        return [];
     }
 
     /**
@@ -348,7 +337,6 @@ abstract class resource_base {
     public function parse_value($value) {
 
         return $value;
-
     }
 
     /**
@@ -359,7 +347,7 @@ abstract class resource_base {
     protected function parse_template() {
 
         if (empty($this->params)) {
-            $this->params = array();
+            $this->params = [];
             if (!empty($_SERVER['PATH_INFO'])) {
                 $path = explode('/', $_SERVER['PATH_INFO']);
                 $template = preg_replace('/\([0-9a-zA-Z_\-,\/]+\)/', '', $this->get_template());
@@ -377,7 +365,5 @@ abstract class resource_base {
         }
 
         return $this->params;
-
     }
-
 }

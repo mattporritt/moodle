@@ -29,7 +29,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class delete_course_tool_type extends external_api {
-
     /**
      * Get parameter definition.
      *

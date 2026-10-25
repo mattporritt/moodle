@@ -38,7 +38,6 @@ require_once($CFG->libdir.'/formslib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_ltix_register_types_form extends \moodleform {
-
     /**
      * Set up the form definition.
      */
@@ -59,7 +58,7 @@ class core_ltix_register_types_form extends \moodleform {
 
         // Registration URL.
 
-        $mform->addElement('text', 'lti_registrationurl', get_string('registrationurl', 'core_ltix'), array('size' => '64'));
+        $mform->addElement('text', 'lti_registrationurl', get_string('registrationurl', 'core_ltix'), ['size' => '64']);
         $mform->setType('lti_registrationurl', PARAM_URL);
         $mform->addHelpButton('lti_registrationurl', 'registrationurl', 'core_ltix');
         $mform->addRule('lti_registrationurl', $strrequired, 'required', null, 'client');
@@ -68,9 +67,14 @@ class core_ltix_register_types_form extends \moodleform {
 
         $options = array_keys(\core_ltix\helper::get_capabilities());
         natcasesort($options);
-        $attributes = array( 'multiple' => 1, 'size' => min(count($options), 10) );
-        $mform->addElement('select', 'lti_capabilities', get_string('capabilities', 'core_ltix'),
-            array_combine($options, $options), $attributes);
+        $attributes = [ 'multiple' => 1, 'size' => min(count($options), 10) ];
+        $mform->addElement(
+            'select',
+            'lti_capabilities',
+            get_string('capabilities', 'core_ltix'),
+            array_combine($options, $options),
+            $attributes
+        );
         $mform->setType('lti_capabilities', PARAM_TEXT);
         $mform->addHelpButton('lti_capabilities', 'capabilities', 'core_ltix');
         $mform->addRule('lti_capabilities', $strrequired, 'required', null, 'client');

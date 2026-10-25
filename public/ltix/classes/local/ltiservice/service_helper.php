@@ -31,9 +31,15 @@ use core_ltix\oauth_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class service_helper {
+    /**
+     * Collect the term definitions of the object contexts of a JSON-LD document.
+     *
+     * @param \stdClass $json The decoded JSON-LD document.
+     * @return array The definitions, keyed by term.
+     */
     public static function get_contexts($json) {
 
-        $contexts = array();
+        $contexts = [];
         if (isset($json->{'@context'})) {
             foreach ($json->{'@context'} as $context) {
                 if (is_object($context)) {
@@ -43,9 +49,17 @@ class service_helper {
         }
 
         return $contexts;
-
     }
 
+    /**
+     * Build a basic outcomes response.
+     *
+     * @param string $codemajor The imsx_codeMajor value.
+     * @param string $description The imsx_description value.
+     * @param string $messageref The identifier of the request message.
+     * @param string $messagetype The type of the request message, such as replaceResult.
+     * @return \SimpleXMLElement The response.
+     */
     public static function get_response_xml($codemajor, $description, $messageref, $messagetype) {
         $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><imsx_POXEnvelopeResponse />');
         $xml->addAttribute('xmlns', 'http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0');
@@ -68,6 +82,12 @@ class service_helper {
         return $xml;
     }
 
+    /**
+     * Get the message identifier of a basic outcomes request.
+     *
+     * @param \SimpleXMLElement $xml The request.
+     * @return string The message identifier, or an empty string when there is no header.
+     */
     public static function parse_message_id($xml) {
         if (empty($xml->imsx_POXHeader)) {
             return '';
@@ -79,20 +99,27 @@ class service_helper {
         return $messageid;
     }
 
+    /**
+     * Parse a replaceResult request.
+     *
+     * @param \SimpleXMLElement $xml The request.
+     * @return \stdClass The grade as a fraction, and the instance, user, launch, type and sourcedid hash of the request.
+     * @throws \Exception When the sourcedId or the score is not valid.
+     */
     public static function parse_grade_replace_message($xml) {
         $node = $xml->imsx_POXBody->replaceResultRequest->resultRecord->sourcedGUID->sourcedId;
         $resultjson = json_decode((string)$node);
-        if ( is_null($resultjson) ) {
+        if (is_null($resultjson)) {
             throw new Exception('Invalid sourcedId in result message');
         }
         $node = $xml->imsx_POXBody->replaceResultRequest->resultRecord->result->resultScore->textString;
 
         $score = (string) $node;
-        if ( ! is_numeric($score) ) {
+        if (! is_numeric($score)) {
             throw new Exception('Score must be numeric');
         }
         $grade = floatval($score);
-        if ( $grade < 0.0 || $grade > 1.0 ) {
+        if ($grade < 0.0 || $grade > 1.0) {
             throw new Exception('Score not between 0.0 and 1.0');
         }
 
@@ -110,10 +137,17 @@ class service_helper {
         return $parsed;
     }
 
+    /**
+     * Parse a readResult request.
+     *
+     * @param \SimpleXMLElement $xml The request.
+     * @return \stdClass The instance, user, launch, type and sourcedid hash of the request.
+     * @throws \Exception When the sourcedId is not valid.
+     */
     public static function parse_grade_read_message($xml) {
         $node = $xml->imsx_POXBody->readResultRequest->resultRecord->sourcedGUID->sourcedId;
         $resultjson = json_decode((string)$node);
-        if ( is_null($resultjson) ) {
+        if (is_null($resultjson)) {
             throw new Exception('Invalid sourcedId in result message');
         }
 
@@ -129,10 +163,17 @@ class service_helper {
         return $parsed;
     }
 
+    /**
+     * Parse a deleteResult request.
+     *
+     * @param \SimpleXMLElement $xml The request.
+     * @return \stdClass The instance, user, launch, type and sourcedid hash of the request.
+     * @throws \Exception When the sourcedId is not valid.
+     */
     public static function parse_grade_delete_message($xml) {
         $node = $xml->imsx_POXBody->deleteResultRequest->resultRecord->sourcedGUID->sourcedId;
         $resultjson = json_decode((string)$node);
-        if ( is_null($resultjson) ) {
+        if (is_null($resultjson)) {
             throw new Exception('Invalid sourcedId in result message');
         }
 
@@ -148,19 +189,27 @@ class service_helper {
         return $parsed;
     }
 
+    /**
+     * Whether the tool of an instance accepts grades.
+     *
+     * @param \stdClass $ltiinstance The lti instance.
+     * @return bool True when grades are accepted.
+     */
     public static function accepts_grades($ltiinstance) {
         global $DB;
 
         $acceptsgrades = true;
-        $ltitype = $DB->get_record('lti_types', array('id' => $ltiinstance->typeid));
+        $ltitype = $DB->get_record('lti_types', ['id' => $ltiinstance->typeid]);
 
         if (empty($ltitype->toolproxyid)) {
             $typeconfig = helper::get_config($ltiinstance);
 
             $typeacceptgrades = isset($typeconfig['acceptgrades']) ? $typeconfig['acceptgrades'] : LTI_SETTING_DELEGATE;
 
-            if (!($typeacceptgrades == LTI_SETTING_ALWAYS ||
-                ($typeacceptgrades == LTI_SETTING_DELEGATE && $ltiinstance->instructorchoiceacceptgrades == LTI_SETTING_ALWAYS))) {
+            if (
+                !($typeacceptgrades == LTI_SETTING_ALWAYS ||
+                ($typeacceptgrades == LTI_SETTING_DELEGATE && $ltiinstance->instructorchoiceacceptgrades == LTI_SETTING_ALWAYS))
+            ) {
                 $acceptsgrades = false;
             }
         } else {
@@ -179,16 +228,25 @@ class service_helper {
     public static function set_session_user($userid) {
         global $DB;
 
-        if ($user = $DB->get_record('user', array('id' => $userid))) {
+        if ($user = $DB->get_record('user', ['id' => $userid])) {
             \core\session\manager::set_user($user);
         }
     }
 
+    /**
+     * Update a grade from the tool.
+     *
+     * @param \stdClass $ltiinstance The lti instance.
+     * @param int $userid The user the grade is for.
+     * @param int $launchid The launch the grade is for.
+     * @param float $gradeval The grade as a fraction of the maximum grade.
+     * @return bool True when the grade was updated.
+     */
     public static function update_grade($ltiinstance, $userid, $launchid, $gradeval) {
         global $CFG, $DB;
         require_once($CFG->libdir . '/gradelib.php');
 
-        $params = array();
+        $params = [];
         $params['itemname'] = $ltiinstance->name;
 
         $gradeval = $gradeval * floatval($ltiinstance->grade);
@@ -199,8 +257,8 @@ class service_helper {
 
         $status = grade_update(LTI_SOURCE, $ltiinstance->course, LTI_ITEM_TYPE, LTI_ITEM_MODULE, $ltiinstance->id, 0, $grade, $params);
 
-        $record = $DB->get_record('lti_submission', array('ltiid' => $ltiinstance->id, 'userid' => $userid,
-            'launchid' => $launchid), 'id');
+        $record = $DB->get_record('lti_submission', ['ltiid' => $ltiinstance->id, 'userid' => $userid,
+            'launchid' => $launchid], 'id');
         if ($record) {
             $id = $record->id;
         } else {
@@ -208,14 +266,14 @@ class service_helper {
         }
 
         if (!empty($id)) {
-            $DB->update_record('lti_submission', array(
+            $DB->update_record('lti_submission', [
                 'id' => $id,
                 'dateupdated' => time(),
                 'gradepercent' => $gradeval,
-                'state' => 2
-            ));
+                'state' => 2,
+            ]);
         } else {
-            $DB->insert_record('lti_submission', array(
+            $DB->insert_record('lti_submission', [
                 'ltiid' => $ltiinstance->id,
                 'userid' => $userid,
                 'datesubmitted' => time(),
@@ -223,13 +281,20 @@ class service_helper {
                 'gradepercent' => $gradeval,
                 'originalgrade' => $gradeval,
                 'launchid' => $launchid,
-                'state' => 1
-            ));
+                'state' => 1,
+            ]);
         }
 
         return $status == GRADE_UPDATE_OK;
     }
 
+    /**
+     * Read the grade of a user.
+     *
+     * @param \stdClass $ltiinstance The lti instance.
+     * @param int $userid The user.
+     * @return float|null The grade as a fraction of the maximum grade, or null when there is none.
+     */
     public static function read_grade($ltiinstance, $userid) {
         global $CFG;
         require_once($CFG->libdir . '/gradelib.php');
@@ -248,6 +313,13 @@ class service_helper {
         }
     }
 
+    /**
+     * Delete the grade of a user.
+     *
+     * @param \stdClass $ltiinstance The lti instance.
+     * @param int $userid The user.
+     * @return bool True when the grade was deleted.
+     */
     public static function delete_grade($ltiinstance, $userid) {
         global $CFG;
         require_once($CFG->libdir . '/gradelib.php');
@@ -261,6 +333,15 @@ class service_helper {
         return $status == GRADE_UPDATE_OK;
     }
 
+    /**
+     * Verify the signature of a message against the shared secrets of a key.
+     *
+     * @param string $key The consumer key.
+     * @param string[] $sharedsecrets The shared secrets to try.
+     * @param string $body The request body.
+     * @param array|null $headers The request headers, or null to read them from the request.
+     * @return string|false The shared secret that verifies the message, or false when none does.
+     */
     public static function verify_message($key, $sharedsecrets, $body, $headers = null) {
         foreach ($sharedsecrets as $secret) {
             $signaturefailed = false;
@@ -269,7 +350,7 @@ class service_helper {
                 // TODO: Switch to core oauthlib once implemented - MDL-30149.
                 oauth_helper::handle_oauth_body_post($key, $secret, $body, $headers);
             } catch (Exception $e) {
-                debugging('LTI message verification failed: '.$e->getMessage());
+                debugging('LTI message verification failed: ' . $e->getMessage());
                 $signaturefailed = true;
             }
 
@@ -289,8 +370,13 @@ class service_helper {
      * @throws Exception
      */
     public static function verify_sourcedid($ltiinstance, $parsed) {
-        $sourceid = \core_ltix\helper::build_sourcedid($parsed->instanceid, $parsed->userid,
-            $ltiinstance->servicesalt, $parsed->typeid, $parsed->launchid);
+        $sourceid = \core_ltix\helper::build_sourcedid(
+            $parsed->instanceid,
+            $parsed->userid,
+            $ltiinstance->servicesalt,
+            $parsed->typeid,
+            $parsed->launchid
+        );
 
         if ($sourceid->hash != $parsed->sourcedidhash) {
             throw new Exception('SourcedId hash not valid');
@@ -335,6 +421,5 @@ class service_helper {
         }
 
         return $service;
-
     }
 }

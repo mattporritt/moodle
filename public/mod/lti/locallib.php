@@ -51,8 +51,8 @@
 defined('MOODLE_INTERNAL') || die;
 
 global $CFG;
-require_once($CFG->dirroot.'/ltix/OAuth.php');
-require_once($CFG->libdir.'/weblib.php');
+require_once($CFG->dirroot . '/ltix/OAuth.php');
+require_once($CFG->libdir . '/weblib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->dirroot . '/ltix/TrivialStore.php');
 require_once($CFG->dirroot . '/ltix/constants.php');
@@ -238,8 +238,15 @@ function lti_build_sourcedid($instanceid, $userid, $servicesalt, $typeid = null,
 function lti_build_request($instance, $typeconfig, $course, $typeid = null, $islti2 = false,
     $messagetype = 'basic-lti-launch-request', $foruserid = 0) {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::build_request($instance, $typeconfig, $course, $typeid, $islti2,
-        $messagetype, $foruserid);
+    return \core_ltix\helper::build_request(
+        $instance,
+        $typeconfig,
+        $course,
+        $typeid,
+        $islti2,
+        $messagetype,
+        $foruserid
+    );
 }
 
 /**
@@ -324,9 +331,15 @@ function lti_build_standard_message($instance, $orgid, $ltiversion, $messagetype
 )]
 function lti_build_custom_parameters($toolproxy, $tool, $instance, $params, $customstr, $instructorcustomstr, $islti2) {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::build_custom_parameters($toolproxy, $tool, $instance, $params, $customstr,
-        $instructorcustomstr, $islti2);
-
+    return \core_ltix\helper::build_custom_parameters(
+        $toolproxy,
+        $tool,
+        $instance,
+        $params,
+        $customstr,
+        $instructorcustomstr,
+        $islti2
+    );
 }
 
 /**
@@ -365,8 +378,21 @@ function lti_build_content_item_selection_request($id, $course, moodle_url $retu
                                                   $presentationtargets = [], $autocreate = false, $multiple = true,
                                                   $unsigned = false, $canconfirm = false, $copyadvice = false, $nonce = '') {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::build_content_item_selection_request($id, $course, $returnurl, $title, $text, $mediatypes,
-        $presentationtargets, $autocreate, $multiple, $unsigned, $canconfirm, $copyadvice, $nonce);
+    return \core_ltix\helper::build_content_item_selection_request(
+        $id,
+        $course,
+        $returnurl,
+        $title,
+        $text,
+        $mediatypes,
+        $presentationtargets,
+        $autocreate,
+        $multiple,
+        $unsigned,
+        $canconfirm,
+        $copyadvice,
+        $nonce
+    );
 }
 
 /**
@@ -499,8 +525,13 @@ function content_item_to_form(object $tool, object $typeconfig, object $item): s
 )]
 function lti_tool_configuration_from_content_item($typeid, $messagetype, $ltiversion, $consumerkey, $contentitemsjson) {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::tool_configuration_from_content_item($typeid, $messagetype, $ltiversion, $consumerkey,
-        $contentitemsjson);
+    return \core_ltix\helper::tool_configuration_from_content_item(
+        $typeid,
+        $messagetype,
+        $ltiversion,
+        $consumerkey,
+        $contentitemsjson
+    );
 }
 
 /**
@@ -1537,8 +1568,16 @@ function lti_post_launch_html($newparms, $endpoint, $debug=false) {
 function lti_initiate_login($courseid, $cmid, $instance, $config, $messagetype = 'basic-lti-launch-request',
         $title = '', $text = '', $foruserid = 0) {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::initiate_login($courseid, $cmid, $instance, $config, $messagetype, $title,
-        $text, $foruserid);
+    return \core_ltix\helper::initiate_login(
+        $courseid,
+        $cmid,
+        $instance,
+        $config,
+        $messagetype,
+        $title,
+        $text,
+        $foruserid
+    );
 }
 
 /**

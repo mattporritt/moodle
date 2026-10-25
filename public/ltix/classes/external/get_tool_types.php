@@ -30,7 +30,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_tool_types extends external_api {
-
     /**
      * Parameters definition.
      *
@@ -38,9 +37,9 @@ class get_tool_types extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
-            array(
-                'toolproxyid' => new external_value(PARAM_INT, 'Tool proxy id', VALUE_DEFAULT, 0)
-            )
+            [
+                'toolproxyid' => new external_value(PARAM_INT, 'Tool proxy id', VALUE_DEFAULT, 0),
+            ]
         );
     }
 
@@ -51,10 +50,12 @@ class get_tool_types extends external_api {
      * @return array of tool types
      */
     public static function execute(int $toolproxyid = 0): array {
-        $params = self::validate_parameters(self::execute_parameters(),
-            array(
-                'toolproxyid' => $toolproxyid
-            ));
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
+                'toolproxyid' => $toolproxyid,
+            ]
+        );
         $toolproxyid = $params['toolproxyid'];
 
         $context = \context_system::instance();

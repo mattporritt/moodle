@@ -37,7 +37,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class toolproxy extends \core_ltix\local\ltiservice\service_base {
-
     /**
      * Class constructor.
      */

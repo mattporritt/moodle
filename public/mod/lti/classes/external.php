@@ -193,7 +193,7 @@ class mod_lti_external extends external_api {
         require_capability('mod/lti:view', $context);
 
         $lti->cmid = $cm->id;
-        list($endpoint, $parms) = \core_ltix\helper::get_launch_data($lti);
+        [$endpoint, $parms] = \core_ltix\helper::get_launch_data($lti);
 
         $parameters = array();
         foreach ($parms as $name => $value) {

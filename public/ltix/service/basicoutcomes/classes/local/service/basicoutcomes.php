@@ -33,7 +33,6 @@ namespace ltixservice_basicoutcomes\local\service;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class basicoutcomes extends \core_ltix\local\ltiservice\service_base {
-
     /** Scope for accessing the service */
     const SCOPE_BASIC_OUTCOMES = 'https://purl.imsglobal.org/spec/lti-bo/scope/basicoutcome';
 

@@ -31,7 +31,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_tool_types_and_proxies_count extends external_api {
-
     /**
      * Get parameter definition for get_tool_types_and_proxies_count().
      *
@@ -54,11 +53,13 @@ class get_tool_types_and_proxies_count extends external_api {
      * @return array
      */
     public static function execute($toolproxyid, $orphanedonly): array {
-        $params = self::validate_parameters(self::execute_parameters(),
+        $params = self::validate_parameters(
+            self::execute_parameters(),
             [
                 'toolproxyid' => $toolproxyid,
                 'orphanedonly' => $orphanedonly,
-            ]);
+            ]
+        );
         $toolproxyid = $params['toolproxyid'];
         $orphanedonly = $params['orphanedonly'];
 

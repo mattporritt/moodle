@@ -33,7 +33,6 @@ require_once($CFG->dirroot . '/ltix/constants.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class lti_testcase extends \advanced_testcase {
-
     /**
      * Generate a tool type.
      *
@@ -105,7 +104,6 @@ abstract class lti_testcase extends \advanced_testcase {
         for ($i = 0; $i < $toolandproxycount; $i++) {
             $proxies[$i] = $this->generate_tool_proxy($i);
             $types[$i] = $this->generate_tool_type($i, $proxies[$i]->id);
-
         }
         for ($i = $toolandproxycount; $i < ($toolandproxycount + $orphanproxycount); $i++) {
             $proxies[$i] = $this->generate_tool_proxy($i);

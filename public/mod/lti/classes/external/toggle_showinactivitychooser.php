@@ -58,8 +58,10 @@ class toggle_showinactivitychooser extends external_api {
      * @return bool true or false
      */
     public static function execute(int $tooltypeid, int $courseid, bool $showinactivitychooser): bool {
-        debugging(__FUNCTION__ . '() is deprecated. Please use \core_ltix\external\toggle_showinactivitychooser instead.',
-                  DEBUG_DEVELOPER);
+        debugging(
+            __FUNCTION__ . '() is deprecated. Please use \core_ltix\external\toggle_showinactivitychooser instead.',
+            DEBUG_DEVELOPER
+        );
         return \core_ltix\external\toggle_showinactivitychooser::execute($tooltypeid, $courseid, $showinactivitychooser);
     }
 

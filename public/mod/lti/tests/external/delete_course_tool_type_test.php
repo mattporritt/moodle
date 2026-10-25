@@ -35,7 +35,6 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @coversDefaultClass \mod_lti\external\delete_course_tool_type
  */
 final class delete_course_tool_type_test extends externallib_advanced_testcase {
-
     /**
      * Test delete_course_tool() for a course tool.
      * @covers ::execute
@@ -84,17 +83,18 @@ final class delete_course_tool_type_test extends externallib_advanced_testcase {
             (object) [
                 'lti_typename' => "My site tool",
                 'lti_toolurl' => 'http://example.com',
-                'lti_ltiversion' => 'LTI-1p0'
+                'lti_ltiversion' => 'LTI-1p0',
             ]
         );
         $type = helper::get_type($typeid);
 
+        $caught = null;
         try {
             delete_course_tool_type::execute($type->id);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\invalid_parameter_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\invalid_parameter_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 }

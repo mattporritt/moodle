@@ -35,7 +35,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class basicoutcomes extends \core_ltix\local\ltiservice\resource_base {
-
     /**
      * Class constructor.
      *

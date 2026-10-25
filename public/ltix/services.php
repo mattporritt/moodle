@@ -27,4 +27,3 @@ define('NO_MOODLE_COOKIES', true);
 
 require_once(__DIR__ . '/../config.php');
 \core_ltix\helper::get_services_endpoint();
-

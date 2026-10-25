@@ -23,7 +23,6 @@
  * @since      Moodle 4.3
  */
 trait lti_course_categories_trait {
-
     /**
      * Setup course categories.
      *

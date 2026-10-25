@@ -51,7 +51,6 @@ require_once($CFG->dirroot . '/ltix/tests/lti_testcase.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_lti\local\types_helper::class)]
 final class types_helper_test extends lti_testcase {
-
     /**
      * Test fetching tool types for a given course and user.
      *

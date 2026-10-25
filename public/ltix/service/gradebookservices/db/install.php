@@ -24,6 +24,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Install the gradebook services, keeping the data of the ltiservice_gradebookservices plugin when upgrading.
+ *
+ * @return bool Always true.
+ */
 function xmldb_ltixservice_gradebookservices_install() {
     global $DB;
     $dbman = $DB->get_manager();

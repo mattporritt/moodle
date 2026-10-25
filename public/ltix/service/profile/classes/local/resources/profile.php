@@ -26,7 +26,7 @@
 
 namespace ltixservice_profile\local\resources;
 
-use \core_ltix\local\ltiservice\service_base;
+use core_ltix\local\ltiservice\service_base;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -39,7 +39,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class profile extends \core_ltix\local\ltiservice\resource_base {
-
     /**
      * Class constructor.
      *

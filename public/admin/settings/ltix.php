@@ -25,13 +25,19 @@
 defined('MOODLE_INTERNAL') || die();
 
 // Tool configure page, sitting under 'ltix' category.
-$toolconfigurepage = new admin_externalpage('ltixtoolconfigure', get_string('manage_external_tools', 'core_ltix'),
-    new moodle_url('/ltix/toolconfigure.php'));
+$toolconfigurepage = new admin_externalpage(
+    'ltixtoolconfigure',
+    get_string('manage_external_tools', 'core_ltix'),
+    new moodle_url('/ltix/toolconfigure.php')
+);
 $ADMIN->add('ltix', $toolconfigurepage);
 
 // Hidden proxies page.
-$proxieslink = new admin_externalpage('ltixtoolproxies', get_string('manage_tool_proxies', 'core_ltix'),
-    new moodle_url('/ltix/toolproxies.php'));
+$proxieslink = new admin_externalpage(
+    'ltixtoolproxies',
+    get_string('manage_tool_proxies', 'core_ltix'),
+    new moodle_url('/ltix/toolproxies.php')
+);
 $proxieslink->hidden = true;
 $ADMIN->add('ltix', $proxieslink);
 
@@ -48,7 +54,7 @@ foreach (core_plugin_manager::instance()->get_plugins_of_type('ltisource') as $p
 
 if ($ADMIN->fulltree) {
     global $PAGE, $CFG, $USER;
-    require_once($CFG->dirroot.'/ltix/constants.php');
+    require_once($CFG->dirroot . '/ltix/constants.php');
 
     $configuredtoolshtml = '';
     $pendingtoolshtml = '';

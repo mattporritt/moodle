@@ -65,7 +65,6 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_get_lti_types_by_course')]
 final class locallib_test extends \advanced_testcase {
-
     /**
      * @covers ::lti_split_parameters()
      *
@@ -141,8 +140,15 @@ final class locallib_test extends \advanced_testcase {
         $requestparams = array('resource_link_id' => '123', 'resource_link_title' => 'Weekly Blog', 'user_id' => '789',
             'roles' => 'Learner', 'context_id' => '12345', 'context_label' => 'SI124', 'context_title' => 'Social Computing');
 
-        $parms = oauth_helper::sign_parameters($requestparams, 'http://www.imsglobal.org/developer/LTI/tool.php', 'POST',
-            'lmsng.school.edu', 'secret', 'Click Me', 'lmsng.school.edu' /*, $org_desc*/);
+        $parms = oauth_helper::sign_parameters(
+            $requestparams,
+            'http://www.imsglobal.org/developer/LTI/tool.php',
+            'POST',
+            'lmsng.school.edu',
+            'secret',
+            'Click Me',
+            'lmsng.school.edu' /*, $org_desc*/
+        );
         $this->assertTrue(isset($parms['oauth_nonce']));
         $this->assertTrue(isset($parms['oauth_signature']));
         $this->assertTrue(isset($parms['oauth_timestamp']));
@@ -492,12 +498,13 @@ final class locallib_test extends \advanced_testcase {
         $returnurl = new \moodle_url('/');
 
         // Should throw Exception on non-existent tool type.
+        $caught = null;
         try {
             lti_build_content_item_selection_request(1, $course, $returnurl);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\moodle_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\moodle_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -525,12 +532,13 @@ final class locallib_test extends \advanced_testcase {
         // Should throw coding_exception on non-array media types.
         $mediatypes = 'image/*,video/*';
 
+        $caught = null;
         try {
             lti_build_content_item_selection_request($typeid, $course, $returnurl, '', '', $mediatypes);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\coding_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\coding_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -557,12 +565,13 @@ final class locallib_test extends \advanced_testcase {
 
         // Should throw coding_exception on non-array presentation targets.
         $targets = 'frame,iframe';
+        $caught = null;
         try {
             lti_build_content_item_selection_request($typeid, $course, $returnurl, '', '', [], $targets);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\coding_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\coding_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 
@@ -659,7 +668,7 @@ final class locallib_test extends \advanced_testcase {
         // Construct the final array as required by the provider API. Each row
         // of the array contains the URL to test, the expected tool, and
         // the complete list of tools.
-        return array_map(function($data) use ($tools) {
+        return array_map(function ($data) use ($tools) {
             return [$data['url'], $data['expected'], $tools];
         }, $data);
     }
@@ -1281,7 +1290,9 @@ MwIDAQAB
 
         $typeid = helper::add_type($type, $config);
 
-        $tooltype = lti_verify_jwt_signature($typeid, '',
+        $tooltype = lti_verify_jwt_signature(
+            $typeid,
+            '',
             'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4g' .
             'RG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.POstGetfAytaZS82wHcjoTyoqhMyxXiWdR7Nn7A29DNSl0EiXLdwJ6xC6AfgZWF1bOs' .
             'S_TuYI3OG85AmiExREkrS6tDfTQ2B3WXlrr-wp5AokiRbz3_oB4OxG-W9KcEEbDRcZc0nH3L7LzYptiy1PtAylQGxHTWZXtGz4ht0bAecBgmpdgXMgu' .
@@ -1364,12 +1375,13 @@ MwIDAQAB
 
         $typeid = helper::add_type($type, $data);
 
+        $caught = null;
         try {
             lti_verify_jwt_signature($typeid, '', '');
         } catch (\Exception $e) {
-        } finally {
-            $this->assertStringContainsString('JWT security not supported with LTI 2', $e->getMessage());
+            $caught = $e;
         }
+        $this->assertStringContainsString('JWT security not supported with LTI 2', $caught->getMessage());
         $this->assertDebuggingCalled();
     }
 
@@ -1392,12 +1404,13 @@ MwIDAQAB
         $config = new \stdClass();
         $typeid = helper::add_type($type, $config);
 
+        $caught = null;
         try {
             lti_verify_jwt_signature($typeid, '', '');
         } catch (\Exception $e) {
-        } finally {
-            $this->assertStringContainsString(get_string('errorincorrectconsumerkey', 'core_ltix'), $e->getMessage());
+            $caught = $e;
         }
+        $this->assertStringContainsString(get_string('errorincorrectconsumerkey', 'core_ltix'), $caught->getMessage());
         $this->assertDebuggingCalled();
     }
 
@@ -1420,12 +1433,13 @@ MwIDAQAB
         $config->lti_keytype = LTI_RSA_KEY;
         $typeid = helper::add_type($type, $config);
 
+        $caught = null;
         try {
             lti_verify_jwt_signature($typeid, 'consumerkey', '');
         } catch (\Exception $e) {
-        } finally {
-            $this->assertStringContainsString('No public key configured', $e->getMessage());
+            $caught = $e;
         }
+        $this->assertStringContainsString('No public key configured', $caught->getMessage());
         $this->assertDebuggingCalled();
     }
 
@@ -1544,11 +1558,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
-                                                                          'ContentItemSelection',
-                                                                          $type->ltiversion,
-                                                                          'ConsumerKey',
-                                                                          $json11);
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
+            'ContentItemSelection',
+            $type->ltiversion,
+            'ConsumerKey',
+            $json11
+        );
         $this->assertDebuggingCalled();
 
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
@@ -1594,11 +1610,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
-                                                                          'ContentItemSelection',
-                                                                          $type->ltiversion,
-                                                                          'ConsumerKey',
-                                                                          $json11);
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
+            'ContentItemSelection',
+            $type->ltiversion,
+            'ConsumerKey',
+            $json11
+        );
         $this->assertDebuggingCalled();
 
         $this->assertEquals('DEFAULT', $config->lineitemsubreviewurl);
@@ -1637,11 +1655,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
-                                                                          'ContentItemSelection',
-                                                                          $type->ltiversion,
-                                                                          'ConsumerKey',
-                                                                          $json11);
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
+            'ContentItemSelection',
+            $type->ltiversion,
+            'ConsumerKey',
+            $json11
+        );
         $this->assertDebuggingCalled();
 
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
@@ -1697,11 +1717,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
-                                                                          'ContentItemSelection',
-                                                                           $type->ltiversion,
-                                                                           'ConsumerKey',
-                                                                           $json11);
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
+            'ContentItemSelection',
+            $type->ltiversion,
+            'ConsumerKey',
+            $json11
+        );
         $this->assertDebuggingCalled();
         $this->assertNotNull($config->multiple);
         $this->assertEquals(2, count( $config->multiple ));
@@ -1745,11 +1767,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
-                                                                         'ContentItemSelection',
-                                                                         $type->ltiversion,
-                                                                         'ConsumerKey',
-                                                                         $json11);
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
+            'ContentItemSelection',
+            $type->ltiversion,
+            'ConsumerKey',
+            $json11
+        );
         $this->assertDebuggingCalled();
         $this->assertEquals($contentitems[0]['title'], $config->name);
         $this->assertEquals($contentitems[0]['text'], $config->introeditor['text']);
@@ -2279,12 +2303,13 @@ MwIDAQAB
         // reproducible in real life (only Windows + GHA).
         \curl::mock_response('');
 
+        $caught = null;
         try {
             lti_load_cartridge('http://example.com/mocked/empty/response', []);
         } catch (\Exception $e) {
-        } finally {
-            $this->assertInstanceOf(\moodle_exception::class, $e);
+            $caught = $e;
         }
+        $this->assertInstanceOf(\moodle_exception::class, $caught);
         $this->assertDebuggingCalled();
     }
 

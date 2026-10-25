@@ -23,12 +23,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 $string['accept'] = 'Accept';
-$string['accepted'] = 'Accepted';
 $string['accept_grades_admin'] = 'Accept grades from the tool';
 $string['accept_grades_admin_help'] = 'Specify whether the tool provider can add, update, read, and delete grades associated with instances of this tool.
 
 Some tool providers support reporting grades back to Moodle based on actions taken within the tool, creating a more integrated
 experience.';
+$string['accepted'] = 'Accepted';
 $string['action'] = 'Action';
 $string['activate'] = 'Activate';
 $string['active'] = 'Active';
@@ -41,8 +41,8 @@ $string['autoaddtype'] = 'Add tool';
 $string['baseurl'] = 'Base URL/tool registration name';
 $string['cancel'] = 'Cancel';
 $string['capabilities'] = 'Capabilities';
-$string['capabilitiesrequired'] = 'This tool requires access to the following data in order to activate:';
 $string['capabilities_help'] = 'Select those capabilities which you wish to offer to the tool provider.  More than one capability can be selected.';
+$string['capabilitiesrequired'] = 'This tool requires access to the following data in order to activate:';
 $string['cleanaccesstokens'] = 'External tool removal of expired access tokens';
 $string['click_to_continue'] = '<a href="{$a->link}" target="_top">Click to continue</a>';
 $string['clientidadmin'] = 'Client ID';
@@ -87,10 +87,10 @@ real estate to the tool, and others provide a more integrated feel with the Mood
 $string['delegate'] = 'Delegate to teacher';
 $string['delegate_tool'] = 'As specified in Deep Linking definition or Delegate to teacher';
 $string['delete'] = 'Delete';
+$string['delete_confirmation'] = 'Are you sure you want to delete this preconfigured tool?';
 $string['deletecoursetool'] = 'Delete {$a}';
 $string['deletecoursetoolconfirm'] = 'This will delete {$a} from the available LTI tools in your course.';
 $string['deletecoursetoolwithusageconfirm'] = '{$a} is currently being used in at least one activity in your course. If you delete this tool, the activities that use it will no longer work.<br><br>Are you sure you want to delete {$a}?';
-$string['delete_confirmation'] = 'Are you sure you want to delete this preconfigured tool?';
 $string['dontshowinactivitychooser'] = 'Don\'t show in activity chooser';
 $string['duplicateregurl'] = 'This registration URL is already in use';
 $string['dynreg_update_btn_new'] = 'Register as a new external tool';
@@ -133,6 +133,12 @@ $string['keytype_help'] = 'The authentication method used to validate the tool.'
 $string['keytype_keyset'] = 'Keyset URL';
 $string['keytype_rsa'] = 'RSA key';
 $string['lti_administration'] = 'Edit preconfigured tool';
+$string['lti_tool_request_added'] = 'Tool configuration request successfully submitted. You may need to contact an administrator to complete the tool configuration.';
+$string['lti_tool_request_existing'] = 'A tool configuration for the tool domain has already been submitted.';
+$string['ltiunknownserviceapicall'] = 'LTI unknown service API call.';
+$string['ltiversion'] = 'LTI version';
+$string['ltiversion_help'] = 'The version of LTI being used for signing messages and service requests: LTI 1.0/1.1 and LTI 2.0 use the OAuth 1.0A security profile; LTI 1.3.0 uses JWTs.';
+$string['ltix'] = 'LTI';
 $string['ltix_launch_error'] = 'An error occurred when launching the external tool:';
 $string['ltix_launch_error_tool_request'] = '<p>
 To submit a request for an administrator to complete the tool configuration, click <a href="{$a->admin_request_url}" target="_top">here</a>.
@@ -140,12 +146,6 @@ To submit a request for an administrator to complete the tool configuration, cli
 $string['ltix_launch_error_unsigned_help'] = '<p>This error may be a result of a missing consumer key and shared secret for the tool provider.</p>
 <p>If you have a consumer key and shared secret, you may enter it when editing the external tool instance (make sure advanced options are visible).</p>
 <p>Alternatively, you may <a href="{$a->course_tool_editor}">create a course level tool provider configuration</a>.</p>';
-$string['lti_tool_request_added'] = 'Tool configuration request successfully submitted. You may need to contact an administrator to complete the tool configuration.';
-$string['lti_tool_request_existing'] = 'A tool configuration for the tool domain has already been submitted.';
-$string['ltiversion'] = 'LTI version';
-$string['ltiversion_help'] = 'The version of LTI being used for signing messages and service requests: LTI 1.0/1.1 and LTI 2.0 use the OAuth 1.0A security profile; LTI 1.3.0 uses JWTs.';
-$string['ltiunknownserviceapicall'] = 'LTI unknown service API call.';
-$string['ltix'] = 'LTI';
 $string['main_admin'] = 'General help';
 $string['main_admin_help'] = 'External tools allow Moodle users to interact with learning resources hosted remotely. Through a special launch protocol, the remote tool has access to general information about the launching user. For example, the institution name, course ID, user ID, and other information such as the user\'s name or email address.
 
@@ -155,8 +155,8 @@ Tools listed on this page are separated into three categories:
 * **Pending** - These tool providers came in through a package import, but have not been configured by an administrator. Teachers may still use tools from these providers if they have a consumer key and shared secret, or if none is required.
 * **Rejected** - These tools providers are flagged as ones which an administrator has no intention of making available on the site. Teachers may still use tools from these providers if they have a consumer key and shared secret, or if none is required.';
 $string['manage_external_tools'] = 'Manage tools';
-$string['manage_tools'] = 'Manage preconfigured tools';
 $string['manage_tool_proxies'] = 'Manage external tool registrations';
+$string['manage_tools'] = 'Manage preconfigured tools';
 $string['manuallyaddtype'] = 'Alternatively, you can <a href="{$a}">configure a tool manually</a>.';
 $string['miscellaneous'] = 'Miscellaneous';
 $string['name'] = 'Name';
@@ -188,6 +188,12 @@ If this field is left blank, a default value will be used based on the site conf
 $string['parameter'] = 'Tool parameters';
 $string['parameter_help'] = 'Tool parameters are settings requested to be passed by the tool provider in the accepted tool proxy.';
 $string['password'] = 'Shared secret';
+$string['password_admin'] = 'Shared secret';
+$string['password_admin_help'] = 'The shared secret can be thought of as a password used to authenticate access to the tool. It should be provided
+along with the consumer key from the tool provider.
+
+Tools which do not require secure communication from Moodle and do not provide additional services (such as grade reporting)
+may not require a shared secret.';
 $string['password_help'] = 'For pre-configured tools, it is not necessary to enter a shared secret here, as the shared secret will be
 provided as part of the configuration process.
 
@@ -199,19 +205,13 @@ along with the consumer key from the tool provider.
 
 Tools which do not require secure communication from Moodle and do not provide additional services (such as grade reporting)
 may not require a shared secret.';
-$string['password_admin'] = 'Shared secret';
-$string['password_admin_help'] = 'The shared secret can be thought of as a password used to authenticate access to the tool. It should be provided
-along with the consumer key from the tool provider.
-
-Tools which do not require secure communication from Moodle and do not provide additional services (such as grade reporting)
-may not require a shared secret.';
 $string['pending'] = 'Pending';
 $string['privacy'] = 'Privacy';
 $string['privacy:metadata'] = 'The LTIx subsystem does not store any personal data.';
 $string['publickey'] = 'Public key';
+$string['publickey_help'] = 'The public key (in PEM format) provided by the tool to allow signatures of incoming messages and service requests to be verified.';
 $string['publickeyset'] = 'Public keyset';
 $string['publickeyset_help'] = 'Public keyset from where this site will retrieve the tool\'s public key to allow signatures of incoming messages and service requests to be verified.';
-$string['publickey_help'] = 'The public key (in PEM format) provided by the tool to allow signatures of incoming messages and service requests to be verified.';
 $string['redirectionuris'] = 'Redirection URI(s)';
 $string['redirectionuris_help'] = 'A list of URIs (one per line) which the tool uses when making authorisation requests.  At least one must be registered before a message can be successfully sent to the tool.';
 $string['register'] = 'Register';
@@ -225,13 +225,8 @@ $string['registrationurl_help'] = 'The registration URL should be available from
 $string['reject'] = 'Reject';
 $string['rejected'] = 'Rejected';
 $string['resourcekey'] = 'Consumer key';
-$string['resourcekey_help'] = 'For pre-configured tools, it is not necessary to enter a resource key here, as the consumer key will be
-provided as part of the configuration process.
-
-This field should be entered if creating a link to a tool provider which is not already configured.
-If the tool provider is to be used more than once in this course, adding a course tool configuration is a good idea.
-
-The consumer key can be thought of as a username used to authenticate access to the tool.
+$string['resourcekey_admin'] = 'Consumer key';
+$string['resourcekey_admin_help'] = 'The consumer key can be thought of as a username used to authenticate access to the tool.
 It can be used by the tool provider to uniquely identify the Moodle site from which users launch into the tool.
 
 The consumer key must be provided by the tool provider. The method of obtaining a consumer key varies between
@@ -239,8 +234,13 @@ tool providers. It may be an automated process, or it may require a dialogue wit
 
 Tools which do not require secure communication from Moodle and do not provide additional services (such as grade reporting)
 may not require a resource key.';
-$string['resourcekey_admin'] = 'Consumer key';
-$string['resourcekey_admin_help'] = 'The consumer key can be thought of as a username used to authenticate access to the tool.
+$string['resourcekey_help'] = 'For pre-configured tools, it is not necessary to enter a resource key here, as the consumer key will be
+provided as part of the configuration process.
+
+This field should be entered if creating a link to a tool provider which is not already configured.
+If the tool provider is to be used more than once in this course, adding a course tool configuration is a good idea.
+
+The consumer key can be thought of as a username used to authenticate access to the tool.
 It can be used by the tool provider to uniquely identify the Moodle site from which users launch into the tool.
 
 The consumer key must be provided by the tool provider. The method of obtaining a consumer key varies between
@@ -262,7 +262,6 @@ to users based on actions within the tool.';
 $string['share_name_admin'] = 'Share launcher\'s name with tool';
 $string['share_name_admin_help'] = 'Specify whether the full name of the user launching the tool should be shared with the tool provider.
 The tool provider may need launchers\' names to show meaningful information within the tool.';
-$string['showinactivitychooser'] = 'Show in activity chooser';
 $string['show_in_course_activity_chooser'] = 'Show in activity chooser and as a preconfigured tool';
 $string['show_in_course_lti1'] = 'Tool configuration usage';
 $string['show_in_course_lti1_help'] = 'This tool may be shown in the activity chooser for a teacher to select to add to a course. Alternatively, it may be shown in the preconfigured tool drop-down menu when adding an external tool to a course. A further option is for the tool configuration to only be used if the exact tool URL is entered when adding an external tool to a course.';
@@ -270,8 +269,9 @@ $string['show_in_course_lti2'] = 'Tool configuration usage';
 $string['show_in_course_lti2_help'] = 'This tool can be shown in the activity chooser for a teacher to select to add to a course or in the preconfigured tool drop-down menu when adding an external tool to a course.';
 $string['show_in_course_no'] = 'Do not show; use only when a matching tool URL is entered';
 $string['show_in_course_preconfigured'] = 'Show as preconfigured tool when adding an external tool';
-$string['siteid'] = 'Site ID';
+$string['showinactivitychooser'] = 'Show in activity chooser';
 $string['sitehost'] = 'Site hostname';
+$string['siteid'] = 'Site ID';
 $string['successfullycreatedtooltype'] = 'Successfully created new tool!';
 $string['successfullyfetchedtoolconfigurationfromcontent'] = 'Successfully fetched tool configuration from the selected content.';
 $string['tool_settings'] = 'Tool settings';
@@ -306,7 +306,10 @@ back to the \'Configured\' category so the registration process can be restarted
 $string['toolproxyregistration'] = 'External tool registration';
 $string['toolregistration'] = 'External tool registration';
 $string['toolsetup'] = 'External tool configuration';
+$string['tooltypes'] = 'Tools';
 $string['toolurl'] = 'Tool URL';
+$string['toolurl_contentitemselectionrequest'] = 'Content Selection URL';
+$string['toolurl_contentitemselectionrequest_help'] = 'The Content Selection URL will be used to launch the content selection page from the tool provider. If it is empty, the Tool URL will be used';
 $string['toolurl_help'] = 'The tool URL is used to match tool URLs to the correct tool configuration. Prefixing the URL with http(s) is optional.
 
 Additionally, the base URL is used as the tool URL if a tool URL is not specified in the external tool instance.
@@ -332,10 +335,7 @@ A base URL of *quiz.tool.com* would match the following:
 If two different tool configurations are for the same domain, the most specific match will be used.
 
 You can also insert a cartridge URL if you have one and the details for the tool will be automatically filled.';
-$string['toolurl_contentitemselectionrequest'] = 'Content Selection URL';
-$string['toolurl_contentitemselectionrequest_help'] = 'The Content Selection URL will be used to launch the content selection page from the tool provider. If it is empty, the Tool URL will be used';
 $string['toolurlplaceholder'] = 'Tool URL...';
-$string['tooltypes'] = 'Tools';
 $string['typename'] = 'Tool name';
 $string['typename_help'] = 'The tool name is used to identify the tool provider within Moodle. The name entered will be visible to teachers when adding external tools within courses.';
 $string['unabletocreatetooltype'] = 'Unable to create tool';
@@ -345,4 +345,3 @@ $string['update'] = 'Update';
 $string['usage'] = 'Usage count';
 $string['useraccountinformation'] = 'User account information';
 $string['userpersonalinformation'] = 'User personal information';
-

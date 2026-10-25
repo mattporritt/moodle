@@ -92,8 +92,11 @@ class backup_ltixservice_gradebookservices_plugin extends backup_plugin {
             $toolproxyid = $ltitype->toolproxyid;
         } else if ($lti->typeid == self::NONVALIDTYPEID) { // This activity comes from an old backup.
             // 1. Let's check if the activity is coupled. If so, find the values in the GBS element.
-            $gbsrecord = $DB->get_record('ltixservice_gradebookservices',
-                    ['ltilinkid' => $activityid], 'typeid,toolproxyid,baseurl');
+            $gbsrecord = $DB->get_record(
+                'ltixservice_gradebookservices',
+                ['ltilinkid' => $activityid],
+                'typeid,toolproxyid,baseurl'
+            );
             if ($gbsrecord) {
                 $typeid = $gbsrecord->typeid;
                 $toolproxyid = $gbsrecord->toolproxyid;

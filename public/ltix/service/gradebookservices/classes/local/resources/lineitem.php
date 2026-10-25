@@ -261,7 +261,7 @@ class lineitem extends resource_base {
                 $toolproxyid = null;
                 $baseurl = \core_ltix\helper::get_type_type_config($typeid)->lti_toolurl;
             }
-            $DB->update_record('ltixservice_gradebookservices', (object)array(
+            $DB->update_record('ltixservice_gradebookservices', (object)[
                     'id' => $gbs->id,
                     'gradeitemid' => $gbs->gradeitemid,
                     'courseid' => $gbs->courseid,
@@ -272,8 +272,8 @@ class lineitem extends resource_base {
                     'resourceid' => $resourceid,
                     'tag' => $gbs->tag,
                     'subreviewurl' => $gbs->subreviewurl,
-                    'subreviewparams' => $gbs->subreviewparams
-            ));
+                    'subreviewparams' => $gbs->subreviewparams,
+            ]);
         }
 
         if (is_null($typeid)) {

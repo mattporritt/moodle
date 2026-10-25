@@ -36,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class memberships extends \core_ltix\local\ltiservice\service_base {
-
     /** Default prefix for context-level roles */
     const CONTEXT_ROLE_PREFIX = 'http://purl.imsglobal.org/vocab/lis/v2/membership#';
     /** Context-level role for Instructor */
@@ -297,10 +296,13 @@ class memberships extends \core_ltix\local\ltiservice\service_base {
 
                 if (!empty($lti->servicesalt) && $DB->record_exists('grade_items', $conditions)) {
                     $message->lis_result_sourcedid = json_encode(
-                        \core_ltix\helper::build_sourcedid($lti->id,
-                                                           $user->id,
-                                                           $lti->servicesalt,
-                                                           $lti->typeid));
+                        \core_ltix\helper::build_sourcedid(
+                            $lti->id,
+                            $user->id,
+                            $lti->servicesalt,
+                            $lti->typeid
+                        )
+                    );
                     // Not per specification but added to comply with earlier version of the service.
                     $member->resultSourcedId = $message->lis_result_sourcedid;
                 }
@@ -446,10 +448,13 @@ class memberships extends \core_ltix\local\ltiservice\service_base {
                 if (!empty($lti->servicesalt) && $DB->record_exists('grade_items', $conditions)) {
                     $basicoutcome = new \stdClass();
                     $basicoutcome->lis_result_sourcedid = json_encode(
-                        \core_ltix\helper::build_sourcedid($lti->id,
-                                                           $user->id,
-                                                           $lti->servicesalt,
-                                                           $lti->typeid));
+                        \core_ltix\helper::build_sourcedid(
+                            $lti->id,
+                            $user->id,
+                            $lti->servicesalt,
+                            $lti->typeid
+                        )
+                    );
                     // Add outcome service URL.
                     $serviceurl = new \moodle_url('/mod/lti/service.php');
                     $serviceurl = $serviceurl->out();

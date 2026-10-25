@@ -24,7 +24,7 @@
  */
 
 require_once('../config.php');
-require_once($CFG->dirroot.'/ltix/constants.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
 
 $top = optional_param('top', 0, PARAM_INT);
 $msg = optional_param('lti_msg', '', PARAM_TEXT);
@@ -55,7 +55,7 @@ if (empty($top)) {
     $redirect = new moodle_url('/ltix/registrationreturn.php', $params);
     $redirect = $redirect->out(false);
 
-    $clickhere = get_string('click_to_continue', 'core_ltix', (object)array('link' => $redirect));
+    $clickhere = get_string('click_to_continue', 'core_ltix', (object)['link' => $redirect]);
     $html = <<< EOD
 <html>
 <head>

@@ -36,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class ltixservice extends base {
-
     /**
      * Should there be a way to uninstall the plugin via the administration UI?
      *
@@ -51,7 +50,5 @@ class ltixservice extends base {
         }
 
         return true;
-
     }
-
 }

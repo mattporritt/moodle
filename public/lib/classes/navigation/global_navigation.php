@@ -2066,9 +2066,14 @@ class global_navigation extends navigation_node {
         if ($navoptions->ltix) {
             $url = new \moodle_url('/ltix/coursetools.php', ['id' => $course->id]);
 
-            $coursenode->add(get_string('courseexternaltools', 'ltix'), $url,
-                navigation_node::TYPE_SETTING, null, 'lticoursetools',
-                new pix_icon('i/settings', ''));
+            $coursenode->add(
+                get_string('courseexternaltools', 'ltix'),
+                $url,
+                navigation_node::TYPE_SETTING,
+                null,
+                'lticoursetools',
+                new pix_icon('i/settings', '')
+            );
         }
 
         return true;

@@ -24,8 +24,8 @@
  */
 
 require_once('../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->dirroot.'/ltix/constants.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/ltix/constants.php');
 
 // No guest autologin.
 require_login(0, false);

@@ -35,7 +35,6 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class get_tool_types_and_proxies_count_test extends externallib_advanced_testcase {
-
     /**
      * This method runs before every test.
      */

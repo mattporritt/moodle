@@ -32,7 +32,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_tool_types_and_proxies extends external_api {
-
     /**
      * Get parameter definition for get_tool_types_and_proxies().
      *
