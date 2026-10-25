@@ -1,0 +1,45 @@
+{
+    "endpoint": "https://tool.example.com/launch",
+    "params": {
+        "context_id": "{{course}}",
+        "context_label": "C1",
+        "context_title": "Course One",
+        "context_type": "CourseSection",
+        "ext_lms": "moodle-2",
+        "ext_user_username": "tea1",
+        "for_user_id": "{{foruser:int}}",
+        "launch_presentation_document_target": "iframe",
+        "launch_presentation_locale": "en",
+        "launch_presentation_return_url": "{{wwwroot}}/mod/lti/return.php?course={{course}}&launch_container=3&instanceid={{instance}}&sesskey={{sesskey}}",
+        "lis_course_section_sourcedid": "CID1",
+        "lis_outcome_service_url": "{{wwwroot}}/mod/lti/service.php",
+        "lis_person_contact_email_primary": "tia@example.com",
+        "lis_person_name_family": "Teacher",
+        "lis_person_name_full": "Tia Teacher",
+        "lis_person_name_given": "Tia",
+        "lis_person_sourcedid": "U2",
+        "lis_result_sourcedid": {
+            "data": {
+                "instanceid": "{{instance}}",
+                "typeid": "{{type}}",
+                "userid": "{{user}}"
+            }
+        },
+        "lti_message_type": "LtiSubmissionReviewRequest",
+        "lti_version": "LTI-1p0",
+        "oauth_callback": "about:blank",
+        "oauth_consumer_key": "toolkey",
+        "oauth_signature_method": "HMAC-SHA1",
+        "oauth_version": "1.0",
+        "resource_link_description": "Launch intro",
+        "resource_link_id": "{{instance}}",
+        "resource_link_title": "Launch activity",
+        "roles": "Instructor",
+        "tool_consumer_info_product_family_code": "moodle",
+        "tool_consumer_info_version": "{{version}}",
+        "tool_consumer_instance_description": "PHPUnit test site",
+        "tool_consumer_instance_guid": "www.example.com",
+        "tool_consumer_instance_name": "phpunit",
+        "user_id": "{{user}}"
+    }
+}
