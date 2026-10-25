@@ -1,0 +1,35 @@
+issueNumber: MDL-79109
+notes:
+  core_ltix:
+    - message: >-
+        LTI launches have a new launch architecture. A launch service builds
+        the launch request of a resource link for each LTI version
+        (`v1p1_resource_link_launch_service`, `v1p3_resource_link_launch_service`
+        and `v2p0_resource_link_launch_service`). It uses a parameter builder
+        pipeline, a variable substitution pipeline and message type
+        definitions, all under `\core_ltix\local\lticore\message`. The launch
+        services are registered for dependency injection through the
+        `\core_ltix\hook_listener` callback of the `\core\hook\di_configuration`
+        hook.
+      type: improved
+    - message: >-
+        Three routes launch a resource link:
+        `/r.php/ltix/v1p1/resourcelink/{id}/launch`,
+        `/r.php/ltix/v1p3/resourcelink/{id}/launch` and
+        `/r.php/ltix/v2p0/resourcelink/{id}/launch`. Their controllers are in
+        `\core_ltix\route\controller\launchrequest`.
+      type: improved
+    - message: >-
+        New classes support the LTI 1.3 OpenID Connect login:
+        `\core_ltix\local\ltiopenid\lti_oidc_authenticator`,
+        `lti_user_authenticator`, `lti_user`, and
+        `\core_ltix\local\lticore\token\lti_token`.
+      type: improved
+    - message: >-
+        `\core_ltix\local\ltiservice\service_base::get_launch_parameters()` and
+        `\core_ltix\local\ltiservice\resource_base::parse_value()` are
+        deprecated. Services now implement `get_launch_params()`, which takes a
+        `\core_ltix\local\lticore\message\context\collection\launch_context`,
+        and resources implement `parse_val()`. The deprecated methods call the
+        new ones, so existing launches send the same parameters.
+      type: deprecated

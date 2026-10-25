@@ -335,6 +335,7 @@ abstract class resource_base {
      * @param string $value String to be parsed
      *
      * @return string
+     * @deprecated since Moodle 6.0 MDL-79109. Use {@see self::parse_val()} instead.
      */
     #[\core\attribute\deprecated(
         '::parse_val',

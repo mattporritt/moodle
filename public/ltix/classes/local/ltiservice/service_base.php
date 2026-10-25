@@ -336,6 +336,7 @@ abstract class service_base {
      * The type is passed to check the configuration and not return parameters for services not used.
      *
      * @return array Key/value pairs to add as launch parameters.
+     * @deprecated since Moodle 6.0 MDL-79109. Use {@see self::get_launch_params()} instead.
      */
     #[\core\attribute\deprecated(
         '::get_launch_params',
