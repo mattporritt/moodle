@@ -49,6 +49,9 @@ final class deep_linking_return_test extends \advanced_testcase {
     /** @var int The tool. */
     private int $typeid;
 
+    /** @var string|null The data of the deep linking request, which the tool has to send back in its response. */
+    private ?string $requestdata = null;
+
     /**
      * Create a course, a teacher and an LTI 1.3 tool that can sign deep linking responses.
      */
@@ -90,11 +93,15 @@ final class deep_linking_return_test extends \advanced_testcase {
         $fields = $this->lti_form_fields($output);
         $this->assertArrayHasKey('id_token', $fields);
         $claims = json_decode(base64_decode(strtr(explode('.', $fields['id_token'])[1], '-_', '+/')), true);
-        return $claims['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings']['deep_link_return_url'];
+        $settings = $claims['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'];
+        $this->requestdata = $settings['data'] ?? null;
+        return $settings['deep_link_return_url'];
     }
 
     /**
      * Sign a deep linking response as the tool would.
+     *
+     * The response carries the data of the deep linking request, so the launch has to be started first.
      *
      * @param array $contentitems the content items the teacher chose.
      * @return string the JWT.
@@ -107,6 +114,10 @@ final class deep_linking_return_test extends \advanced_testcase {
             "$prefix/claim/message_type" => 'LtiDeepLinkingResponse', "$prefix/claim/version" => '1.3.0',
             "$prefix/claim/deployment_id" => (string) $this->typeid, "$prefix-dl/claim/content_items" => $contentitems,
         ];
+        // The tool sends the data of the request back unchanged, as the deep linking specification requires.
+        if ($this->requestdata !== null) {
+            $payload["$prefix-dl/claim/data"] = $this->requestdata;
+        }
         return \Firebase\JWT\JWT::encode($payload, $this->toolprivatekey, 'RS256', 'tool-key');
     }
 
