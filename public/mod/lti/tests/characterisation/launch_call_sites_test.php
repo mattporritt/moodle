@@ -118,7 +118,7 @@ final class launch_call_sites_test extends \advanced_testcase {
     public function test_launch_details_are_passed_as_the_parameters_they_belong_to(string $script): void {
         global $CFG;
         $parameters = $this->lti_login_initiation_parameters();
-        $arguments = $this->call_arguments(file_get_contents("{$CFG->dirroot}/{$script}"), 'lti_initiate_login');
+        $arguments = $this->call_arguments(file_get_contents("{$CFG->dirroot}/{$script}"), $this->lti_login_initiation_function());
         $this->assertNotNull($arguments, "$script does not call the login initiation function");
         $this->assertLessThanOrEqual(count($parameters), count($arguments));
 

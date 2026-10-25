@@ -32,6 +32,9 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  *  - lti_get_launch_data()      => \core_ltix\helper::get_launch_data()
  *  - mod_lti_external (WS)      => core_ltix external functions (the mod_lti ones stay as deprecated wrappers)
  *  - lti_initiate_login()       => \core_ltix\helper::initiate_login()
+ *  - ltiservice_gradebookservices (table) => ltixservice_gradebookservices
+ *  - the deep linking return URL's course parameter => contextid
+ *  - the course of a tool restricted to a category, which has to be inside the category once the restriction is applied
  *  - lti_delete_type()          => \core_ltix\helper::delete_type()
  *  - jwks_helper (mod_lti)      => \core_ltix\local\ltiopenid\jwks_helper
  *  - mod_lti generator          => core_ltix generator (create_tool_types)
@@ -332,9 +335,10 @@ trait characterisation_trait {
      */
     protected function lti_line_items(int $courseid): array {
         global $DB;
+        $table = $this->lti_gradebookservices_table();
         $sql = "SELECT gbs.id, gi.itemname AS label, gi.grademax, gbs.resourceid, gbs.tag, gbs.subreviewurl, gbs.subreviewparams,
                        l.name AS activity, gbs.typeid, gi.courseid AS gradeitemcourse
-                  FROM {ltiservice_gradebookservices} gbs
+                  FROM {{$table}} gbs
                   JOIN {grade_items} gi ON gi.id = gbs.gradeitemid
              LEFT JOIN {lti} l ON l.id = gbs.ltilinkid AND l.course = gbs.courseid
                  WHERE gbs.courseid = :courseid
@@ -447,8 +451,8 @@ trait characterisation_trait {
      */
     protected function lti_login_initiation_callers(): array {
         return [
-            'mod/lti/launch.php' => ['lti_initiate_login'],
-            'mod/lti/contentitem.php' => ['lti_initiate_login'],
+            'mod/lti/launch.php' => [$this->lti_login_initiation_function()],
+            'mod/lti/contentitem.php' => [$this->lti_login_initiation_function()],
         ];
     }
 
@@ -458,6 +462,48 @@ trait characterisation_trait {
      * @return string[]
      */
     protected function lti_login_initiation_parameters(): array {
-        return array_map(fn($parameter) => $parameter->getName(), (new \ReflectionFunction('lti_initiate_login'))->getParameters());
+        $function = new \ReflectionFunction($this->lti_login_initiation_function());
+        return array_map(fn($parameter) => $parameter->getName(), $function->getParameters());
+    }
+
+    /**
+     * The name of the function that starts an LTI 1.3 login, as the launch scripts call it.
+     *
+     * @return string
+     */
+    protected function lti_login_initiation_function(): string {
+        return 'lti_initiate_login';
+    }
+
+    /**
+     * The table that holds the AGS line items.
+     *
+     * @return string the table name, without the prefix.
+     */
+    protected function lti_gradebookservices_table(): string {
+        return 'ltiservice_gradebookservices';
+    }
+
+    /**
+     * A course, and a category that the course is in, for a tool that is restricted to the category.
+     *
+     * The tool is only available in courses inside its categories, so the course is created inside the category.
+     *
+     * @return \stdClass[] [course, category]
+     */
+    protected function lti_course_in_category(): array {
+        $category = $this->getDataGenerator()->create_category();
+        $course = $this->getDataGenerator()->create_course(['category' => $category->id]);
+        return [$course, $category];
+    }
+
+    /**
+     * The parameter that carries where the content was selected in the deep linking return URL, and its value for a course.
+     *
+     * @param \stdClass $course the course the selection was started in.
+     * @return array [parameter name, value]
+     */
+    protected function lti_deep_linking_return_scope(\stdClass $course): array {
+        return ['course', (int) $course->id];
     }
 }

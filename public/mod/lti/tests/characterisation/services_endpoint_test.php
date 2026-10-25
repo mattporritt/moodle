@@ -98,7 +98,7 @@ final class services_endpoint_test extends \advanced_testcase {
      */
     private function tokens(int $typeid): array {
         global $CFG, $DB;
-        $gradeitem = $DB->get_field('ltiservice_gradebookservices', 'gradeitemid', ['ltilinkid' => $this->lti->id]);
+        $gradeitem = $DB->get_field($this->lti_gradebookservices_table(), 'gradeitemid', ['ltilinkid' => $this->lti->id]);
         return [
             '{{wwwroot}}' => $CFG->wwwroot, '{{course}}' => $this->course->id, '{{type}}' => $typeid,
             '{{student}}' => $this->student->id, '{{teacher}}' => $this->teacher->id, '{{instance}}' => $this->lti->id,
@@ -254,7 +254,8 @@ final class services_endpoint_test extends \advanced_testcase {
      */
     private function standalone_grade_item_id(): int {
         global $DB;
-        return (int) $DB->get_field('ltiservice_gradebookservices', 'gradeitemid', ['resourceid' => 'resource-2'], MUST_EXIST);
+        $table = $this->lti_gradebookservices_table();
+        return (int) $DB->get_field($table, 'gradeitemid', ['resourceid' => 'resource-2'], MUST_EXIST);
     }
 
     /**

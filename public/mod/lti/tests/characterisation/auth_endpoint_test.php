@@ -193,7 +193,8 @@ final class auth_endpoint_test extends \advanced_testcase {
         $this->assertNotEmpty($settings['accept_types']);
         $this->assertNotEmpty($settings['accept_presentation_document_targets']);
         $this->assertNotEmpty($settings['deep_link_return_url']);
-        $this->assertSame((int) $this->course->id, (int) $this->query_param($settings['deep_link_return_url'], 'course'));
+        [$scopeparameter, $scope] = $this->lti_deep_linking_return_scope($this->course);
+        $this->assertSame($scope, (int) $this->query_param($settings['deep_link_return_url'], $scopeparameter));
         $this->assertSame($this->typeid, (int) $this->query_param($settings['deep_link_return_url'], 'id'));
         $this->assertNotEmpty($this->query_param($settings['deep_link_return_url'], 'sesskey'));
     }

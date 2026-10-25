@@ -44,8 +44,17 @@ final class tool_deletion_test extends \advanced_testcase {
      * The activity table is here by design: activities of a deleted tool stay in their courses.
      */
     private const KNOWN_LEFTOVERS = [
-        'lti', 'lti_coursevisible', 'lti_access_tokens', 'lti_tool_settings', 'ltiservice_gradebookservices',
+        'lti', 'lti_coursevisible', 'lti_access_tokens', 'lti_tool_settings',
     ];
+
+    /**
+     * Tables that may hold rows for a deleted tool: the known leftovers, and the table of the line items.
+     *
+     * @return string[]
+     */
+    private function expected_leftovers(): array {
+        return array_merge(self::KNOWN_LEFTOVERS, [$this->lti_gradebookservices_table()]);
+    }
 
     /**
      * Rows that were not in the database before the tool was created, per table that points at a tool.
@@ -103,8 +112,7 @@ final class tool_deletion_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $generator = $this->getDataGenerator();
-        $course = $generator->create_course();
-        $category = $generator->create_category();
+        [$course, $category] = $this->lti_course_in_category();
 
         $typeid = $this->lti_create_tool([
             'name' => 'Doomed tool', 'baseurl' => 'https://tool.example.com/launch', 'state' => 1,
@@ -128,7 +136,7 @@ final class tool_deletion_test extends \advanced_testcase {
         $this->lti_delete_tool($typeid);
 
         $this->assertFalse($DB->record_exists('lti_types', ['id' => $typeid]));
-        $leftovers = array_diff(array_keys($this->rows_for_tool($typeid)), self::KNOWN_LEFTOVERS);
+        $leftovers = array_diff(array_keys($this->rows_for_tool($typeid)), $this->expected_leftovers());
         $this->assertSame([], array_values($leftovers), 'Deleting the tool left data in: ' . implode(', ', $leftovers));
 
         // The activity is kept, the other tool is untouched.
