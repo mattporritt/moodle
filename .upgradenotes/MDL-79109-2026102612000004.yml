@@ -1,0 +1,54 @@
+issueNumber: MDL-79109
+notes:
+  core_ltix:
+    - message: >-
+        A placement framework was added. A placement is a place where a tool
+        can be used. The new tables `lti_placement_type`, `lti_placement`,
+        `lti_placement_config` and `lti_placement_status` store the registered
+        placement types, the placements of each tool, their configuration and
+        their status in a context. Components register placement types in a
+        `db/lti.php` file, with a handler class that implements
+        `\core_ltix\local\placement\placement_handler`. The
+        `\core_ltix\local\placement\placements_manager`,
+        `placement_service` and `placement_repository` classes manage and
+        read placements, and the `lti_placementtype_handlers` cache holds the
+        registered handlers. The placement types are registered on install and
+        upgrade.
+      type: improved
+    - message: >-
+        A new deep linking API lets a placement handle the content a tool
+        returns. A handler extends
+        `\core_ltix\local\placement\deeplinking_placement_handler` and can
+        require extra capabilities with `content_item_selection_capabilities()`
+        and format the returned content items with a
+        `\core_ltix\local\placement\contentitemformatter\content_item_data_formatter`.
+      type: improved
+    - message: >-
+        The content selection page moved from `/mod/lti/contentitem.php` to
+        `/ltix/contentitemselection.php`, and the `core_ltix/contentitem`
+        template was renamed `core_ltix/contentitem_selection`. The
+        `core_ltix/tool_deeplinking_results` template moved back to `mod_lti`.
+      type: changed
+    - message: >-
+        The deep linking return page (`/ltix/contentitem_return.php`) now
+        refuses a context that has no course, requires the
+        `moodle/course:manageactivities` capability, and runs the capability
+        checks of the placement that started the selection. The activity
+        placement also requires `moodle/ltix:addcoursetool`. A refused request
+        throws an exception.
+      type: changed
+    - message: >-
+        The `coursevisible` setting of existing tools is migrated to the status
+        of the activity placement on upgrade. Tools created after the upgrade
+        get their placements when they are created, and the placements of a
+        tool are removed when the tool is deleted. The "Show in activity
+        chooser" setting of a tool and the course tools page read and write
+        the status of the activity placement.
+      type: changed
+  mod_lti:
+    - message: >-
+        A `mod_lti:activityplacement` placement type was added, with the
+        handler `\mod_lti\lti\placement\activityplacement`. It registers in
+        `mod/lti/db/lti.php`, and a placement of this type is created for every
+        existing tool on upgrade.
+      type: improved

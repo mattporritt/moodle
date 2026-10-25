@@ -81,8 +81,3 @@ notes:
         whether or not the `mod_lti` activity module is enabled, because
         `core_ltix` serves more than the activity module.
       type: changed
-  mod_lti:
-    - message: >-
-        lti_tool_configuration_from_content_item() is deprecated. Please use
-        \core_ltix\helper::tool_configuration_from_content_item() instead.
-      type: deprecated
