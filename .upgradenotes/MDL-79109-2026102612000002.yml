@@ -1,0 +1,23 @@
+issueNumber: MDL-79109
+notes:
+  core_ltix:
+    - message: >-
+        A new `lti_resource_link` table, owned by `core_ltix`, stores one
+        record for each place a tool is linked from. Each record names the
+        owning component, the item type and id, the context, the tool type
+        and the launch settings of the link. Components create and read these
+        records with the `\core_ltix\local\lticore\models\resource_link`
+        persistent.
+      type: improved
+    - message: >-
+        On upgrade, `mod_lti` creates a resource link for every existing LTI
+        activity. The id of the link is the id of the activity, so existing
+        activities keep a stable link id. The step can be run more than once.
+        New and updated activities keep their resource link in step.
+      type: improved
+    - message: >-
+        The privacy metadata, export and deletion of the LTI tables moved from
+        the `mod_lti` privacy provider to the new `core_ltix` privacy provider.
+        The `mod_lti` provider now links to the `core_ltix` subsystem and
+        delegates to its provider.
+      type: changed
