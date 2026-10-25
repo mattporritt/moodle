@@ -6,7 +6,7 @@
         "family_name": "Student",
         "given_name": "Sam",
         "https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome": {
-            "lis_outcome_service_url": "{{wwwroot}}/mod/lti/service.php",
+            "lis_outcome_service_url": "{{wwwroot}}/ltix/service.php",
             "lis_result_sourcedid": {
                 "data": {
                     "instanceid": "{{instance}}",
@@ -31,7 +31,7 @@
         "https://purl.imsglobal.org/spec/lti/claim/launch_presentation": {
             "document_target": "iframe",
             "locale": "en",
-            "return_url": "{{wwwroot}}/mod/lti/return.php?course={{course}}&launch_container=3&instanceid={{instance}}&sesskey={{sesskey}}"
+            "return_url": "{{wwwroot}}/ltix/return.php?course={{course}}&launch_container=3&instanceid={{instance}}&sesskey={{sesskey}}"
         },
         "https://purl.imsglobal.org/spec/lti/claim/lis": {
             "course_section_sourcedid": "CID1",
