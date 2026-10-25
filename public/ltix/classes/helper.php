@@ -1192,8 +1192,6 @@ class helper {
     /**
      * Override coursevisible for a given tool on course level.
      *
-     * The "Show in activity chooser" option is held in the status of the tool's activity placement in the course.
-     *
      * @param int $tooltypeid Type ID
      * @param int $courseid Course ID
      * @param \core\context\course $context Course context
@@ -1212,7 +1210,16 @@ class helper {
 
         $ltitype = self::get_type($tooltypeid);
         if ($ltitype && ($ltitype->coursevisible != \core_ltix\constants::LTI_COURSEVISIBLE_NO)) {
-            if (intval($ltitype->course) == intval(get_site()->id)) {
+            $coursevisible = $showinactivitychooser ? \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER : \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED;
+            $ltitype->coursevisible = $coursevisible;
+
+            $config = new \stdClass();
+            $config->lti_coursevisible = $coursevisible;
+
+            if (intval($ltitype->course) != intval(get_site()->id)) {
+                // It is course tool - just update it.
+                self::update_type($ltitype, $config);
+            } else {
                 $coursecategory = $DB->get_field('course', 'category', ['id' => $courseid]);
                 $sql = "SELECT COUNT(*) AS count
                       FROM {lti_types_categories} tc
@@ -1224,193 +1231,23 @@ class helper {
                         throw new \moodle_exception('You are not allowed to change this setting for this tool.');
                     }
                 }
-            }
 
-            self::set_activity_placement_status_in_course($tooltypeid, $courseid, $showinactivitychooser);
-
-            // Backup reads the course level setting from here, so keep it in step.
-            if (intval($ltitype->course) == intval(get_site()->id)) {
-                $record = (object) ['typeid' => $tooltypeid, 'courseid' => $courseid, 'coursevisible' => $showinactivitychooser ?
-                    \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER : \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED];
-                if ($existing = $DB->get_record('lti_coursevisible', ['typeid' => $tooltypeid, 'courseid' => $courseid])) {
-                    $record->id = $existing->id;
-                    $DB->update_record('lti_coursevisible', $record);
+                // This is site tool, but we would like to have course level setting for it.
+                $lticoursevisible = $DB->get_record('lti_coursevisible', ['typeid' => $tooltypeid, 'courseid' => $courseid]);
+                if (!$lticoursevisible) {
+                    $lticoursevisible = new \stdClass();
+                    $lticoursevisible->typeid = $tooltypeid;
+                    $lticoursevisible->courseid = $courseid;
+                    $lticoursevisible->coursevisible = $coursevisible;
+                    $DB->insert_record('lti_coursevisible', $lticoursevisible);
                 } else {
-                    $DB->insert_record('lti_coursevisible', $record);
+                    $lticoursevisible->coursevisible = $coursevisible;
+                    $DB->update_record('lti_coursevisible', $lticoursevisible);
                 }
             }
             return true;
         }
         return false;
-    }
-
-    /**
-     * Whether a tool is shown in the activity chooser, which is the case when its activity placement is enabled.
-     *
-     * Temporary bridge for the "Show in activity chooser" option, removed with the option in the placement UI slice.
-     *
-     * @param int $toolid The tool ID.
-     * @return bool Whether the activity placement is enabled by default for the tool.
-     */
-    private static function is_shown_in_activity_chooser(int $toolid): bool {
-        global $DB;
-
-        $placementid = self::get_activity_placement_id($toolid);
-        return $placementid && $DB->get_field(
-            'lti_placement_config',
-            'value',
-            ['placementid' => $placementid, 'name' => 'default_usage']
-        ) === 'enabled';
-    }
-
-    /**
-     * Reads the "Show in activity chooser" option that a caller is saving with a tool.
-     *
-     * Temporary bridge for the "Show in activity chooser" option, removed with the option in the placement UI slice.
-     *
-     * @param object $config The tool configuration being saved.
-     * @param object|null $type The tool type being saved, whose coursevisible is also read when given.
-     * @return bool|null True to show the tool in the activity chooser, false to only preconfigure it, null when the caller is
-     *                   not setting the option.
-     */
-    private static function get_requested_activity_chooser_option(object $config, ?object $type = null): ?bool {
-        $coursevisible = $config->lti_coursevisible ?? $type->coursevisible ?? null;
-        if ($coursevisible === null) {
-            return null;
-        }
-        return match ((int) $coursevisible) {
-            \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER => true,
-            \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED => false,
-            default => null,
-        };
-    }
-
-    /**
-     * Gets the ID of a tool's activity placement.
-     *
-     * @param int $toolid The tool ID.
-     * @param bool $create Whether to create the placement when the tool has none.
-     * @return int|null The placement ID, or null when there is none.
-     */
-    private static function get_activity_placement_id(int $toolid, bool $create = false): ?int {
-        global $DB;
-
-        $placementtypeid = $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement']);
-        if (!$placementtypeid) {
-            return null;
-        }
-        $params = ['toolid' => $toolid, 'placementtypeid' => $placementtypeid];
-        $placementid = $DB->get_field('lti_placement', 'id', $params);
-        if (!$placementid && $create) {
-            $placementid = $DB->insert_record('lti_placement', $params);
-        }
-        return $placementid ?: null;
-    }
-
-    /**
-     * Shows or hides a tool in the activity chooser by default, in every course, through the placement configuration.
-     * The placement is created when the tool is shown.
-     *
-     * Temporary bridge for the "Show in activity chooser" option, removed with the option in the placement UI slice.
-     *
-     * @param int $toolid The tool ID.
-     * @param bool $show Whether the tool is shown in the activity chooser.
-     * @return void
-     */
-    private static function set_shown_in_activity_chooser(int $toolid, bool $show): void {
-        // Only showing a tool needs a placement. A tool that only is preconfigured has none until it is shown.
-        $placementid = self::get_activity_placement_id($toolid, $show);
-        if ($placementid) {
-            self::insert_or_update_placement_config((object) [
-                'placementid' => $placementid,
-                'name' => 'default_usage',
-                'value' => $show ? 'enabled' : 'disabled',
-            ]);
-        }
-    }
-
-    /**
-     * Copies the deep linking settings of a tool's form to its activity placement config.
-     *
-     * Temporary bridge, removed with the "Show in activity chooser" bridge in the placement UI slice. The tool form still
-     * saves the "Supports Deep Linking (Content-Item Message)" option and the content selection URL as tool config. The
-     * activity form reads them from the activity placement, so they are mirrored there, as the upgrade does.
-     *
-     * @param int $toolid The tool ID.
-     * @param object $config The tool configuration being saved.
-     * @return void
-     */
-    private static function set_deep_linking_placement_config(int $toolid, object $config): void {
-        global $DB;
-
-        if (!isset($config->lti_contentitem) && !isset($config->lti_toolurl_ContentItemSelectionRequest)) {
-            return;
-        }
-
-        // Mirror what was stored, which is what the activity form read before the placements.
-        $stored = $DB->get_records_menu('lti_types_config', ['typeid' => $toolid], '', 'name, value');
-        $supports = !empty($stored['contentitem']) ? '1' : '0';
-
-        $placementid = self::get_activity_placement_id($toolid);
-        if (!$placementid) {
-            // Like the upgrade, hidden tools get no placement. A tool without deep linking needs none to mirror.
-            $hidden = $DB->get_field('lti_types', 'coursevisible', ['id' => $toolid]) == \core_ltix\constants::LTI_COURSEVISIBLE_NO;
-            if ($hidden || $supports === '0') {
-                return;
-            }
-            $placementid = self::get_activity_placement_id($toolid, true);
-            // A placement made only for deep linking does not show the tool in the activity chooser.
-            self::insert_or_update_placement_config((object) [
-                'placementid' => $placementid,
-                'name' => 'default_usage',
-                'value' => 'disabled',
-            ]);
-        }
-
-        self::insert_or_update_placement_config((object) [
-            'placementid' => $placementid,
-            'name' => 'supports_deep_linking',
-            'value' => $supports,
-        ]);
-        // As in the upgrade, an empty content selection URL is not stored.
-        $url = $stored['toolurl_ContentItemSelectionRequest'] ?? '';
-        if ($url !== '') {
-            self::insert_or_update_placement_config((object) [
-                'placementid' => $placementid,
-                'name' => 'deep_linking_url',
-                'value' => $url,
-            ]);
-        } else {
-            $DB->delete_records('lti_placement_config', ['placementid' => $placementid, 'name' => 'deep_linking_url']);
-        }
-    }
-
-    /**
-     * Shows or hides a tool in the activity chooser of one course, through the status of its activity placement.
-     *
-     * Temporary bridge for the "Show in activity chooser" option, removed with the option in the placement UI slice.
-     *
-     * @param int $toolid The tool ID.
-     * @param int $courseid The course ID.
-     * @param bool $show Whether the tool is shown in the activity chooser of the course.
-     * @return void
-     */
-    public static function set_activity_placement_status_in_course(int $toolid, int $courseid, bool $show): void {
-        global $DB;
-
-        $placementid = self::get_activity_placement_id($toolid, true);
-        if (!$placementid) {
-            return;
-        }
-        $params = ['placementid' => $placementid, 'contextid' => \core\context\course::instance($courseid)->id];
-        $status = $show ? \core_ltix\local\placement\placement_status::ENABLED->value :
-            \core_ltix\local\placement\placement_status::DISABLED->value;
-        if ($record = $DB->get_record('lti_placement_status', $params)) {
-            $record->status = $status;
-            $DB->update_record('lti_placement_status', $record);
-        } else {
-            $DB->insert_record('lti_placement_status', (object) ($params + ['status' => $status]));
-        }
     }
 
     /**
@@ -1679,7 +1516,6 @@ class helper {
     public static function update_type($type, $config) {
         global $DB, $CFG;
 
-        $showinactivitychooser = self::get_requested_activity_chooser_option($config);
         self::prepare_type_for_save($type, $config);
 
         if (self::request_is_using_ssl() && !empty($type->secureicon)) {
@@ -1718,10 +1554,6 @@ class helper {
             if (isset($config->lti_coursecategories) && !empty($config->lti_coursecategories)) {
                 self::type_add_categories($type->id, $config->lti_coursecategories);
             }
-            if ($showinactivitychooser !== null) {
-                self::set_shown_in_activity_chooser($type->id, $showinactivitychooser);
-            }
-            self::set_deep_linking_placement_config($type->id, $config);
             require_once($CFG->libdir . '/modinfolib.php');
             if ($clearcache) {
                 $sql = "SELECT cm.id, cm.course
@@ -1780,14 +1612,7 @@ class helper {
             $type->clientid = null;
         }
         if (isset($config->lti_coursevisible)) {
-            // The activity chooser option is held in the activity placement. The tool is only ever preconfigured.
-            if ($config->lti_coursevisible == \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER) {
-                $config->lti_coursevisible = \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED;
-            }
             $type->coursevisible = $config->lti_coursevisible;
-        }
-        if (isset($type->coursevisible) && $type->coursevisible == \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER) {
-            $type->coursevisible = \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED;
         }
 
         if (isset($config->lti_icon)) {
@@ -1872,7 +1697,6 @@ class helper {
     public static function add_type($type, $config) {
         global $USER, $SITE, $DB;
 
-        $showinactivitychooser = self::get_requested_activity_chooser_option($config, $type);
         self::prepare_type_for_save($type, $config);
 
         if (!isset($type->state)) {
@@ -1924,10 +1748,6 @@ class helper {
             if (isset($config->lti_coursecategories) && !empty($config->lti_coursecategories)) {
                 self::type_add_categories($id, $config->lti_coursecategories);
             }
-            if ($showinactivitychooser !== null) {
-                self::set_shown_in_activity_chooser($id, $showinactivitychooser);
-            }
-            self::set_deep_linking_placement_config($id, $config);
         }
 
         return $id;
@@ -2080,12 +1900,6 @@ class helper {
 
         if (isset($config['coursevisible'])) {
             $type->lti_coursevisible = $config['coursevisible'];
-            if (
-                $config['coursevisible'] == \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED &&
-                    self::is_shown_in_activity_chooser($id)
-            ) {
-                $type->lti_coursevisible = \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER;
-            }
         }
 
         if (isset($config['contentitem'])) {
@@ -2094,16 +1908,6 @@ class helper {
 
         if (isset($config['toolurl_ContentItemSelectionRequest'])) {
             $type->lti_toolurl_ContentItemSelectionRequest = $config['toolurl_ContentItemSelectionRequest'];
-        }
-
-        // The deep linking settings are held in the activity placement config, where the activity form reads them.
-        $placementrepository = \core_ltix\local\placement\placement_repository::class;
-        $placementconfig = $placementrepository::get_placement_config_by_placement_type($id, 'mod_lti:activityplacement');
-        if (isset($placementconfig->supports_deep_linking)) {
-            $type->lti_contentitem = $placementconfig->supports_deep_linking;
-        }
-        if (isset($placementconfig->deep_linking_url)) {
-            $type->lti_toolurl_ContentItemSelectionRequest = $placementconfig->deep_linking_url;
         }
 
         if (isset($config['debuglaunch'])) {
