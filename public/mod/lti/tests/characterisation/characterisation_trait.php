@@ -63,7 +63,7 @@ trait characterisation_trait {
         string $messagetype = '',
         int $foruserid = 0
     ): array {
-        return lti_get_launch_data($lti, $nonce, $messagetype, $foruserid);
+        return \core_ltix\helper::get_launch_data($lti, $nonce, $messagetype, $foruserid);
     }
 
     /**
@@ -73,7 +73,7 @@ trait characterisation_trait {
      * @return int the tool type id.
      */
     protected function lti_create_tool(array $config): int {
-        return $this->getDataGenerator()->get_plugin_generator('mod_lti')->create_tool_types($config);
+        return $this->getDataGenerator()->get_plugin_generator('core_ltix')->create_tool_types($config);
     }
 
     /**
@@ -83,7 +83,7 @@ trait characterisation_trait {
      * @return int the tool type id.
      */
     protected function lti_create_course_tool(array $config): int {
-        return $this->getDataGenerator()->get_plugin_generator('mod_lti')->create_course_tool_types($config);
+        return $this->getDataGenerator()->get_plugin_generator('core_ltix')->create_course_tool_types($config);
     }
 
     /**
@@ -107,7 +107,7 @@ trait characterisation_trait {
      * @param int $typeid the tool type id.
      */
     protected function lti_delete_tool(int $typeid): void {
-        lti_delete_type($typeid);
+        \core_ltix\helper::delete_type($typeid);
     }
 
     /**
@@ -127,7 +127,7 @@ trait characterisation_trait {
      * @return array the key and value to add to the tool configuration.
      */
     protected function lti_service_setting(string $setting, int $value): array {
-        return ["ltiservice_{$setting}" => $value];
+        return ["ltixservice_{$setting}" => $value];
     }
 
     /**
@@ -147,8 +147,8 @@ trait characterisation_trait {
         string $messagetype = 'basic-lti-launch-request',
         int $foruserid = 0
     ): array {
-        $config = lti_get_type_type_config($typeid);
-        $form = lti_initiate_login(
+        $config = \core_ltix\helper::get_type_type_config($typeid);
+        $form = \core_ltix\helper::initiate_login(
             $courseid,
             $lti->cmid ?? 0,
             $lti,
@@ -171,7 +171,7 @@ trait characterisation_trait {
      * @return array [output, throwable or null]
      */
     protected function lti_auth_request(array $params): array {
-        return $this->lti_run_script('/mod/lti/auth.php', [], $params);
+        return $this->lti_run_script('/ltix/auth.php', [], $params);
     }
 
     /**
@@ -243,8 +243,8 @@ trait characterisation_trait {
      */
     protected function lti_sessionless_endpoint_scripts(): array {
         return [
-            'mod/lti/service.php', 'mod/lti/services.php', 'mod/lti/token.php', 'mod/lti/certs.php',
-            'mod/lti/openid-configuration.php', 'mod/lti/openid-registration.php',
+            'ltix/service.php', 'ltix/services.php', 'ltix/token.php', 'ltix/certs.php',
+            'ltix/openid-configuration.php', 'ltix/openid-registration.php',
         ];
     }
 
@@ -254,7 +254,7 @@ trait characterisation_trait {
      * @return array
      */
     protected function lti_platform_key_set(): array {
-        return \mod_lti\local\ltiopenid\jwks_helper::get_jwks();
+        return \core_ltix\local\ltiopenid\jwks_helper::get_jwks();
     }
 
     /**
@@ -288,7 +288,7 @@ trait characterisation_trait {
      * @param bool $show whether to show it.
      */
     protected function lti_set_chooser_visibility(int $typeid, int $courseid, bool $show): void {
-        \mod_lti\local\types_helper::override_type_showinactivitychooser(
+        \core_ltix\helper::override_type_showinactivitychooser(
             $typeid,
             $courseid,
             \core\context\course::instance($courseid),
@@ -315,7 +315,7 @@ trait characterisation_trait {
         ?string $resourceid,
         ?string $tag
     ): int {
-        $service = new \ltiservice_gradebookservices\local\service\gradebookservices();
+        $service = new \ltixservice_gradebookservices\local\service\gradebookservices();
         return $service->add_standalone_lineitem(
             (string) $courseid,
             $label,
@@ -391,15 +391,18 @@ trait characterisation_trait {
         string $accept = '',
         string $body = '',
         array $query = []
-    ): \mod_lti\local\ltiservice\response {
-        $token = lti_new_access_token($typeid, $scopes);
+    ): \core_ltix\local\ltiservice\response {
+        // The tests name the service classes by their old plugin names.
+        $resourceclass = preg_replace('/^\\\\?ltiservice_/', 'ltixservice_', $resourceclass);
+        $serviceclass = preg_replace('/^\\\\?ltiservice_/', 'ltixservice_', $serviceclass);
+        $token = \core_ltix\helper::new_access_token($typeid, $scopes);
         $_SERVER['REQUEST_METHOD'] = $method;
         $_SERVER['PATH_INFO'] = $pathinfo;
         $_SERVER['HTTP_Authorization'] = 'Bearer ' . $token->token;
         $_SERVER[$method === 'GET' ? 'HTTP_ACCEPT' : 'CONTENT_TYPE'] = $accept;
         $_GET = $query + ['type_id' => (string) $typeid];
 
-        $response = new \mod_lti\local\ltiservice\response();
+        $response = new \core_ltix\local\ltiservice\response();
         if ($method === 'GET') {
             $response->set_accept($accept);
         } else {
@@ -463,8 +466,8 @@ trait characterisation_trait {
      * @return string[]
      */
     protected function lti_login_initiation_parameters(): array {
-        $function = new \ReflectionFunction($this->lti_login_initiation_function());
-        return array_map(fn($parameter) => $parameter->getName(), $function->getParameters());
+        $method = new \ReflectionMethod(\core_ltix\helper::class, $this->lti_login_initiation_function());
+        return array_map(fn($parameter) => $parameter->getName(), $method->getParameters());
     }
 
     /**
@@ -473,7 +476,7 @@ trait characterisation_trait {
      * @return string
      */
     protected function lti_login_initiation_function(): string {
-        return 'lti_initiate_login';
+        return 'initiate_login';
     }
 
     /**
@@ -482,7 +485,7 @@ trait characterisation_trait {
      * @return string the table name, without the prefix.
      */
     protected function lti_gradebookservices_table(): string {
-        return 'ltiservice_gradebookservices';
+        return 'ltixservice_gradebookservices';
     }
 
     /**
@@ -514,7 +517,7 @@ trait characterisation_trait {
      * @return string[]
      */
     protected function lti_activity_bound_tables(): array {
-        return [];
+        return ['lti_resource_link'];
     }
 
     /**
@@ -524,7 +527,8 @@ trait characterisation_trait {
      * @return int
      */
     protected function lti_resource_links_for_tool(int $typeid): int {
-        return 0;
+        global $DB;
+        return $DB->count_records('lti_resource_link', ['typeid' => $typeid]);
     }
 
     /**
@@ -534,6 +538,11 @@ trait characterisation_trait {
      * @return int
      */
     protected function lti_resource_links_without_activity(int $typeid): int {
-        return 0;
+        global $DB;
+        $sql = "SELECT COUNT(rl.id)
+                  FROM {lti_resource_link} rl
+                 WHERE rl.typeid = :typeid AND rl.component = 'mod_lti'
+                       AND NOT EXISTS (SELECT 1 FROM {course_modules} cm WHERE cm.id = rl.itemid)";
+        return (int) $DB->get_field_sql($sql, ['typeid' => $typeid]);
     }
 }
