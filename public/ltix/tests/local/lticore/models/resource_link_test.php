@@ -25,7 +25,6 @@ namespace core_ltix\local\lticore\models;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class resource_link_test extends \advanced_testcase {
-
     /**
      * Test creation using the bare minimum number of fields (those required).
      *
@@ -35,7 +34,7 @@ final class resource_link_test extends \advanced_testcase {
      * @param null|string $expectedexception the exception type to expect, if any, else null.
      * @return void
      */
-    public function test_resource_link_creation(array $setdata, array $expecteddata, ?string$expectedexception = null): void {
+    public function test_resource_link_creation(array $setdata, array $expecteddata, ?string $expectedexception = null): void {
         $this->resetAfterTest();
 
         $rl = new resource_link();
@@ -117,7 +116,7 @@ final class resource_link_test extends \advanced_testcase {
                     'customparams' => 'id=abc-123-fff',
                     'icon' => 'http://tool.example.com/my/resource/icon.png',
                     'servicesalt' => '664c4261e47d85.53212526',
-                ]
+                ],
             ],
             'Exceptional case, invalid launchcontainer value' => [
                 'setdata' => [

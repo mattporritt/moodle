@@ -77,7 +77,8 @@ class provider implements
             {$joinsql['join']}
             {$joinsql['where']}";
 
-        $params = array_merge($joinsql['params'],
+        $params = array_merge(
+            $joinsql['params'],
             [
                 'modname' => 'lti',
                 'contextlevel' => CONTEXT_MODULE,

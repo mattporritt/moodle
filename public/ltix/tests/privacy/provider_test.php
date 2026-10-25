@@ -40,7 +40,6 @@ require_once("{$CFG->dirroot}/ltix/tests/generator/lib.php");
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class provider_test extends \core_privacy\tests\provider_testcase {
-
     /**
      * Test for provider::get_metadata().
      */
@@ -297,8 +296,11 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertEquals(1, $count);
 
         $context = \context_course::instance($course->id);
-        $contextlist = new approved_contextlist($user1, 'ltix',
-            [\context_system::instance()->id, $context->id]);
+        $contextlist = new approved_contextlist(
+            $user1,
+            'ltix',
+            [\context_system::instance()->id, $context->id]
+        );
         provider::delete_data_for_user($contextlist);
 
         // After deletion the lti type for the first user should have been updated.
@@ -352,7 +354,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
         provider::delete_data_for_users($approvedlist);
 
         // After deletion the lti submission for the first two users should have been deleted.
-        list($insql, $inparams) = $DB->get_in_or_equal($approveduserids, SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal($approveduserids, SQL_PARAMS_NAMED);
         $sql = "course = :courseid AND createdby {$insql}";
         $params = array_merge($inparams, ['courseid' => $course->id]);
         $count = $DB->count_records_select('lti_types', $sql, $params);

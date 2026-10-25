@@ -37,19 +37,16 @@ class provider implements
     // core_ltix stores user data.
     \core_privacy\local\metadata\provider,
 
-    // The core_ltix subsystem provides data to other components.
-    \core_privacy\local\request\subsystem\plugin_provider,
-
     // This plugin is capable of determining which users have data within it.
     \core_privacy\local\request\core_userlist_provider,
 
     // The core_ltix subsystem may have data that belongs to this user.
     \core_privacy\local\request\plugin\provider,
+    \core_privacy\local\request\shared_userlist_provider,
 
-    \core_privacy\local\request\shared_userlist_provider
+    // The core_ltix subsystem provides data to other components.
+    \core_privacy\local\request\subsystem\plugin_provider
 {
-
-
     /**
      * Returns information about the user data stored in this component.
      *
@@ -190,7 +187,7 @@ class provider implements
                 WHERE ltit.createdby = :userid";
         $params = [
             'contextlevel' => CONTEXT_COURSE,
-            'userid' => $userid
+            'userid' => $userid,
         ];
         $contextlist->add_from_sql($sql, $params);
 
@@ -241,7 +238,7 @@ class provider implements
         global $DB;
 
         // Filter out any contexts that are not related to courses.
-        $courseids = array_reduce($contextlist->get_contexts(), function($carry, $context) {
+        $courseids = array_reduce($contextlist->get_contexts(), function ($carry, $context) {
             if ($context->contextlevel == CONTEXT_COURSE) {
                 $carry[] = $context->instanceid;
             }
@@ -254,20 +251,20 @@ class provider implements
 
         $user = $contextlist->get_user();
 
-        list($insql, $inparams) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
         $params = array_merge($inparams, ['userid' => $user->id]);
         $ltitypes = $DB->get_recordset_select('lti_types', "course $insql AND createdby = :userid", $params, 'timecreated ASC');
-        self::recordset_loop_and_export($ltitypes, 'course', [], function($carry, $record) {
+        self::recordset_loop_and_export($ltitypes, 'course', [], function ($carry, $record) {
             $context = \context_course::instance($record->course);
             $options = ['context' => $context];
             $carry[] = [
                 'name' => format_string($record->name, true, $options),
                 'createdby' => transform::user($record->createdby),
                 'timecreated' => transform::datetime($record->timecreated),
-                'timemodified' => transform::datetime($record->timemodified)
+                'timemodified' => transform::datetime($record->timemodified),
             ];
             return $carry;
-        }, function($courseid, $data) {
+        }, function ($courseid, $data) {
             $context = \context_course::instance($courseid);
             $finaldata = (object) ['lti_types' => $data];
             writer::with_context($context)->export_data([], $finaldata);
@@ -284,7 +281,7 @@ class provider implements
         global $DB;
 
         // Filter out any contexts that are not related to system context.
-        $systemcontexts = array_filter($contextlist->get_contexts(), function($context) {
+        $systemcontexts = array_filter($contextlist->get_contexts(), function ($context) {
             return $context->contextlevel == CONTEXT_SYSTEM;
         });
 
@@ -303,7 +300,7 @@ class provider implements
                 'name' => format_string($ltiproxy->name, true, ['context' => $systemcontext]),
                 'createdby' => transform::user($ltiproxy->createdby),
                 'timecreated' => transform::datetime($ltiproxy->timecreated),
-                'timemodified' => transform::datetime($ltiproxy->timemodified)
+                'timemodified' => transform::datetime($ltiproxy->timemodified),
             ];
         }
         $ltiproxies->close();
@@ -323,7 +320,7 @@ class provider implements
         global $DB;
 
         // Filter out any contexts that are not related to modules.
-        $cmids = array_reduce($contextlist->get_contexts(), function($carry, $context) {
+        $cmids = array_reduce($contextlist->get_contexts(), function ($carry, $context) {
             if ($context->contextlevel == CONTEXT_MODULE) {
                 $carry[] = $context->instanceid;
             }
@@ -340,18 +337,18 @@ class provider implements
         $ltiidstocmids = self::get_lti_ids_to_cmids_from_cmids($cmids);
         $ltiids = array_keys($ltiidstocmids);
 
-        list($insql, $inparams) = $DB->get_in_or_equal($ltiids, SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal($ltiids, SQL_PARAMS_NAMED);
         $params = array_merge($inparams, ['userid' => $user->id]);
         $recordset = $DB->get_recordset_select('lti_submission', "ltiid $insql AND userid = :userid", $params, 'dateupdated, id');
-        \core_ltix\privacy\provider::recordset_loop_and_export($recordset, 'ltiid', [], function($carry, $record) use ($user, $ltiidstocmids) {
+        self::recordset_loop_and_export($recordset, 'ltiid', [], function ($carry, $record) use ($user, $ltiidstocmids) {
             $carry[] = [
                 'gradepercent' => $record->gradepercent,
                 'originalgrade' => $record->originalgrade,
                 'datesubmitted' => transform::datetime($record->datesubmitted),
-                'dateupdated' => transform::datetime($record->dateupdated)
+                'dateupdated' => transform::datetime($record->dateupdated),
             ];
             return $carry;
-        }, function($ltiid, $data) use ($user, $ltiidstocmids) {
+        }, function ($ltiid, $data) use ($user, $ltiidstocmids) {
             $context = \context_module::instance($ltiidstocmids[$ltiid]);
             $contextdata = helper::get_context_data($context, $user);
             $finaldata = (object) array_merge((array) $contextdata, ['submissions' => $data]);
@@ -424,7 +421,7 @@ class provider implements
             return;
         }
 
-        list($usersql, $userparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        [$usersql, $userparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
         $DB->set_field_select($table, 'createdby', 0, "createdby {$usersql}", $userparams);
     }
 
@@ -445,7 +442,7 @@ class provider implements
 
         if (!is_null($userids)) {
             $userids = (array) $userids;
-            list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+            [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
             $sql .= " AND userid {$insql}";
             $params = array_merge($params, $inparams);
         }
@@ -464,11 +461,11 @@ class provider implements
      * @return void
      */
     public static function recordset_loop_and_export(
-            \moodle_recordset $recordset,
-            string $splitkey,
-            $initial,
-            callable $reducer,
-            callable $export
+        \moodle_recordset $recordset,
+        string $splitkey,
+        $initial,
+        callable $reducer,
+        callable $export
     ) {
         $data = $initial;
         $lastid = null;
@@ -499,7 +496,7 @@ class provider implements
     protected static function get_lti_ids_to_cmids_from_cmids(array $cmids): array {
         global $DB;
 
-        list($insql, $inparams) = $DB->get_in_or_equal($cmids, SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal($cmids, SQL_PARAMS_NAMED);
         $sql = "SELECT lti.id, cm.id AS cmid
                  FROM {lti} lti
                  JOIN {modules} m

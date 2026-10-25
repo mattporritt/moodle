@@ -24,7 +24,6 @@ namespace mod_lti;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class upgradelib_test extends \advanced_testcase {
-
     /**
      * Prepares things before this test case is initialised.
      *
@@ -147,12 +146,12 @@ final class upgradelib_test extends \advanced_testcase {
         $cmdid = $DB->insert_record('course_modules', [
             'course' => $course->id,
             'module' => $DB->get_field('modules', 'id', ['name' => 'lti']),
-            'instance' => $toolinstanceid
+            'instance' => $toolinstanceid,
         ]);
 
         $DB->insert_record('context', [
             'contextlevel' => CONTEXT_MODULE,
-            'instanceid' => $cmdid
+            'instanceid' => $cmdid,
         ]);
 
         return $toolinstanceid;

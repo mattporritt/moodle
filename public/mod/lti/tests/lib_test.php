@@ -110,7 +110,7 @@ final class lib_test extends \advanced_testcase {
         $ltiresourcelink = resource_link::get_record([
             'itemid' => $lti->cmid,
             'component' => 'mod_lti',
-            'itemtype' => 'mod_lti:activityplacement'
+            'itemtype' => 'mod_lti:activityplacement',
         ]);
         $this->assertEquals(null, $ltiresourcelink);
     }

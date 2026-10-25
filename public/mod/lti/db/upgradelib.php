@@ -24,7 +24,6 @@ namespace mod_lti;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class lti_migration_upgrade_helper {
-
     /**
      * Creates a resource link for every lti activity instance. Links are owned by mod_lti and are identified by the placementtype.
      *
@@ -68,6 +67,5 @@ class lti_migration_upgrade_helper {
         // Reset table sequence for the id column.
         $table = new \xmldb_table('lti_resource_link');
         $DB->get_manager()->reset_sequence($table);
-
     }
 }

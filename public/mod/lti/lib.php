@@ -203,7 +203,7 @@ function lti_update_instance($lti, $mform) {
     $ltiresourcelink = $rl->get_record([
         'itemid' => $lti->coursemodule,
         'component' => 'mod_lti',
-        'itemtype' => 'mod_lti:activityplacement'
+        'itemtype' => 'mod_lti:activityplacement',
     ]);
 
     $ltiresourcelinkformvalues = [
@@ -270,7 +270,7 @@ function lti_delete_instance($id) {
         $ltiresourcelink = $rl->get_record([
             'itemid' => $cm->id,
             'component' => 'mod_lti',
-            'itemtype' => 'mod_lti:activityplacement'
+            'itemtype' => 'mod_lti:activityplacement',
         ]);
         $ltiresourcelink->delete();
         return true;

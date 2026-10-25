@@ -29,10 +29,14 @@ use core_ltix\local\placement\placements_manager;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class resource_link extends persistent {
-
     /** @var string The table name. */
     public const TABLE = 'lti_resource_link';
 
+    /**
+     * Define the properties of a resource link.
+     *
+     * @return array The persistent property definitions, keyed by property name.
+     */
     protected static function define_properties(): array {
         global $CFG;
         require_once($CFG->dirroot . '/ltix/constants.php');
