@@ -1,0 +1,62 @@
+{
+    "endpoint": "https://tool.example.com/launch",
+    "params": {
+        "aud": "characterisation-client",
+        "email": "sam@example.com",
+        "family_name": "Student",
+        "given_name": "Sam",
+        "https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome": {
+            "lis_outcome_service_url": "{{wwwroot}}/mod/lti/service.php",
+            "lis_result_sourcedid": {
+                "data": {
+                    "instanceid": "{{instance}}",
+                    "typeid": "{{type}}",
+                    "userid": "{{user}}"
+                }
+            }
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/context": {
+            "id": "{{course}}",
+            "label": "C1",
+            "title": "Course One",
+            "type": [
+                "CourseSection"
+            ]
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/deployment_id": "{{type}}",
+        "https://purl.imsglobal.org/spec/lti/claim/ext": {
+            "lms": "moodle-2",
+            "user_username": "stu1"
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/launch_presentation": {
+            "document_target": "iframe",
+            "locale": "en",
+            "return_url": "{{wwwroot}}/mod/lti/return.php?course={{course}}&launch_container=3&instanceid={{instance}}&sesskey={{sesskey}}"
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/lis": {
+            "course_section_sourcedid": "CID1",
+            "person_sourcedid": "U1"
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiResourceLinkRequest",
+        "https://purl.imsglobal.org/spec/lti/claim/resource_link": {
+            "description": "Launch intro",
+            "id": "{{instance}}",
+            "title": "Launch activity"
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/roles": [
+            "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner"
+        ],
+        "https://purl.imsglobal.org/spec/lti/claim/target_link_uri": "https://tool.example.com/launch",
+        "https://purl.imsglobal.org/spec/lti/claim/tool_platform": {
+            "description": "PHPUnit test site",
+            "guid": "www.example.com",
+            "name": "phpunit",
+            "product_family_code": "moodle",
+            "version": "{{version}}"
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+        "iss": "{{wwwroot}}",
+        "name": "Sam Student",
+        "sub": "{{user}}"
+    }
+}
