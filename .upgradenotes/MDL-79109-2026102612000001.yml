@@ -1,0 +1,88 @@
+issueNumber: MDL-79109
+notes:
+  core_ltix:
+    - message: >-
+        A new `core_ltix` subsystem (`public/ltix`) now owns the LTI code that
+        used to live in `mod_lti` and is shared by more than the activity
+        module. It owns the `lti_types`, `lti_types_config`, `lti_types_categories`,
+        `lti_coursevisible`, `lti_tool_proxies`, `lti_tool_settings`,
+        `lti_submission` and `lti_access_tokens` tables, which moved from
+        `mod/lti/db/install.xml` to `lib/db/install.xml`. Table names and data
+        are unchanged.
+      type: changed
+    - message: >-
+        The `ltiservice` and `ltisource` subplugin types of `mod_lti` are now
+        the core plugin types `ltixservice` (`public/ltix/service`) and
+        `ltixsource` (`public/ltix/source`). The bundled services were renamed
+        to `ltixservice_basicoutcomes`, `ltixservice_gradebookservices`,
+        `ltixservice_memberships`, `ltixservice_profile`,
+        `ltixservice_toolproxy` and `ltixservice_toolsettings`. Their backup
+        classes are now `backup_ltixservice_gradebookservices_plugin` and
+        `restore_ltixservice_gradebookservices_plugin`. Backups made before
+        this change still restore.
+      type: changed
+    - message: >-
+        The `mod_lti` classes `\mod_lti\local\ltiservice\service_base`,
+        `resource_base`, `response`, `\mod_lti\local\ltiopenid\registration_helper`,
+        `registration_exception` and `jwks_helper`, `\mod_lti\event\unknown_service_api_called`
+        and the `mod_lti_external` web service classes have moved to the
+        `core_ltix` namespace. The `mod_lti` classes are deprecated since
+        Moodle 6.0 and are listed in the deprecation notes of this change.
+      type: changed
+    - message: >-
+        The pages `coursetools.php`, `coursetooledit.php`, `toolconfigure.php`,
+        `typessettings.php`, `toolproxies.php`, `toolssettings.php`,
+        `register.php`, `registersettings.php`, `registration.php`,
+        `registrationreturn.php`, `externalregistrationreturn.php`,
+        `startltiadvregistration.php`, `request_tool.php`, `return.php`,
+        `contentitem_return.php`, `openid-configuration.php` and
+        `openid-registration.php` moved from `/mod/lti/` to `/ltix/`, and the
+        `/mod/lti/OAuth.php` and `/mod/lti/TrivialStore.php` includes moved to
+        `/ltix/`. The token, certs, auth, service and services endpoints are also
+        available under `/ltix/`. Plugins and tools that link to the old paths must update
+        them.
+      type: changed
+    - message: >-
+        The web services `core_ltix_get_tool_proxies`,
+        `core_ltix_create_tool_proxy`, `core_ltix_delete_tool_proxy`,
+        `core_ltix_get_tool_proxy_registration_request`,
+        `core_ltix_get_tool_types`, `core_ltix_get_tool_types_and_proxies`,
+        `core_ltix_get_tool_types_and_proxies_count`,
+        `core_ltix_create_tool_type`, `core_ltix_update_tool_type`,
+        `core_ltix_delete_tool_type`, `core_ltix_delete_course_tool_type`,
+        `core_ltix_toggle_showinactivitychooser` and `core_ltix_is_cartridge`
+        were added. The matching `mod_lti_*` web services are deprecated.
+      type: improved
+    - message: >-
+        The capabilities `moodle/ltix:addcoursetool`, `moodle/ltix:manage`,
+        `moodle/ltix:admin`, `moodle/ltix:viewcoursetools` and
+        `moodle/ltix:requesttooladd` were added. Each clones the permissions
+        of its `mod/lti:*` counterpart, so existing role permissions and
+        overrides carry over. The `mod/lti:*` capabilities are still enforced
+        where they were before.
+      type: improved
+    - message: >-
+        The `\mod_lti\task\clean_access_tokens` scheduled task moved to
+        `\core_ltix\task\clean_access_tokens`, and the `mod_lti/keyset` cache
+        definition moved to the `core/ltix_keyset` definition.
+      type: changed
+    - message: >-
+        The Mustache templates and the AMD modules of the tool management
+        pages moved from `mod_lti` to `core_ltix` (for example
+        `mod_lti/tool_card` is now `core_ltix/tool_card`, and `mod_lti/events`
+        is now `core_ltix/events`). The `mod_lti` templates, the `mod_lti/keyset`
+        cache definition and the moved AMD modules are not kept in `mod_lti`.
+        The AMD modules other than `events`, `repository` and `tool_type`, and
+        the `\mod_lti\local\types_helper` class, are accepted exceptions to
+        deprecation: callers must use the `core_ltix` versions.
+      type: changed
+    - message: >-
+        The LTI admin category (Site administration > Plugins > LTI) is shown
+        whether or not the `mod_lti` activity module is enabled, because
+        `core_ltix` serves more than the activity module.
+      type: changed
+  mod_lti:
+    - message: >-
+        lti_tool_configuration_from_content_item() is deprecated. Please use
+        \core_ltix\helper::tool_configuration_from_content_item() instead.
+      type: deprecated

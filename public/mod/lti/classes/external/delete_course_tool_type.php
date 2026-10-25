@@ -31,6 +31,7 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  * @package    mod_lti
  * @copyright  2023 Jake Dallimore <jrhdallimore@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @deprecated since Moodle 6.0 use \core_ltix\external\delete_course_tool_type instead
  */
 #[\core\attribute\deprecated(
     reason: 'Use \core_ltix\external\delete_course_tool_type instead',

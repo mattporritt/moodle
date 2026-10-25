@@ -30,6 +30,7 @@ use core_ltix\external\structs;
  * @author     Andrew Madden <andrewmadden@catalyst-au.net>
  * @copyright  2021 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @deprecated since Moodle 6.0 use \core_ltix\external\get_tool_types_and_proxies instead
  */
 #[\core\attribute\deprecated(
     reason: 'Use \core_ltix\external\get_tool_types_and_proxies instead',
