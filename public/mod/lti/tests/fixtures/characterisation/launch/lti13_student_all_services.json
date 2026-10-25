@@ -7,7 +7,7 @@
         "given_name": "Sam",
         "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint": {
             "lineitem": "",
-            "lineitems": "{{wwwroot}}/mod/lti/services.php/{{course}}/lineitems?type_id={{type}}",
+            "lineitems": "{{wwwroot}}/ltix/services.php/{{course}}/lineitems?type_id={{type}}",
             "scope": [
                 "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
                 "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly",
@@ -16,7 +16,7 @@
             ]
         },
         "https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome": {
-            "lis_outcome_service_url": "{{wwwroot}}/mod/lti/service.php",
+            "lis_outcome_service_url": "{{wwwroot}}/ltix/service.php",
             "lis_result_sourcedid": {
                 "data": {
                     "instanceid": "{{instance}}",
@@ -26,7 +26,7 @@
             }
         },
         "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice": {
-            "context_memberships_url": "{{wwwroot}}/mod/lti/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
+            "context_memberships_url": "{{wwwroot}}/ltix/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
             "service_versions": [
                 "1.0",
                 "2.0"
@@ -42,17 +42,17 @@
         },
         "https://purl.imsglobal.org/spec/lti/claim/custom": {
             "context_id": "{{course}}",
-            "context_memberships_url": "{{wwwroot}}/mod/lti/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
-            "context_setting_url": "{{wwwroot}}/mod/lti/services.php/CourseSection/{{course}}/bindings/tool/{{type}}/custom",
+            "context_memberships_url": "{{wwwroot}}/ltix/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
+            "context_setting_url": "{{wwwroot}}/ltix/services.php/CourseSection/{{course}}/bindings/tool/{{type}}/custom",
             "context_title": "Course One",
             "fixed": "abc",
-            "link_setting_url": "{{wwwroot}}/mod/lti/services.php/links/{link_id}/custom",
+            "link_setting_url": "{{wwwroot}}/ltix/services.php/links/{link_id}/custom",
             "member_role": "Learner",
             "person_email": "sam@example.com",
             "person_fullname": "Sam Student",
             "rl_id": "{{instance}}",
             "rl_title": "Launch activity",
-            "system_setting_url": "{{wwwroot}}/mod/lti/services.php/tool/{{type}}/custom",
+            "system_setting_url": "{{wwwroot}}/ltix/services.php/tool/{{type}}/custom",
             "user_username": "stu1"
         },
         "https://purl.imsglobal.org/spec/lti/claim/deployment_id": "{{type}}",
@@ -63,7 +63,7 @@
         "https://purl.imsglobal.org/spec/lti/claim/launch_presentation": {
             "document_target": "iframe",
             "locale": "en",
-            "return_url": "{{wwwroot}}/mod/lti/return.php?course={{course}}&launch_container=3&instanceid={{instance}}&sesskey={{sesskey}}"
+            "return_url": "{{wwwroot}}/ltix/return.php?course={{course}}&launch_container=3&instanceid={{instance}}&sesskey={{sesskey}}"
         },
         "https://purl.imsglobal.org/spec/lti/claim/lis": {
             "course_section_sourcedid": "CID1",

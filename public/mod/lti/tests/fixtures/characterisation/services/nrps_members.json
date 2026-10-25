@@ -4,7 +4,7 @@
         "label": "C1",
         "title": "Course One"
     },
-    "id": "{{wwwroot}}/mod/lti/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
+    "id": "{{wwwroot}}/ltix/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
     "members": [
         {
             "email": "sam@example.com",
