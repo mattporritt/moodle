@@ -27,8 +27,8 @@
  */
 
 require_once('../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->dirroot.'/ltix/classes/form/register_form.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/ltix/classes/form/register_form.php');
 
 $action       = optional_param('action', null, PARAM_ALPHANUMEXT);
 $id           = optional_param('id', null, PARAM_INT);

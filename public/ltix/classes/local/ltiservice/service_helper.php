@@ -261,7 +261,7 @@ class service_helper {
         $moduleinstance = $DB->get_record($cm->modname, ['id' => $cm->instance]);
 
         $params = [
-            'itemname' => $moduleinstance->name
+            'itemname' => $moduleinstance->name,
         ];
 
         $gradeval = $gradeval * floatval($moduleinstance->grade);
@@ -286,7 +286,7 @@ class service_helper {
             [
                 'ltiresourcelinkid' => $resourcelink->get('id'),
                 'userid' => $userid,
-                'launchid' => $launchid
+                'launchid' => $launchid,
             ],
             'id'
         );
@@ -304,7 +304,7 @@ class service_helper {
                     'id' => $id,
                     'dateupdated' => time(),
                     'gradepercent' => $gradeval,
-                    'state' => 2
+                    'state' => 2,
                 ]
             );
         } else {
@@ -318,7 +318,7 @@ class service_helper {
                     'gradepercent' => $gradeval,
                     'originalgrade' => $gradeval,
                     'launchid' => $launchid,
-                    'state' => 1
+                    'state' => 1,
                 ]
             );
         }

@@ -89,7 +89,7 @@ class course_external_tools_list extends system_report {
             [
                 $coursevisibleparam => \core_ltix\constants::LTI_COURSEVISIBLE_NO,
                 $categoryparam => $this->course->category,
-                $toolstateparam => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+                $toolstateparam => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
             ]
         );
         $this->add_base_condition_sql($wheresql, $params);

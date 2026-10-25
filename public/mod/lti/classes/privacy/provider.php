@@ -110,7 +110,7 @@ class provider implements
      */
     public static function export_user_data(approved_contextlist $contextlist): void {
         // Filter out any contexts that are not related to lti modules.
-        $contextids = array_reduce($contextlist->get_contexts(), function($carry, $context) {
+        $contextids = array_reduce($contextlist->get_contexts(), function ($carry, $context) {
             if ($context->contextlevel == CONTEXT_MODULE && get_coursemodule_from_id('lti', $context->instanceid)) {
                 $carry[] = $context->id;
             }

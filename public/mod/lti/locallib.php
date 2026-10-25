@@ -898,8 +898,11 @@ function lti_get_types_for_add_instance() {
 function lti_get_configured_types($courseid, $sectionreturn = 0) {
     global $OUTPUT, $USER;
     $types = [];
-    $preconfiguredtypes = \mod_lti\local\types_helper::get_lti_types_by_course($courseid, $USER->id,
-        [\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]);
+    $preconfiguredtypes = \mod_lti\local\types_helper::get_lti_types_by_course(
+        $courseid,
+        $USER->id,
+        [\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]
+    );
 
     foreach ($preconfiguredtypes as $ltitype) {
         $type           = new stdClass();

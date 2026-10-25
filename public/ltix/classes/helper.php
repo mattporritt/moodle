@@ -117,6 +117,14 @@ class helper {
         return self::get_tools_by_domain($domain, $state, $courseid);
     }
 
+    /**
+     * Get the tool whose base URL best matches a URL.
+     *
+     * @param string $url The tool URL.
+     * @param int|null $courseid The course the tool is wanted for.
+     * @param int $state Only consider tools in this state (LTI_TOOL_STATE_*).
+     * @return \stdClass|null The best matching lti_types record, or null when there is none.
+     */
     public static function get_tool_by_url_match($url, $courseid = null, $state = \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED) {
         $possibletools = self::get_tools_by_url($url, $state, $courseid);
 
@@ -745,9 +753,9 @@ class helper {
         foreach ($splitted as $key => $val) {
             $val = self::parse_custom_parameter($toolproxy, $tool, $params, $val, $islti2);
             $key2 = self::map_keyname($key);
-            $retval['custom_'.$key2] = $val;
+            $retval['custom_' . $key2] = $val;
             if (($islti2 || ($tool?->ltiversion === \core_ltix\constants::LTI_VERSION_1P3)) && ($key != $key2)) {
-                $retval['custom_'.$key] = $val;
+                $retval['custom_' . $key] = $val;
             }
         }
         return $retval;
@@ -2339,7 +2347,7 @@ class helper {
         }
 
         $target = '';
-        switch($launchcontainer) {
+        switch ($launchcontainer) {
             case \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED:
             case \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS:
                 $target = 'iframe';
@@ -2592,7 +2600,8 @@ class helper {
             $requestparams['lis_course_section_sourcedid'] = $course->idnumber;
         }
 
-        if (!empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
+        if (
+            !empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
                 $typeconfig['acceptgrades'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
                 ($typeconfig['acceptgrades'] == \core_ltix\constants::LTI_SETTING_DELEGATE && $instance->instructorchoiceacceptgrades == \core_ltix\constants::LTI_SETTING_ALWAYS))
         ) {
@@ -2620,9 +2629,12 @@ class helper {
         }
 
         // Send user's name and email data if appropriate.
-        if ($islti2 || $typeconfig['sendname'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendname'] == \core_ltix\constants::LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendname)
-                && $instance->instructorchoicesendname == \core_ltix\constants::LTI_SETTING_ALWAYS)
+        if (
+            $islti2 ||
+            $typeconfig['sendname'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendname'] == \core_ltix\constants::LTI_SETTING_DELEGATE &&
+            isset($instance->instructorchoicesendname) &&
+                $instance->instructorchoicesendname == \core_ltix\constants::LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_name_given'] = $USER->firstname;
             $requestparams['lis_person_name_family'] = $USER->lastname;
@@ -2630,9 +2642,12 @@ class helper {
             $requestparams['ext_user_username'] = $USER->username;
         }
 
-        if ($islti2 || $typeconfig['sendemailaddr'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendemailaddr'] == \core_ltix\constants::LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendemailaddr)
-                && $instance->instructorchoicesendemailaddr == \core_ltix\constants::LTI_SETTING_ALWAYS)
+        if (
+            $islti2 ||
+            $typeconfig['sendemailaddr'] == \core_ltix\constants::LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendemailaddr'] == \core_ltix\constants::LTI_SETTING_DELEGATE &&
+            isset($instance->instructorchoicesendemailaddr) &&
+                $instance->instructorchoicesendemailaddr == \core_ltix\constants::LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_contact_email_primary'] = $USER->email;
         }
@@ -3309,8 +3324,8 @@ class helper {
                    FROM {lti}
                   WHERE resourcekey = :key3";
 
-        $sharedsecrets = $DB->get_records_sql($query, array('configured1' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
-            'configured2' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key));
+        $sharedsecrets = $DB->get_records_sql($query, ['configured1' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
+            'configured2' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key]);
 
         $values = array_map(function ($item) {
             return $item->value;
@@ -3574,7 +3589,7 @@ class helper {
         // Scrolling within the object element doesn't work on iOS or Android
         // Opening the popup window also had some issues in testing
         // For mobile devices, always take up the entire screen to ensure the best experience.
-        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET ) {
+        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET) {
             $launchcontainer = \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW;
         }
 

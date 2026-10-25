@@ -121,7 +121,7 @@ final class services_content_item_service_test extends \advanced_testcase {
             'name' => 'site tool',
             'baseurl' => 'http://example.com',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $cis = new content_item_service(new content_item_readonly_repository());
         $this->setUser($user); // This is needed since the underlying lti code needs the global user despite the api accepting user.

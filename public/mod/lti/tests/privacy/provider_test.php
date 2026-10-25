@@ -477,7 +477,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
             'baseurl' => 'https://www.moodle.org',
             'course' => $courseid,
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         return $coursetoolid;
     }

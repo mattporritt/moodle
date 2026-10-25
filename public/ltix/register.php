@@ -24,7 +24,7 @@
  */
 
 require_once('../config.php');
-require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->libdir . '/adminlib.php');
 use core_ltix\local\ltiservice\service_helper;
 
 $id = required_param('id', PARAM_INT);

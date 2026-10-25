@@ -515,7 +515,6 @@ final class helper_test extends lti_testcase {
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
         $this->assertEquals($contentitems[0]['icon']['url'], $config->icon);
         $this->assertEquals(\core_ltix\constants::LTI_SETTING_NEVER, $config->instructorchoiceacceptgrades);
-
     }
 
     /**
@@ -557,42 +556,42 @@ final class helper_test extends lti_testcase {
                 'baseurl' => 'https://example.com/i/am/?where=here',
                 'tooldomain' => 'example.com',
                 'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'There',
                 'baseurl' => 'https://example.com/i/am/?where=there',
                 'tooldomain' => 'example.com',
                 'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Not here',
                 'baseurl' => 'https://example.com/i/am/?where=not/here',
                 'tooldomain' => 'example.com',
                 'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Here',
                 'baseurl' => 'https://example.com/i/am/',
                 'tooldomain' => 'example.com',
                 'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Here',
                 'baseurl' => 'https://example.com/i/was',
                 'tooldomain' => 'example.com',
                 'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
             (object) [
                 'name' => 'Here',
                 'baseurl' => 'https://badexample.com/i/am/?where=here',
                 'tooldomain' => 'badexample.com',
                 'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-                'course' => SITEID
+                'course' => SITEID,
             ],
         ];
 
@@ -673,7 +672,7 @@ final class helper_test extends lti_testcase {
             'description' => 'Good example description',
             'tooldomain' => 'example.com',
             'baseurl' => 'https://example.com/i/am/?where=here',
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         // Create a tool type with bad domain.
@@ -682,7 +681,7 @@ final class helper_test extends lti_testcase {
             'description' => 'Bad example description',
             'tooldomain' => 'badexample.com',
             'baseurl' => 'https://badexample.com/i/am/?where=here',
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         $records = helper::get_tools_by_domain('example.com', \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED);
@@ -716,7 +715,7 @@ final class helper_test extends lti_testcase {
             'tooldomain' => 'exampleone.com',
             'baseurl' => 'https://exampleone.com/tool/1',
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat1->id
+            'lti_coursecategories' => $coursecat1->id,
         ]);
 
         // Create another tool type using the same domain, restricted to category2.
@@ -726,7 +725,7 @@ final class helper_test extends lti_testcase {
             'tooldomain' => 'exampleone.com',
             'baseurl' => 'https://exampleone.com/tool/2',
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
 
         // Create a tool type with domain restricting to a category2.
@@ -736,7 +735,7 @@ final class helper_test extends lti_testcase {
             'tooldomain' => 'exampletwo.com',
             'baseurl' => 'https://exampletwo.com/tool/3',
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
 
         // Get tool types for domain 'exampleone' in course 1 and verify only the one result under course category 1 is included.
@@ -833,13 +832,13 @@ final class helper_test extends lti_testcase {
             'name' => 'site tool do not show',
             'baseurl' => 'http://example.com/tool/1',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_NO,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $tool2id = $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured only',
             'baseurl' => 'http://example.com/tool/2',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $tool3id = $ltigenerator->create_course_tool_types([
             'name' => 'course tool preconfigured and activity chooser',
@@ -851,14 +850,14 @@ final class helper_test extends lti_testcase {
             'baseurl' => 'http://example.com/tool/4',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
         $tool5id = $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser, restricted to category 1',
             'baseurl' => 'http://example.com/tool/5',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat1->id
+            'lti_coursecategories' => $coursecat1->id,
         ]);
 
         // LTI_COURSEVISIBLE_NO can't be updated.
@@ -871,8 +870,11 @@ final class helper_test extends lti_testcase {
 
         $result = helper::override_type_showinactivitychooser($tool2id, $course->id, $context, true);
         $this->assertTrue($result);
-        $coursevisibleoverriden = $DB->get_field('lti_coursevisible', 'coursevisible',
-            ['typeid' => $tool2id, 'courseid' => $course->id]);
+        $coursevisibleoverriden = $DB->get_field(
+            'lti_coursevisible',
+            'coursevisible',
+            ['typeid' => $tool2id, 'courseid' => $course->id]
+        );
         $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, $coursevisibleoverriden);
 
         $result = helper::override_type_showinactivitychooser($tool3id, $course->id, $context, false);
@@ -888,8 +890,11 @@ final class helper_test extends lti_testcase {
         // Restricted category allowed.
         $result = helper::override_type_showinactivitychooser($tool5id, $course->id, $context, false);
         $this->assertTrue($result);
-        $coursevisibleoverriden = $DB->get_field('lti_coursevisible', 'coursevisible',
-            ['typeid' => $tool5id, 'courseid' => $course->id]);
+        $coursevisibleoverriden = $DB->get_field(
+            'lti_coursevisible',
+            'coursevisible',
+            ['typeid' => $tool5id, 'courseid' => $course->id]
+        );
         $this->assertEquals(\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED, $coursevisibleoverriden);
 
         $this->setUser($teacher2);

@@ -48,8 +48,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/lti/locallib.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/mod/lti/locallib.php');
 
 class mod_lti_mod_form extends moodleform_mod {
 
@@ -226,7 +226,7 @@ class mod_lti_mod_form extends moodleform_mod {
             \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED => get_string('embed', 'core_ltix'),
             \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS => get_string('embed_no_blocks', 'core_ltix'),
             \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW => get_string('existing_window', 'core_ltix'),
-            \core_ltix\constants::LTI_LAUNCH_CONTAINER_WINDOW => get_string('new_window', 'core_ltix')
+            \core_ltix\constants::LTI_LAUNCH_CONTAINER_WINDOW => get_string('new_window', 'core_ltix'),
         ];
         $mform->addElement('select', 'launchcontainer', get_string('launchinpopup', 'lti'), $launchoptions);
         $mform->addHelpButton('launchcontainer', 'launchinpopup', 'lti');

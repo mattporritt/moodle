@@ -99,7 +99,7 @@ final class content_item_readonly_repository_test extends \advanced_testcase {
             'name' => 'site tool',
             'baseurl' => 'http://example.com',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $teacherrole = $DB->get_record('role', array('shortname' => 'editingteacher'));
         assign_capability('mod/lti:addpreconfiguredinstance', CAP_PROHIBIT, $teacherrole->id,

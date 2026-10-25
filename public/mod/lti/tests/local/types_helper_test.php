@@ -82,19 +82,19 @@ final class types_helper_test extends lti_testcase {
             'name' => 'site tool do not show',
             'baseurl' => 'http://example.com/tool/1',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_NO,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured only',
             'baseurl' => 'http://example.com/tool/2',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser',
             'baseurl' => 'http://example.com/tool/3',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $ltigenerator->create_course_tool_types([
             'name' => 'course tool preconfigured and activity chooser',
@@ -124,8 +124,11 @@ final class types_helper_test extends lti_testcase {
         $this->assertEquals($expected, $actual);
 
         // Request for only those tools configured to show in the activity chooser for the teacher.
-        $coursetooltypes = types_helper::get_lti_types_by_course($course->id, $teacher->id,
-            [\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]);
+        $coursetooltypes = types_helper::get_lti_types_by_course(
+            $course->id,
+            $teacher->id,
+            [\core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]
+        );
         $this->assertCount(2, $coursetooltypes);
         $expected = [
             'http://example.com/tool/3',
@@ -137,8 +140,11 @@ final class types_helper_test extends lti_testcase {
         $this->assertEquals($expected, $actual);
 
         // Request for only those tools configured to show as a preconfigured tool for the teacher.
-        $coursetooltypes = types_helper::get_lti_types_by_course($course->id, $teacher->id,
-            [\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED]);
+        $coursetooltypes = types_helper::get_lti_types_by_course(
+            $course->id,
+            $teacher->id,
+            [\core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED]
+        );
         $this->assertCount(1, $coursetooltypes);
         $expected = [
             'http://example.com/tool/2',

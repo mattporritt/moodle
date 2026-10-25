@@ -27,7 +27,7 @@
  */
 
 require_once('../config.php');
-require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->libdir . '/adminlib.php');
 
 $action       = optional_param('action', '', PARAM_ALPHANUMEXT);
 $id           = optional_param('id', '', PARAM_INT);

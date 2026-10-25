@@ -363,7 +363,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
         ];
         $sitetoolrecordnonchooser = (object) [
             'name' => 'Site level tool which is NOT available in the course activity chooser',
@@ -374,7 +374,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
         ];
         $course1toolrecord = (object) [
             'name' => 'Course created tool which is available in the activity chooser',
@@ -385,7 +385,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
         ];
         $course2toolrecord = (object) [
             'name' => 'Course created tool which is available in the activity chooser',
@@ -396,7 +396,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
         ];
         $tool1id = $DB->insert_record('lti_types', $sitetoolrecord);
         $tool2id = $DB->insert_record('lti_types', $sitetoolrecordnonchooser);

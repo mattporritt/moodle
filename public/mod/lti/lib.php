@@ -218,7 +218,7 @@ function lti_update_instance($lti, $mform) {
 
     $services = \core_ltix\helper::get_services();
     foreach ($services as $service) {
-        $service->instance_updated( $lti );
+        $service->instance_updated($lti);
     }
 
     $completiontimeexpected = !empty($lti->completionexpected) ? $lti->completionexpected : null;
@@ -745,7 +745,7 @@ function lti_check_updates_since(cm_info $cm, $from, $filter = array()) {
         'itemtype' => 'mod_lti:activityplacement',
         'userid' => $USER->id,
         'since1' => $from,
-        'since2' => $from
+        'since2' => $from,
     ];
 
     $submissions = $DB->get_records_sql($sql, $params);
@@ -757,7 +757,6 @@ function lti_check_updates_since(cm_info $cm, $from, $filter = array()) {
 
     // Now, teachers should see other students updates.
     if (has_capability('moodle/ltix:manage', $cm->context)) {
-
         $sql = "SELECT ltisub.id
               FROM {lti_submission} ltisub
               JOIN {lti_resource_link} ltirl
@@ -770,7 +769,7 @@ function lti_check_updates_since(cm_info $cm, $from, $filter = array()) {
             'itemid' => $cm->instance,
             'itemtype' => 'mod_lti:activityplacement',
             'since1' => $from,
-            'since2' => $from
+            'since2' => $from,
         ];
 
         $whereuseridsql = '';

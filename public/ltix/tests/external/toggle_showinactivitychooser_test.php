@@ -52,13 +52,13 @@ final class toggle_showinactivitychooser_test extends lti_testcase {
             (object) [
                 'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                 'course' => $course->id,
-                'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER
+                'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             ],
             (object) [
                 'lti_typename' => "My course tool",
                 'lti_toolurl' => 'http://example.com',
                 'lti_ltiversion' => 'LTI-1p0',
-                'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER
+                'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             ]
         );
         $result = toggle_showinactivitychooser::execute($typeid, $course->id, false);
@@ -142,14 +142,14 @@ final class toggle_showinactivitychooser_test extends lti_testcase {
             'baseurl' => 'http://example.com/tool/1',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat1->id
+            'lti_coursecategories' => $coursecat1->id,
         ]);
         $tool2id = $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser, restricted to category 2',
             'baseurl' => 'http://example.com/tool/1',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
 
         // Teacher in course 1, category 1 is allowed to toggle the coursevisible for the tool in category 1.

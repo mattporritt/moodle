@@ -704,7 +704,7 @@ final class locallib_test extends \advanced_testcase {
             'description' => 'Good example description',
             'tooldomain' => 'example.com',
             'baseurl' => 'https://example.com/i/am/?where=here',
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         // Create a tool type with bad domain.
@@ -713,7 +713,7 @@ final class locallib_test extends \advanced_testcase {
             'description' => 'Bad example description',
             'tooldomain' => 'badexample.com',
             'baseurl' => 'https://badexample.com/i/am/?where=here',
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         $records = \lti_get_tools_by_domain('example.com', \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED);
@@ -2437,19 +2437,19 @@ MwIDAQAB
             'name' => 'site tool do not show',
             'baseurl' => 'http://example.com/tool/1',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_NO,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured only',
             'baseurl' => 'http://example.com/tool/2',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser',
             'baseurl' => 'http://example.com/tool/3',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $ltigenerator->create_course_tool_types([
             'name' => 'course tool preconfigured and activity chooser',

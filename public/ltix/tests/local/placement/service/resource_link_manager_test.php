@@ -27,7 +27,6 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class resource_link_manager_test extends \advanced_testcase {
-
     /**
      * Test the method create_resource_link().
      *
@@ -40,8 +39,12 @@ final class resource_link_manager_test extends \advanced_testcase {
      * @return void
      * @dataProvider create_resource_link_provider
      */
-    public function test_create_resource_link(?array $toolsettings, array $args,
-            array $expectedpropertyvalues, ?string $expectedexception = null): void {
+    public function test_create_resource_link(
+        ?array $toolsettings,
+        array $args,
+        array $expectedpropertyvalues,
+        ?string $expectedexception = null
+    ): void {
         global $SITE;
 
         $this->resetAfterTest();
@@ -54,8 +57,8 @@ final class resource_link_manager_test extends \advanced_testcase {
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => $toolsettings['coursevisible'],
-            'state' => $toolsettings['state']
-        ]): 0;
+            'state' => $toolsettings['state'],
+        ]) : 0;
 
         // Verify that no resource link exists for the given itemid and placement type.
         $resourcelink = resource_link_manager::get_resource_link_by_item($args['itemid'], $args['placementtype']);
@@ -215,16 +218,30 @@ final class resource_link_manager_test extends \advanced_testcase {
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         // Create 2 resource links.
-        $resourcelink1 = resource_link_manager::create_resource_link('core_ltix:validplacement', 'core_ltix',
-            \core\context\course::instance($SITE->id), $toolid, 1, 'http://example.com/tool/1/resource/1', 'Resource title 1');
+        $resourcelink1 = resource_link_manager::create_resource_link(
+            'core_ltix:validplacement',
+            'core_ltix',
+            \core\context\course::instance($SITE->id),
+            $toolid,
+            1,
+            'http://example.com/tool/1/resource/1',
+            'Resource title 1'
+        );
         $resourcelink1id = $resourcelink1->get('id');
 
-        $resourcelink2 = resource_link_manager::create_resource_link('core_ltix:validplacement', 'core_ltix',
-            \core\context\course::instance($SITE->id), $toolid, 2, 'http://example.com/tool/1/resource/2', 'Resource title 2');
+        $resourcelink2 = resource_link_manager::create_resource_link(
+            'core_ltix:validplacement',
+            'core_ltix',
+            \core\context\course::instance($SITE->id),
+            $toolid,
+            2,
+            'http://example.com/tool/1/resource/2',
+            'Resource title 2'
+        );
         $resourcelink2id = $resourcelink2->get('id');
 
         // Get resource link 1 by its ID.
@@ -268,12 +285,19 @@ final class resource_link_manager_test extends \advanced_testcase {
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         // Create a resource link.
-        resource_link_manager::create_resource_link('core_ltix:validplacement', 'core_ltix',
-            \core\context\course::instance($SITE->id), $toolid, 1, 'http://example.com/tool/1/resource/1', 'Resource title');
+        resource_link_manager::create_resource_link(
+            'core_ltix:validplacement',
+            'core_ltix',
+            \core\context\course::instance($SITE->id),
+            $toolid,
+            1,
+            'http://example.com/tool/1/resource/1',
+            'Resource title'
+        );
 
         // Get the resource link.
         $resourcelink = resource_link_manager::get_resource_link_by_item($itemid, $itemtype);
@@ -333,17 +357,23 @@ final class resource_link_manager_test extends \advanced_testcase {
         $ltigenerator = $this->getDataGenerator()->get_plugin_generator('core_ltix');
 
         // Create a tool.
-        $toolid =  $ltigenerator->create_tool_types([
+        $toolid = $ltigenerator->create_tool_types([
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         // Create a new resource link for the given placement type.
-        $resourcelink = resource_link_manager::create_resource_link('core_ltix:validplacement', 'core_ltix',
-            \core\context\course::instance($SITE->id), $toolid, 1, 'http://example.com/tool/1/resource/1',
-            'Resource title');
+        $resourcelink = resource_link_manager::create_resource_link(
+            'core_ltix:validplacement',
+            'core_ltix',
+            \core\context\course::instance($SITE->id),
+            $toolid,
+            1,
+            'http://example.com/tool/1/resource/1',
+            'Resource title'
+        );
 
         // Update the resource link.
         $result = resource_link_manager::update_resource_link($resourcelink, $updatedata);
@@ -396,7 +426,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'component' => 'core_navigation',
                     'itemtype' => 'core_navigation:invalidplacement',
                     'itemid' => 30,
-                    'servicesalt' => 'abcdef'
+                    'servicesalt' => 'abcdef',
                 ],
                 false,
                 [
@@ -461,13 +491,19 @@ final class resource_link_manager_test extends \advanced_testcase {
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
 
         // Create a resource link.
-        $resourcelink = resource_link_manager::create_resource_link('core_ltix:validplacement', 'core_ltix',
-            \core\context\course::instance($SITE->id), $toolid, 1, 'http://example.com/tool/1/resource/1',
-            'Resource title');
+        $resourcelink = resource_link_manager::create_resource_link(
+            'core_ltix:validplacement',
+            'core_ltix',
+            \core\context\course::instance($SITE->id),
+            $toolid,
+            1,
+            'http://example.com/tool/1/resource/1',
+            'Resource title'
+        );
 
         // Delete the resource link.
         $result = resource_link_manager::delete_resource_link($resourcelink);

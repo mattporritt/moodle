@@ -2500,11 +2500,9 @@ function xmldb_main_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026102100.04) {
-
         $table = new xmldb_table('lti_submission');
         $field = new xmldb_field('ltiid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'id');
         if ($dbman->field_exists($table, $field)) {
-
             // Define index ltiid (not unique) to be dropped form lti_submission.
             $index = new xmldb_index('ltiid', XMLDB_INDEX_NOTUNIQUE, ['ltiid']);
 

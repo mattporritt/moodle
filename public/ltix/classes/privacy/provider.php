@@ -46,7 +46,6 @@ class provider implements
     // The core_ltix subsystem provides data to other components.
     \core_privacy\local\request\subsystem\plugin_provider
 {
-
     /**
      * Returns information about the user data stored in this component.
      *
@@ -250,7 +249,7 @@ class provider implements
         // Filter out any contexts that are not related to courses.
         // Apart from course tools, this also handles site tools, as they are currently created in the
         // Front Page (course ID = 1), which belongs to the course context.
-        $courseids = array_reduce($contextlist->get_contexts(), function($carry, $context) {
+        $courseids = array_reduce($contextlist->get_contexts(), function ($carry, $context) {
             if ($context->contextlevel == CONTEXT_COURSE) {
                 $carry[] = $context->instanceid;
             }
@@ -354,7 +353,7 @@ class provider implements
                   WHERE rl.contextid $insql AND s.userid = :userid",
             array_merge($inparams, ['userid' => $user->id])
         );
-        \core_ltix\privacy\provider::recordset_loop_and_export($recordset, 'ltiresourcelinkid', [], function($carry, $record) {
+        self::recordset_loop_and_export($recordset, 'ltiresourcelinkid', [], function ($carry, $record) {
             $carry[] = [
                 'gradepercent' => $record->gradepercent,
                 'originalgrade' => $record->originalgrade,
@@ -362,7 +361,7 @@ class provider implements
                 'dateupdated' => transform::datetime($record->dateupdated),
             ];
             return $carry;
-        }, function($ltiresourcelinkid, $data) use ($user, $resourcelinkidstocontextids) {
+        }, function ($ltiresourcelinkid, $data) use ($user, $resourcelinkidstocontextids) {
             $contextid = $resourcelinkidstocontextids[$ltiresourcelinkid];
             $context = \context::instance_by_id($contextid);
             $contextdata = helper::get_context_data($context, $user);
@@ -402,7 +401,7 @@ class provider implements
         $sql = "ltiresourcelinkid IN (SELECT id FROM {lti_resource_link} WHERE contextid = :contextid)";
 
         if (!empty($userids)) {
-            list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+            [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
             $sql .= " AND userid {$insql}";
             $params = array_merge($params, $inparams);
         }

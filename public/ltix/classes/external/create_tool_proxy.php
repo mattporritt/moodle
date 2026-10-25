@@ -73,8 +73,9 @@ class create_tool_proxy extends external_api {
         array $serviceoffered = []
     ): object {
 
-        $params = self::validate_parameters(self::execute_parameters(),
-            array(
+        $params = self::validate_parameters(
+            self::execute_parameters(),
+            [
                 'name' => $name,
                 'regurl' => $registrationurl,
                 'capabilityoffered' => $capabilityoffered,

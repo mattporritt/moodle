@@ -30,7 +30,6 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class resource_link_manager {
-
     /**
      * Creates a resource link.
      *
@@ -56,10 +55,22 @@ class resource_link_manager {
      * @return resource_link The created resource link persistent object.
      * @throws \coding_exception If a resource link cannot be created.
      */
-    public static function create_resource_link(string $placementtype, string $component, context $context, int $toolid,
-            int $itemid, string $url, string $title, ?string $text = null, string $textformat = FORMAT_MOODLE,
-            bool $gradable = false, ?string $servicesalt = null, ?string $launchcontainer = constants::LTI_LAUNCH_CONTAINER_DEFAULT,
-            ?string $icon = null, ?string $customparams = null): resource_link {
+    public static function create_resource_link(
+        string $placementtype,
+        string $component,
+        context $context,
+        int $toolid,
+        int $itemid,
+        string $url,
+        string $title,
+        ?string $text = null,
+        string $textformat = FORMAT_MOODLE,
+        bool $gradable = false,
+        ?string $servicesalt = null,
+        ?string $launchcontainer = constants::LTI_LAUNCH_CONTAINER_DEFAULT,
+        ?string $icon = null,
+        ?string $customparams = null
+    ): resource_link {
         // Validate if resource links can be created for the given tool.
 
         // Validate the context. Currently, tools can only be used within the course or module context. This check ensures
@@ -139,7 +150,7 @@ class resource_link_manager {
             'customparams'];
 
         // Remove any properties from the update data that are not allowed to be updated.
-        $updatedata = array_filter($updatedata, function($key) use ($allowedproperties) {
+        $updatedata = array_filter($updatedata, function ($key) use ($allowedproperties) {
             return in_array($key, $allowedproperties);
         }, ARRAY_FILTER_USE_KEY);
 
