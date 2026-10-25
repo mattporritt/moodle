@@ -1,0 +1,36 @@
+{
+    "context": {
+        "id": "{{course}}",
+        "label": "C1",
+        "title": "Course One"
+    },
+    "id": "{{wwwroot}}/mod/lti/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
+    "members": [
+        {
+            "email": "sam@example.com",
+            "ext_user_username": "stu1",
+            "family_name": "Student",
+            "given_name": "Sam",
+            "lis_person_sourcedid": "U1",
+            "name": "Sam Student",
+            "roles": [
+                "Learner"
+            ],
+            "status": "Active",
+            "user_id": "{{student}}"
+        },
+        {
+            "email": "tia@example.com",
+            "ext_user_username": "tea1",
+            "family_name": "Teacher",
+            "given_name": "Tia",
+            "lis_person_sourcedid": "U2",
+            "name": "Tia Teacher",
+            "roles": [
+                "Instructor"
+            ],
+            "status": "Active",
+            "user_id": "{{teacher}}"
+        }
+    ]
+}
