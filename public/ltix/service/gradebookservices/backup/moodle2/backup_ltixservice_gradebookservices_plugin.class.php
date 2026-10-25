@@ -37,21 +37,20 @@ require_once($CFG->dirroot.'/mod/lti/locallib.php');
  * @author     Dirk Singels, Diego del Blanco, Claude Vervoort
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class backup_ltixservice_gradebookservices_subplugin extends backup_subplugin {
-
+class backup_ltixservice_gradebookservices_plugin extends backup_plugin {
     /** TypeId contained in DB but is invalid */
     const NONVALIDTYPEID = 0;
 
     /**
-     * Returns the subplugin information to attach to submission element
-     * @return backup_subplugin_element
+     * Returns the plugin information to attach to the lti element
+     * @return backup_plugin_element
      */
-    protected function define_lti_subplugin_structure() {
+    protected function define_lti_plugin_structure() {
         global $DB;
 
         // Create XML elements.
-        $subplugin = $this->get_subplugin_element();
-        $subpluginwrapper = new backup_nested_element($this->get_recommended_name());
+        $plugin = $this->get_plugin_element();
+        $pluginwrapper = new backup_nested_element($this->get_recommended_name());
         // The gbs entries related with this element.
         $lineitems = new backup_nested_element('lineitems');
         $lineitem = new backup_nested_element('lineitem', array('id'), array(
@@ -71,8 +70,8 @@ class backup_ltixservice_gradebookservices_subplugin extends backup_subplugin {
         );
 
         // Build the tree.
-        $subplugin->add_child($subpluginwrapper);
-        $subpluginwrapper->add_child($lineitems);
+        $plugin->add_child($pluginwrapper);
+        $pluginwrapper->add_child($lineitems);
         $lineitems->add_child($lineitem);
 
         // We need to know the actual activity tool or toolproxy.
@@ -135,6 +134,6 @@ class backup_ltixservice_gradebookservices_subplugin extends backup_subplugin {
 
         $lineitem->set_source_sql($lineitemssql, $lineitemsparams);
 
-        return $subplugin;
+        return $plugin;
     }
 }

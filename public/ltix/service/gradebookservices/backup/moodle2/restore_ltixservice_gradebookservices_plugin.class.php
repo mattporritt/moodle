@@ -29,7 +29,7 @@ global $CFG;
 require_once($CFG->dirroot.'/mod/lti/locallib.php');
 
 /**
- * Restore subplugin class.
+ * Restore plugin class.
  *
  * Provides the necessary information
  * needed to restore the lineitems related with the lti activity (coupled),
@@ -40,20 +40,34 @@ require_once($CFG->dirroot.'/mod/lti/locallib.php');
  * @author     Dirk Singels, Diego del Blanco, Claude Vervoort
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class restore_ltixservice_gradebookservices_subplugin extends restore_subplugin {
-
+class restore_ltixservice_gradebookservices_plugin extends restore_plugin {
     /**
-     * Returns the subplugin structure to attach to the XML element.
+     * Returns the plugin structure to attach to the XML element.
+     *
+     * Backups made before the service became a core plugin type (Moodle 5.3 and earlier) hold the line items under the
+     * old subplugin element, subplugin_ltiservice_gradebookservices_lti. Both elements are restored.
      *
      * @return restore_path_element[] array of elements to be processed on restore.
      */
-    protected function define_lti_subplugin_structure() {
+    protected function define_lti_plugin_structure() {
 
         $paths = array();
         $elename = $this->get_namefor('lineitem');
         $elepath = $this->get_pathfor('/lineitems/lineitem');
         $paths[] = new restore_path_element($elename, $elepath);
+        $legacypath = $this->connectionpoint->get_path() . '/subplugin_ltiservice_gradebookservices_lti/lineitems/lineitem';
+        $paths[] = new restore_path_element($elename . '_legacy', $legacypath);
         return $paths;
+    }
+
+    /**
+     * Processes one lineitem from a backup made before the service became a core plugin type.
+     *
+     * @param mixed $data
+     * @return void
+     */
+    public function process_ltixservice_gradebookservices_lineitem_legacy($data) {
+        $this->process_ltixservice_gradebookservices_lineitem($data);
     }
 
     /**

@@ -211,9 +211,12 @@ class backup_lti_activity_structure_step extends backup_activity_structure_step 
         // Define file annotations.
         $lti->annotate_files('mod_lti', 'intro', null); // This file areas haven't itemid.
 
-        // Add support for subplugin structures.
+        // Add support for subplugin structures. The ltiservice type is kept for third party plugins that still use it.
         $this->add_subplugin_structure('ltisource', $lti, true);
         $this->add_subplugin_structure('ltiservice', $lti, true);
+        // The core plugin types hold the line items of gradebookservices and any other LTI source or service.
+        $this->add_plugin_structure('ltixsource', $lti, true);
+        $this->add_plugin_structure('ltixservice', $lti, true);
 
         // Return the root element (lti), wrapped into standard activity structure.
         return $this->prepare_activity_structure($lti);

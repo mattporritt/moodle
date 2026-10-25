@@ -80,9 +80,12 @@ class restore_lti_activity_structure_step extends restore_activity_structure_ste
 
         $paths[] = new restore_path_element('lticoursevisible', '/activity/lti/lticoursevisible');
 
-        // Add support for subplugin structures.
+        // Add support for subplugin structures. The ltiservice type is kept for third party plugins that still use it.
         $this->add_subplugin_structure('ltisource', $lti);
         $this->add_subplugin_structure('ltiservice', $lti);
+        // The core plugin types hold the line items of gradebookservices and any other LTI source or service.
+        $this->add_plugin_structure('ltixsource', $lti);
+        $this->add_plugin_structure('ltixservice', $lti);
 
         // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
