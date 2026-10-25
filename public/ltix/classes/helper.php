@@ -1273,6 +1273,62 @@ class helper {
     }
 
     /**
+     * Copies the deep linking settings of a tool's form to its activity placement config.
+     *
+     * Temporary bridge, removed with the "Show in activity chooser" bridge in the placement UI slice. The tool form still
+     * saves the "Supports Deep Linking (Content-Item Message)" option and the content selection URL as tool config. The
+     * activity form reads them from the activity placement, so they are mirrored there, as the upgrade does.
+     *
+     * @param int $toolid The tool ID.
+     * @param object $config The tool configuration being saved.
+     * @return void
+     */
+    private static function set_deep_linking_placement_config(int $toolid, object $config): void {
+        global $DB;
+
+        if (!isset($config->lti_contentitem) && !isset($config->lti_toolurl_ContentItemSelectionRequest)) {
+            return;
+        }
+
+        // Mirror what was stored, which is what the activity form read before the placements.
+        $stored = $DB->get_records_menu('lti_types_config', ['typeid' => $toolid], '', 'name, value');
+        $supports = !empty($stored['contentitem']) ? '1' : '0';
+
+        $placementid = self::get_activity_placement_id($toolid);
+        if (!$placementid) {
+            // Like the upgrade, hidden tools get no placement. A tool without deep linking needs none to mirror.
+            $hidden = $DB->get_field('lti_types', 'coursevisible', ['id' => $toolid]) == \core_ltix\constants::LTI_COURSEVISIBLE_NO;
+            if ($hidden || $supports === '0') {
+                return;
+            }
+            $placementid = self::get_activity_placement_id($toolid, true);
+            // A placement made only for deep linking does not show the tool in the activity chooser.
+            self::insert_or_update_placement_config((object) [
+                'placementid' => $placementid,
+                'name' => 'default_usage',
+                'value' => 'disabled',
+            ]);
+        }
+
+        self::insert_or_update_placement_config((object) [
+            'placementid' => $placementid,
+            'name' => 'supports_deep_linking',
+            'value' => $supports,
+        ]);
+        // As in the upgrade, an empty content selection URL is not stored.
+        $url = $stored['toolurl_ContentItemSelectionRequest'] ?? '';
+        if ($url !== '') {
+            self::insert_or_update_placement_config((object) [
+                'placementid' => $placementid,
+                'name' => 'deep_linking_url',
+                'value' => $url,
+            ]);
+        } else {
+            $DB->delete_records('lti_placement_config', ['placementid' => $placementid, 'name' => 'deep_linking_url']);
+        }
+    }
+
+    /**
      * Shows or hides a tool in the activity chooser of one course, through the status of its activity placement.
      *
      * Temporary bridge for the "Show in activity chooser" option, removed with the option in the placement UI slice.
@@ -1607,6 +1663,7 @@ class helper {
             if ($showinactivitychooser !== null) {
                 self::set_shown_in_activity_chooser($type->id, $showinactivitychooser);
             }
+            self::set_deep_linking_placement_config($type->id, $config);
             require_once($CFG->libdir . '/modinfolib.php');
             if ($clearcache) {
                 $sql = "SELECT cm.id, cm.course
@@ -1810,6 +1867,7 @@ class helper {
             if ($showinactivitychooser !== null) {
                 self::set_shown_in_activity_chooser($id, $showinactivitychooser);
             }
+            self::set_deep_linking_placement_config($id, $config);
         }
 
         return $id;
@@ -1974,6 +2032,16 @@ class helper {
 
         if (isset($config['toolurl_ContentItemSelectionRequest'])) {
             $type->lti_toolurl_ContentItemSelectionRequest = $config['toolurl_ContentItemSelectionRequest'];
+        }
+
+        // The deep linking settings are held in the activity placement config, where the activity form reads them.
+        $placementrepository = \core_ltix\local\placement\placement_repository::class;
+        $placementconfig = $placementrepository::get_placement_config_by_placement_type($id, 'mod_lti:activityplacement');
+        if (isset($placementconfig->supports_deep_linking)) {
+            $type->lti_contentitem = $placementconfig->supports_deep_linking;
+        }
+        if (isset($placementconfig->deep_linking_url)) {
+            $type->lti_toolurl_ContentItemSelectionRequest = $placementconfig->deep_linking_url;
         }
 
         if (isset($config['debuglaunch'])) {

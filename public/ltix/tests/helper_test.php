@@ -1764,6 +1764,121 @@ final class helper_test extends lti_testcase {
     }
 
     /**
+     * The deep linking settings of the tool form are mirrored to the activity placement config and read back from it.
+     *
+     * @covers ::add_type
+     * @covers ::update_type
+     * @covers ::get_type_type_config
+     */
+    public function test_deep_linking_settings_are_held_in_the_activity_placement_config(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        // A tool saved with deep linking, and preconfigured only, gets a placement that does not show it in the chooser.
+        $type = (object) ['state' => constants::LTI_TOOL_STATE_CONFIGURED, 'name' => 'Deep tool',
+            'baseurl' => 'http://example.com'];
+        $config = (object) [
+            'lti_coursevisible' => constants::LTI_COURSEVISIBLE_PRECONFIGURED,
+            'lti_contentitem' => 1,
+            'lti_toolurl_ContentItemSelectionRequest' => 'http://example.com/select',
+        ];
+        $typeid = helper::add_type($type, $config);
+        $placementconfig = placement_repository::get_placement_config_by_placement_type($typeid, 'mod_lti:activityplacement');
+        $this->assertEquals('1', $placementconfig->supports_deep_linking);
+        $this->assertEquals('http://example.com/select', $placementconfig->deep_linking_url);
+        $this->assertEquals('disabled', $placementconfig->default_usage);
+        $form = helper::get_type_type_config($typeid);
+        $this->assertEquals(1, $form->lti_contentitem);
+        $this->assertEquals('http://example.com/select', $form->lti_toolurl_ContentItemSelectionRequest);
+        $this->assertEquals(constants::LTI_COURSEVISIBLE_PRECONFIGURED, $form->lti_coursevisible);
+
+        // The tool config is still saved, as the launch reads it.
+        $this->assertEquals(1, helper::get_type_config($typeid)['contentitem']);
+
+        // Editing the tool to show it in the chooser keeps the deep linking settings.
+        $showconfig = (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER];
+        helper::update_type((object) ['id' => $typeid], $showconfig);
+        $placementconfig = placement_repository::get_placement_config_by_placement_type($typeid, 'mod_lti:activityplacement');
+        $this->assertEquals('enabled', $placementconfig->default_usage);
+        $this->assertEquals('1', $placementconfig->supports_deep_linking);
+
+        // Editing the settings changes the placement config.
+        helper::update_type((object) ['id' => $typeid], (object) [
+            'lti_contentitem' => 1,
+            'lti_toolurl_ContentItemSelectionRequest' => 'http://example.com/other',
+        ]);
+        $placementconfig = placement_repository::get_placement_config_by_placement_type($typeid, 'mod_lti:activityplacement');
+        $this->assertEquals('http://example.com/other', $placementconfig->deep_linking_url);
+        $this->assertEquals('enabled', $placementconfig->default_usage);
+
+        // An empty URL is not stored, as in the upgrade, and the form reads it back as empty.
+        helper::update_type((object) ['id' => $typeid], (object) ['lti_toolurl_ContentItemSelectionRequest' => '']);
+        $placementconfig = placement_repository::get_placement_config_by_placement_type($typeid, 'mod_lti:activityplacement');
+        $this->assertObjectNotHasProperty('deep_linking_url', $placementconfig);
+        $this->assertEquals('', helper::get_type_type_config($typeid)->lti_toolurl_ContentItemSelectionRequest);
+
+        // Turning deep linking off is read back as off, whatever the URL.
+        helper::update_type((object) ['id' => $typeid], (object) ['lti_contentitem' => 0]);
+        $placementconfig = placement_repository::get_placement_config_by_placement_type($typeid, 'mod_lti:activityplacement');
+        $this->assertEquals('0', $placementconfig->supports_deep_linking);
+        $this->assertEquals(0, helper::get_type_type_config($typeid)->lti_contentitem);
+
+        // A tool that has no deep linking gets no placement of its own, as a tool that only is preconfigured has none.
+        $type = (object) ['state' => constants::LTI_TOOL_STATE_CONFIGURED, 'name' => 'Plain tool',
+            'baseurl' => 'http://example.com'];
+        $plainid = helper::add_type($type, (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_PRECONFIGURED,
+            'lti_contentitem' => 0]);
+        $this->assertFalse($DB->record_exists('lti_placement', ['toolid' => $plainid]));
+        $this->assertEquals(0, helper::get_type_type_config($plainid)->lti_contentitem);
+
+        // Neither does a hidden tool, as after the upgrade.
+        $type = (object) ['state' => constants::LTI_TOOL_STATE_CONFIGURED, 'name' => 'Hidden tool',
+            'baseurl' => 'http://example.com'];
+        $hiddenid = helper::add_type($type, (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_NO,
+            'lti_contentitem' => 1]);
+        $this->assertFalse($DB->record_exists('lti_placement', ['toolid' => $hiddenid]));
+        $this->assertEquals(1, helper::get_type_type_config($hiddenid)->lti_contentitem);
+    }
+
+    /**
+     * The tool web services return the same data for a tool whatever its deep linking and activity chooser settings, and
+     * the deprecated mod_lti function returns what the core_ltix one does. The tool never had a coursevisible value in them.
+     *
+     * @covers \core_ltix\external\get_tool_types::execute
+     * @covers \core_ltix\helper::serialise_tool_type
+     */
+    public function test_get_tool_types_output_does_not_depend_on_the_bridge(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $expectedkeys = ['id', 'name', 'description', 'urls', 'state', 'platformid', 'clientid', 'deploymentid',
+            'hascapabilitygroups', 'capabilitygroups', 'courseid', 'instanceids', 'instancecount'];
+        $configs = [
+            'chooser' => ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, 'lti_contentitem' => 1,
+                'lti_toolurl_ContentItemSelectionRequest' => 'http://example.com/select'],
+            'preconfigured' => ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_PRECONFIGURED, 'lti_contentitem' => 0],
+        ];
+        foreach ($configs as $name => $config) {
+            $type = (object) ['state' => constants::LTI_TOOL_STATE_CONFIGURED, 'name' => $name,
+                'baseurl' => "http://example.com/$name"];
+            helper::add_type($type, (object) $config);
+        }
+
+        $result = \core_ltix\external\get_tool_types::execute(0);
+        $result = \core_external\external_api::clean_returnvalue(\core_ltix\external\get_tool_types::execute_returns(), $result);
+        $this->assertCount(2, $result);
+        foreach ($result as $tool) {
+            $this->assertEqualsCanonicalizing($expectedkeys, array_keys($tool));
+        }
+
+        $legacy = \mod_lti_external::get_tool_types(0);
+        $this->assertDebuggingCalled();
+        $legacy = \core_external\external_api::clean_returnvalue(\mod_lti_external::get_tool_types_returns(), $legacy);
+        $this->assertEquals($result, $legacy);
+    }
+
+    /**
      * Gets the LTI tools that the activity chooser of a course lists for a user.
      *
      * @param \stdClass $course The course.
