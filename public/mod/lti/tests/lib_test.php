@@ -366,7 +366,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
         ]);
         $sitetoolrecordnonchooserid = $ltigenerator->create_tool_types([
             'name' => 'Site level tool which is NOT available in the course activity chooser',
@@ -377,7 +377,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
         ]);
         $course1toolrecordid = $ltigenerator->create_tool_types([
             'name' => 'Course created tool which is available in the activity chooser',
@@ -388,7 +388,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
         ]);
         $course2toolrecordid = $ltigenerator->create_tool_types([
             'name' => 'Course created tool which is available in the activity chooser',
@@ -399,7 +399,7 @@ final class lib_test extends \advanced_testcase {
             'timecreated' => $time,
             'timemodified' => $time,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
         ]);
 
         $placementtypeid = $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement']);
@@ -421,7 +421,6 @@ final class lib_test extends \advanced_testcase {
             'toolid' => $course2toolrecordid,
             'placementtypeid' => $placementtypeid,
         ]);
-
 
         $defaultmodulecontentitem = new \core_course\local\entity\content_item(
             '1',

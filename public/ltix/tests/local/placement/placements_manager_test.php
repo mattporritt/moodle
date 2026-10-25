@@ -27,7 +27,6 @@ use core\tests\fake_plugins_test_trait;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class placements_manager_test extends \advanced_testcase {
-
     use fake_plugins_test_trait;
 
     /**
@@ -51,9 +50,9 @@ final class placements_manager_test extends \advanced_testcase {
         // 1. incorrectly formatted string. Must match "component:name".
         // 2. correctly formatted string, but with invalid (mismatched) component.
         $this->assertdebuggingcalledcount(2, [
-            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: ".
+            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: " .
             "'frankenstyle_component:placementname'. Loading of this placement type has been skipped.",
-            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix ".
+            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix " .
             "must match the component providing the placement. Loading of this placement type has been skipped.",
         ]);
 
@@ -62,19 +61,21 @@ final class placements_manager_test extends \advanced_testcase {
         // Next, mock the situation where a placement type has already been registered, and is now removed from lti.php config.
         $placementtypeid = $DB->insert_record('lti_placement_type', [
             'component' => 'fake_fullfeatured',
-            'type' => 'fake_fullfeatured:thisonetobedeleted'
+            'type' => 'fake_fullfeatured:thisonetobedeleted',
         ]);
         $DB->insert_record('lti_placement', ['placementtypeid' => $placementtypeid, 'toolid' => 101]);
-        $this->assertEquals(1, $DB->count_records('lti_placement_type',
-            ['component' => 'fake_fullfeatured', 'type' => 'fake_fullfeatured:thisonetobedeleted']));
+        $this->assertEquals(1, $DB->count_records(
+            'lti_placement_type',
+            ['component' => 'fake_fullfeatured', 'type' => 'fake_fullfeatured:thisonetobedeleted']
+        ));
         $this->assertEquals(1, $DB->count_records('lti_placement', ['toolid' => 101]));
 
         // The placement type and any placements using it should have been deleted.
         placements_manager::update_placement_types('fake_fullfeatured');
         $this->assertdebuggingcalledcount(2, [
-            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: ".
+            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: " .
             "'frankenstyle_component:placementname'. Loading of this placement type has been skipped.",
-            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix ".
+            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix " .
             "must match the component providing the placement. Loading of this placement type has been skipped.",
         ]);
         $placementtypes = $DB->get_records_menu('lti_placement_type', ['component' => 'fake_fullfeatured']);
@@ -82,8 +83,10 @@ final class placements_manager_test extends \advanced_testcase {
         $this->assertContains('fake_fullfeatured:myfirstplacementtype', $placementtypes);
         $this->assertContains('fake_fullfeatured:anotherplacementtype', $placementtypes);
         $this->assertContains('fake_fullfeatured:thirdplacementtype', $placementtypes);
-        $this->assertEquals(0, $DB->count_records('lti_placement_type',
-            ['component' => 'fake_fullfeatured', 'type' => 'fake_fullfeatured:thisonetobedeleted']));
+        $this->assertEquals(0, $DB->count_records(
+            'lti_placement_type',
+            ['component' => 'fake_fullfeatured', 'type' => 'fake_fullfeatured:thisonetobedeleted']
+        ));
         $this->assertEquals(0, $DB->count_records('lti_placement', ['toolid' => 101]));
     }
 
@@ -103,7 +106,7 @@ final class placements_manager_test extends \advanced_testcase {
         $this->add_mocked_plugin('fake', 'fullfeatured', "{$CFG->dirroot}/lib/tests/fixtures/fakeplugins/fake/fullfeatured");
 
         placements_manager::update_placement_types('fake_fullfeatured');
-        $this->assertDebuggingCalled("Skipping LTI placement type loading for component 'fake_fullfeatured'. ".
+        $this->assertDebuggingCalled("Skipping LTI placement type loading for component 'fake_fullfeatured'. " .
             "This component is in deprecation.");
         $this->assertEquals(0, $DB->count_records('lti_placement_type', ['component' => 'fake_fullfeatured']));
     }
@@ -127,9 +130,9 @@ final class placements_manager_test extends \advanced_testcase {
         // 1. incorrectly formatted string. Must match "component:name".
         // 2. correctly formatted string, but with invalid (mismatched) component.
         $this->assertdebuggingcalledcount(2, [
-            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: ".
+            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: " .
             "'frankenstyle_component:placementname'. Loading of this placement type has been skipped.",
-            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix ".
+            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix " .
             "must match the component providing the placement. Loading of this placement type has been skipped.",
         ]);
 
@@ -137,9 +140,9 @@ final class placements_manager_test extends \advanced_testcase {
         $placementinstance = placements_manager::get_instance()
             ->get_deeplinking_placement_instance('fake_fullfeatured:myfirstplacementtype');
         $this->assertdebuggingcalledcount(2, [
-            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: ".
+            "Invalid placement type name 'fake/fullfeatured_invalidplacementtypestring'. Should be of the format: " .
             "'frankenstyle_component:placementname'. Loading of this placement type has been skipped.",
-            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix ".
+            "Invalid placement type name 'core_ltix:placementtypestring' for component 'fake_fullfeatured'. The component prefix " .
             "must match the component providing the placement. Loading of this placement type has been skipped.",
         ]);
         $this->assertInstanceOf(\core_ltix\local\placement\deeplinking_placement_handler::class, $placementinstance);
@@ -180,8 +183,12 @@ final class placements_manager_test extends \advanced_testcase {
      * @param bool $expected The expected result.
      * @return void
      */
-    public function test_is_valid_placement_type(string $placementtype, string $component, bool $isinsystem,
-            bool $expected): void {
+    public function test_is_valid_placement_type(
+        string $placementtype,
+        string $component,
+        bool $isinsystem,
+        bool $expected
+    ): void {
 
         if ($isinsystem) {
             $this->resetAfterTest();
@@ -203,31 +210,31 @@ final class placements_manager_test extends \advanced_testcase {
                 'placementtype' => 'core_ltix:cat',
                 'component' => 'core_ltix',
                 'isinsystem' => true,
-                'expected' => true
+                'expected' => true,
             ],
             'Valid placement type string format (core component), supported by the system' => [
                 'placementtype' => 'core:cat',
                 'component' => 'core',
                 'isinsystem' => true,
-                'expected' => true
+                'expected' => true,
             ],
             'Valid placement type string format (underscore and numbers), supported by the system' => [
                 'placementtype' => 'core:cat_dog09',
                 'component' => 'core',
                 'isinsystem' => true,
-                'expected' => true
+                'expected' => true,
             ],
             'Valid placement type string format (underscore and numbers), not supported by the system' => [
                 'placementtype' => 'core_ltix:unsupported',
                 'component' => 'core_ltix',
                 'isinsystem' => false,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (missing delimiter and placement string), not supported by the system ' => [
                 'placementtype' => 'core_ltix',
                 'component' => 'core_ltix',
                 'isinsystem' => false,
-                'expected' => false
+                'expected' => false,
             ],
             // NOTE: The following test scenarios are not real-world cases, but are used solely for testing purposes.
             // An invalid placement type string format would never be supported by the system in practice.
@@ -235,56 +242,56 @@ final class placements_manager_test extends \advanced_testcase {
                 'placementtype' => 'core_ltix',
                 'component' => 'core_ltix',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (invalid component name), supported by the system' => [
                 'placementtype' => 'x_z:y',
                 'component' => 'x_z',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (empty placement string), supported by the system' => [
                 'placementtype' => 'core_ltix:',
                 'component' => 'core_ltix',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (invalid delimiter), supported by the system' => [
                 'placementtype' => 'core_ltix/cat',
                 'component' => 'core_ltix',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (too many colons), supported by the system' => [
                 'placementtype' => 'core::cat',
                 'component' => 'core',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (too many colons and components), supported by the system' => [
                 'placementtype' => 'core:ltix:cat',
                 'component' => 'core',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (leading colon), supported by the system' => [
                 'placementtype' => ':cat',
                 'component' => '',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (slash in placement string), supported by the system' => [
                 'placementtype' => 'core:cat/dog',
                 'component' => 'core',
                 'isinsystem' => true,
-                'expected' => false
+                'expected' => false,
             ],
             'Invalid placement type string format (uppercase in placement string), supported by the system' => [
                 'placementtype' => 'core:Cat',
                 'component' => 'core',
                 'isinsystem' => true,
-                'expected' => false
-            ]
+                'expected' => false,
+            ],
         ];
     }
 }

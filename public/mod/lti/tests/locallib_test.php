@@ -1557,11 +1557,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
         $this->assertDebuggingCalled();
 
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
@@ -1607,11 +1609,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
         $this->assertDebuggingCalled();
 
         $this->assertEquals('DEFAULT', $config->lineitemsubreviewurl);
@@ -1650,11 +1654,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
         $this->assertDebuggingCalled();
 
         $this->assertEquals($contentitems[0]['url'], $config->toolurl);
@@ -1710,11 +1716,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
         $this->assertDebuggingCalled();
         $this->assertNotNull($config->multiple);
         $this->assertEquals(2, count( $config->multiple ));
@@ -1758,11 +1766,13 @@ MwIDAQAB
         $contentitemsjson13 = json_encode($contentitems);
         $json11 = helper::convert_content_items($contentitemsjson13);
 
-        $config = lti_tool_configuration_from_content_item($typeid,
+        $config = lti_tool_configuration_from_content_item(
+            $typeid,
             'ContentItemSelection',
             $type->ltiversion,
             'ConsumerKey',
-            $json11);
+            $json11
+        );
         $this->assertDebuggingCalled();
         $this->assertEquals($contentitems[0]['title'], $config->name);
         $this->assertEquals($contentitems[0]['text'], $config->introeditor['text']);

@@ -27,7 +27,6 @@ use core_ltix\constants;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class placement_repository_test extends \advanced_testcase {
-
     /**
      * Tests the method is_placement_enabled_for_tool_in_course().
      *
@@ -39,8 +38,13 @@ final class placement_repository_test extends \advanced_testcase {
      * @return void
      * @dataProvider is_placement_enabled_for_tool_in_course_provider
      */
-    public function test_is_placement_enabled_for_tool_in_course(array $toolsettings, array $placementsettings,
-            string $placementtypearg, bool $expectedreturn, ?string $expectedexception = null): void {
+    public function test_is_placement_enabled_for_tool_in_course(
+        array $toolsettings,
+        array $placementsettings,
+        string $placementtypearg,
+        bool $expectedreturn,
+        ?string $expectedexception = null
+    ): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -53,13 +57,13 @@ final class placement_repository_test extends \advanced_testcase {
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => $toolsettings['coursevisible'],
-            'state' => $toolsettings['state']
+            'state' => $toolsettings['state'],
         ]);
 
         // Create a placement type.
         $placementtype = $ltigenerator->create_placement_type([
             'component' => 'core_ltix',
-            'placementtype' => 'core_ltix:validplacement'
+            'placementtype' => 'core_ltix:validplacement',
         ]);
 
         // Create a placement.
@@ -72,8 +76,11 @@ final class placement_repository_test extends \advanced_testcase {
 
         // Override the state of the placement in the course as defined in the data provider.
         if (!is_null($placementsettings['course_usage_override'])) {
-            $ltigenerator->create_placement_status_in_context($placement->id, $placementsettings['course_usage_override'],
-                $context->id);
+            $ltigenerator->create_placement_status_in_context(
+                $placement->id,
+                $placementsettings['course_usage_override'],
+                $context->id
+            );
         }
 
         // If an exception is expected, verify the exception.
@@ -236,7 +243,7 @@ final class placement_repository_test extends \advanced_testcase {
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'lti_coursevisible' => $toolcoursevisible,
-            'state' => $toolstate
+            'state' => $toolstate,
         ]);
 
         // Create a couple of placement types with associated config.

@@ -698,7 +698,7 @@ class oauth_helper {
                         'suffix' => 'dl',
                         'group' => '',
                         'claim' => 'data',
-                        'isarray' => false
+                        'isarray' => false,
                     ],
                 ]
             );

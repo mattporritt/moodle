@@ -25,7 +25,6 @@ namespace mod_lti\lti\placement\contentitemformatter\form;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class content_item_to_form_formatter_test extends \advanced_testcase {
-
     /**
      * Test format method.
      *
@@ -71,7 +70,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'lti_contentitem' => 1,
                 ],
                 // The expected return.
-                null
+                null,
             ],
             'Content items: single, no icon; ' .
             'Tool: LTI v1.3, never accept grades.' => [
@@ -82,7 +81,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                         'text' => 'Description text',
                         'url' => 'http://example.com/tool/1/contentitem/1',
                         'custom' => (object) [
-                            'id' => 'id12345'
+                            'id' => 'id12345',
                         ],
                         '@type' => 'LtiLinkItem',
                         'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
@@ -112,7 +111,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'instructorcustomparameters' => 'id=id12345',
                     'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
                         get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: single, icon (standard), no line item; ' .
             'Tool: LTI v1.0, always accept grades.' => [
@@ -123,10 +122,10 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                         'text' => 'Description text',
                         'url' => 'http://example.com/tool/1/contentitem/1',
                         'custom' => (object) [
-                            'id' => 'id12345'
+                            'id' => 'id12345',
                         ],
                         'icon' => (object) [
-                            '@id' => 'http://example.com/tool/1/contentitem/1/icon'
+                            '@id' => 'http://example.com/tool/1/contentitem/1/icon',
                         ],
                         '@type' => 'LtiLinkItem',
                         'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
@@ -158,7 +157,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'instructorcustomparameters' => 'id=id12345',
                     'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
                         get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: single, icon (secure), line item; ' .
             'Tool: LTI v2.0, always accept grades.' => [
@@ -169,10 +168,10 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                         'text' => 'Description text',
                         'url' => 'https://example.com/tool/1/contentitem/1',
                         'custom' => (object) [
-                            'id' => 'id12345'
+                            'id' => 'id12345',
                         ],
                         'icon' => (object) [
-                            '@id' => 'https://example.com/tool/1/contentitem/1/icon'
+                            '@id' => 'https://example.com/tool/1/contentitem/1/icon',
                         ],
                         '@type' => 'LtiLinkItem',
                         'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
@@ -211,7 +210,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'instructorcustomparameters' => 'id=id12345',
                     'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
                         get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: single, no title, no text, no custom params, has line item; ' .
             'Tool: LTI v1.3, always accept grades.' => [
@@ -220,7 +219,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     (object) [
                         'url' => 'https://example.com/tool/1/contentitem/1',
                         'icon' => (object) [
-                            '@id' => 'https://example.com/tool/1/contentitem/1/icon'
+                            '@id' => 'https://example.com/tool/1/contentitem/1/icon',
                         ],
                         '@type' => 'LtiLinkItem',
                         'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
@@ -268,7 +267,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'lineitemsubreviewparams' => '',
                     'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
                         get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: multiple; ' .
             'Tool: LTI v1.3, always accept grades.' => [
@@ -277,7 +276,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     (object) [
                         'url' => 'https://example.com/tool/1/contentitem/1',
                         'icon' => (object) [
-                            '@id' => 'https://example.com/tool/1/contentitem/1/icon'
+                            '@id' => 'https://example.com/tool/1/contentitem/1/icon',
                         ],
                         '@type' => 'LtiLinkItem',
                         'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
@@ -296,7 +295,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                         'text' => 'Description text 1',
                         'url' => 'https://example.com/tool/1/contentitem/2',
                         'icon' => (object) [
-                            '@id' => 'https://example.com/tool/1/contentitem/2/icon'
+                            '@id' => 'https://example.com/tool/1/contentitem/2/icon',
                         ],
                         '@type' => 'LtiLinkItem',
                         'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
@@ -323,7 +322,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                         'text' => 'Description text 2',
                         'url' => 'https://example.com/tool/1/contentitem/3',
                         'custom' => (object) [
-                            'id' => 'id12345'
+                            'id' => 'id12345',
                         ],
                         '@type' => 'LtiLinkItem',
                         'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
@@ -393,8 +392,8 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                             'selectcontentindicator' => $OUTPUT->pix_icon('i/valid', get_string('yes')) .
                                 get_string('contentselected', 'core_ltix'),
                         ],
-                    ]
-                ]
+                    ],
+                ],
             ],
         ];
     }

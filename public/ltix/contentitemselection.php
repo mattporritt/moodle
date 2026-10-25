@@ -60,8 +60,16 @@ $config = \core_ltix\helper::get_type_type_config($id);
 
 if ($config->lti_ltiversion === \core_ltix\constants::LTI_VERSION_1P3) {
     if (!isset($SESSION->lti_initiatelogin_status)) {
-        echo \core_ltix\helper::initiate_login($context->get_course_context()->instanceid, 0, null, $config,
-            $messagetype, $placementtype, $title, $text);
+        echo \core_ltix\helper::initiate_login(
+            $context->get_course_context()->instanceid,
+            0,
+            null,
+            $config,
+            $messagetype,
+            $placementtype,
+            $title,
+            $text
+        );
         exit;
     } else {
         unset($SESSION->lti_initiatelogin_status);
@@ -72,7 +80,7 @@ if ($config->lti_ltiversion === \core_ltix\constants::LTI_VERSION_1P3) {
 $returnurlparams = [
     'contextid' => $contextid,
     'id' => $id,
-    'sesskey' => sesskey()
+    'sesskey' => sesskey(),
 ];
 $returnurl = new \moodle_url('/ltix/contentitem_return.php', $returnurlparams);
 
@@ -84,8 +92,16 @@ $SESSION->$launchid = "{$context->get_course_context()->instanceid},{$config->ty
     base64_encode($title) . ',' . base64_encode($text) . ",{$placementtype}";
 
 // Prepare the request.
-$request = \core_ltix\helper::build_content_item_selection_request($id, $course, $returnurl, $launchid, $title, $text,
-    [], []);
+$request = \core_ltix\helper::build_content_item_selection_request(
+    $id,
+    $course,
+    $returnurl,
+    $launchid,
+    $title,
+    $text,
+    [],
+    []
+);
 
 // Get the launch HTML.
 $content = \core_ltix\helper::post_launch_html($request->params, $request->url, false);

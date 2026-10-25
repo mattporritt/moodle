@@ -57,10 +57,22 @@ class resource_link_manager {
      * @return resource_link The created resource link persistent object.
      * @throws \coding_exception If a resource link cannot be created.
      */
-    public static function create_resource_link(string $placementtype, string $component, context $context, int $toolid,
-            int $itemid, string $url, string $title, ?string $text = null, string $textformat = FORMAT_MOODLE,
-            bool $gradable = false, ?string $servicesalt = null, ?string $launchcontainer = constants::LTI_LAUNCH_CONTAINER_DEFAULT,
-            ?string $icon = null, ?string $customparams = null): resource_link {
+    public static function create_resource_link(
+        string $placementtype,
+        string $component,
+        context $context,
+        int $toolid,
+        int $itemid,
+        string $url,
+        string $title,
+        ?string $text = null,
+        string $textformat = FORMAT_MOODLE,
+        bool $gradable = false,
+        ?string $servicesalt = null,
+        ?string $launchcontainer = constants::LTI_LAUNCH_CONTAINER_DEFAULT,
+        ?string $icon = null,
+        ?string $customparams = null
+    ): resource_link {
         global $DB;
 
         // Validate if resource links can be created for the given tool.
@@ -91,12 +103,16 @@ class resource_link_manager {
         // as doing so bypasses important validation checks. These checks ensure that the tool is properly configured
         // and visible in the course, and that the placement is enabled for the tool.
         $coursecontext = ($context instanceof \core\context\course) ? $context : $context->get_course_context();
-        $isplacementenabledfortool = placement_repository::is_placement_enabled_for_tool_in_course($placementtype,
-            $toolid, $coursecontext->instanceid);
+        $isplacementenabledfortool = placement_repository::is_placement_enabled_for_tool_in_course(
+            $placementtype,
+            $toolid,
+            $coursecontext->instanceid
+        );
 
         if (!empty($toolid) && !$isplacementenabledfortool) {
             throw new \coding_exception(
-                "The resource link cannot be created for the specified placement in the given tool.");
+                "The resource link cannot be created for the specified placement in the given tool."
+            );
         }
 
         $resourcelink = new resource_link(0, (object) [

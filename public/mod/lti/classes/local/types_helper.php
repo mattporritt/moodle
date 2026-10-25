@@ -51,7 +51,7 @@ class types_helper {
         if (empty($coursevisible)) {
             $coursevisible = [
                 \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-                \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER
+                \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
             ];
         }
         [$coursevisiblesql, $coursevisparams] = $DB->get_in_or_equal($coursevisible, SQL_PARAMS_NAMED, 'coursevisible');
@@ -59,7 +59,8 @@ class types_helper {
         [$coursevisibleoverriddensql, $coursevisoverriddenparams] = $DB->get_in_or_equal(
             $coursevisible,
             SQL_PARAMS_NAMED,
-            'coursevisibleoverridden');
+            'coursevisibleoverridden'
+        );
 
         $coursecond = implode(" OR ", ["t.course = :courseid", "t.course = :siteid"]);
         $coursecategory = $DB->get_field('course', 'category', ['id' => $courseid]);

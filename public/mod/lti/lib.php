@@ -358,17 +358,17 @@ function mod_lti_get_all_content_items(\core_course\local\entity\content_item $d
 
     $tools = $DB->get_records_sql($sql, $params);
 
-    return array_map(function($tool) use ($defaultmodulecontentitem, $OUTPUT) {
+    return array_map(function ($tool) use ($defaultmodulecontentitem, $OUTPUT) {
         $title = new \core_course\local\entity\string_title(clean_param($tool->name, PARAM_NOTAGS));
 
         $trimmeddescription = trim($ltitype->description ?? '');
         $help = $trimmeddescription != '' ? clean_param($trimmeddescription, PARAM_NOTAGS) : '';
 
         $icon = !empty($tool->icon)
-            ? $OUTPUT->pix_icon('monologo', '', 'lti', array('class' => 'icon'))
-            : html_writer::empty_tag('img', array('src' => $tool->icon, 'alt' => $tool->name, 'class' => 'icon'));
+            ? $OUTPUT->pix_icon('monologo', '', 'lti', ['class' => 'icon'])
+            : html_writer::empty_tag('img', ['src' => $tool->icon, 'alt' => $tool->name, 'class' => 'icon']);
 
-        $link = new moodle_url('/course/modedit.php', array('add' => 'lti', 'return' => 0, 'typeid' => $tool->id));
+        $link = new moodle_url('/course/modedit.php', ['add' => 'lti', 'return' => 0, 'typeid' => $tool->id]);
 
         // Preconfigured tools take their own id + 1. This logic exists because, previously, the entry permitting manual instance
         // creation (the $defaultmodulecontentitem, or 'External tool' item) was included and had the id 1. This logic prevented id

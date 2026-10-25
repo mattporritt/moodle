@@ -40,8 +40,13 @@ final class resource_link_manager_test extends \advanced_testcase {
      * @return void
      * @dataProvider create_resource_link_provider
      */
-    public function test_create_resource_link(?array $toolsettings, array $placementsettings, array $args,
-            array $expectedpropertyvalues, ?string $expectedexception = null): void {
+    public function test_create_resource_link(
+        ?array $toolsettings,
+        array $placementsettings,
+        array $args,
+        array $expectedpropertyvalues,
+        ?string $expectedexception = null
+    ): void {
         global $SITE;
 
         $this->resetAfterTest();
@@ -60,7 +65,7 @@ final class resource_link_manager_test extends \advanced_testcase {
         // Create a placement type.
         $placementtype = $ltigenerator->create_placement_type([
             'component' => 'core_ltix',
-            'placementtype' => 'core_ltix:validplacement'
+            'placementtype' => 'core_ltix:validplacement',
         ]);
 
         // Create a placement.
@@ -111,7 +116,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
                 ],
                 [
-                    'default_usage' => 'enabled'
+                    'default_usage' => 'enabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:invalidplacement',
@@ -130,7 +135,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
                 ],
                 [
-                    'default_usage' => 'enabled'
+                    'default_usage' => 'enabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -149,7 +154,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
                 ],
                 [
-                    'default_usage' => 'enabled'
+                    'default_usage' => 'enabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -165,7 +170,7 @@ final class resource_link_manager_test extends \advanced_testcase {
             'Legacy tool (manually configured), placement disabled, only required arguments provided' => [
                 null,
                 [
-                    'default_usage' => 'disabled'
+                    'default_usage' => 'disabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -196,7 +201,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
                 ],
                 [
-                    'default_usage' => 'enabled'
+                    'default_usage' => 'enabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -228,7 +233,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_PENDING,
                 ],
                 [
-                    'default_usage' => 'enabled'
+                    'default_usage' => 'enabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -260,7 +265,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                 ],
                 [
-                    'default_usage' => 'disabled'
+                    'default_usage' => 'disabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -292,7 +297,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                 ],
                 [
-                    'default_usage' => 'enabled'
+                    'default_usage' => 'enabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -323,7 +328,7 @@ final class resource_link_manager_test extends \advanced_testcase {
                     'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
                 ],
                 [
-                    'default_usage' => 'enabled'
+                    'default_usage' => 'enabled',
                 ],
                 [
                     'placementtype' => 'core_ltix:validplacement',
@@ -381,7 +386,7 @@ final class resource_link_manager_test extends \advanced_testcase {
         // Create a placement type.
         $placementtype = $ltigenerator->create_placement_type([
             'component' => 'core_ltix',
-            'placementtype' => 'core_ltix:validplacement'
+            'placementtype' => 'core_ltix:validplacement',
         ]);
 
         // Create a placement.
@@ -462,7 +467,7 @@ final class resource_link_manager_test extends \advanced_testcase {
         // Create a placement type.
         $placementtype = $ltigenerator->create_placement_type([
             'component' => 'core_ltix',
-            'placementtype' => 'core_ltix:validplacement'
+            'placementtype' => 'core_ltix:validplacement',
         ]);
 
         // Create a placement.
@@ -552,7 +557,7 @@ final class resource_link_manager_test extends \advanced_testcase {
         // Create a placement type.
         $placementtype = $ltigenerator->create_placement_type([
             'component' => 'core_ltix',
-            'placementtype' => 'core_ltix:validplacement'
+            'placementtype' => 'core_ltix:validplacement',
         ]);
 
         // Create a placement.
@@ -695,7 +700,7 @@ final class resource_link_manager_test extends \advanced_testcase {
 
         $placementtype = $ltigenerator->create_placement_type([
             'component' => 'core_ltix',
-            'placementtype' => 'core_ltix:validplacement'
+            'placementtype' => 'core_ltix:validplacement',
         ]);
 
         // Create a placement.

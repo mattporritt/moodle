@@ -203,6 +203,9 @@ final class toggle_showinactivitychooser_test extends externallib_advanced_testc
      */
     private function is_shown_in_activity_chooser(int $typeid, int $courseid): bool {
         return \core_ltix\local\placement\placement_repository::is_placement_enabled_for_tool_in_course(
-            'mod_lti:activityplacement', $typeid, $courseid);
+            'mod_lti:activityplacement',
+            $typeid,
+            $courseid
+        );
     }
 }

@@ -169,8 +169,11 @@ class restore_lti_activity_structure_step extends restore_activity_structure_ste
         if ($data->typeid) {
             $DB->insert_record('lti_coursevisible', $data);
             // The activity chooser reads the status of the activity placement in the course.
-            \core_ltix\helper::set_activity_placement_status_in_course($data->typeid, $data->courseid,
-                $data->coursevisible == \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER);
+            \core_ltix\helper::set_activity_placement_status_in_course(
+                $data->typeid,
+                $data->courseid,
+                $data->coursevisible == \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER
+            );
         }
     }
 

@@ -28,7 +28,6 @@ use core_ltix\local\placement\placements_manager;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class activityplacement_test extends \advanced_testcase {
-
     /**
      * Test confirming that an instance of the handler can be fetched when needed.
      *
@@ -96,7 +95,9 @@ final class activityplacement_test extends \advanced_testcase {
         $placementinstance = placements_manager::get_instance()->get_deeplinking_placement_instance('mod_lti:activityplacement');
         // Ensure the correct content item data formatter object is returned.
         $result = $placementinstance->get_content_item_data_formatter();
-        $this->assertInstanceOf(\mod_lti\lti\placement\contentitemformatter\form\content_item_to_form_formatter::class,
-            $result);
+        $this->assertInstanceOf(
+            \mod_lti\lti\placement\contentitemformatter\form\content_item_to_form_formatter::class,
+            $result
+        );
     }
 }

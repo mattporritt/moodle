@@ -97,7 +97,7 @@ final class types_helper_test extends lti_testcase {
             'name' => 'site tool preconfigured and activity chooser',
             'baseurl' => 'http://example.com/tool/3',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $tool4id = $ltigenerator->create_course_tool_types([
             'name' => 'course tool preconfigured and activity chooser',
@@ -110,14 +110,14 @@ final class types_helper_test extends lti_testcase {
             'baseurl' => 'http://example.com/tool/5',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
         $tool6id = $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser, on another placement type',
             'baseurl' => 'http://example.com/tool/6',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
             'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
-            'lti_coursecategories' => $coursecat2->id
+            'lti_coursecategories' => $coursecat2->id,
         ]);
         $ltigenerator->create_tool_types([
             'name' => 'site tool preconfigured and activity chooser, without any placement',
@@ -129,8 +129,13 @@ final class types_helper_test extends lti_testcase {
 
         // The tools above that are shown in the activity chooser represent legacy tools. Saving a tool with that option
         // creates a placement for it now, so set the legacy value directly, and add the placements below.
-        $DB->set_field_select('lti_types', 'coursevisible', \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
-            $DB->sql_like('name', ':name'), ['name' => '%and activity chooser%']);
+        $DB->set_field_select(
+            'lti_types',
+            'coursevisible',
+            \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER,
+            $DB->sql_like('name', ':name'),
+            ['name' => '%and activity chooser%']
+        );
 
         // Creating placements as part of core_ltix architecture migration
         $placementtypeid = $DB->get_field('lti_placement_type', 'id', ['type' => 'mod_lti:activityplacement']);

@@ -2528,7 +2528,6 @@ function xmldb_main_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026102100.05) {
-
         // Define table lti_placement_type to be created.
         $table = new xmldb_table('lti_placement_type');
 

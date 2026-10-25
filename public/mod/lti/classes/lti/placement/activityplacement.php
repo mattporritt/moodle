@@ -29,11 +29,20 @@ use mod_lti\lti\placement\contentitemformatter\form\content_item_to_form_formatt
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class activityplacement extends deeplinking_placement_handler {
-
+    /**
+     * Get an instance of the placement handler.
+     *
+     * @return static The placement handler.
+     */
     public static function instance(): static {
         return new self();
     }
 
+    /**
+     * Require the capabilities needed to add an activity from the content selected by the tool.
+     *
+     * @param context $context The context the content is added to.
+     */
     public function content_item_selection_capabilities(context $context): void {
         require_capability('moodle/course:manageactivities', $context);
         require_capability('moodle/ltix:addcoursetool', $context);

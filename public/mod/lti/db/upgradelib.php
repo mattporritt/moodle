@@ -244,6 +244,5 @@ class lti_migration_upgrade_helper {
         // Reset table sequence for the id column.
         $table = new \xmldb_table('lti_resource_link');
         $DB->get_manager()->reset_sequence($table);
-
     }
 }

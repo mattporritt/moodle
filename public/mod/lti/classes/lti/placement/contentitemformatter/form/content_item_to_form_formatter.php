@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,7 +26,6 @@ use core_ltix\local\placement\contentitemformatter\content_item_data_formatter;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class content_item_to_form_formatter extends content_item_data_formatter {
-
     /**
      * Formats the provided content item data into a structured form data object.
      *
@@ -49,7 +47,7 @@ class content_item_to_form_formatter extends content_item_data_formatter {
             return $this->content_item_to_form_data($contentitems[0], $tool, $acceptsgrades);
         }
         // Otherwise, there are multiple content items.
-        $multiple = array_map(function($contentitem) use ($tool, $acceptsgrades) {
+        $multiple = array_map(function ($contentitem) use ($tool, $acceptsgrades) {
             return $this->content_item_to_form_data($contentitem, $tool, $acceptsgrades);
         }, $contentitems);
 
@@ -77,7 +75,7 @@ class content_item_to_form_formatter extends content_item_data_formatter {
         $data['name'] = $item->title ?? $tool->name ?? '';
         $data['introeditor'] = [
             'text' => $item->text ?? '',
-            'format' => FORMAT_PLAIN
+            'format' => FORMAT_PLAIN,
         ];
 
         if (isset($item->icon->{'@id'})) {
@@ -110,8 +108,10 @@ class content_item_to_form_formatter extends content_item_data_formatter {
                 $data['grade_modgrade_point'] = $maxscore;
             }
 
-            if (in_array($acceptgrades, [\core_ltix\constants::LTI_SETTING_DELEGATE, \core_ltix\constants::LTI_SETTING_ALWAYS])
-                    && isset($item->lineItem)) {
+            if (
+                in_array($acceptgrades, [\core_ltix\constants::LTI_SETTING_DELEGATE, \core_ltix\constants::LTI_SETTING_ALWAYS])
+                    && isset($item->lineItem)
+            ) {
                 $lineitem = $item->lineItem;
                 $data['instructorchoiceacceptgrades'] = \core_ltix\constants::LTI_SETTING_ALWAYS;
 

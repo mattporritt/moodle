@@ -24,7 +24,6 @@ namespace core_ltix\local\placement;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class placements_manager {
-
     /** @var placements_manager $instance the singleton instance. */
     private static placements_manager $instance;
 
@@ -89,10 +88,10 @@ final class placements_manager {
         if (is_null($componentclassname)) {
             throw new \coding_exception("No handler found for placement type '$placementtype'");
         }
-        $componentclassname = "\\".$componentclassname;
+        $componentclassname = "\\" . $componentclassname;
 
         if (!is_subclass_of($componentclassname, deeplinking_placement_handler::class)) {
-            throw new \coding_exception("Handler must implement ".deeplinking_placement_handler::class);
+            throw new \coding_exception("Handler must implement " . deeplinking_placement_handler::class);
         }
 
         return $componentclassname::instance();
@@ -111,23 +110,23 @@ final class placements_manager {
             return [];
         }
 
-        $filepath = \core\component::get_component_directory($component).'/db/lti.php';
+        $filepath = \core\component::get_component_directory($component) . '/db/lti.php';
 
         $placementtypes = [];
         if (file_exists($filepath)) {
             require($filepath);
         }
 
-        return array_filter($placementtypes, function($placementtypeinfo, $placementtype) use ($component) {
+        return array_filter($placementtypes, function ($placementtypeinfo, $placementtype) use ($component) {
             $validformat = self::is_valid_placement_type_string($placementtype);
             if (!$validformat) {
-                debugging("Invalid placement type name '$placementtype'. Should be of the format: ".
+                debugging("Invalid placement type name '$placementtype'. Should be of the format: " .
                     "'frankenstyle_component:placementname'. Loading of this placement type has been skipped.");
                 return false;
             }
 
             if (self::get_component_string_from_placement_type($placementtype) != $component) {
-                debugging("Invalid placement type name '$placementtype' for component '$component'. The component prefix must ".
+                debugging("Invalid placement type name '$placementtype' for component '$component'. The component prefix must " .
                     "match the component providing the placement. Loading of this placement type has been skipped.");
                 return false;
             }
@@ -152,7 +151,7 @@ final class placements_manager {
         // Note: while lti_resource_link records have an association with placements, they are usable without the placement that
         // created them. As such, they will not be removed here as part of a placement type removal.
 
-        list($insql, $inparams) = $DB->get_in_or_equal(array_keys($deletedplacementtypes), SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal(array_keys($deletedplacementtypes), SQL_PARAMS_NAMED);
         $DB->delete_records_select('lti_placement', "placementtypeid $insql", $inparams);
 
         foreach ($deletedplacementtypes as $deletedplacementtype) {

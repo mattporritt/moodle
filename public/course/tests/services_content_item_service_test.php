@@ -121,7 +121,7 @@ final class services_content_item_service_test extends \advanced_testcase {
             'name' => 'site tool',
             'baseurl' => 'http://example.com',
             'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
-            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED
+            'state' => \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED,
         ]);
         $ltigenerator->create_tool_placements([
             'toolid' => $toolid,

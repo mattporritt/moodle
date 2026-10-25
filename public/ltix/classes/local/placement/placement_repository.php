@@ -29,7 +29,6 @@ use core\exception\coding_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class placement_repository {
-
     /**
      * Whether a placement of a given type is enabled in a particular tool in a given course.
      *
@@ -107,7 +106,7 @@ class placement_repository {
             throw new coding_exception("Invalid placement type.");
         }
 
-        $coursecontext =  \core\context\course::instance($courseid);
+        $coursecontext = \core\context\course::instance($courseid);
         $coursecategory = $DB->get_field('course', 'category', ['id' => $courseid]);
 
         [$visiblesql, $visibleparams] = $DB->get_in_or_equal(

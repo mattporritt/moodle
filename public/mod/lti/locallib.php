@@ -475,12 +475,39 @@ function lti_build_custom_parameters($toolproxy, $tool, $instance, $params, $cus
     reason: 'Use \\core_ltix\\helper::build_content_item_selection_request() instead',
     mdl: 'MDL-79113',
 )]
-function lti_build_content_item_selection_request($id, $course, moodle_url $returnurl, $title = '', $text = '', $mediatypes = [],
-        $presentationtargets = [], $autocreate = false, $multiple = true, $unsigned = false, $canconfirm = false,
-        $copyadvice = false, $nonce = '', $launchid = '') {
+function lti_build_content_item_selection_request(
+    $id,
+    $course,
+    moodle_url $returnurl,
+    $title = '',
+    $text = '',
+    $mediatypes = [],
+    $presentationtargets = [],
+    $autocreate = false,
+    $multiple = true,
+    $unsigned = false,
+    $canconfirm = false,
+    $copyadvice = false,
+    $nonce = '',
+    $launchid = ''
+) {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::build_content_item_selection_request($id, $course, $returnurl, $launchid, $title, $text,
-        $mediatypes, $presentationtargets, $autocreate, $multiple, $unsigned, $canconfirm, $copyadvice, $nonce);
+    return \core_ltix\helper::build_content_item_selection_request(
+        $id,
+        $course,
+        $returnurl,
+        $launchid,
+        $title,
+        $text,
+        $mediatypes,
+        $presentationtargets,
+        $autocreate,
+        $multiple,
+        $unsigned,
+        $canconfirm,
+        $copyadvice,
+        $nonce
+    );
 }
 
 /**
@@ -602,12 +629,12 @@ function content_item_to_form(object $tool, object $typeconfig, object $item): s
     if (isset($item->text)) {
         $config->introeditor = [
             'text' => $item->text,
-            'format' => FORMAT_PLAIN
+            'format' => FORMAT_PLAIN,
         ];
     } else {
         $config->introeditor = [
             'text' => '',
-            'format' => FORMAT_PLAIN
+            'format' => FORMAT_PLAIN,
         ];
     }
     if (isset($item->icon->{'@id'})) {
@@ -654,10 +681,10 @@ function content_item_to_form(object $tool, object $typeconfig, object $item): s
                 $config->lineitemsubreviewurl = '';
                 $config->lineitemsubreviewparams = '';
                 if (isset($lineitem->assignedActivity) && isset($lineitem->assignedActivity->activityId)) {
-                    $config->lineitemresourceid = $lineitem->assignedActivity->activityId?:'';
+                    $config->lineitemresourceid = $lineitem->assignedActivity->activityId ?: '';
                 }
                 if (isset($lineitem->tag)) {
-                    $config->lineitemtag = $lineitem->tag?:'';
+                    $config->lineitemtag = $lineitem->tag ?: '';
                 }
                 if (isset($lineitem->submissionReview)) {
                     $subreview = $lineitem->submissionReview;
@@ -717,8 +744,10 @@ function lti_tool_configuration_from_content_item($typeid, $messagetype, $ltiver
     // Check lti_message_type. Show debugging if it's not set to ContentItemSelection.
     // No need to throw exceptions for now since lti_message_type does not seem to be used in this processing at the moment.
     if ($messagetype !== 'ContentItemSelection') {
-        debugging("lti_message_type is invalid: {$messagetype}. It should be set to 'ContentItemSelection'.",
-            DEBUG_DEVELOPER);
+        debugging(
+            "lti_message_type is invalid: {$messagetype}. It should be set to 'ContentItemSelection'.",
+            DEBUG_DEVELOPER
+        );
     }
     // Check LTI versions from our side and the response's side. Show debugging if they don't match.
     // No need to throw exceptions for now since LTI version does not seem to be used in this processing at the moment.
@@ -1770,10 +1799,29 @@ function lti_post_launch_html($newparms, $endpoint, $debug=false) {
     reason: 'Use \\core_ltix\\helper::initiate_login() instead',
     mdl: 'MDL-79113',
 )]
-function lti_initiate_login($courseid, $cmid, $instance, $config, $messagetype = 'basic-lti-launch-request',
-        $title = '', $text = '', $foruserid = 0, $placementtype = '') {    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::initiate_login($courseid, $cmid, $instance, $config, $messagetype, $placementtype, $title,
-        $text, $foruserid);
+function lti_initiate_login(
+    $courseid,
+    $cmid,
+    $instance,
+    $config,
+    $messagetype = 'basic-lti-launch-request',
+    $title = '',
+    $text = '',
+    $foruserid = 0,
+    $placementtype = ''
+) {
+    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
+    return \core_ltix\helper::initiate_login(
+        $courseid,
+        $cmid,
+        $instance,
+        $config,
+        $messagetype,
+        $placementtype,
+        $title,
+        $text,
+        $foruserid
+    );
 }
 
 /**
@@ -1797,10 +1845,29 @@ function lti_initiate_login($courseid, $cmid, $instance, $config, $messagetype =
     reason: 'Use \\core_ltix\\helper::build_login_request() instead',
     mdl: 'MDL-79113',
 )]
-function lti_build_login_request($courseid, $cmid, $instance, $config, $messagetype, $foruserid = 0, $title = '', $text = '',
-        $placementtype = '') {    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
-    return \core_ltix\helper::build_login_request($courseid, $cmid, $instance, $config, $messagetype, $placementtype,
-        $foruserid, $title, $text);
+function lti_build_login_request(
+    $courseid,
+    $cmid,
+    $instance,
+    $config,
+    $messagetype,
+    $foruserid = 0,
+    $title = '',
+    $text = '',
+    $placementtype = ''
+) {
+    \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
+    return \core_ltix\helper::build_login_request(
+        $courseid,
+        $cmid,
+        $instance,
+        $config,
+        $messagetype,
+        $placementtype,
+        $foruserid,
+        $title,
+        $text
+    );
 }
 
 /**

@@ -155,7 +155,10 @@ class course_external_tools_list extends system_report {
                 $courseid = $this->course->id;
                 // The option is held in the status of the activity placement in the course.
                 $coursevisible = \core_ltix\local\placement\placement_repository::is_placement_enabled_for_tool_in_course(
-                    'mod_lti:activityplacement', $row->id, $courseid);
+                    'mod_lti:activityplacement',
+                    $row->id,
+                    $courseid
+                );
 
                 $renderer = $PAGE->get_renderer('core_reportbuilder');
                 $attributes = [

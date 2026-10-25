@@ -1202,8 +1202,11 @@ class helper {
         global $DB;
 
         $placementid = self::get_activity_placement_id($toolid);
-        return $placementid && $DB->get_field('lti_placement_config', 'value',
-            ['placementid' => $placementid, 'name' => 'default_usage']) === 'enabled';
+        return $placementid && $DB->get_field(
+            'lti_placement_config',
+            'value',
+            ['placementid' => $placementid, 'name' => 'default_usage']
+        ) === 'enabled';
     }
 
     /**
@@ -2020,8 +2023,10 @@ class helper {
 
         if (isset($config['coursevisible'])) {
             $type->lti_coursevisible = $config['coursevisible'];
-            if ($config['coursevisible'] == \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED &&
-                    self::is_shown_in_activity_chooser($id)) {
+            if (
+                $config['coursevisible'] == \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED &&
+                    self::is_shown_in_activity_chooser($id)
+            ) {
                 $type->lti_coursevisible = \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER;
             }
         }
@@ -2907,9 +2912,22 @@ class helper {
      * @throws moodle_exception When the LTI tool type does not exist.`
      * @throws coding_exception For invalid media type and presentation target parameters.
      */
-    public static function build_content_item_selection_request($id, $course, moodle_url $returnurl, $launchid = '',
-            $title = '', $text = '', $mediatypes = [], $presentationtargets = [], $autocreate = false, $multiple = true,
-            $unsigned = false, $canconfirm = false, $copyadvice = false, $nonce = '') {
+    public static function build_content_item_selection_request(
+        $id,
+        $course,
+        moodle_url $returnurl,
+        $launchid = '',
+        $title = '',
+        $text = '',
+        $mediatypes = [],
+        $presentationtargets = [],
+        $autocreate = false,
+        $multiple = true,
+        $unsigned = false,
+        $canconfirm = false,
+        $copyadvice = false,
+        $nonce = ''
+    ) {
         global $USER;
 
         $tool = self::get_type($id);
@@ -3576,12 +3594,30 @@ class helper {
      * @param int            $foruserid Id of the user targeted by the launch
      * @return string
      */
-    public static function initiate_login($courseid, $cmid, $instance, $config, $messagetype = 'basic-lti-launch-request',
-            $placementtype = '', $title = '', $text = '', $foruserid = 0) {
+    public static function initiate_login(
+        $courseid,
+        $cmid,
+        $instance,
+        $config,
+        $messagetype = 'basic-lti-launch-request',
+        $placementtype = '',
+        $title = '',
+        $text = '',
+        $foruserid = 0
+    ) {
         global $SESSION;
 
-        $params = self::build_login_request($courseid, $cmid, $instance, $config, $messagetype, $placementtype, $foruserid,
-            $title, $text);
+        $params = self::build_login_request(
+            $courseid,
+            $cmid,
+            $instance,
+            $config,
+            $messagetype,
+            $placementtype,
+            $foruserid,
+            $title,
+            $text
+        );
 
         $r = "<form action=\"" . $config->lti_initiatelogin .
             "\" name=\"ltiInitiateLoginForm\" id=\"ltiInitiateLoginForm\" method=\"post\" " .
@@ -3617,8 +3653,17 @@ class helper {
      * @param string         $text      Description of content item
      * @return array Login request parameters
      */
-    public static function build_login_request($courseid, $cmid, $instance, $config, $messagetype, $placementtype = '',
-            $foruserid = 0, $title = '', $text = '') {
+    public static function build_login_request(
+        $courseid,
+        $cmid,
+        $instance,
+        $config,
+        $messagetype,
+        $placementtype = '',
+        $foruserid = 0,
+        $title = '',
+        $text = ''
+    ) {
         global $USER, $CFG, $SESSION;
         $ltihint = [];
         if (!empty($instance)) {
@@ -3631,7 +3676,7 @@ class helper {
             if (($messagetype === 'ContentItemSelectionRequest') && !empty($config->lti_toolurl_ContentItemSelectionRequest)) {
                 $endpoint = $config->lti_toolurl_ContentItemSelectionRequest;
             }
-            $launchid = "ltilaunch_$messagetype".rand();
+            $launchid = "ltilaunch_$messagetype" . rand();
             $SESSION->$launchid = "{$courseid},{$config->typeid},,{$messagetype},{$foruserid}," .
                 base64_encode($title) . ',' . base64_encode($text) . ",{$placementtype}";
         }
@@ -4236,7 +4281,7 @@ class helper {
             if (!isset($SESSION->$launchid)) {
                 throw new moodle_exception('invalidrequest', 'error');
             }
-            list($courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64) =
+            [$courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64] =
                 explode(',', $SESSION->$launchid);
             // An activity launch is single use. A content item selection keeps its entry because
             // contentitem_return.php reads the placement type from it and removes it.
@@ -4307,8 +4352,22 @@ class helper {
                 // Prepare the request.
                 $title = base64_decode($titleb64);
                 $text = base64_decode($textb64);
-                $request = self::build_content_item_selection_request($typeid, $course, $returnurl, $launchid, $title,
-                    $text, [], [], false, true, false, false, false, $nonce);
+                $request = self::build_content_item_selection_request(
+                    $typeid,
+                    $course,
+                    $returnurl,
+                    $launchid,
+                    $title,
+                    $text,
+                    [],
+                    [],
+                    false,
+                    true,
+                    false,
+                    false,
+                    false,
+                    $nonce
+                );
                 $endpoint = $request->url;
                 $params = $request->params;
             }

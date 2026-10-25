@@ -53,7 +53,7 @@ class behat_core_ltix_generator extends behat_generator_base {
                 'singular' => 'tool placement',
                 'datagenerator' => 'tool_placements',
                 'required' => ['placementtype', 'tool'],
-                'switchids' => ['tool' => 'toolid', 'placementtype' => 'placementtypeid']
+                'switchids' => ['tool' => 'toolid', 'placementtype' => 'placementtypeid'],
             ],
         ];
     }

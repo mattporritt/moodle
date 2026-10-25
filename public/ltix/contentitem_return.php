@@ -65,7 +65,7 @@ if (!empty($jwt)) {
     $consumerkey = required_param('oauth_consumer_key', PARAM_RAW);
     $messagetype = required_param('lti_message_type', PARAM_TEXT);
     $version = required_param('lti_version', PARAM_TEXT);
-    $data = optional_param('data', '',PARAM_RAW);
+    $data = optional_param('data', '', PARAM_RAW);
     $contentitemsjson = optional_param('content_items', '', PARAM_RAW);
     $errormsg = optional_param('lti_errormsg', '', PARAM_TEXT);
     $msg = optional_param('lti_msg', '', PARAM_TEXT);
@@ -102,8 +102,10 @@ if (empty($errormsg) && !empty($contentitemsjson)) {
         // Check lti_message_type. Show debugging if it's not set to ContentItemSelection.
         // No need to throw exceptions for now since lti_message_type does not seem to be used in this processing at the moment.
         if ($messagetype !== 'ContentItemSelection') {
-            debugging("lti_message_type is invalid: {$messagetype}. It should be set to 'ContentItemSelection'.",
-                DEBUG_DEVELOPER);
+            debugging(
+                "lti_message_type is invalid: {$messagetype}. It should be set to 'ContentItemSelection'.",
+                DEBUG_DEVELOPER
+            );
         }
         // Check LTI versions from our side and the response's side. Show debugging if they don't match.
         // No need to throw exceptions for now since LTI version does not seem to be used in this processing at the moment.

@@ -623,13 +623,19 @@ final class helper_test extends lti_testcase {
 
         $result = helper::override_type_showinactivitychooser($tool2id, $course->id, $context, true);
         $this->assertTrue($result);
-        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $tool2id,
-            $course->id));
+        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement',
+            $tool2id,
+            $course->id
+        ));
 
         $result = helper::override_type_showinactivitychooser($tool3id, $course->id, $context, false);
         $this->assertTrue($result);
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $tool3id,
-            $course->id));
+        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement',
+            $tool3id,
+            $course->id
+        ));
 
         // Restricted category no allowed.
         $this->expectException('moodle_exception');
@@ -639,8 +645,11 @@ final class helper_test extends lti_testcase {
         // Restricted category allowed.
         $result = helper::override_type_showinactivitychooser($tool5id, $course->id, $context, false);
         $this->assertTrue($result);
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $tool5id,
-            $course->id));
+        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement',
+            $tool5id,
+            $course->id
+        ));
 
         $this->setUser($teacher2);
         $this->expectException(\required_capability_exception::class);
@@ -1234,7 +1243,7 @@ final class helper_test extends lti_testcase {
             'name' => 'Example tool',
             'baseurl' => 'http://example.com/tool/1',
             'course' => $course2->id,
-            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED
+            'coursevisible' => \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED,
         ]);
 
         // Create a placement for the course tool.
@@ -1246,11 +1255,17 @@ final class helper_test extends lti_testcase {
         ]);
 
         // Set a placement status override for the site tool placement in course 1.
-        $ltigenerator->create_placement_status_in_context($sitetoolplacement->id, placement_status::DISABLED,
-            $course1context->id);
+        $ltigenerator->create_placement_status_in_context(
+            $sitetoolplacement->id,
+            placement_status::DISABLED,
+            $course1context->id
+        );
         // Set a placement status override for the course tool placement.
-        $ltigenerator->create_placement_status_in_context($coursetoolplacement->id, placement_status::DISABLED,
-            $course2context->id);
+        $ltigenerator->create_placement_status_in_context(
+            $coursetoolplacement->id,
+            placement_status::DISABLED,
+            $course2context->id
+        );
 
         // Attempt to delete the site tool.
         helper::delete_type($sitetoolid);
@@ -1495,8 +1510,11 @@ final class helper_test extends lti_testcase {
 
             $placement = $ltigenerator->create_tool_placements($data);
 
-            $ltigenerator->create_placement_status_in_context($placement->id, $placementdata['statusoverride'],
-                \core\context\system::instance()->id);
+            $ltigenerator->create_placement_status_in_context(
+                $placement->id,
+                $placementdata['statusoverride'],
+                \core\context\system::instance()->id
+            );
 
             // If the created placement is supposed to be deleted later, include its ID to the $placementstodelete array.
             if (empty($placementtypeids) || in_array($placementdata['placementtypeid'], $placementtypeids)) {
@@ -1545,7 +1563,7 @@ final class helper_test extends lti_testcase {
                                 'deep_linking_url' => 'http://deeplink.example.com',
                                 'icon_url' => 'https://icon.example.com',
                             ],
-                            'statusoverride' => placement_status::DISABLED
+                            'statusoverride' => placement_status::DISABLED,
                         ],
                         [
                             'placementtypeid' => 2,
@@ -1554,7 +1572,7 @@ final class helper_test extends lti_testcase {
                                 'icon_url' => 'https://icon2.example.com',
                                 'text' => 'Example text',
                             ],
-                            'statusoverride' => placement_status::DISABLED
+                            'statusoverride' => placement_status::DISABLED,
                         ],
                         [
                             'placementtypeid' => 3,
@@ -1564,7 +1582,7 @@ final class helper_test extends lti_testcase {
                                 'icon_url' => 'https://icon3.example.com',
                                 'text' => 'Example text 3',
                             ],
-                            'statusoverride' => placement_status::ENABLED
+                            'statusoverride' => placement_status::ENABLED,
                         ],
                     ],
                     [],
@@ -1578,7 +1596,7 @@ final class helper_test extends lti_testcase {
                                 'deep_linking_url' => 'http://deeplink.example.com',
                                 'icon_url' => 'https://icon.example.com',
                             ],
-                            'statusoverride' => placement_status::ENABLED
+                            'statusoverride' => placement_status::ENABLED,
                         ],
                     ],
                     [1],
@@ -1592,7 +1610,7 @@ final class helper_test extends lti_testcase {
                                 'deep_linking_url' => 'http://deeplink.example.com',
                                 'icon_url' => 'https://icon.example.com',
                             ],
-                            'statusoverride' => placement_status::DISABLED
+                            'statusoverride' => placement_status::DISABLED,
                         ],
                         [
                             'placementtypeid' => 2,
@@ -1601,7 +1619,7 @@ final class helper_test extends lti_testcase {
                                 'icon_url' => 'https://icon2.example.com',
                                 'text' => 'Example text',
                             ],
-                            'statusoverride' => placement_status::DISABLED
+                            'statusoverride' => placement_status::DISABLED,
                         ],
                         [
                             'placementtypeid' => 3,
@@ -1611,7 +1629,7 @@ final class helper_test extends lti_testcase {
                                 'icon_url' => 'https://icon3.example.com',
                                 'text' => 'Example text 3',
                             ],
-                            'statusoverride' => placement_status::ENABLED
+                            'statusoverride' => placement_status::ENABLED,
                         ],
                     ],
                     [1, 2, 3],
@@ -1625,7 +1643,7 @@ final class helper_test extends lti_testcase {
                                 'deep_linking_url' => 'http://deeplink.example.com',
                                 'icon_url' => 'https://icon.example.com',
                             ],
-                            'statusoverride' => placement_status::ENABLED
+                            'statusoverride' => placement_status::ENABLED,
                         ],
                         [
                             'placementtypeid' => 2,
@@ -1634,7 +1652,7 @@ final class helper_test extends lti_testcase {
                                 'icon_url' => 'https://icon2.example.com',
                                 'text' => 'Example text',
                             ],
-                            'statusoverride' => placement_status::DISABLED
+                            'statusoverride' => placement_status::DISABLED,
                         ],
                         [
                             'placementtypeid' => 3,
@@ -1644,7 +1662,7 @@ final class helper_test extends lti_testcase {
                                 'icon_url' => 'https://icon3.example.com',
                                 'text' => 'Example text 3',
                             ],
-                            'statusoverride' => placement_status::ENABLED
+                            'statusoverride' => placement_status::ENABLED,
                         ],
                     ],
                     [1, 3],
@@ -1658,7 +1676,7 @@ final class helper_test extends lti_testcase {
                                 'deep_linking_url' => 'http://deeplink.example.com',
                                 'icon_url' => 'https://icon.example.com',
                             ],
-                            'statusoverride' => placement_status::ENABLED
+                            'statusoverride' => placement_status::ENABLED,
                         ],
                     ],
                     [2],
@@ -1686,38 +1704,56 @@ final class helper_test extends lti_testcase {
         $config = (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_PRECONFIGURED];
         $typeid = helper::add_type($type, $config);
         $this->assertFalse($DB->record_exists('lti_placement', ['toolid' => $typeid]));
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
+        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement',
+            $typeid,
+            $course->id
+        ));
 
         // Saving it with the option shows it. The tool stays preconfigured and the form reads the option back.
         $type = (object) ['id' => $typeid];
         helper::update_type($type, (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]);
-        $this->assertEquals(constants::LTI_COURSEVISIBLE_PRECONFIGURED, $DB->get_field('lti_types', 'coursevisible',
-            ['id' => $typeid]));
+        $this->assertEquals(constants::LTI_COURSEVISIBLE_PRECONFIGURED, $DB->get_field(
+            'lti_types',
+            'coursevisible',
+            ['id' => $typeid]
+        ));
         $this->assertEquals('enabled', $DB->get_field_sql(
             "SELECT pc.value
                FROM {lti_placement} p
                JOIN {lti_placement_config} pc ON pc.placementid = p.id AND pc.name = 'default_usage'
               WHERE p.toolid = :toolid AND p.placementtypeid = :placementtypeid",
-            ['toolid' => $typeid, 'placementtypeid' => $placementtypeid]));
-        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
+            ['toolid' => $typeid, 'placementtypeid' => $placementtypeid]
+        ));
+        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement',
+            $typeid,
+            $course->id
+        ));
         $this->assertArrayHasKey($typeid, placement_repository::get_tools_with_enabled_placement_in_course(
-            'mod_lti:activityplacement', $course->id));
+            'mod_lti:activityplacement',
+            $course->id
+        ));
         $this->assertEquals(constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER, helper::get_type_type_config($typeid)->lti_coursevisible);
 
         // Saving it without the option hides it again.
         $type = (object) ['id' => $typeid];
         helper::update_type($type, (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_PRECONFIGURED]);
-        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
+        $this->assertFalse(placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement',
+            $typeid,
+            $course->id
+        ));
         $this->assertEquals(constants::LTI_COURSEVISIBLE_PRECONFIGURED, helper::get_type_type_config($typeid)->lti_coursevisible);
 
         // Updating a tool without touching the option leaves it as it is.
         helper::update_type((object) ['id' => $typeid], (object) ['lti_coursevisible' => constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER]);
         helper::update_type((object) ['id' => $typeid, 'name' => 'Renamed'], (object) []);
-        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course('mod_lti:activityplacement', $typeid,
-            $course->id));
+        $this->assertTrue(placement_repository::is_placement_enabled_for_tool_in_course(
+            'mod_lti:activityplacement',
+            $typeid,
+            $course->id
+        ));
     }
 
     /**
@@ -1748,8 +1784,12 @@ final class helper_test extends lti_testcase {
         $this->assertNotEmpty($lti->cmid);
 
         // Hiding the tool in the course removes it from the chooser of the course.
-        $this->assertTrue(helper::override_type_showinactivitychooser($typeid, $course->id,
-            \core\context\course::instance($course->id), false));
+        $this->assertTrue(helper::override_type_showinactivitychooser(
+            $typeid,
+            $course->id,
+            \core\context\course::instance($course->id),
+            false
+        ));
         $items = $this->get_activity_chooser_lti_items($course, $teacher);
         $this->assertNotContains('Chooser tool', array_map(fn($item) => $item->get_title()->get_value(), $items));
 

@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $placementtypes = [
     'mod_lti:activityplacement' => [
-        'handler' => \mod_lti\lti\placement\activityplacement::class
+        'handler' => \mod_lti\lti\placement\activityplacement::class,
     ],
 ];
