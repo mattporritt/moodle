@@ -49,7 +49,6 @@ use core_ltix\local\lticore\message\type\message_type_factory;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class parameters_builder_factory {
-
     /** @var array internal registry of [ltiversion:messagetype => processor composition] defining how parameters are built. */
     protected array $registry;
 
@@ -62,9 +61,13 @@ class parameters_builder_factory {
      * @param message_type_factory $messagetypefactory
      */
     public function __construct(
+        /** @var parameter_processor_registry The parameter processor registry. */
         private parameter_processor_registry $processorregistry,
+        /** @var custom_param_substitutor_factory The custom param substitutor factory. */
         private custom_param_substitutor_factory $substitutorfactory,
+        /** @var custom_parameter_normaliser_factory The custom parameter normaliser factory. */
         private custom_parameter_normaliser_factory $normaliserfactory,
+        /** @var message_type_factory The message type factory. */
         private message_type_factory $messagetypefactory,
     ) {
         $this->register_default();
@@ -83,19 +86,19 @@ class parameters_builder_factory {
         // - LTI2 adds lti_tool_settings as part of helper::build_custom_parameters()
         // - LTI2 adds capabilities, via helper::build_request_lti2()
         // - LTI2 unconditionally includes the following in helper::lti_build_request():
-        //   - lis_result_sourcedid
-        //   - lis_outcome_service_url
-        //   - lis_person_name_given (will be done at auth time in 1p3).
-        //   - lis_person_name_family (will be done at auth time in 1p3).
-        //   - lis_person_name_full (will be done at auth time in 1p3).
-        //   - ext_user_username (will be done at auth time in 1p3).
-        //   - lis_person_contact_email_primary (will be done at auth time in 1p3).
+        // - lis_result_sourcedid
+        // - lis_outcome_service_url
+        // - lis_person_name_given (will be done at auth time in 1p3).
+        // - lis_person_name_family (will be done at auth time in 1p3).
+        // - lis_person_name_full (will be done at auth time in 1p3).
+        // - ext_user_username (will be done at auth time in 1p3).
+        // - lis_person_contact_email_primary (will be done at auth time in 1p3).
         // - LTI 1px conditionally does the above....
         // - All versions include:
-        //   - lis_course_section_sourcedid if it's a course context launch
-        //   - lis_person_sourcedid (will be done at auth time in 1p3).
+        // - lis_course_section_sourcedid if it's a course context launch
+        // - lis_person_sourcedid (will be done at auth time in 1p3).
         // - Only LTI1p1 and LTI1p3 include launch parameters includes via service::get_launch_parameters(). LTI2 does NOT.
-        //    See helper::get_launch_data().
+        // See helper::get_launch_data().
         // Also note that, for 1p3, we won't include user data at the point of building the payload; that's added at auth time.
 
         // V1p3 Resource Link.
@@ -199,6 +202,7 @@ class parameters_builder_factory {
             } else if (is_callable($key)) {
                 $processors[] = $key($ltiversion);
             } else {
+                // phpcs:ignore moodle.PHP.ForbiddenFunctions.Found -- Developer-facing detail of an invalid composition.
                 throw new lti_exception("Invalid pipeline composition key: " . print_r($key, true));
             }
         }

@@ -35,7 +35,6 @@ use core_ltix\local\placement\service\resource_link_manager;
  * @covers     \core_ltix\local\ltiservice\service_base
  */
 final class service_base_test extends \advanced_testcase {
-
     /**
      * Creates a tool with the services enabled, a course and an lti activity using the tool.
      *
@@ -109,8 +108,13 @@ final class service_base_test extends \advanced_testcase {
 
         $found = [];
         foreach (\core_ltix\helper::get_services() as $service) {
-            $deprecated = $service->get_launch_parameters('basic-lti-launch-request', $course->id, $user->id, $typeid,
-                $lti->id);
+            $deprecated = $service->get_launch_parameters(
+                'basic-lti-launch-request',
+                $course->id,
+                $user->id,
+                $typeid,
+                $lti->id
+            );
 
             $service->set_type(\core_ltix\helper::get_type($typeid));
             $service->set_typeconfig(\core_ltix\helper::get_type_config($typeid));
@@ -145,8 +149,13 @@ final class service_base_test extends \advanced_testcase {
         $lti = $this->getDataGenerator()->create_module('lti', ['course' => $course->id, 'typeid' => $typeid]);
 
         foreach (\core_ltix\helper::get_services() as $service) {
-            $this->assertSame([], $service->get_launch_parameters('basic-lti-launch-request', $course->id, 2, $typeid,
-                $lti->id), $service->get_component_id());
+            $this->assertSame([], $service->get_launch_parameters(
+                'basic-lti-launch-request',
+                $course->id,
+                2,
+                $typeid,
+                $lti->id
+            ), $service->get_component_id());
         }
     }
 

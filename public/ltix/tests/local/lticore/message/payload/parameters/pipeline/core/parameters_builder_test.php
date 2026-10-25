@@ -29,8 +29,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(parameters_builder::class)]
-class parameters_builder_test extends \basic_testcase {
-
+final class parameters_builder_test extends \basic_testcase {
     /**
      * Test build() method calls steps in order and that each step can augment the data returned by the previous step.
      *

@@ -30,7 +30,6 @@ use core_ltix\oauth_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class v1p1_launch_request_builder {
-
     /**
      * Build a launch message.
      *
@@ -50,7 +49,7 @@ abstract class v1p1_launch_request_builder {
     ): lti_message {
 
         $params = $this->get_required_launch_params($messagetype);
-        $params = array_merge($params, (!empty($roles) ? ['roles' => implode(',', $roles)]: []));
+        $params = array_merge($params, (!empty($roles) ? ['roles' => implode(',', $roles)] : []));
 
         // Required params trump extra params.
         $params = array_merge($extraparams, $params);

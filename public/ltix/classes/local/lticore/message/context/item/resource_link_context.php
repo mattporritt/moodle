@@ -26,12 +26,14 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class resource_link_context {
-
     /**
      * Constructor.
      *
      * @param resource_link $resourcelink the LTI resource link model.
      */
-    public function __construct(public resource_link $resourcelink) {
+    public function __construct(
+        /** @var resource_link The LTI resource link model. */
+        public resource_link $resourcelink,
+    ) {
     }
 }

@@ -54,8 +54,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(v1p1_resource_link_launch_service::class)]
-class v1p1_resource_link_launch_contract_test extends \basic_testcase {
-
+final class v1p1_resource_link_launch_contract_test extends \basic_testcase {
     /**
      * Test a typical launch generates a signed LTI 1.1 launch request.
      * @return void
@@ -96,7 +95,7 @@ class v1p1_resource_link_launch_contract_test extends \basic_testcase {
         $roles = [
             'Instructor',
             'urn:lti:sysrole:ims/lis/Administrator',
-            'urn:lti:instrole:ims/lis/Administrator'
+            'urn:lti:instrole:ims/lis/Administrator',
         ];
 
         $user = (object) [
@@ -132,7 +131,7 @@ class v1p1_resource_link_launch_contract_test extends \basic_testcase {
             'lastip' => '0.0.0.0',
             'secret' => '',
             'picture' => '0',
-            'description' => NULL,
+            'description' => null,
             'descriptionformat' => '1',
             'mailformat' => '1',
             'maildigest' => '0',
@@ -142,12 +141,12 @@ class v1p1_resource_link_launch_contract_test extends \basic_testcase {
             'timecreated' => '1765442016',
             'timemodified' => '1765442016',
             'trustbitmask' => '0',
-            'imagealt' => NULL,
+            'imagealt' => null,
             'lastnamephonetic' => '高橋',
             'firstnamephonetic' => 'Michael',
             'middlename' => 'Leah',
             'alternatename' => '娜',
-            'moodlenetprofile' => NULL,
+            'moodlenetprofile' => null,
         ];
 
         $course = (object) [
@@ -157,12 +156,14 @@ class v1p1_resource_link_launch_contract_test extends \basic_testcase {
             'fullname' => 'Test course 1',
             'shortname' => 'tc_1',
             'idnumber' => 'CID:4567',
+            // phpcs:disable moodle.Files.LineLength.MaxExceeded
             'summary' => 'Test course 1
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nulla non arcu lacinia neque faucibus fringilla. Vivamus porttitor turpis ac leo. Integer in sapien. Nullam eget nisl. Aliquam erat volutpat. Cras elementum. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Integer malesuada. Nullam lectus justo, vulputate eget mollis sed, tempor sed magna. Mauris elementum mauris vitae tortor. Aliquam erat volutpat.
 Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Pellentesque ipsum. Cras pede libero, dapibus nec, pretium sit amet, tempor quis. Aliquam ante. Proin in tellus sit amet nibh dignissim sagittis. Vivamus porttitor turpis ac leo. Duis bibendum, lectus ut viverra rhoncus, dolor nunc faucibus libero, eget facilisis enim ipsum id lacus. In sem justo, commodo ut, suscipit at, pharetra vitae, orci. Aliquam erat volutpat. Nulla est.
 Vivamus luctus egestas leo. Aenean fermentum risus id tortor. Mauris dictum facilisis augue. Aliquam erat volutpat. Aliquam ornare wisi eu metus. Aliquam id dolor. Duis condimentum augue id magna semper rutrum. Donec iaculis gravida nulla. Pellentesque ipsum. Etiam dictum tincidunt diam. Quisque tincidunt scelerisque libero. Etiam egestas wisi a erat.
 Integer lacinia. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Mauris tincidunt sem sed arcu. Nullam feugiat, turpis at pulvinar vulputate, erat libero tristique tellus, nec bibendum odio risus sit amet ante. Aliquam id dolor. Maecenas sollicitudin. Et harum quidem rerum facilis est et expedita distinctio. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Nullam dapibus fermentum ipsum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Pellentesque sapien. Duis risus. Mauris elementum mauris vitae tortor. Suspendisse nisl. Integer rutrum, orci vestibulum ullamcorper ultricies, lacus quam ultricies odio, vitae placerat pede sem sit amet enim.
 In laoreet, magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet sapien wisi sed libero. Proin pede metus, vulputate nec, fermentum fringilla, vehicula vitae, justo. Nullam justo enim, consectetuer nec, ullamcorper ac, vestibulum in, elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? Maecenas lorem. Etiam posuere lacus quis dolor. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos hymenaeos. Curabitur ligula sapien, pulvinar a vestibulum quis, facilisis vel sapien. Nam sed tellus id magna elementum tincidunt. Suspendisse nisl. Vivamus luctus egestas leo. Nulla non arcu lacinia neque faucibus fringilla. Etiam dui sem, fermentum vitae, sagittis id, malesuada in, quam. Etiam dictum tincidunt diam. Etiam commodo dui eget wisi. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Proin pede metus, vulputate nec, fermentum fringilla, vehicula vitae, justo. Duis ante orci, molestie vitae vehicula venenatis, tincidunt ac pede. Pellentesque sapien.',
+            // phpcs:enable moodle.Files.LineLength.MaxExceeded
             'summaryformat' => '0',
             'format' => 'topics',
             'showgrades' => '1',
@@ -176,7 +177,7 @@ In laoreet, magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet s
             'showreports' => '0',
             'visible' => '1',
             'visibleold' => '1',
-            'downloadcontent' => NULL,
+            'downloadcontent' => null,
             'groupmode' => '0',
             'groupmodeforce' => '0',
             'defaultgroupingid' => '0',
@@ -189,10 +190,10 @@ In laoreet, magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet s
             'enablecompletion' => '0',
             'completionnotify' => '0',
             'cacherev' => '0',
-            'originalcourseid' => NULL,
+            'originalcourseid' => null,
             'showactivitydates' => '0',
             'showcompletionconditions' => '1',
-            'pdfexportfont' => NULL,
+            'pdfexportfont' => null,
             'hiddensections' => 1,
             'coursedisplay' => 0,
         ];
@@ -217,7 +218,7 @@ In laoreet, magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet s
         // Stub the ltixservice plugins substitution handler.
         $subservicestub = $this->createStub(plugin_substitution_service_interface::class);
         $subservicestub->method('substitute')
-            ->willReturnCallback(function(launch_context $launchcontext, string $param) use ($user) {
+            ->willReturnCallback(function (launch_context $launchcontext, string $param) use ($user) {
                 return match ($param) {
                     '$Service.substitution.example' => 'service-level value',
                     '$LineItems.url' => 'https://lms.example.com/context/2/lineitems',
@@ -230,13 +231,15 @@ In laoreet, magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet s
         // Stub the ltixservice plugins launch parameters handler.
         $parameterservicestub = $this->createStub(plugin_parameters_service_interface::class);
         $parameterservicestub->method('get_launch_parameters')
-            ->willReturnCallback(function(launch_context $launchcontext) {
+            ->willReturnCallback(function (launch_context $launchcontext) {
                 return [
                     // Simulate the addition of AGS and NRPS claims.
                     // These values are taken from the respective ltixservice plugins, gradebookservice and memberships, in order
                     // to remove service plugin dependencies from this test, while still ensuring the output is realistic and as
                     // expected.
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'custom_gradebookservices_scope' => 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/score,https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'custom_lineitems_url' => '$LineItems.url',
                     'custom_lineitem_url' => '$LineItem.url',
                     'custom_context_memberships_url' => '$ToolProxyBinding.memberships.url',
@@ -319,7 +322,9 @@ In laoreet, magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet s
             'tool_consumer_instance_description' => 'PHPUnit test site',
             'ext_user_username' => 'username1',
             'ext_lms' => 'moodle-2',
+            // phpcs:disable moodle.Files.LineLength.MaxExceeded
             'lis_result_sourcedid' => '{"data":{"instanceid":24,"userid":"103000","typeid":44444,"launchid":534814373},"hash":"8fe71e1e082b30289c09aaa41e291c2ed5253793ed889a72ad4824baf1599309"}',
+            // phpcs:enable moodle.Files.LineLength.MaxExceeded
             'lis_outcome_service_url' => 'https://www.example.com/moodle/ltix/service.php',
             'lis_course_section_sourcedid' => 'CID:4567',
             'custom_tool_param_1' => 'value1',
@@ -328,7 +333,9 @@ In laoreet, magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet s
             'custom_link_param_1' => 'linkval1',
             'custom_linkparam2' => '美羽 斎藤',
             'custom_linkparam_3' => '$Not.resolvable',
+            // phpcs:disable moodle.Files.LineLength.MaxExceeded
             'custom_gradebookservices_scope' => 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/score,https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+            // phpcs:enable moodle.Files.LineLength.MaxExceeded
             'custom_lineitems_url' => 'https://lms.example.com/context/2/lineitems',
             'custom_lineitem_url' => 'https://lms.example.com/context/2/lineitem/10',
             'custom_context_memberships_url' => 'https://lms.example.com/CourseSection/2/bindings/3/memberships',

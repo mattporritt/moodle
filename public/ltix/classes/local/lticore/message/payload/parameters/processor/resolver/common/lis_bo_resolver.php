@@ -32,7 +32,7 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\core\parameters_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class lis_bo_resolver implements parameters_processor {
-
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
         global $CFG;
 
@@ -63,7 +63,7 @@ class lis_bo_resolver implements parameters_processor {
                 $forcessl = true;
             }
 
-            if ((isset($toolconfig->config->forcessl) && ($toolconfig->config->forcessl == '1')) or $forcessl) {
+            if ((isset($toolconfig->config->forcessl) && ($toolconfig->config->forcessl == '1')) || $forcessl) {
                 $serviceurl = helper::ensure_url_is_https($serviceurl);
             }
             $parameters['lis_outcome_service_url'] = $serviceurl;

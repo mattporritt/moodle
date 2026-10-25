@@ -52,8 +52,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(parameters_builder_factory::class)]
-class parameters_builder_factory_test extends \basic_testcase {
-
+final class parameters_builder_factory_test extends \basic_testcase {
     #[DataProvider('pipeline_data_provider')]
     public function test_builds_registered_pipelines(array $inputs, array $expectedcomposition): void {
 
@@ -115,7 +114,7 @@ class parameters_builder_factory_test extends \basic_testcase {
                     exclude_user_params_policy::class,
                     custom_param_substitutor::class,
                     jwt_claim_converter::class,
-                ]
+                ],
             ],
             '1p1 basic launch request' => [
                 'inputs' => [
@@ -135,8 +134,8 @@ class parameters_builder_factory_test extends \basic_testcase {
                     ltixservice_resolver::class,
                     pii_policy::class,
                     lis_bo_policy::class,
-                    custom_param_substitutor::class
-                ]
+                    custom_param_substitutor::class,
+                ],
             ],
             '2p0 basic launch request' => [
                 'inputs' => [
@@ -153,9 +152,9 @@ class parameters_builder_factory_test extends \basic_testcase {
                     lis_bo_resolver::class,
                     tool_consumer_resolver::class,
                     launch_presentation_resolver::class,
-                    custom_param_substitutor::class
-                ]
-            ]
+                    custom_param_substitutor::class,
+                ],
+            ],
         ];
     }
 }

@@ -31,8 +31,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(context_resolver::class)]
-class context_resolver_test extends \basic_testcase {
-
+final class context_resolver_test extends \basic_testcase {
     /**
      * Helper returning a course stub.
      *
@@ -61,7 +60,7 @@ class context_resolver_test extends \basic_testcase {
             'showreports' => '0',
             'visible' => '1',
             'visibleold' => '1',
-            'downloadcontent' => NULL,
+            'downloadcontent' => null,
             'groupmode' => '0',
             'groupmodeforce' => '0',
             'defaultgroupingid' => '0',
@@ -74,10 +73,10 @@ class context_resolver_test extends \basic_testcase {
             'enablecompletion' => '0',
             'completionnotify' => '0',
             'cacherev' => '0',
-            'originalcourseid' => NULL,
+            'originalcourseid' => null,
             'showactivitydates' => '0',
             'showcompletionconditions' => '1',
-            'pdfexportfont' => NULL,
+            'pdfexportfont' => null,
             'hiddensections' => 1,
             'coursedisplay' => 0,
         ];
@@ -94,8 +93,8 @@ class context_resolver_test extends \basic_testcase {
         $messagetypefactory = \core\di::get(message_type_factory::class);
         $launchcontext = launch_context::instance(
             new message_context($messagetypefactory->from_string('LtiResourceLinkRequest')),
-            new course_context($this->get_course_stub()))
-        ;
+            new course_context($this->get_course_stub())
+        );
 
         $params = ['existing_param' => 'value'];
         $finalparams = $resolver->process($params, $launchcontext);
@@ -127,8 +126,8 @@ class context_resolver_test extends \basic_testcase {
         $messagetypefactory = \core\di::get(message_type_factory::class);
         $launchcontext = launch_context::instance(
             new message_context($messagetypefactory->from_string('LtiResourceLinkRequest')),
-            new course_context($sitecourse))
-        ;
+            new course_context($sitecourse)
+        );
 
         $params = ['existing_param' => 'value'];
         $finalparams = $resolver->process($params, $launchcontext);

@@ -31,7 +31,6 @@ use core_ltix\local\lticore\message\context\item\message_context;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 readonly class launch_context implements context_collection_interface {
-
     /** @var context_collection the underlying generic collection. */
     private context_collection $contextcollection;
 

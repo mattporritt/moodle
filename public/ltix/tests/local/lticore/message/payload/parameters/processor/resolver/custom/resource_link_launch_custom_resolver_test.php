@@ -34,8 +34,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(resource_link_launch_custom_resolver::class)]
-class resource_link_launch_custom_resolver_test extends \basic_testcase {
-
+final class resource_link_launch_custom_resolver_test extends \basic_testcase {
     /**
      * Helper returning a tool config stub.
      *

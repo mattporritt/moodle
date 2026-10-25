@@ -30,8 +30,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(ltixservice_resolver::class)]
-class ltixservice_resolver_test extends \basic_testcase {
-
+final class ltixservice_resolver_test extends \basic_testcase {
     /**
      * Test processing with service parameters.
      *

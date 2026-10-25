@@ -27,8 +27,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(variable_substitutor::class)]
-class variable_substitutor_test extends \basic_testcase {
-
+final class variable_substitutor_test extends \basic_testcase {
     /**
      * Tests that the policy can block substitution and resolvers are not invoked.
      *

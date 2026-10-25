@@ -27,7 +27,7 @@ use core_ltix\local\lticore\message\substitution\pipeline\substitution_policy;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class substitute_all_policy implements substitution_policy {
-
+    #[\Override]
     public function should_substitute(string $str, substitution_context $context): bool {
         return str_starts_with($str, '$');
     }

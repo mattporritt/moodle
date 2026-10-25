@@ -33,7 +33,12 @@ final readonly class message_type {
      * @param string $value the raw message type value
      * @param string $canonical the canonical form of the message type
      */
-    private function __construct(private string $value, private string $canonical) {
+    private function __construct(
+        /** @var string The raw message type value. */
+        private string $value,
+        /** @var string The canonical form of the message type. */
+        private string $canonical,
+    ) {
     }
 
     /**
@@ -86,4 +91,3 @@ final readonly class message_type {
         return $this->value;
     }
 }
-

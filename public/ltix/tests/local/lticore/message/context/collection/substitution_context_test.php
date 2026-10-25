@@ -31,8 +31,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(substitution_context::class)]
-class substitution_context_test extends \basic_testcase {
-
+final class substitution_context_test extends \basic_testcase {
     /**
      * Return a minimal launch_context for use in tests.
      *

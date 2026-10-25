@@ -24,12 +24,14 @@ namespace core_ltix\local\lticore\message\context\item;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class tool_context {
-
     /**
      * Constructor.
      *
      * @param \stdClass $toolconfig the tool configuration record.
      */
-    public function __construct(public \stdClass $toolconfig) {
+    public function __construct(
+        /** @var \stdClass The tool configuration record. */
+        public \stdClass $toolconfig,
+    ) {
     }
 }

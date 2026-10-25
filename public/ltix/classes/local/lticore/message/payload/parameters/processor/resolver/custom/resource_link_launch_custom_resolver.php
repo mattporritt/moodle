@@ -31,7 +31,7 @@ use core_ltix\local\lticore\message\payload\parameters\processor\resolver\common
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class resource_link_launch_custom_resolver extends tool_custom_resolver implements parameters_processor {
-
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
         // Get the tool-config-based custom params.
         $parameters = parent::process($parameters, $data);

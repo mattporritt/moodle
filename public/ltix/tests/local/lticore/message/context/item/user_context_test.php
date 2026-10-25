@@ -26,8 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(user_context::class)]
-class user_context_test extends \basic_testcase {
-
+final class user_context_test extends \basic_testcase {
     /**
      * Test that the user property holds the object passed to the constructor.
      *

@@ -480,8 +480,13 @@ final class gradebookservices_test extends \advanced_testcase {
      * @param int|null $linkid Id of the resource link the standalone line item will be related to.
      *
      */
-    private function create_standalone_lineitem(int $courseid, int $typeid, ?string $resourceid,
-            ?string $tag, ?int $linkid = null): void {
+    private function create_standalone_lineitem(
+        int $courseid,
+        int $typeid,
+        ?string $resourceid,
+        ?string $tag,
+        ?int $linkid = null
+    ): void {
         $gbservice = new gradebookservices();
         $gbservice->add_standalone_lineitem($courseid,
             "manualtest",

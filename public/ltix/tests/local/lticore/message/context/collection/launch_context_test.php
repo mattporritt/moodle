@@ -31,8 +31,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(launch_context::class)]
-class launch_context_test extends \basic_testcase {
-
+final class launch_context_test extends \basic_testcase {
     /**
      * Return a minimal message_context for use in tests.
      *

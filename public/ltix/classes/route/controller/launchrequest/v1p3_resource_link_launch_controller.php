@@ -31,7 +31,6 @@ use Psr\Http\Message\ServerRequestInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class v1p3_resource_link_launch_controller {
-
     /**
      * Ctor.
      *
@@ -39,7 +38,9 @@ class v1p3_resource_link_launch_controller {
      * @param launch_data_repository $launchdatarepository
      */
     public function __construct(
+        /** @var v1p3_resource_link_launch_service The v1p3 resource link launch service. */
         protected v1p3_resource_link_launch_service $launchservice,
+        /** @var launch_data_repository The launch data repository. */
         protected launch_data_repository $launchdatarepository,
     ) {
     }

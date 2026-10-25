@@ -38,13 +38,15 @@ use core_ltix\local\ltiservice\plugin_substitution_service_interface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class variable_substitutor_factory {
-
     /**
      * Ctor.
      *
      * @param plugin_substitution_service_interface $pluginsubservice
      */
-    public function __construct(protected plugin_substitution_service_interface $pluginsubservice) {
+    public function __construct(
+        /** @var plugin_substitution_service_interface The plugin substitution service interface. */
+        protected plugin_substitution_service_interface $pluginsubservice,
+    ) {
     }
 
     /**
@@ -102,7 +104,7 @@ class variable_substitutor_factory {
         return new variable_substitutor(
             new substitute_all_policy(),
             [
-                new oidc_user_params_map_resolver(new variable_map($map))
+                new oidc_user_params_map_resolver(new variable_map($map)),
             ],
         );
     }

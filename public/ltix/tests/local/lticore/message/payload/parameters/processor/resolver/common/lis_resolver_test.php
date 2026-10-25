@@ -32,8 +32,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(lis_resolver::class)]
-class lis_resolver_test extends \basic_testcase {
-
+final class lis_resolver_test extends \basic_testcase {
     /**
      * Helper returning a course stub.
      *
@@ -61,7 +60,7 @@ class lis_resolver_test extends \basic_testcase {
             'showreports' => '0',
             'visible' => '1',
             'visibleold' => '1',
-            'downloadcontent' => NULL,
+            'downloadcontent' => null,
             'groupmode' => '0',
             'groupmodeforce' => '0',
             'defaultgroupingid' => '0',
@@ -74,10 +73,10 @@ class lis_resolver_test extends \basic_testcase {
             'enablecompletion' => '0',
             'completionnotify' => '0',
             'cacherev' => '0',
-            'originalcourseid' => NULL,
+            'originalcourseid' => null,
             'showactivitydates' => '0',
             'showcompletionconditions' => '1',
-            'pdfexportfont' => NULL,
+            'pdfexportfont' => null,
             'hiddensections' => 1,
             'coursedisplay' => 0,
         ];
@@ -122,7 +121,7 @@ class lis_resolver_test extends \basic_testcase {
             'lastip' => '0.0.0.0',
             'secret' => '',
             'picture' => '0',
-            'description' => NULL,
+            'description' => null,
             'descriptionformat' => '1',
             'mailformat' => '1',
             'maildigest' => '0',
@@ -132,12 +131,12 @@ class lis_resolver_test extends \basic_testcase {
             'timecreated' => '1765442016',
             'timemodified' => '1765442016',
             'trustbitmask' => '0',
-            'imagealt' => NULL,
+            'imagealt' => null,
             'lastnamephonetic' => '高橋',
             'firstnamephonetic' => 'Michael',
             'middlename' => 'Leah',
             'alternatename' => '娜',
-            'moodlenetprofile' => NULL,
+            'moodlenetprofile' => null,
         ];
     }
 
@@ -305,7 +304,7 @@ class lis_resolver_test extends \basic_testcase {
 
         // Full name should also preserve special characters.
         $this->assertArrayHasKey('lis_person_name_full', $finalparams);
-        $expectedFullName = fullname($user);
-        $this->assertEquals($expectedFullName, $finalparams['lis_person_name_full']);
+        $expectedfullname = fullname($user);
+        $this->assertEquals($expectedfullname, $finalparams['lis_person_name_full']);
     }
 }

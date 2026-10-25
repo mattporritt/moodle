@@ -28,6 +28,8 @@ use core_ltix\local\lticore\message\context\collection\launch_context;
  */
 interface parameters_processor {
     /**
+     * Process the parameters.
+     *
      * @param array $parameters the array of all parameters processed up to this point.
      * @param launch_context $data runtime data available to be used by the processor.
      * @return array the processed parameters, possibly modified.

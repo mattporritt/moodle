@@ -26,14 +26,13 @@ use core_component;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class service_plugin_registry {
-
     /**
      * Gets all ltixservice plugin instances.
      *
      * @return service_base[]
      */
     public function get_all(): array {
-        return array_map(function($name) {
+        return array_map(function ($name) {
             $classname = "\\ltixservice_{$name}\\local\\service\\{$name}";
             return new $classname();
         }, array_keys(core_component::get_plugin_list('ltixservice')));

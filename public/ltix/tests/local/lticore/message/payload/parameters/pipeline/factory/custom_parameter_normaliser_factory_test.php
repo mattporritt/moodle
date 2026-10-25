@@ -29,8 +29,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(custom_parameter_normaliser_factory::class)]
-class custom_parameter_normaliser_factory_test extends \basic_testcase {
-
+final class custom_parameter_normaliser_factory_test extends \basic_testcase {
     /**
      * Data provider for version to normalisation mode mapping.
      *

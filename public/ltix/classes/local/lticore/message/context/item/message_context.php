@@ -26,12 +26,14 @@ use core_ltix\local\lticore\message\type\message_type;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class message_context {
-
     /**
      * Constructor.
      *
      * @param message_type $messagetype the LTI message type, e.g. LtiResourceLinkRequest.
      */
-    public function __construct(public message_type $messagetype) {
+    public function __construct(
+        /** @var message_type The LTI message type, e.g. LtiResourceLinkRequest. */
+        public message_type $messagetype,
+    ) {
     }
 }

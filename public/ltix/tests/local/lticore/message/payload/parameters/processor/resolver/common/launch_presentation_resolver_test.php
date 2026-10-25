@@ -36,8 +36,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(launch_presentation_resolver::class)]
-class launch_presentation_resolver_test extends \basic_testcase {
-
+final class launch_presentation_resolver_test extends \basic_testcase {
     /**
      * Helper returning a course stub.
      *
@@ -65,7 +64,7 @@ class launch_presentation_resolver_test extends \basic_testcase {
             'showreports' => '0',
             'visible' => '1',
             'visibleold' => '1',
-            'downloadcontent' => NULL,
+            'downloadcontent' => null,
             'groupmode' => '0',
             'groupmodeforce' => '0',
             'defaultgroupingid' => '0',
@@ -78,10 +77,10 @@ class launch_presentation_resolver_test extends \basic_testcase {
             'enablecompletion' => '0',
             'completionnotify' => '0',
             'cacherev' => '0',
-            'originalcourseid' => NULL,
+            'originalcourseid' => null,
             'showactivitydates' => '0',
             'showcompletionconditions' => '1',
-            'pdfexportfont' => NULL,
+            'pdfexportfont' => null,
             'hiddensections' => 1,
             'coursedisplay' => 0,
         ];
@@ -109,7 +108,7 @@ class launch_presentation_resolver_test extends \basic_testcase {
                 'initiatelogin' => 'https://tool.example.com/lti/initiatelogin',
                 'organizationid' => 'https://platform.example.com',
                 'launchcontainer' => $launchcontainer,
-                ...($forcessl ? ['forcessl' => '1'] : [])
+                ...($forcessl ? ['forcessl' => '1'] : []),
             ],
         ];
     }

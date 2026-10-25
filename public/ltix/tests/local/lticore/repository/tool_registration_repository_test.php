@@ -29,8 +29,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(tool_registration_repository::class)]
-class tool_registration_repository_test extends \advanced_testcase {
-
+final class tool_registration_repository_test extends \advanced_testcase {
     /**
      * Create a tool type record and return its ID.
      *
@@ -222,7 +221,7 @@ class tool_registration_repository_test extends \advanced_testcase {
     public function test_get_by_id_returns_correct_registration_for_each_id(): void {
         $this->resetAfterTest();
         $typeid1 = $this->create_tool_type(['name' => 'Tool Alpha', 'baseurl' => 'https://alpha.example.com/']);
-        $typeid2 = $this->create_tool_type(['name' => 'Tool Beta',  'baseurl' => 'https://beta.example.com/']);
+        $typeid2 = $this->create_tool_type(['name' => 'Tool Beta', 'baseurl' => 'https://beta.example.com/']);
         $repo = new tool_registration_repository();
 
         $reg1 = $repo->get_by_id($typeid1);

@@ -28,14 +28,15 @@ use core_ltix\local\lticore\message\substitution\factory\variable_substitutor_fa
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class custom_param_substitutor_factory {
-
     /**
      * Constructor.
      * @param variable_substitutor_factory $subfactory
      */
     public function __construct(
+        /** @var variable_substitutor_factory The variable substitutor factory. */
         private variable_substitutor_factory $subfactory,
-    ) {}
+    ) {
+    }
 
     /**
      * Get a custom parameter substitutor for a given LTI version.

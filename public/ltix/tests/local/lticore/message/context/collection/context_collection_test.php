@@ -29,8 +29,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(context_collection::class)]
-class context_collection_test extends \basic_testcase {
-
+final class context_collection_test extends \basic_testcase {
     /**
      * Test that has() returns false when the collection is empty.
      *

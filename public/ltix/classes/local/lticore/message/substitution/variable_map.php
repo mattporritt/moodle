@@ -37,13 +37,15 @@ namespace core_ltix\local\lticore\message\substitution;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class variable_map {
-
     /**
      * Ctor.
      *
      * @param array $map the map of input:sourcedatakey
      */
-    public function __construct(private array $map) {
+    public function __construct(
+        /** @var array The map of input:sourcedatakey. */
+        private array $map,
+    ) {
     }
 
     /**

@@ -27,7 +27,6 @@ use core_ltix\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class role_mapper {
-
     /**
      * Map context roles to LTI roles.
      *

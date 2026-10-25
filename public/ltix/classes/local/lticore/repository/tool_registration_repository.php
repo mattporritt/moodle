@@ -28,10 +28,10 @@ use core_ltix\local\lticore\lti_version;
  */
 class tool_registration_repository {
     // TODO: implement a find_by_link() method which, internally, fetches the config either by:
-    //  - checking the link->typeid (common case where links are directly attached to a tool type), then trying;
-    //  - domain matching a tool based on link URL.
-    //  This would naturally support backup-and-restored resource links, where the tool typeid may not be set for site tool links.
-    //  As it stands, the 3 resource link services won't support restore link launches yet.
+    // - checking the link->typeid (common case where links are directly attached to a tool type), then trying;
+    // - domain matching a tool based on link URL.
+    // This would naturally support backup-and-restored resource links, where the tool typeid may not be set for site tool links.
+    // As it stands, the 3 resource link services won't support restore link launches yet.
 
     /**
      * Get a registration by id.
@@ -41,7 +41,7 @@ class tool_registration_repository {
      */
     public function get_by_id(int $id): ?object {
         // TODO: could definitely save a few queries here eventually by doing a single query joining the type,
-        //  config and proxy tables together, instead of doing separate queries for each.
+        // config and proxy tables together, instead of doing separate queries for each.
 
         $registration = helper::get_type($id);
         if ($registration === false) {

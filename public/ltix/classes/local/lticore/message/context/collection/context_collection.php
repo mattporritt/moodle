@@ -30,7 +30,6 @@ use core_ltix\local\lticore\exception\lti_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class context_collection implements context_collection_interface {
-
     /** @var array<class-string, object> map of class name to context object instance. */
     private array $contexts;
 
@@ -55,7 +54,7 @@ final readonly class context_collection implements context_collection_interface 
         $validated = [];
         foreach ($contexts as $context) {
             if (isset($validated[$context::class])) {
-                throw new lti_exception("Duplicate context class added to collection: ".$context::class);
+                throw new lti_exception("Duplicate context class added to collection: " . $context::class);
             }
             $validated[$context::class] = $context;
         }

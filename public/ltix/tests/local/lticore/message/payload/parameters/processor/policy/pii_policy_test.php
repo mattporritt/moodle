@@ -34,8 +34,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(pii_policy::class)]
-class pii_policy_test extends \basic_testcase {
-
+final class pii_policy_test extends \basic_testcase {
     /**
      * Helper returning a tool config stub.
      *
@@ -294,10 +293,10 @@ class pii_policy_test extends \basic_testcase {
 
         $params = [
             'lis_person_name_full' => 'John Doe',
-            'LIS_PERSON_NAME_FULL' => 'Jane Doe',  // Different case, should be preserved.
-            'Lis_Person_Name_Full' => 'Jack Doe',  // Different case, should be preserved.
+            'LIS_PERSON_NAME_FULL' => 'Jane Doe', // Different case, should be preserved.
+            'Lis_Person_Name_Full' => 'Jack Doe', // Different case, should be preserved.
             'lis_person_contact_email_primary' => 'john@example.com',
-            'LIS_PERSON_CONTACT_EMAIL_PRIMARY' => 'jane@example.com',  // Different case, should be preserved.
+            'LIS_PERSON_CONTACT_EMAIL_PRIMARY' => 'jane@example.com', // Different case, should be preserved.
         ];
 
         $finalparams = $policy->process($params, $launchcontext);

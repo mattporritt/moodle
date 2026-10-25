@@ -29,15 +29,18 @@ use core_ltix\local\lticore\exception\lti_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class lti_user_authenticator implements lti_user_authenticator_interface {
-
     /**
      * Constructor. The instance is scoped to the auth'd user, and loginhint must match this user's id.
      *
      * @param \stdClass $user the user with the active session who we want to auth. Will be verified against loginhint.
      */
-    public function __construct(protected \stdClass $user) {
+    public function __construct(
+        /** @var \stdClass The user with the active session who we want to auth. Will be verified against loginhint. */
+        protected \stdClass $user,
+    ) {
     }
 
+    #[\Override]
     public function authenticate(\stdClass $toolconfig, string $loginhint): lti_user {
 
         // Validate loginhint user against the user being auth'd - they must match.

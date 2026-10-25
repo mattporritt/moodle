@@ -28,7 +28,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 #[CoversClass(lti_1px_payload_converter::class)]
 final class lti_1px_payload_converter_test extends \basic_testcase {
-
     /**
      * Test v1p1->v1p3 conversion.
      *
@@ -53,7 +52,9 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                 'params' => [
                     'user_id' => '2',
                     'lis_person_sourcedid' => 'abc2f1',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'roles' => 'Instructor,Instructor/ExternalInstructor,http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator,http://purl.imsglobal.org/vocab/lis/v2/system/person#Administrator',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'context_id' => '2',
                     'context_label' => 'Test course 1',
                     'context_title' => 'Test course 1',
@@ -63,7 +64,9 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'resource_link_id' => '2',
                     'context_type' => 'http://purl.imsglobal.org/vocab/lis/v2/course#CourseSection',
                     'lis_course_section_sourcedid' => '',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'lis_result_sourcedid' => '{"data":{"instanceid":"2","userid":"2","typeid":"3","launchid":1131988845},"hash":"03a9c7771318f0986ad07452910b727440f5dc704755e5313f138cd5a3c6a0f8"}',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'lis_outcome_service_url' => 'https://lms.example.com/lti/service',
                     'lis_person_name_given' => 'Admin',
                     'lis_person_name_family' => 'User',
@@ -81,7 +84,9 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'custom_id' => 'eab7d550-6b11-48e1-8e09-44adc609af76',
                     'launch_presentation_document_target' => 'iframe',
                     'launch_presentation_return_url' => 'https://lms.example.com/lti/return',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'custom_gradebookservices_scope' => 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/score,https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'custom_lineitems_url' => 'https://lms.example.com/lti/lineitems/2',
                     'custom_lineitem_url' => 'https://lms.example.com/lti/lineitems/2/lineitem',
                     'custom_context_memberships_url' => 'https://lms.example.com/lti/service/memberships/3/',
@@ -115,7 +120,9 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                         'id' => '2',
                     ],
                     'https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome' => [
+                        // phpcs:disable moodle.Files.LineLength.MaxExceeded
                         'lis_result_sourcedid' => '{"data":{"instanceid":"2","userid":"2","typeid":"3","launchid":1131988845},"hash":"03a9c7771318f0986ad07452910b727440f5dc704755e5313f138cd5a3c6a0f8"}',
+                        // phpcs:enable moodle.Files.LineLength.MaxExceeded
                         'lis_outcome_service_url' => 'https://lms.example.com/lti/service',
                     ],
                     'given_name' => 'Admin',
@@ -212,10 +219,10 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'https://purl.imsglobal.org/spec/lti/claim/context' => [
                         'type' => [
                             'http://purl.imsglobal.org/vocab/lis/v2/course#CourseSection',
-                        ]
+                        ],
                     ],
                     'https://purl.imsglobal.org/spec/lti/claim/message_type' => 'LtiResourceLinkRequest',
-                ]
+                ],
             ],
             'Example showing that boolean string params are converted to boolean type claims' => [
                 'params' => [
@@ -347,7 +354,9 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'user_id' => '2',
                     'lis_person_sourcedid' => 'USERIDNUM-456',
                     'lis_course_section_sourcedid' => 'COURSEIDNUM-678',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'roles' => 'urn:lti:instrole:ims/lis/Administrator,urn:lti:role:ims/lis/Instructor,urn:lti:role:ims/lis/Instructor/PrimaryInstructor,urn:lti:sysrole:ims/lis/Administrator',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'context_id' => '2',
                     'context_label' => 'LTI consumer course',
                     'context_title' => 'LTI consumer course',
@@ -370,7 +379,9 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'custom_idnumber' => '456',
                     'custom_usertimezone' => 'Australia/Perth',
                     'custom_context_memberships_url' => 'https://lms.example.com/lti/service/memberships?ctx=44',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'custom_gradebookservices_scope' => 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem,https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly,https://purl.imsglobal.org/spec/lti-ags/scope/score',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'custom_lineitems_url' => 'https://lms.example.com/lti/service/lineitems/2',
                     'custom_context_memberships_v2_url' => 'https://lms.example.com/lti/service/memberships?ctx=44',
                     'custom_context_memberships_versions' => '1.0,2.0',
@@ -384,7 +395,7 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'content_item_return_url' => 'https://lms.example.com/deeplinkreturn',
                     'title' => 'Default link title',
                     'text' => 'Default link description',
-                ]
+                ],
             ],
             'Example showing handling of non-mappable claims' => [
                 'claims' => [
@@ -401,7 +412,7 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'user_id' => '2',
                     'lis_person_sourcedid' => 'USERIDNUM-456',
                     'lis_course_section_sourcedid' => 'COURSEIDNUM-678',
-                ]
+                ],
             ],
             'Example showing the handling of empty params' => [
                 'claims' => [],
@@ -442,7 +453,7 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'https://purl.imsglobal.org/spec/lti/claim/context' => [
                         'type' => [
                             'http://purl.imsglobal.org/vocab/lis/v2/course#CourseSection',
-                        ]
+                        ],
                     ],
                     'https://purl.imsglobal.org/spec/lti/claim/message_type' => 'LtiResourceLinkRequest',
                 ],
@@ -451,7 +462,7 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'roles' => 'urn:lti:role:ims/lis/Instructor,urn:lti:instrole:ims/lis/Administrator,urn:lti:sysrole:ims/lis/Administrator',
                     'context_type' => 'urn:lti:context-type:ims/lis/CourseSection',
                     'lti_message_type' => 'basic-lti-launch-request',
-                ]
+                ],
             ],
             'Example showing that an unrecognised lti_message_type claim is passed through unchanged' => [
                 'claims' => [
@@ -501,13 +512,13 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'suffix' => 'dl',
                     'group' => '',
                     'claim' => 'data',
-                    'isarray' => false
+                    'isarray' => false,
                 ],
                 'elephant' => [
                     'suffix' => '',
                     'group' => '',
                     'claim' => 'deployment_id',
-                    'isarray' => false
+                    'isarray' => false,
                 ],
             ]
         );
@@ -551,7 +562,7 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                     'type' => 'ltiResourceLink',
                     'title' => 'Link title',
                     'url' => 'https://tool.example.com/content/1',
-                ]
+                ],
             ],
             'https://purl.imsglobal.org/spec/lti-dl/claim/data' => 'csrftoken:c7fbba78-7b75-46e3-9201-11e6d5f36f53',
         ];
@@ -617,7 +628,7 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                         'text' => 'Test text2',
                         'iframe' => [
                             'height' => 200,
-                            'width' => 300
+                            'width' => 300,
                         ],
                         'window' => [],
                     ],
@@ -628,9 +639,9 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                         'text' => 'Test text3',
                         'window' => [
                             'targetName' => 'test-win',
-                            'height' => 400
+                            'height' => 400,
                         ],
-                    ]
+                    ],
                 ]),
                 'v1p1contentitemsjson' => json_encode([
                     '@context' => 'http://purl.imsglobal.org/ctx/lti/v1/ContentItem',
@@ -669,7 +680,7 @@ final class lti_1px_payload_converter_test extends \basic_testcase {
                             '@type' => 'LtiLinkItem',
                             'mediaType' => 'application\/vnd.ims.lti.v1.ltilink',
                         ],
-                    ]
+                    ],
                 ]),
             ],
             'link type item is converted to ContentItem with mediaType text/html' => [

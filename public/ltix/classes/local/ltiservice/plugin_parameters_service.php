@@ -28,15 +28,18 @@ use core_ltix\local\lticore\message\context\item\tool_context;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class plugin_parameters_service implements plugin_parameters_service_interface {
-
     /**
      * Constructor.
      *
      * @param service_plugin_registry $pluginregistry registry to fetch plugin implementations.
      */
-    public function __construct(private service_plugin_registry $pluginregistry) {
+    public function __construct(
+        /** @var service_plugin_registry Registry to fetch plugin implementations. */
+        private service_plugin_registry $pluginregistry,
+    ) {
     }
 
+    #[\Override]
     public function get_launch_parameters(launch_context $launchcontext): array {
         $toolconfig = $launchcontext->require(tool_context::class)->toolconfig;
 
@@ -47,7 +50,7 @@ final class plugin_parameters_service implements plugin_parameters_service_inter
 
             $params = $serviceplugin->get_launch_params($launchcontext);
             foreach ($params as $paramkey => $paramvalue) {
-                $pluginparams['custom_'.$paramkey] = $paramvalue;
+                $pluginparams['custom_' . $paramkey] = $paramvalue;
             }
         }
         return $pluginparams;

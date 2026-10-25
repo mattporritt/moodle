@@ -29,15 +29,18 @@ use core_ltix\local\lticore\message\substitution\pipeline\variable_substitutor;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class custom_param_substitutor implements parameters_processor {
-
     /**
      * Ctor
      *
      * @param variable_substitutor $substitutor the substitutor doing the substitution work.
      */
-    public function __construct(private variable_substitutor $substitutor) {
+    public function __construct(
+        /** @var variable_substitutor The substitutor doing the substitution work. */
+        private variable_substitutor $substitutor,
+    ) {
     }
 
+    #[\Override]
     public function process(array $parameters, launch_context $launchcontext): array {
 
         $customparams = array_filter($parameters, function ($key) {

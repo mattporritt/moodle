@@ -30,7 +30,7 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\core\parameters_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tool_custom_resolver implements parameters_processor {
-
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
 
         $toolconfig = $data->require(tool_context::class)->toolconfig;
@@ -39,7 +39,7 @@ class tool_custom_resolver implements parameters_processor {
             $parsedtoolcustom = [];
             $toolcustom = helper::split_parameters($toolcustomstr);
             foreach ($toolcustom as $key => $val) {
-                $parsedtoolcustom['custom_'.$key] = $val;
+                $parsedtoolcustom['custom_' . $key] = $val;
             }
             $parameters = array_merge($parameters, $parsedtoolcustom);
         }

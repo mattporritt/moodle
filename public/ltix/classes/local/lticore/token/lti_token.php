@@ -27,13 +27,15 @@ use Firebase\JWT\JWK;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class lti_token {
-
     /**
      * Constructor.
      *
      * @param array $claims initial set of JWT claims, keyed by claim name.
      */
-    public function __construct(private array $claims) {
+    public function __construct(
+        /** @var array Initial set of JWT claims, keyed by claim name. */
+        private array $claims,
+    ) {
     }
 
     /**

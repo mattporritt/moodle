@@ -186,8 +186,12 @@ final class placements_manager_test extends \advanced_testcase {
      * @return void
      */
     #[DataProvider('is_valid_placement_type_provider')]
-    public function test_is_valid_placement_type(string $placementtype, string $component, bool $isinsystem,
-            bool $expected): void {
+    public function test_is_valid_placement_type(
+        string $placementtype,
+        string $component,
+        bool $isinsystem,
+        bool $expected
+    ): void {
 
         if ($isinsystem) {
             $this->resetAfterTest();

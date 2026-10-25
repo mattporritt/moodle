@@ -32,7 +32,6 @@ use core_ltix\local\lticore\token\lti_token;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class lti_oidc_authenticator {
-
     /**
      * Constructor.
      *
@@ -43,11 +42,16 @@ final class lti_oidc_authenticator {
      * @param array $jwks array representation of the JWKS JSON, used to decode the JWT in the auth request.
      */
     public function __construct(
+        /** @var lti_user_authenticator_interface User authenticator which performs user auth. */
         protected lti_user_authenticator_interface $userauthenticator,
-        protected tool_registration_repository     $registrationrepository,
-        protected lti_1px_payload_converter        $payloadconverter,
-        protected variable_substitutor_factory     $substitutorfactory,
-        protected array                            $jwks // TODO should be a key object that contains jwks + private key info.
+        /** @var tool_registration_repository A repository used to fetch the tool registration. */
+        protected tool_registration_repository $registrationrepository,
+        /** @var lti_1px_payload_converter A converter instance to turn legacy payload data into 1p3 JWT claims. */
+        protected lti_1px_payload_converter $payloadconverter,
+        /** @var variable_substitutor_factory Factory to get a parameter substitutor instance. */
+        protected variable_substitutor_factory $substitutorfactory,
+        /** @var array Array representation of the JWKS JSON, used to decode the JWT in the auth request. */
+        protected array $jwks // TODO should be a key object that contains jwks + private key info.
     ) {
     }
 
@@ -65,7 +69,7 @@ final class lti_oidc_authenticator {
             $launchtoken = lti_token::from_jwt_with_keyset($launchjwt, $this->jwks);
         } catch (\Exception $e) {
             throw new lti_exception(
-                errorcode: 'Error decoding lti_message_hint JWT: '.$launchjwt,
+                errorcode: 'Error decoding lti_message_hint JWT: ' . $launchjwt,
                 previous: $e
             );
         }
@@ -73,7 +77,7 @@ final class lti_oidc_authenticator {
         $toolregistrationid = $launchtoken->get_claim('tool_registration_id');
         $toolconfig = $this->registrationrepository->get_by_id($toolregistrationid);
         if ($toolconfig === null) {
-            throw new lti_exception('Cannot find registration id: '.$toolregistrationid);
+            throw new lti_exception('Cannot find registration id: ' . $toolregistrationid);
         }
 
         $this->validate_auth_request($authrequestdata, $toolconfig);
@@ -105,7 +109,7 @@ final class lti_oidc_authenticator {
                 'id_token' => $launchtoken->to_jwt(
                     privatekey: $privatekey['key'], // TODO once passed in, use the key object to sign.
                     kid: $privatekey['kid']
-                )
+                ),
             ]
         );
     }
@@ -136,13 +140,13 @@ final class lti_oidc_authenticator {
      */
     private function resolve_substitution(lti_token $launchtoken, lti_user $ltiuser): lti_token {
 
-        $customparams = $launchtoken->get_claim(\core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom') ?? [];
+        $customparams = $launchtoken->get_claim(\core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom') ?? [];
         $substitutionhandler = $this->substitutorfactory->get_for_oidc_auth();
         $substitutedcustomparams = $substitutionhandler->substitute(
             $customparams,
             substitution_context::for_auth($ltiuser->get_unformatted_userdata())
         );
-        $launchtoken->add_claim(\core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom', $substitutedcustomparams);
+        $launchtoken->add_claim(\core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom', $substitutedcustomparams);
         return $launchtoken;
     }
 
@@ -190,7 +194,7 @@ final class lti_oidc_authenticator {
         $uris = array_map('trim', explode("\n", $toolconfig->config->redirectionuris));
         if (!in_array($redirecturi, $uris)) {
             throw new lti_exception("Invalid redirect_uri. redirect_uri: $redirecturi. "
-                ."Must match a redirect URI on the tool registration.");
+                . "Must match a redirect URI on the tool registration.");
         }
     }
 }

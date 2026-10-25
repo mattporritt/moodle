@@ -39,8 +39,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(variable_substitutor_factory::class)]
-class variable_substitutor_factory_test extends \basic_testcase {
-
+final class variable_substitutor_factory_test extends \basic_testcase {
     #[DataProvider('pipeline_data_provider')]
     public function test_builds_registered_pipelines(lti_version $ltiversion, string $policyclass, array $expectedresolvers): void {
         $pluginsubservice = $this->createMock(plugin_substitution_service_interface::class);

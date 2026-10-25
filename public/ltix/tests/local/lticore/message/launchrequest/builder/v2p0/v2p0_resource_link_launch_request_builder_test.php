@@ -34,8 +34,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(v2p0_resource_link_launch_request_builder::class)]
-class v2p0_resource_link_launch_request_builder_test extends \basic_testcase {
-
+final class v2p0_resource_link_launch_request_builder_test extends \basic_testcase {
     /** Capabilities required for the three core resource-link params to appear in any launch message. */
     private const RESOURCE_LINK_CAPS = "ResourceLink.id\nResourceLink.title\nResourceLink.description";
 

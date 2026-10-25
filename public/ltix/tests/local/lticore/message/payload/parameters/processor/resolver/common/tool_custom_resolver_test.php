@@ -32,8 +32,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(tool_custom_resolver::class)]
-class tool_custom_resolver_test extends \basic_testcase {
-
+final class tool_custom_resolver_test extends \basic_testcase {
     /**
      * Helper returning a tool config stub.
      *
@@ -53,7 +52,7 @@ class tool_custom_resolver_test extends \basic_testcase {
                 'acceptgrades' => constants::LTI_SETTING_ALWAYS,
                 'ltixservice_gradesynchronization' => 2,
                 'ltixservice_memberships' => 1,
-                'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                     "toollevelparam=test",
             ],
         ];
@@ -70,8 +69,8 @@ class tool_custom_resolver_test extends \basic_testcase {
         $messagetypefactory = \core\di::get(message_type_factory::class);
         $launchcontext = launch_context::instance(
             new message_context($messagetypefactory->from_string('LtiResourceLinkRequest')),
-            new tool_context($this->get_tool_config_stub()))
-        ;
+            new tool_context($this->get_tool_config_stub())
+        );
 
         $params = ['existing_param' => 'value'];
         $finalparams = $resolver->process($params, $launchcontext);

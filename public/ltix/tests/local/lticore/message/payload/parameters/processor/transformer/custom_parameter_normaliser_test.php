@@ -30,8 +30,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(custom_parameter_normaliser::class)]
-class custom_parameter_normaliser_test extends \basic_testcase {
-
+final class custom_parameter_normaliser_test extends \basic_testcase {
     /**
      * Data provider for normalisation mode tests.
      *
@@ -163,7 +162,7 @@ class custom_parameter_normaliser_test extends \basic_testcase {
                 ],
                 'expected' => [
                     'custom_test_param' => 'value6',
-                ]
+                ],
             ],
             'MODE_NORMALISED_BOTH with colliding normalised keys' => [
                 'mode' => custom_parameter_normalisation_mode::MODE_BOTH,
@@ -183,7 +182,7 @@ class custom_parameter_normaliser_test extends \basic_testcase {
                     'custom_test@param' => 'value4',
                     'custom_test#param' => 'value5',
                     'custom_test$param' => 'value6',
-                ]
+                ],
             ],
             'MODE_BOTH with numbers in keys' => [
                 'mode' => custom_parameter_normalisation_mode::MODE_BOTH,
@@ -197,7 +196,7 @@ class custom_parameter_normaliser_test extends \basic_testcase {
                     'custom_Test-123-Value' => 'value2',
                     'custom_test_123_value' => 'value2',
                     'custom_456param' => 'value3',
-                ]
+                ],
             ],
             'MODE_BOTH with empty parameters list' => [
                 'mode' => custom_parameter_normalisation_mode::MODE_BOTH,

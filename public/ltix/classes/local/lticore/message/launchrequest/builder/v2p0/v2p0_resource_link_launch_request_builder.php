@@ -28,7 +28,6 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class v2p0_resource_link_launch_request_builder extends v2p0_launch_request_builder {
-
     /**
      * Build the link launch message.
      *
@@ -99,5 +98,4 @@ class v2p0_resource_link_launch_request_builder extends v2p0_launch_request_buil
             ...(isset($textdescription) ? ['resource_link_description' => $textdescription] : []),
         ];
     }
-
 }

@@ -28,8 +28,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(resource_link_context::class)]
-class resource_link_context_test extends \basic_testcase {
-
+final class resource_link_context_test extends \basic_testcase {
     /**
      * Return a minimal resource_link instance for use in tests.
      *

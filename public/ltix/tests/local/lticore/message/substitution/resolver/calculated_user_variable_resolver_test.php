@@ -33,8 +33,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(calculated_user_variable_resolver::class)]
-class calculated_user_variable_resolver_test extends \advanced_testcase {
-
+final class calculated_user_variable_resolver_test extends \advanced_testcase {
     /**
      * Helper returning a stub user object.
      *
@@ -160,8 +159,8 @@ class calculated_user_variable_resolver_test extends \advanced_testcase {
         $studentuser = $this->getDataGenerator()->create_and_enrol($course, 'student');
         $group1 = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'group 1']);
         $group2 = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'group 1']);
-        $this->getDataGenerator()->create_group_member(['userid' => $studentuser->id, 'groupid' => $group1->id,]);
-        $this->getDataGenerator()->create_group_member(['userid' => $studentuser->id, 'groupid' => $group2->id,]);
+        $this->getDataGenerator()->create_group_member(['userid' => $studentuser->id, 'groupid' => $group1->id]);
+        $this->getDataGenerator()->create_group_member(['userid' => $studentuser->id, 'groupid' => $group2->id]);
 
         $resolver = new calculated_user_variable_resolver();
         $messagetypefactory = \core\di::get(message_type_factory::class);

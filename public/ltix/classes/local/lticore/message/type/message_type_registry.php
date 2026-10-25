@@ -28,7 +28,6 @@ namespace core_ltix\local\lticore\message\type;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class message_type_registry {
-
     /** @var array<string, message_type_definition> lookup array for lookups by canonical or alias*/
     private array $lookup;
 

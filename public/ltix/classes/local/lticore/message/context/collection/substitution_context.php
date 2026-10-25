@@ -30,7 +30,7 @@ use core_ltix\local\lticore\message\context\item\pipeline_params_context;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class substitution_context implements context_collection_interface {
-
+    /** @var context_collection The context collection. */
     private context_collection $contextcollection;
 
     /**

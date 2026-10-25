@@ -27,7 +27,7 @@
 namespace ltixservice_profile\local\resources;
 
 use core_ltix\local\lticore\message\context\collection\launch_context;
-use \core_ltix\local\ltiservice\service_base;
+use core_ltix\local\ltiservice\service_base;
 
 defined('MOODLE_INTERNAL') || die();
 

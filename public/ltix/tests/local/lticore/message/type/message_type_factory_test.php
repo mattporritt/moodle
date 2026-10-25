@@ -26,8 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(message_type_factory::class)]
-class message_type_factory_test extends \basic_testcase {
-
+final class message_type_factory_test extends \basic_testcase {
     /**
      * Test that a message type can be created from a registered alias.
      *

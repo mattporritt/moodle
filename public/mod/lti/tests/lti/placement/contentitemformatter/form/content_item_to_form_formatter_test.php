@@ -161,7 +161,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'launchcontainer' => \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT,
                     'instructorcustomparameters' => 'id=id12345',
                     'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: single, icon (standard), no line item; ' .
             'Tool: LTI v1.0, always accept grades.' => [
@@ -206,7 +206,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'grade_modgrade_point' => 100,
                     'instructorcustomparameters' => 'id=id12345',
                     'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: single, icon (secure), line item; ' .
             'Tool: LTI v2.0, always accept grades.' => [
@@ -258,7 +258,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'instructorchoiceacceptgrades' => \core_ltix\constants::LTI_SETTING_NEVER,
                     'instructorcustomparameters' => 'id=id12345',
                     'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: single, no title, no text, no custom params, has line item; ' .
             'Tool: LTI v1.3, always accept grades.' => [
@@ -314,7 +314,7 @@ final class content_item_to_form_formatter_test extends \advanced_testcase {
                     'lineitemsubreviewurl' => 'DEFAULT',
                     'lineitemsubreviewparams' => '',
                     'selectcontentindicatorstring' => get_string('contentselected', 'core_ltix'),
-                ]
+                ],
             ],
             'Content items: multiple; ' .
             'Tool: LTI v1.3, always accept grades.' => [

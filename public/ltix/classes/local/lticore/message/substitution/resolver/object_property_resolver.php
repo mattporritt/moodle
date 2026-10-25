@@ -30,7 +30,7 @@ use core_ltix\local\lticore\message\substitution\pipeline\variable_resolver;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class object_property_resolver implements variable_resolver {
-
+    /** @var array The map. */
     private array $map;
 
     /**
@@ -39,11 +39,12 @@ final readonly class object_property_resolver implements variable_resolver {
      */
     public function __construct(array $map) {
         // Filter the map, removing any non-object-prop resolutions e.g. keep only ['My.Var' => '$Obj->x']
-        $this->map = array_filter($map, function($value) {
+        $this->map = array_filter($map, function ($value) {
             return $value && str_starts_with($value, '$');
         });
     }
 
+    #[\Override]
     public function resolve(string $str, substitution_context $resolvecontext): ?string {
         if (!str_starts_with($str, "$")) {
             return null;
@@ -59,8 +60,8 @@ final readonly class object_property_resolver implements variable_resolver {
         $course = $launchcontext->require(course_context::class)->course;
 
         $objects = [
-            ...(isset($user) ? ['USER' => $user]: []),
-            ...(isset($course) ? ['COURSE' => $course]: [])
+            ...(isset($user) ? ['USER' => $user] : []),
+            ...(isset($course) ? ['COURSE' => $course] : []),
         ];
 
         $mapobjectprop = $this->map[$str];

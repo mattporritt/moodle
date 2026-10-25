@@ -36,8 +36,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(lis_bo_policy::class)]
-class lis_bo_policy_test extends \basic_testcase {
-
+final class lis_bo_policy_test extends \basic_testcase {
     /**
      * Helper returning a tool config stub.
      *

@@ -27,8 +27,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(lis_vocab_converter::class)]
-class lis_vocab_converter_test extends \basic_testcase {
-
+final class lis_vocab_converter_test extends \basic_testcase {
     /**
      * Test covering to_v1_roles().
      *
@@ -134,7 +133,7 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantTemplate' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantTemplate',
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantGroup' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantGroup',
                     'urn:lti:role:ims/lis/TeachingAssistant/Grader' => 'urn:lti:role:ims/lis/TeachingAssistant/Grader',
-                ]
+                ],
             ],
             'Full v2 roles list' => [
                 'inputexpectedmap' => [
@@ -175,7 +174,9 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Developer' => 'urn:lti:role:ims/lis/Administrator/Developer',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalDeveloper' => 'urn:lti:role:ims/lis/Administrator/ExternalDeveloper',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalSupport' => 'urn:lti:role:ims/lis/Administrator/ExternalSupport',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalSystemAdministrator' => 'urn:lti:role:ims/lis/Administrator/ExternalSystemAdministrator',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Support' => 'urn:lti:role:ims/lis/Administrator/Support',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#SystemAdministrator' => 'urn:lti:role:ims/lis/Administrator/SystemAdministrator',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/ContentDeveloper#ContentDeveloper' => 'urn:lti:role:ims/lis/ContentDeveloper/ContentDeveloper',
@@ -192,7 +193,9 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantGroup' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantGroup',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantOffering' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantOffering',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSection' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantSection',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSectionAssociation' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantSectionAssociation',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantTemplate' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantTemplate',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#ExternalLearner' => 'urn:lti:role:ims/lis/Learner/ExternalLearner',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#GuestLearner' => 'urn:lti:role:ims/lis/Learner/GuestLearner',
@@ -280,7 +283,7 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'TeachingAssistant/TeachingAssistantTemplate' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantTemplate',
                     'TeachingAssistant/TeachingAssistantGroup' => 'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantGroup',
                     'TeachingAssistant/Grader' => 'urn:lti:role:ims/lis/TeachingAssistant/Grader',
-                ]
+                ],
             ],
             'Invalid role strings examples' => [
                 'inputexpectedmap' => [
@@ -290,8 +293,8 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'urn:lti:role:ims/lis/INVALID' => null,
                     'Learner#Learner' => null,
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#INVALID' => null,
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -390,12 +393,16 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'urn:lti:role:ims/lis/Administrator/Support' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Support',
                     'urn:lti:role:ims/lis/Administrator/Developer' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Developer',
                     'urn:lti:role:ims/lis/Administrator/SystemAdministrator' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#SystemAdministrator',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'urn:lti:role:ims/lis/Administrator/ExternalSystemAdministrator' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalSystemAdministrator',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'urn:lti:role:ims/lis/Administrator/ExternalDeveloper' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalDeveloper',
                     'urn:lti:role:ims/lis/Administrator/ExternalSupport' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalSupport',
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistant' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistant',
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantSection' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSection',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantSectionAssociation' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSectionAssociation',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantOffering' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantOffering',
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantTemplate' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantTemplate',
                     'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantGroup' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantGroup',
@@ -428,7 +435,9 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Member' => 'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Member',
                     'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Mentor' => 'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Mentor',
                     'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Observer' => 'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Observer',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/institution/person#ProspectiveStudent' => 'http://purl.imsglobal.org/vocab/lis/v2/institution/person#ProspectiveStudent',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     // Context roles - core.
                     'http://purl.imsglobal.org/vocab/lis/v2/membership#Administrator' => 'http://purl.imsglobal.org/vocab/lis/v2/membership#Administrator',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership#ContentDeveloper' => 'http://purl.imsglobal.org/vocab/lis/v2/membership#ContentDeveloper',
@@ -440,6 +449,7 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'http://purl.imsglobal.org/vocab/lis/v2/membership#Member' => 'http://purl.imsglobal.org/vocab/lis/v2/membership#Member',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership#Officer' => 'http://purl.imsglobal.org/vocab/lis/v2/membership#Officer',
                     // Context sub-roles.
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Administrator' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Administrator',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Developer' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#Developer',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalDeveloper' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Administrator#ExternalDeveloper',
@@ -463,6 +473,7 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSection' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSection',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSectionAssociation' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSectionAssociation',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantTemplate' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantTemplate',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#ExternalLearner' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#ExternalLearner',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#GuestLearner' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#GuestLearner',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#Instructor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Learner#Instructor',
@@ -478,11 +489,15 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Auditor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Auditor',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalAdvisor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalAdvisor',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalAuditor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalAuditor',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalLearningFacilitator' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalLearningFacilitator',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalMentor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalMentor',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalReviewer' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalReviewer',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalTutor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#ExternalTutor',
+                    // phpcs:disable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#LearningFacilitator' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#LearningFacilitator',
+                    // phpcs:enable moodle.Files.LineLength.MaxExceeded
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Mentor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Mentor',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Reviewer' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Reviewer',
                     'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Tutor' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Mentor#Tutor',
@@ -595,7 +610,7 @@ class lis_vocab_converter_test extends \basic_testcase {
                     'http://purl.imsglobal.org/vocab/lis/v2/membership#Officer' => 'http://purl.imsglobal.org/vocab/lis/v2/membership#Officer',
                 ],
                 'usedeprecatedv2roleprefixes' => true,
-            ]
+            ],
         ];
     }
 
@@ -606,7 +621,7 @@ class lis_vocab_converter_test extends \basic_testcase {
      * @return void
      */
     #[DataProvider('to_v1_context_types_provider')]
-    public function test_to_v1_context_types(array $inputexpectedmap) {
+    public function test_to_v1_context_types(array $inputexpectedmap): void {
         $contexttypes = array_keys($inputexpectedmap);
         $expected = array_values($inputexpectedmap);
 
@@ -649,14 +664,12 @@ class lis_vocab_converter_test extends \basic_testcase {
             ],
             'Invalid examples' => [
                 'inputexpectedmap' => [
-                    null => null,
                     '' => null,
                     'notfound' => null,
                 ],
             ],
             'Duplicates in results' => [
                 'inputexpectedmap' => [
-                    'CourseTemplate' => 'urn:lti:context-type:ims/lis/CourseTemplate',
                     'CourseTemplate' => 'urn:lti:context-type:ims/lis/CourseTemplate',
                 ],
             ],
@@ -670,7 +683,7 @@ class lis_vocab_converter_test extends \basic_testcase {
      * @return void
      */
     #[DataProvider('to_v2_context_types_provider')]
-    public function test_to_v2_context_types(array $inputexpectedmap) {
+    public function test_to_v2_context_types(array $inputexpectedmap): void {
         $contexttypes = array_keys($inputexpectedmap);
         $expected = array_values($inputexpectedmap);
 
@@ -713,14 +726,12 @@ class lis_vocab_converter_test extends \basic_testcase {
             ],
             'Invalid examples' => [
                 'inputexpectedmap' => [
-                    null => null,
                     '' => null,
                     'notfound' => null,
                 ],
             ],
             'Duplicates in results' => [
                 'inputexpectedmap' => [
-                    'CourseTemplate' => 'http://purl.imsglobal.org/vocab/lis/v2/course#CourseTemplate',
                     'CourseTemplate' => 'http://purl.imsglobal.org/vocab/lis/v2/course#CourseTemplate',
                 ],
             ],

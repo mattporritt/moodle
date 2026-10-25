@@ -33,8 +33,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(enabled_capabilities_only_policy::class)]
-class enabled_capabilities_only_policy_test extends \basic_testcase {
-
+final class enabled_capabilities_only_policy_test extends \basic_testcase {
     /**
      * Helper returning a tool config stub with specified enabled capabilities.
      *

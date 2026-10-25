@@ -338,11 +338,10 @@ class lineitem extends resource_base {
 
             if (!is_null($resourcelink) && $resourcelink->get('gradable') === true) {
                 // TODO: improvement: For gradable links, consider asking the placement for its grade info,
-                //  letting the placement decide if/how it manages grade items.
+                // letting the placement decide if/how it manages grade items.
                 $component = $resourcelink->get('component');
                 [$type, $name] = \core_component::normalize_component($component);
                 if ($type === 'mod') {
-
                     // Per ltixservice_gradebookservices\local\service\gradebookservices, gradable, mod-associated links must
                     // be using cmid as the value of itemid.
                     $cmid = $resourcelink->get('itemid');

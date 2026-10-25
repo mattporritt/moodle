@@ -29,21 +29,21 @@ use core_ltix\local\lticore\message\substitution\pipeline\variable_resolver;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class calculated_course_variable_resolver implements variable_resolver {
-
+    #[\Override]
     public function resolve(string $str, substitution_context $resolvecontext): ?string {
         $launchcontext = $resolvecontext->require(launch_context::class);
         $course = $launchcontext->require(course_context::class)->course;
 
-        return match($str) {
+        return match ($str) {
             '$Context.id.history' => implode(",", \core_ltix\helper::get_course_history($course)),
-            '$CourseSection.timeFrame.begin' => (function() use ($course) {
+            '$CourseSection.timeFrame.begin' => (function () use ($course) {
                 if (empty($course->startdate)) {
                     return '';
                 }
                 $dt = new \DateTime("@$course->startdate", new \DateTimeZone('UTC'));
                 return $dt->format(\DateTime::ATOM);
             })(),
-            '$CourseSection.timeFrame.end' => (function() use ($course) {
+            '$CourseSection.timeFrame.end' => (function () use ($course) {
                 if (empty($course->enddate)) {
                     return '';
                 }

@@ -27,8 +27,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(message_context::class)]
-class message_context_test extends \basic_testcase {
-
+final class message_context_test extends \basic_testcase {
     /**
      * Test that the messagetype property holds the message_type passed to the constructor.
      *

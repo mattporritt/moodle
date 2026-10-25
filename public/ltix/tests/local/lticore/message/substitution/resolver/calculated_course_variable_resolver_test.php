@@ -32,8 +32,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(calculated_course_variable_resolver::class)]
-class calculated_course_variable_resolver_test extends \advanced_testcase {
-
+final class calculated_course_variable_resolver_test extends \advanced_testcase {
     /**
      * Helper to build a substitution context with a course.
      *

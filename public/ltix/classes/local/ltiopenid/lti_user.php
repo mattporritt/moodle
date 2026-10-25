@@ -24,7 +24,6 @@ namespace core_ltix\local\ltiopenid;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 readonly class lti_user {
-
     /**
      * Constructor.
      *
@@ -37,12 +36,19 @@ readonly class lti_user {
      * @param string|null $username
      */
     public function __construct(
-        public string  $id,
+        /** @var string The id. */
+        public string $id,
+        /** @var ?string The name. */
         public ?string $name = null,
+        /** @var ?string The givenname. */
         public ?string $givenname = null,
+        /** @var ?string The familyname. */
         public ?string $familyname = null,
+        /** @var ?string The email. */
         public ?string $email = null,
+        /** @var ?string The idnumber. */
         public ?string $idnumber = null,
+        /** @var ?string The username. */
         public ?string $username = null,
     ) {
     }

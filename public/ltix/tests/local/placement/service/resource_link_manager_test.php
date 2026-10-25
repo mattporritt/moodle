@@ -42,8 +42,13 @@ final class resource_link_manager_test extends \advanced_testcase {
      * @return void
      */
     #[DataProvider('create_resource_link_provider')]
-    public function test_create_resource_link(?array $toolsettings, array $placementsettings, array $args,
-            array $expectedpropertyvalues, ?string $expectedexception = null): void {
+    public function test_create_resource_link(
+        ?array $toolsettings,
+        array $placementsettings,
+        array $args,
+        array $expectedpropertyvalues,
+        ?string $expectedexception = null
+    ): void {
         global $SITE;
 
         $this->resetAfterTest();

@@ -31,7 +31,7 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\core\parameters_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class pii_policy implements parameters_processor {
-
+    /** @var string[] Parameters that identify a user by name. */
     private const array USER_NAME_KEYS = [
         'lis_person_name_given',
         'lis_person_name_family',
@@ -39,10 +39,12 @@ final readonly class pii_policy implements parameters_processor {
         'ext_user_username',
     ];
 
+    /** @var string[] Parameters that carry the email address of a user. */
     private const array USER_EMAIL_KEYS = [
-        'lis_person_contact_email_primary'
+        'lis_person_contact_email_primary',
     ];
 
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
 
         $toolconfig = $data->require(tool_context::class)->toolconfig;

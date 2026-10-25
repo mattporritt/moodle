@@ -29,15 +29,18 @@ use core_ltix\local\ltiservice\plugin_parameters_service_interface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class ltixservice_resolver implements parameters_processor {
-
     /**
      * Constructor.
      *
      * @param plugin_parameters_service_interface $pluginparamsservice The service to retrieve plugin parameters from.
      */
-    public function __construct(private plugin_parameters_service_interface $pluginparamsservice) {
+    public function __construct(
+        /** @var plugin_parameters_service_interface The service to retrieve plugin parameters from. */
+        private plugin_parameters_service_interface $pluginparamsservice,
+    ) {
     }
 
+    #[\Override]
     public function process(array $parameters, launch_context $launchcontext): array {
         return array_merge(
             $parameters,

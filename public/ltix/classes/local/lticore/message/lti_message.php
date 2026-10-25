@@ -24,14 +24,18 @@ namespace core_ltix\local\lticore\message;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class lti_message {
-
     /**
      * Constructor.
      *
      * @param string $url
      * @param array $parameters
      */
-    public function __construct(private string $url, private array $parameters) {
+    public function __construct(
+        /** @var string The url. */
+        private string $url,
+        /** @var array The parameters. */
+        private array $parameters,
+    ) {
     }
 
     /**

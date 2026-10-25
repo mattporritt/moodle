@@ -28,13 +28,15 @@ namespace core_ltix\local\lticore\message\type;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class message_type_factory {
-
     /**
      * Constructor.
      *
      * @param message_type_registry $registry the message type registry
      */
-    public function __construct(private message_type_registry $registry) {
+    public function __construct(
+        /** @var message_type_registry The message type registry. */
+        private message_type_registry $registry,
+    ) {
     }
 
     /**

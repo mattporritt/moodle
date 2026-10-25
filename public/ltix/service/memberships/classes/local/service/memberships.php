@@ -550,9 +550,10 @@ class memberships extends \core_ltix\local\ltiservice\service_base {
 
         $launchparameters = [];
         if (isset($toolconfig->{$this->get_component_id()})) {
-            if ($toolconfig->{$this->get_component_id()} == parent::SERVICE_ENABLED
-                    && $this->is_used_in_context($tool->id, $course->id)) {
-
+            if (
+                $toolconfig->{$this->get_component_id()} == parent::SERVICE_ENABLED
+                    && $this->is_used_in_context($tool->id, $course->id)
+            ) {
                 $launchparameters['context_memberships_url'] = '$ToolProxyBinding.memberships.url';
                 $launchparameters['context_memberships_v2_url'] = '$ToolProxyBinding.memberships.url';
                 $launchparameters['context_memberships_versions'] = '1.0,2.0';

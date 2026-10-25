@@ -37,7 +37,7 @@ final class resource_link_test extends \advanced_testcase {
      * @return void
      */
     #[DataProvider('create_resource_link_provider')]
-    public function test_resource_link_creation(array $setdata, array $expecteddata, ?string$expectedexception = null): void {
+    public function test_resource_link_creation(array $setdata, array $expecteddata, ?string $expectedexception = null): void {
         $this->resetAfterTest();
 
         if (!is_null($expectedexception)) {

@@ -30,13 +30,13 @@ use core_ltix\local\lticore\message\substitution\pipeline\variable_resolver;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class calculated_user_variable_resolver implements variable_resolver {
-
+    #[\Override]
     public function resolve(string $str, substitution_context $resolvecontext): ?string {
         $launchcontext = $resolvecontext->require(launch_context::class);
         $user = $launchcontext->require(user_context::class)->user;
         $course = $launchcontext->require(course_context::class)->course;
 
-        return match($str) {
+        return match ($str) {
             '$Moodle.Person.userGroupIds' => implode(",", groups_get_user_groups($course->id, $user->id)[0]),
             default => null
         };

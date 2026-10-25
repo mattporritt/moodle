@@ -27,8 +27,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(message_type_definition::class)]
-class message_type_definition_test extends \basic_testcase {
-
+final class message_type_definition_test extends \basic_testcase {
     /**
      * Data provider for message type definition creation tests.
      *

@@ -31,7 +31,6 @@ use core_ltix\oauth_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class v2p0_launch_request_builder {
-
     /**
      * Build the message.
      *
@@ -56,8 +55,8 @@ abstract class v2p0_launch_request_builder {
         }
 
         $params = $this->get_required_launch_params($messagetype);
-        $params = array_merge($params, (!empty($roles) ? ['roles' => implode(',', $roles)]: []));
-        $params = array_merge($params, (!empty($userid) ? ['user_id' => $userid]: []));
+        $params = array_merge($params, (!empty($roles) ? ['roles' => implode(',', $roles)] : []));
+        $params = array_merge($params, (!empty($userid) ? ['user_id' => $userid] : []));
 
         // Required params trump extra params.
         $params = array_merge($extraparams, $params);
@@ -90,7 +89,7 @@ abstract class v2p0_launch_request_builder {
     final protected function enforce_tool_capabilities(\stdClass $toolconfig, array $params): array {
         $allcapabilities = \core_ltix\helper::get_capabilities();
         $enabledcapabilities = !empty($toolconfig->tool->enabledcapability)
-            ? explode("\n", $toolconfig->tool->enabledcapability): [];
+            ? explode("\n", $toolconfig->tool->enabledcapability) : [];
         // E.g. of $params: ['context_title' => 'some value'].
         // E.g. of $allcaps: ['Context.title' => 'context_title'].
         // E.g. of $enabledcaps: ['Context.title', 'Context.id'].

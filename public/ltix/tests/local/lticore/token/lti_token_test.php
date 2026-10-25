@@ -30,8 +30,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(lti_token::class)]
-class lti_token_test extends \basic_testcase {
-
+final class lti_token_test extends \basic_testcase {
     /** @var array $keypairs static keypair cache. */
     private static array $keypairs = [];
 

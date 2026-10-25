@@ -28,13 +28,15 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\core\parameters_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class custom_parameter_normaliser implements parameters_processor {
-
     /**
      * Ctor.
      *
      * @param custom_parameter_normalisation_mode $normalisationmode which normalisation mode to enforce.
      */
-    public function __construct(protected custom_parameter_normalisation_mode $normalisationmode) {
+    public function __construct(
+        /** @var custom_parameter_normalisation_mode Which normalisation mode to enforce. */
+        protected custom_parameter_normalisation_mode $normalisationmode,
+    ) {
     }
 
     /**
@@ -48,18 +50,19 @@ final readonly class custom_parameter_normaliser implements parameters_processor
         foreach ($customparams as $key => $val) {
             $name = substr($key, strlen('custom_'));
             $normalisedname = helper::map_keyname($name);
-            $normalisedparams['custom_'.$normalisedname] = $val;
+            $normalisedparams['custom_' . $normalisedname] = $val;
         }
         return $normalisedparams;
     }
 
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
         $customparams = array_filter($parameters, function ($key) {
             return str_starts_with($key, "custom_");
         }, ARRAY_FILTER_USE_KEY);
 
-        return match($this->normalisationmode) {
-            custom_parameter_normalisation_mode::MODE_NORMALISED_ONLY => (function() use ($customparams, $parameters) {
+        return match ($this->normalisationmode) {
+            custom_parameter_normalisation_mode::MODE_NORMALISED_ONLY => (function () use ($customparams, $parameters) {
                 $normalisedcustomparams = $this->normalise($customparams);
                 return array_merge(
                     array_filter($parameters, fn($x) => !str_starts_with($x, 'custom_'), ARRAY_FILTER_USE_KEY),

@@ -28,8 +28,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(parameter_processor_registry::class)]
-class parameter_processor_registry_test extends \basic_testcase {
-
+final class parameter_processor_registry_test extends \basic_testcase {
     /**
      * Test that a registered processor can be resolved by key.
      *
@@ -54,7 +53,7 @@ class parameter_processor_registry_test extends \basic_testcase {
     public function test_constructor_accepts_iterable(): void {
         $processor = $this->createMock(parameters_processor::class);
 
-        $iterable = (function() use ($processor) {
+        $iterable = (function () use ($processor) {
             yield 'resolver.user' => $processor;
         })();
 
@@ -72,7 +71,7 @@ class parameter_processor_registry_test extends \basic_testcase {
         $first = $this->createMock(parameters_processor::class);
         $second = $this->createMock(parameters_processor::class);
 
-        $iterable = (function() use ($first, $second) {
+        $iterable = (function () use ($first, $second) {
             yield 'resolver.user' => $first;
             yield 'resolver.user' => $second;
         })();

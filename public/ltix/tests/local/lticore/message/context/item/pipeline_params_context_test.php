@@ -26,8 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(pipeline_params_context::class)]
-class pipeline_params_context_test extends \basic_testcase {
-
+final class pipeline_params_context_test extends \basic_testcase {
     /**
      * Test that the params property holds the array passed to the constructor.
      *

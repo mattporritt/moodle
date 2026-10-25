@@ -27,7 +27,6 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class v1p1_resource_link_launch_request_builder extends v1p1_launch_request_builder {
-
     /**
      * Build the message.
      *

@@ -27,7 +27,6 @@ use core_ltix\local\lticore\message\context\collection\substitution_context;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class variable_substitutor {
-
     /**
      * Ctor.
      *
@@ -35,8 +34,10 @@ class variable_substitutor {
      * @param variable_resolver[] $resolvers a resolver list, handling the resolving itself, should the policy permit it.
      */
     public function __construct(
-       protected substitution_policy $policy,
-       protected array $resolvers,
+        /** @var substitution_policy A policy instance, controlling whether a variable is resolved. */
+        protected substitution_policy $policy,
+        /** @var array A resolver list, handling the resolving itself, should the policy permit it. */
+        protected array $resolvers,
     ) {
     }
 

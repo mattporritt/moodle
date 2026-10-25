@@ -26,8 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(message_type_registry::class)]
-class message_type_registry_test extends \basic_testcase {
-
+final class message_type_registry_test extends \basic_testcase {
     /**
      * Test that a definition can be resolved by its canonical form.
      *
@@ -96,10 +95,10 @@ class message_type_registry_test extends \basic_testcase {
         $registry = new message_type_registry([$definition]);
 
         $resolvedcorrect = $registry->resolve('basic-lti-launch-request');
-        $resolvedwrongCase = $registry->resolve('BASIC-LTI-launch-request');
+        $resolvedwrongcase = $registry->resolve('BASIC-LTI-launch-request');
 
         $this->assertNotNull($resolvedcorrect);
-        $this->assertNull($resolvedwrongCase);
+        $this->assertNull($resolvedwrongcase);
     }
 
     /**

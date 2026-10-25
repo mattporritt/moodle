@@ -41,7 +41,6 @@ use core_ltix\local\lticore\repository\tool_registration_repository;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class v1p1_resource_link_launch_service {
-
     /**
      * Ctor.
      *
@@ -54,12 +53,19 @@ final class v1p1_resource_link_launch_service {
      * @param message_type_factory $messagetypefactory
      */
     public function __construct(
+        /** @var parameters_builder_factory The parameters builder factory. */
         private parameters_builder_factory $pipelinefactory,
+        /** @var v1p1_resource_link_launch_request_builder The v1p1 resource link launch request builder. */
         private v1p1_resource_link_launch_request_builder $requestbuilder,
+        /** @var tool_registration_repository The tool registration repository. */
         private tool_registration_repository $registrationrepository,
+        /** @var launch_data_repository The launch data repository. */
         private launch_data_repository $datarepository,
+        /** @var role_mapper The role mapper. */
         private role_mapper $ltirolemapper,
+        /** @var lis_vocab_converter The lis vocab converter. */
         private lis_vocab_converter $lisvocabconverter,
+        /** @var message_type_factory The message type factory. */
         private message_type_factory $messagetypefactory,
     ) {
     }
@@ -78,7 +84,7 @@ final class v1p1_resource_link_launch_service {
     ): lti_message {
 
         // TODO: MDL-88221: Implement access control. currently, ltix doesn't have a "can use/launch a tool" capability.
-        //  See detailed notes in v1p3_resource_link_launch_service::launch().
+        // See detailed notes in v1p3_resource_link_launch_service::launch().
 
         $resourcelink = $this->datarepository->get_resource_link($resourcelinkid);
         if (is_null($resourcelink)) {

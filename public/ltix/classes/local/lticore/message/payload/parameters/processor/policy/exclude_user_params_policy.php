@@ -32,7 +32,6 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\core\parameters_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class exclude_user_params_policy implements parameters_processor {
-
     /**
      * Those params containing user data.
      */
@@ -44,6 +43,7 @@ final readonly class exclude_user_params_policy implements parameters_processor 
         'lis_person_contact_email_primary',
     ];
 
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
         $toolconfig = $data->require(tool_context::class)->toolconfig;
 

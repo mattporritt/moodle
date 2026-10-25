@@ -27,8 +27,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(variable_map::class)]
-class variable_map_test extends \basic_testcase {
-
+final class variable_map_test extends \basic_testcase {
     /**
      * Data provider for variable resolutions.
      *

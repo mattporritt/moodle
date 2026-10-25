@@ -351,8 +351,11 @@ abstract class service_base {
 
         $cm = $modlti ? get_coursemodule_from_instance('lti', $modlti, $courseid) : false;
 
-        return $this->get_launch_params($this->build_legacy_launch_context($messagetype, get_course($courseid),
-            $cm ? $cm->id : null));
+        return $this->get_launch_params($this->build_legacy_launch_context(
+            $messagetype,
+            get_course($courseid),
+            $cm ? $cm->id : null
+        ));
     }
 
     /**

@@ -29,8 +29,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(substitute_all_policy::class)]
-class substitute_all_policy_test extends \basic_testcase {
-
+final class substitute_all_policy_test extends \basic_testcase {
     /**
      * Data provider for strings that start with $ and should be substituted.
      *

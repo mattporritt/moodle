@@ -34,8 +34,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(exclude_user_params_policy::class)]
-class exclude_user_params_policy_test extends \basic_testcase {
-
+final class exclude_user_params_policy_test extends \basic_testcase {
     /**
      * Helper returning a tool config stub.
      *
@@ -243,8 +242,8 @@ class exclude_user_params_policy_test extends \basic_testcase {
 
         $params = [
             'user_id' => '123',
-            'USER_ID' => '456',  // Different case, should be preserved.
-            'User_Id' => '789',  // Different case, should be preserved.
+            'USER_ID' => '456', // Different case, should be preserved.
+            'User_Id' => '789', // Different case, should be preserved.
             'lis_person_name_full' => 'John Doe',
         ];
 

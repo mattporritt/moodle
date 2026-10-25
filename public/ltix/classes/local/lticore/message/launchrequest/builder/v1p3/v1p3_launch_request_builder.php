@@ -34,7 +34,6 @@ use core_ltix\local\ltiopenid\jwks_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class v1p3_launch_request_builder {
-
     /**
      * Build a launch message.
      *
@@ -67,7 +66,7 @@ abstract class v1p3_launch_request_builder {
         $ltitoken = new lti_token($claims);
 
         // Roles could differ depending on the placement, so must be left to the calling code and are therefore passed in.
-        $ltitoken->add_claim(constants::LTI_JWT_CLAIM_PREFIX.'/claim/roles', $roles);
+        $ltitoken->add_claim(constants::LTI_JWT_CLAIM_PREFIX . '/claim/roles', $roles);
 
         // Note: Single deployment model means the $tool->id IS the lti_deployment_id.
         $params = [

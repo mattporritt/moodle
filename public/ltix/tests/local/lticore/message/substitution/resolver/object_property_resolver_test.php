@@ -34,8 +34,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(object_property_resolver::class)]
-class object_property_resolver_test extends \basic_testcase {
-
+final class object_property_resolver_test extends \basic_testcase {
     /**
      * Helper returning a stub user object.
      * @return \stdClass
@@ -74,7 +73,7 @@ class object_property_resolver_test extends \basic_testcase {
             'lastip' => '0.0.0.0',
             'secret' => '',
             'picture' => '0',
-            'description' => NULL,
+            'description' => null,
             'descriptionformat' => '1',
             'mailformat' => '1',
             'maildigest' => '0',
@@ -84,12 +83,12 @@ class object_property_resolver_test extends \basic_testcase {
             'timecreated' => '1765442016',
             'timemodified' => '1765442016',
             'trustbitmask' => '0',
-            'imagealt' => NULL,
+            'imagealt' => null,
             'lastnamephonetic' => '高橋',
             'firstnamephonetic' => 'Michael',
             'middlename' => 'Leah',
             'alternatename' => '娜',
-            'moodlenetprofile' => NULL,
+            'moodlenetprofile' => null,
         ];
     }
 
@@ -119,7 +118,7 @@ class object_property_resolver_test extends \basic_testcase {
             'showreports' => '0',
             'visible' => '1',
             'visibleold' => '1',
-            'downloadcontent' => NULL,
+            'downloadcontent' => null,
             'groupmode' => '0',
             'groupmodeforce' => '0',
             'defaultgroupingid' => '0',
@@ -132,10 +131,10 @@ class object_property_resolver_test extends \basic_testcase {
             'enablecompletion' => '0',
             'completionnotify' => '0',
             'cacherev' => '0',
-            'originalcourseid' => NULL,
+            'originalcourseid' => null,
             'showactivitydates' => '0',
             'showcompletionconditions' => '1',
-            'pdfexportfont' => NULL,
+            'pdfexportfont' => null,
             'hiddensections' => 1,
             'coursedisplay' => 0,
         ];
@@ -207,7 +206,7 @@ class object_property_resolver_test extends \basic_testcase {
                 'map' => ['User.something' => 'USER.something'],
                 'input' => '$User.something',
                 'expected' => null,
-            ]
+            ],
         ];
     }
 
@@ -239,11 +238,11 @@ class object_property_resolver_test extends \basic_testcase {
         $map = \core_ltix\helper::get_capabilities();
         $resolver = new object_property_resolver($map);
 
-        $objectpropsmap = array_filter($map, function($value) {
+        $objectpropsmap = array_filter($map, function ($value) {
             return $value && str_starts_with($value, '$');
         });
 
-        $allsupportedvars = array_map(fn($x) => '$'.$x, array_keys($objectpropsmap));
+        $allsupportedvars = array_map(fn($x) => '$' . $x, array_keys($objectpropsmap));
 
         // This variable is no longer supported but still exists in the canonical mapping.
         // Remove it from the test.

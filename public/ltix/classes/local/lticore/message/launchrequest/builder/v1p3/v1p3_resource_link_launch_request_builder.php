@@ -28,7 +28,6 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class v1p3_resource_link_launch_request_builder extends v1p3_launch_request_builder {
-
     /**
      * Build the message.
      *
@@ -82,12 +81,12 @@ class v1p3_resource_link_launch_request_builder extends v1p3_launch_request_buil
 
         $claimprefix = constants::LTI_JWT_CLAIM_PREFIX;
         return [
-            $claimprefix.'/claim/resource_link' => [
+            $claimprefix . '/claim/resource_link' => [
                 'id' => $resourcelink->get('id'),
                 'title' => $resourcelink->get('title'),
                 ...(isset($textdescription) ? ['description' => $textdescription] : []),
             ],
-            $claimprefix.'/claim/target_link_uri' => $this->resolve_target_link_uri($toolconfig, $resourcelink),
+            $claimprefix . '/claim/target_link_uri' => $this->resolve_target_link_uri($toolconfig, $resourcelink),
         ];
     }
 

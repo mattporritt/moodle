@@ -17,7 +17,11 @@
 namespace core_ltix\local\lticore\exception;
 
 /**
- * Class lti_exception.
+ * Exception thrown by the LTI core message and launch code.
+ *
+ * @package    core_ltix
+ * @copyright  2026 Jake Dallimore <jake@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class lti_exception extends \moodle_exception {
 }

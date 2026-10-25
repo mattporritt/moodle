@@ -48,7 +48,6 @@ use core_ltix\local\placement\service\resource_link_manager;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
-
     /**
      * Get all LTI tools configured for a given domain.
      *
@@ -585,9 +584,9 @@ class helper {
         foreach ($splitted as $key => $val) {
             $val = self::parse_custom_parameter($toolproxy, $tool, $params, $val, $islti2);
             $key2 = self::map_keyname($key);
-            $retval['custom_'.$key2] = $val;
+            $retval['custom_' . $key2] = $val;
             if (($islti2 || ($tool?->ltiversion === constants::LTI_VERSION_1P3)) && ($key != $key2)) {
-                $retval['custom_'.$key] = $val;
+                $retval['custom_' . $key] = $val;
             }
         }
         return $retval;
@@ -2475,7 +2474,7 @@ class helper {
         }
 
         $target = '';
-        switch($launchcontainer) {
+        switch ($launchcontainer) {
             case constants::LTI_LAUNCH_CONTAINER_EMBED:
             case constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS:
                 $target = 'iframe';
@@ -2728,7 +2727,8 @@ class helper {
             $requestparams['lis_course_section_sourcedid'] = $course->idnumber;
         }
 
-        if (!empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
+        if (
+            !empty($instance->id) && !empty($instance->servicesalt) && ($islti2 ||
                 $typeconfig['acceptgrades'] == constants::LTI_SETTING_ALWAYS ||
                 ($typeconfig['acceptgrades'] == constants::LTI_SETTING_DELEGATE && $instance->instructorchoiceacceptgrades == constants::LTI_SETTING_ALWAYS))
         ) {
@@ -2756,9 +2756,12 @@ class helper {
         }
 
         // Send user's name and email data if appropriate.
-        if ($islti2 || $typeconfig['sendname'] == constants::LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendname'] == constants::LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendname)
-                && $instance->instructorchoicesendname == constants::LTI_SETTING_ALWAYS)
+        if (
+            $islti2 ||
+            $typeconfig['sendname'] == constants::LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendname'] == constants::LTI_SETTING_DELEGATE &&
+            isset($instance->instructorchoicesendname) &&
+                $instance->instructorchoicesendname == constants::LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_name_given'] = $USER->firstname;
             $requestparams['lis_person_name_family'] = $USER->lastname;
@@ -2766,9 +2769,12 @@ class helper {
             $requestparams['ext_user_username'] = $USER->username;
         }
 
-        if ($islti2 || $typeconfig['sendemailaddr'] == constants::LTI_SETTING_ALWAYS ||
-            ($typeconfig['sendemailaddr'] == constants::LTI_SETTING_DELEGATE && isset($instance->instructorchoicesendemailaddr)
-                && $instance->instructorchoicesendemailaddr == constants::LTI_SETTING_ALWAYS)
+        if (
+            $islti2 ||
+            $typeconfig['sendemailaddr'] == constants::LTI_SETTING_ALWAYS ||
+            ($typeconfig['sendemailaddr'] == constants::LTI_SETTING_DELEGATE &&
+            isset($instance->instructorchoicesendemailaddr) &&
+                $instance->instructorchoicesendemailaddr == constants::LTI_SETTING_ALWAYS)
         ) {
             $requestparams['lis_person_contact_email_primary'] = $USER->email;
         }
@@ -3437,7 +3443,7 @@ class helper {
 
         if (has_capability('moodle/ltix:admin', $context, $userid)) {
             // Explicitly defined admins: drop the learner role and always granted IMS admin role.
-            $roles = array_diff($roles, array('Learner'));
+            $roles = array_diff($roles, ['Learner']);
             array_push($roles, 'urn:lti:sysrole:ims/lis/Administrator', 'urn:lti:instrole:ims/lis/Administrator');
         } else if (is_siteadmin($userid)) {
             // De-facto admins (is an admin in Moodle): drop the learner role and conditionally grant IMS admin role.
@@ -3445,7 +3451,7 @@ class helper {
             // If not in a course-related context, the IMS roles is always added.
             $coursecontext = $context->get_course_context(false); // Note: returns false if course context not applicable.
             if (!$coursecontext || !is_role_switched($coursecontext->instanceid)) {
-                $roles = array_diff($roles, array('Learner'));
+                $roles = array_diff($roles, ['Learner']);
                 array_push($roles, 'urn:lti:sysrole:ims/lis/Administrator', 'urn:lti:instrole:ims/lis/Administrator');
             }
         }
@@ -3488,8 +3494,8 @@ class helper {
                    FROM {lti}
                   WHERE resourcekey = :key3";
 
-        $sharedsecrets = $DB->get_records_sql($query, array('configured1' => constants::LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
-            'configured2' => constants::LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key));
+        $sharedsecrets = $DB->get_records_sql($query, ['configured1' => constants::LTI_TOOL_STATE_CONFIGURED, 'ltiversion' => $lti13,
+            'configured2' => constants::LTI_TOOL_STATE_CONFIGURED, 'key1' => $key, 'key2' => $key, 'key3' => $key]);
 
         $values = array_map(function ($item) {
             return $item->value;
@@ -3777,7 +3783,7 @@ class helper {
         // Scrolling within the object element doesn't work on iOS or Android
         // Opening the popup window also had some issues in testing
         // For mobile devices, always take up the entire screen to ensure the best experience.
-        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET ) {
+        if ($devicetype === core_useragent::DEVICETYPE_MOBILE || $devicetype === core_useragent::DEVICETYPE_TABLET) {
             $launchcontainer = constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW;
         }
 

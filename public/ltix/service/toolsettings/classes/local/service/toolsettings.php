@@ -202,9 +202,10 @@ class toolsettings extends \core_ltix\local\ltiservice\service_base {
 
         $launchparameters = [];
         if (isset($toolconfig->{$this->get_component_id()})) {
-            if ($toolconfig->{$this->get_component_id()} == self::SERVICE_ENABLED
-                    && $this->is_used_in_context($tool->id, $course->id)) {
-
+            if (
+                $toolconfig->{$this->get_component_id()} == self::SERVICE_ENABLED
+                    && $this->is_used_in_context($tool->id, $course->id)
+            ) {
                 $launchparameters['system_setting_url'] = '$ToolProxy.custom.url';
                 $launchparameters['context_setting_url'] = '$ToolProxyBinding.custom.url';
 
@@ -218,6 +219,4 @@ class toolsettings extends \core_ltix\local\ltiservice\service_base {
 
         return $launchparameters;
     }
-
-
 }

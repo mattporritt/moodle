@@ -35,7 +35,6 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class lis_bo_policy implements parameters_processor {
-
     /**
      * List of LIS Basic Outcomes keys to exclude.
      */
@@ -44,6 +43,7 @@ final readonly class lis_bo_policy implements parameters_processor {
         'lis_outcome_service_url',
     ];
 
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
 
         $toolconfig = $data->require(tool_context::class)->toolconfig;

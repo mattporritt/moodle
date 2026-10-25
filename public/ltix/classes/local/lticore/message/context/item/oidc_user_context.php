@@ -27,13 +27,15 @@ namespace core_ltix\local\lticore\message\context\item;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class oidc_user_context {
-
     /**
      * Constructor.
      *
      * @param array $userfields map of user variable name to user variable value,
      *                          e.g. ['Person.name.full' => 'Jane Doe'].
      */
-    public function __construct(public array $userfields) {
+    public function __construct(
+        /** @var array Map of user variable name to user variable value,. */
+        public array $userfields,
+    ) {
     }
 }

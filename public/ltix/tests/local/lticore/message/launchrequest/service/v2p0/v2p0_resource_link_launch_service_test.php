@@ -40,8 +40,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(v2p0_resource_link_launch_service::class)]
-class v2p0_resource_link_launch_service_test extends \basic_testcase {
-
+final class v2p0_resource_link_launch_service_test extends \basic_testcase {
     /**
      * Test ::launch().
      *

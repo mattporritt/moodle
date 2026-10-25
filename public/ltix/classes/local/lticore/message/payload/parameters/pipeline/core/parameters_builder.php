@@ -39,13 +39,15 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\factory\paramete
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 readonly class parameters_builder {
-
     /**
      * Get an instance of the pipeline with the given processors, where processor order matters.
      *
      * @param array $processors the ordered array of processors which will be run, in order, to create the parameters array.
      */
-    public function __construct(private array $processors) {
+    public function __construct(
+        /** @var array The ordered array of processors which will be run, in order, to create the parameters array. */
+        private array $processors,
+    ) {
     }
 
     /**

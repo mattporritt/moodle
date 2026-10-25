@@ -33,7 +33,7 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\core\parameters_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class launch_presentation_resolver implements parameters_processor {
-
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
 
         $toolconfig = $data->require(tool_context::class)->toolconfig;
@@ -45,7 +45,7 @@ class launch_presentation_resolver implements parameters_processor {
             (array) $toolconfig->config // Coerce into expected array format.
         );
         $target = '';
-        switch($launchcontainer) {
+        switch ($launchcontainer) {
             case constants::LTI_LAUNCH_CONTAINER_EMBED:
             case constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS:
                 $target = 'iframe';
@@ -67,7 +67,7 @@ class launch_presentation_resolver implements parameters_processor {
         $returnurlparams = [
             'course' => $course->id,
             'launch_container' => $launchcontainer,
-            'sesskey' => sesskey()
+            'sesskey' => sesskey(),
         ];
         $url = new \moodle_url('/ltix/return.php', $returnurlparams);
         $returnurl = $url->out(false);
@@ -76,13 +76,12 @@ class launch_presentation_resolver implements parameters_processor {
             $returnurl = helper::ensure_url_is_https($returnurl);
         }
 
-
         return array_merge(
             $parameters,
             [
                 'launch_presentation_locale' => current_language(),
                 'launch_presentation_document_target' => $target,
-                'launch_presentation_return_url' => $returnurl
+                'launch_presentation_return_url' => $returnurl,
             ]
         );
     }

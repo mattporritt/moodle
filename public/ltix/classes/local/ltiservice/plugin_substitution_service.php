@@ -28,13 +28,15 @@ use core_ltix\local\lticore\message\context\item\tool_context;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class plugin_substitution_service implements plugin_substitution_service_interface {
-
     /**
      * Ctor.
      *
      * @param service_plugin_registry $pluginregistry registry to fetch plugin implementations.
      */
-    public function __construct(private service_plugin_registry $pluginregistry) {
+    public function __construct(
+        /** @var service_plugin_registry Registry to fetch plugin implementations. */
+        private service_plugin_registry $pluginregistry,
+    ) {
     }
 
     /**

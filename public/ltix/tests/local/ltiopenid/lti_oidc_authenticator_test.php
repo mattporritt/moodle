@@ -36,7 +36,6 @@ use core_ltix\local\lticore\token\lti_token;
  */
 #[CoversClass(\core_ltix\local\ltiopenid\lti_oidc_authenticator::class)]
 final class lti_oidc_authenticator_test extends \basic_testcase {
-
     /**
      * Helper to fetch the signing key pair (private key + jwks).
      *
@@ -67,13 +66,12 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
         // Stub lti_user_authenticator.
         $stubuserauthenticator = $this->createStub(lti_user_authenticator::class);
         $stubuserauthenticator->method('authenticate')
-            ->willReturnCallback(function() use ($authuser, $authsuccess) {
+            ->willReturnCallback(function () use ($authuser, $authsuccess) {
                 if ($authsuccess) {
                     return $authuser;
                 }
                 throw new lti_exception('User authentication failed');
-            }
-            );
+            });
 
         // Stub registration_repository, returning the tool config.
         $stubregistrationrepo = $this->createStub(tool_registration_repository::class);
@@ -84,9 +82,9 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
         // This example just substitutes any $Person.xx param with the user's full name, otherwise returns the unmodified value.
         $stubcustomparamparser = $this->createStub(variable_substitutor::class);
         $stubcustomparamparser->method('substitute')
-            ->willReturnCallback(function(array $customparams, substitution_context $resolvecontext) use ($authuser) {
+            ->willReturnCallback(function (array $customparams, substitution_context $resolvecontext) use ($authuser) {
                 $userdata = $authuser->get_unformatted_userdata();
-                return array_map(function($customparam) use ($userdata) {
+                return array_map(function ($customparam) use ($userdata) {
                     if (str_starts_with($customparam, '$Person.')) {
                         return !empty($userdata['lis_person_name_full']) ? $userdata['lis_person_name_full'] : $customparam;
                     }
@@ -136,7 +134,7 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                 'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                 'ltixservice_gradesynchronization' => 2,
                 'ltixservice_memberships' => 1,
-                'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                     "toollevelparam=test\nsubContainingPII=\$Person.name.full",
             ],
         ];
@@ -146,9 +144,9 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
             // Sign the JWT using a kid = 0, which won't be found in the JWKS, causing signature verification to fail.
             'lti_message_hint' => (new lti_token([
                 'tool_registration_id' => 123, // Matches toolconfig.id.
-                \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                    'subContainingPII' => '$Person.name.full'
-                ]
+                \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                    'subContainingPII' => '$Person.name.full',
+                ],
             ]))->to_jwt(privatekey: $keys['privatekey']['key'], kid: 0),
             'lti_deployment_id' => 123, // Matches toolconfig.id.
             'scope' => 'openid',
@@ -222,7 +220,7 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
         if (!empty($expected['auth_exception'])) {
             $this->expectException($expected['auth_exception']);
             if (!empty($expected['auth_exception_contains_text'])) {
-                $this->expectExceptionMessageMatches('/.*'.$expected['auth_exception_contains_text'].'.*/');
+                $this->expectExceptionMessageMatches('/.*' . $expected['auth_exception_contains_text'] . '.*/');
             }
         }
         $ltimessage = $oidcauthenticator->authenticate($authrequestpayload);
@@ -278,16 +276,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -313,10 +311,10 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                             'user_username' => 'kfrog',
                         ],
                         'nonce' => 'TOOL-NONCE-abc-123', // Matches auth request payload nonce.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
                             // Stub custom param resolver resolves $Person.name.full to user fullname.
                             'subContainingPII' => 'Kermit DaFrog',
-                        ]
+                        ],
                     ],
                 ],
             ],
@@ -342,16 +340,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -370,11 +368,11 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                     'jwt_claims' => [
                         'sub' => '234',
                         'nonce' => 'TOOL-NONCE-abc-123', // Matches auth request payload nonce.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
                             // User substitution can't resolve without user sourcedata.
                             'subContainingPII' => '$Person.name.full',
-                        ]
-                    ]
+                        ],
+                    ],
                 ],
             ],
             'Unsuccessful user auth returned by user_authenticator dependency' => [
@@ -397,16 +395,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
-                    ]
+                    ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -447,16 +445,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'invalid', // Invalid scope.
@@ -497,16 +495,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -547,16 +545,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -597,16 +595,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -647,16 +645,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -697,16 +695,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',
@@ -747,16 +745,16 @@ final class lti_oidc_authenticator_test extends \basic_testcase {
                         'redirectionuris' => "https://tool.example.com/lti/redirecturi\nhttps://tool.example.com/lti/redirecturi2",
                         'ltixservice_gradesynchronization' => 2,
                         'ltixservice_memberships' => 1,
-                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n".
+                        'customparameters' => "idnumber=\$Person.sourcedId\nuser#TIME#zone=\$Person.address.timezone\n" .
                             "toollevelparam=test\nsubContainingPII=\$Person.name.full",
                     ],
                 ],
                 'authrequestpayload' => [
                     'lti_message_hint_token' => new lti_token([
                         'tool_registration_id' => 123, // Matches toolconfig.id.
-                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX.'/claim/custom' => [
-                            'subContainingPII' => '$Person.name.full'
-                        ]
+                        \core_ltix\constants::LTI_JWT_CLAIM_PREFIX . '/claim/custom' => [
+                            'subContainingPII' => '$Person.name.full',
+                        ],
                     ]),
                     'lti_deployment_id' => 123, // Matches toolconfig.id.
                     'scope' => 'openid',

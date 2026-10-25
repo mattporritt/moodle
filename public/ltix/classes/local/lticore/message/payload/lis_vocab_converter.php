@@ -28,7 +28,6 @@ namespace core_ltix\local\lticore\message\payload;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class lis_vocab_converter {
-
     /** @var string The LIS v2 prefix for system roles. */
     private const LIS_V2_SYSTEM_ROLE_PREFIX = 'http://purl.imsglobal.org/vocab/lis/v2/system/person#';
 
@@ -133,7 +132,9 @@ final class lis_vocab_converter {
         'urn:lti:role:ims/lis/TeachingAssistant' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#SecondaryInstructor',
         'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistant' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistant',
         'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantSection' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSection',
+        // phpcs:disable moodle.Files.LineLength.MaxExceeded
         'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantSectionAssociation' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantSectionAssociation',
+        // phpcs:enable moodle.Files.LineLength.MaxExceeded
         'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantOffering' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantOffering',
         'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantTemplate' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantTemplate',
         'urn:lti:role:ims/lis/TeachingAssistant/TeachingAssistantGroup' => 'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistantGroup',
@@ -317,7 +318,7 @@ final class lis_vocab_converter {
      * @return array the converted list of roles.
      */
     private function convert_to_deprecated_v2_role_prefixes(array $v2roles): array {
-        return array_map(function($role) {
+        return array_map(function ($role) {
             if (str_contains($role, self::LIS_V2_SYSTEM_ROLE_PREFIX)) {
                 $handle = substr($role, strlen(self::LIS_V2_SYSTEM_ROLE_PREFIX));
                 return self::LIS_V2_LEGACY_SYSTEM_ROLE_PREFIX . $handle;

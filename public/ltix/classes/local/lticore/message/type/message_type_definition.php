@@ -27,14 +27,18 @@ namespace core_ltix\local\lticore\message\type;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class message_type_definition {
-
     /**
      * Constructor.
      *
      * @param string $canonical the canonical form of the message type
      * @param array $aliases list of aliases that map to this canonical form
      */
-    public function __construct(private string $canonical, private array $aliases) {
+    public function __construct(
+        /** @var string The canonical form of the message type. */
+        private string $canonical,
+        /** @var array List of aliases that map to this canonical form. */
+        private array $aliases,
+    ) {
     }
 
     /**

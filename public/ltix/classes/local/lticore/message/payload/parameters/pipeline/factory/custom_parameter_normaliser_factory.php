@@ -28,7 +28,6 @@ use core_ltix\local\lticore\message\payload\parameters\processor\transformer\cus
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class custom_parameter_normaliser_factory {
-
     /**
      * Get a custom parameter normaliser for a given LTI version.
      *

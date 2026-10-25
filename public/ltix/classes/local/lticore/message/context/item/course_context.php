@@ -24,12 +24,14 @@ namespace core_ltix\local\lticore\message\context\item;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class course_context {
-
     /**
      * Constructor.
      *
      * @param \stdClass $course the Moodle course record.
      */
-    public function __construct(public \stdClass $course) {
+    public function __construct(
+        /** @var \stdClass The Moodle course record. */
+        public \stdClass $course,
+    ) {
     }
 }

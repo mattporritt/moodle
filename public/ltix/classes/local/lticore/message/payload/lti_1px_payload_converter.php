@@ -27,7 +27,6 @@ use core_ltix\oauth_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class lti_1px_payload_converter {
-
     /** @var array|null the JWT claim mapping array. */
     private ?array $jwtclaimmapping;
 
@@ -42,6 +41,7 @@ final class lti_1px_payload_converter {
      * @param null|array $messagetypemapping optional alternative v1p1 => v1p3 message type mapping array.
      */
     public function __construct(
+        /** @var lis_vocab_converter Vocab converter instance. */
         private lis_vocab_converter $lisvocabconverter,
         ?array $jwtclaimmapping = null,
         ?array $messagetypemapping = null,
@@ -111,11 +111,11 @@ final class lti_1px_payload_converter {
                 }
             } else {
                 // Special handling for custom and extension claims, which aren't mapped in JWT mapping.
-                if ($claim === $claimprefix .'/claim/custom') {
+                if ($claim === $claimprefix . '/claim/custom') {
                     foreach ($props as $name => $prop) {
                         $payload['custom_' . $name] = $prop;
                     }
-                } else if ($claim === $claimprefix .'/claim/ext') {
+                } else if ($claim === $claimprefix . '/claim/ext') {
                     foreach ($props as $name => $prop) {
                         $payload['ext_' . $name] = $prop;
                     }
@@ -306,14 +306,14 @@ final class lti_1px_payload_converter {
     private function convert_to_lis_v2_vocab(array $claimspayload): array {
         $claimprefix = constants::LTI_JWT_CLAIM_PREFIX;
 
-        if (isset($claimspayload[$claimprefix.'/claim/context']['type'])) {
-            $claimspayload[$claimprefix.'/claim/context']['type'] =
-                $this->lisvocabconverter->to_v2_context_types($claimspayload[$claimprefix.'/claim/context']['type']);
+        if (isset($claimspayload[$claimprefix . '/claim/context']['type'])) {
+            $claimspayload[$claimprefix . '/claim/context']['type'] =
+                $this->lisvocabconverter->to_v2_context_types($claimspayload[$claimprefix . '/claim/context']['type']);
         }
 
-        if (isset($claimspayload[$claimprefix.'/claim/roles'])) {
-            $claimspayload[$claimprefix.'/claim/roles'] =
-                $this->lisvocabconverter->to_v2_roles($claimspayload[$claimprefix.'/claim/roles']);
+        if (isset($claimspayload[$claimprefix . '/claim/roles'])) {
+            $claimspayload[$claimprefix . '/claim/roles'] =
+                $this->lisvocabconverter->to_v2_roles($claimspayload[$claimprefix . '/claim/roles']);
         }
 
         return $claimspayload;
@@ -328,14 +328,14 @@ final class lti_1px_payload_converter {
     private function convert_to_lis_v1_vocab(array $claimspayload): array {
         $claimprefix = constants::LTI_JWT_CLAIM_PREFIX;
 
-        if (isset($claimspayload[$claimprefix.'/claim/context']['type'])) {
-            $claimspayload[$claimprefix.'/claim/context']['type']
-                = $this->lisvocabconverter->to_v1_context_types($claimspayload[$claimprefix.'/claim/context']['type']);
+        if (isset($claimspayload[$claimprefix . '/claim/context']['type'])) {
+            $claimspayload[$claimprefix . '/claim/context']['type']
+                = $this->lisvocabconverter->to_v1_context_types($claimspayload[$claimprefix . '/claim/context']['type']);
         }
 
-        if (isset($claimspayload[$claimprefix.'/claim/roles'])) {
-            $claimspayload[$claimprefix.'/claim/roles'] =
-                $this->lisvocabconverter->to_v1_roles($claimspayload[$claimprefix.'/claim/roles']);
+        if (isset($claimspayload[$claimprefix . '/claim/roles'])) {
+            $claimspayload[$claimprefix . '/claim/roles'] =
+                $this->lisvocabconverter->to_v1_roles($claimspayload[$claimprefix . '/claim/roles']);
         }
 
         return $claimspayload;
@@ -350,10 +350,10 @@ final class lti_1px_payload_converter {
     private function convert_message_type_to_legacy(array $claimspayload): array {
         $claimprefix = constants::LTI_JWT_CLAIM_PREFIX;
 
-        if (isset($claimspayload[$claimprefix.'/claim/message_type'])) {
-            if (in_array($claimspayload[$claimprefix.'/claim/message_type'], $this->messagetypemapping)) {
-                $claimspayload[$claimprefix.'/claim/message_type']
-                    = array_search($claimspayload[$claimprefix.'/claim/message_type'], $this->messagetypemapping);
+        if (isset($claimspayload[$claimprefix . '/claim/message_type'])) {
+            if (in_array($claimspayload[$claimprefix . '/claim/message_type'], $this->messagetypemapping)) {
+                $claimspayload[$claimprefix . '/claim/message_type']
+                    = array_search($claimspayload[$claimprefix . '/claim/message_type'], $this->messagetypemapping);
             }
         }
 
@@ -369,10 +369,10 @@ final class lti_1px_payload_converter {
     private function convert_message_type_to_1p3(array $claimspayload): array {
         $claimprefix = constants::LTI_JWT_CLAIM_PREFIX;
 
-        if (isset($claimspayload[$claimprefix.'/claim/message_type'])) {
-            if (array_key_exists($claimspayload[$claimprefix.'/claim/message_type'], $this->messagetypemapping)) {
-                $claimspayload[$claimprefix.'/claim/message_type']
-                    = $this->messagetypemapping[$claimspayload[$claimprefix.'/claim/message_type']];
+        if (isset($claimspayload[$claimprefix . '/claim/message_type'])) {
+            if (array_key_exists($claimspayload[$claimprefix . '/claim/message_type'], $this->messagetypemapping)) {
+                $claimspayload[$claimprefix . '/claim/message_type']
+                    = $this->messagetypemapping[$claimspayload[$claimprefix . '/claim/message_type']];
             }
         }
 
@@ -396,7 +396,7 @@ final class lti_1px_payload_converter {
 
             $claimstring = $claimprefix;
             if (!empty($claiminfo['suffix'])) {
-                $claimstring .= '-'.$claiminfo['suffix'];
+                $claimstring .= '-' . $claiminfo['suffix'];
             }
             $claimstring .= '/claim/';
 

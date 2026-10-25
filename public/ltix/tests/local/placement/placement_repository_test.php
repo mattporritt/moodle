@@ -40,8 +40,13 @@ final class placement_repository_test extends \advanced_testcase {
      * @return void
      */
     #[DataProvider('is_placement_enabled_for_tool_in_course_provider')]
-    public function test_is_placement_enabled_for_tool_in_course(array $toolsettings, array $placementsettings,
-            string $placementtypearg, bool $expectedreturn, ?string $expectedexception = null): void {
+    public function test_is_placement_enabled_for_tool_in_course(
+        array $toolsettings,
+        array $placementsettings,
+        string $placementtypearg,
+        bool $expectedreturn,
+        ?string $expectedexception = null
+    ): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();

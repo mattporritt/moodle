@@ -29,15 +29,18 @@ use core_ltix\local\lticore\message\substitution\variable_map;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class built_params_map_resolver implements variable_resolver {
-
     /**
      * Ctor.
      *
      * @param variable_map $mapresolver service able to resolve params to sourcedata based on a mapping.
      */
-    public function __construct(private variable_map $mapresolver) {
+    public function __construct(
+        /** @var variable_map Service able to resolve params to sourcedata based on a mapping. */
+        private variable_map $mapresolver,
+    ) {
     }
 
+    #[\Override]
     public function resolve(string $str, substitution_context $resolvecontext): ?string {
         $sourcedata = $resolvecontext->require(pipeline_params_context::class)->params;
         if (!str_starts_with($str, '$')) {

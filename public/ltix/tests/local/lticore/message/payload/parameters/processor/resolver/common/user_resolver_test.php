@@ -31,8 +31,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(user_resolver::class)]
-class user_resolver_test extends \basic_testcase {
-
+final class user_resolver_test extends \basic_testcase {
     /**
      * Helper returning a user stub.
      *
@@ -72,7 +71,7 @@ class user_resolver_test extends \basic_testcase {
             'lastip' => '0.0.0.0',
             'secret' => '',
             'picture' => '0',
-            'description' => NULL,
+            'description' => null,
             'descriptionformat' => '1',
             'mailformat' => '1',
             'maildigest' => '0',
@@ -82,12 +81,12 @@ class user_resolver_test extends \basic_testcase {
             'timecreated' => '1765442016',
             'timemodified' => '1765442016',
             'trustbitmask' => '0',
-            'imagealt' => NULL,
+            'imagealt' => null,
             'lastnamephonetic' => '高橋',
             'firstnamephonetic' => 'Michael',
             'middlename' => 'Leah',
             'alternatename' => '娜',
-            'moodlenetprofile' => NULL,
+            'moodlenetprofile' => null,
         ];
     }
 

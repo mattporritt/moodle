@@ -24,17 +24,13 @@ namespace core_ltix\local\lticore\message\payload\parameters\processor\transform
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 enum custom_parameter_normalisation_mode: int {
-    /**
-     * MODE_NORMALISED_ONLY:
-     * For a [key => val] pairing, normalises the key and includes ONLY [normalisedkey => val] in the array.
-     */
+    // MODE_NORMALISED_ONLY:
+    // For a [key => val] pairing, normalises the key and includes ONLY [normalisedkey => val] in the array.
     case MODE_NORMALISED_ONLY = 0;
 
-    /**
-     * MODE_BOTH:
-     * For a [key => val] pairing, normalises the key and includes BOTH [key => val] AND [normalisedkey => val] in the array.
-     * This can result in only a single [key => val] entry if the key is already normalised, and normalisation produces the same
-     * key as a result.
-     */
+    // MODE_BOTH:
+    // For a [key => val] pairing, normalises the key and includes BOTH [key => val] AND [normalisedkey => val] in the array.
+    // This can result in only a single [key => val] entry if the key is already normalised, and normalisation produces the same
+    // key as a result.
     case MODE_BOTH = 1;
 }

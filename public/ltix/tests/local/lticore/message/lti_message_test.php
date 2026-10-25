@@ -26,8 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(lti_message::class)]
-class lti_message_test extends \basic_testcase {
-
+final class lti_message_test extends \basic_testcase {
     /**
      * Test that get_url() returns the URL passed to the constructor.
      *

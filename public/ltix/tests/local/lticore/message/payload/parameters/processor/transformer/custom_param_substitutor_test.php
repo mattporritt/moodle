@@ -31,8 +31,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(custom_param_substitutor::class)]
-class custom_param_substitutor_test extends \basic_testcase {
-
+final class custom_param_substitutor_test extends \basic_testcase {
     /**
      * Test processing with only custom parameters.
      *

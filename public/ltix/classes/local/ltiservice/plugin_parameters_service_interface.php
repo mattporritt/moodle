@@ -27,7 +27,6 @@ use core_ltix\local\lticore\message\context\collection\launch_context;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface plugin_parameters_service_interface {
-
     /**
      * Retrieves launch parameters for the given launch context.
      *

@@ -35,8 +35,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(lis_bo_resolver::class)]
-class lis_bo_resolver_test extends \advanced_testcase {
-
+final class lis_bo_resolver_test extends \advanced_testcase {
     /**
      * Helper returning a user stub.
      *
@@ -76,7 +75,7 @@ class lis_bo_resolver_test extends \advanced_testcase {
             'lastip' => '0.0.0.0',
             'secret' => '',
             'picture' => '0',
-            'description' => NULL,
+            'description' => null,
             'descriptionformat' => '1',
             'mailformat' => '1',
             'maildigest' => '0',
@@ -86,12 +85,12 @@ class lis_bo_resolver_test extends \advanced_testcase {
             'timecreated' => '1765442016',
             'timemodified' => '1765442016',
             'trustbitmask' => '0',
-            'imagealt' => NULL,
+            'imagealt' => null,
             'lastnamephonetic' => '高橋',
             'firstnamephonetic' => 'Michael',
             'middlename' => 'Leah',
             'alternatename' => '娜',
-            'moodlenetprofile' => NULL,
+            'moodlenetprofile' => null,
         ];
     }
 

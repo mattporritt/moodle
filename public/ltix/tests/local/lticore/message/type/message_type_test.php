@@ -27,8 +27,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(message_type::class)]
-class message_type_test extends \basic_testcase {
-
+final class message_type_test extends \basic_testcase {
     /**
      * Test that a message type can be created with value and canonical form.
      *
@@ -107,13 +106,13 @@ class message_type_test extends \basic_testcase {
      *
      * @param string $value the message type value
      * @param string $canonical the canonical form
-     * @param string $expectedString the expected string representation
+     * @param string $expectedstring the expected string representation
      * @return void
      */
     #[DataProvider('string_representations')]
-    public function test_to_string(string $value, string $canonical, string $expectedString): void {
+    public function test_to_string(string $value, string $canonical, string $expectedstring): void {
         $messagetype = message_type::create($value, $canonical);
 
-        $this->assertSame($expectedString, (string)$messagetype);
+        $this->assertSame($expectedstring, (string)$messagetype);
     }
 }

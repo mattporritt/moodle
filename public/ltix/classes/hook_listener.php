@@ -74,9 +74,9 @@ class hook_listener {
                     new message_type_definition(
                         'LtiResourceLinkRequest', // Canonical value is v1p3.
                         [
-                            'basic-lti-launch-request' // Version 1.1/2.0.
+                            'basic-lti-launch-request', // Version 1.1/2.0.
                         ]
-                    )
+                    ),
                 ]);
             }
         );

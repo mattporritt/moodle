@@ -31,15 +31,18 @@ use core_ltix\local\lticore\message\payload\parameters\pipeline\core\parameters_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class jwt_claim_converter implements parameters_processor {
-
     /**
      * Ctor.
      *
      * @param lti_1px_payload_converter $converter instance handling conversion.
      */
-    public function __construct(protected lti_1px_payload_converter $converter) {
+    public function __construct(
+        /** @var lti_1px_payload_converter Instance handling conversion. */
+        protected lti_1px_payload_converter $converter,
+    ) {
     }
 
+    #[\Override]
     public function process(array $parameters, launch_context $data): array {
         return $this->converter->params_to_claims($parameters);
     }

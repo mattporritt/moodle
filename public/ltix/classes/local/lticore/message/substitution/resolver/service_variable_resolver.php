@@ -29,15 +29,18 @@ use core_ltix\local\ltiservice\plugin_substitution_service_interface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class service_variable_resolver implements variable_resolver {
-
     /**
      * Ctor.
      *
      * @param plugin_substitution_service_interface $pluginsubservice a service handling substitution by ltixservice plugins.
      */
-    public function __construct(private plugin_substitution_service_interface $pluginsubservice) {
+    public function __construct(
+        /** @var plugin_substitution_service_interface A service handling substitution by ltixservice plugins. */
+        private plugin_substitution_service_interface $pluginsubservice,
+    ) {
     }
 
+    #[\Override]
     public function resolve(string $str, substitution_context $resolvecontext): ?string {
         if (!str_starts_with($str, "$")) {
             return null;

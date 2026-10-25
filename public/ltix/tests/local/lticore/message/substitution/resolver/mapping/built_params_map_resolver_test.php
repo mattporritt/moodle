@@ -33,8 +33,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(built_params_map_resolver::class)]
-class built_params_map_resolver_test extends \basic_testcase {
-
+final class built_params_map_resolver_test extends \basic_testcase {
     /**
      * Data provider for resolve scenarios.
      *

@@ -32,7 +32,6 @@ use core_ltix\local\lticore\models\resource_link;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class launch_data_repository {
-
     /**
      * Get a resource link instance.
      *

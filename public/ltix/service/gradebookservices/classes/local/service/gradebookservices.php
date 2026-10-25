@@ -207,7 +207,6 @@ class gradebookservices extends service_base {
         // See the relevant part of the spec, here: https://www.imsglobal.org/spec/lti-sr/v1p0#target-link-uri.
         $subreviewmessagetype = $messagetypefactory->from_string('LtiSubmissionReviewRequest');
         if ($messagetype->equals($subreviewmessagetype) && !is_null($resourcelink) && $resourcelink->is_gradable()) {
-
             global $DB;
             $conditions = ['courseid' => $course->id, 'ltilinkid' => $resourcelink->get('id')];
             $coupledlineitems = $DB->get_records('ltixservice_gradebookservices', $conditions);
@@ -286,7 +285,7 @@ class gradebookservices extends service_base {
     public function get_launch_params(launch_context $launchcontext): array {
 
         // TODO: also need to fetch and include the submission review params in this method,
-        //  given override_target_endpoint() shouldn't have that responsibility any more (it should just deal with endpoint).
+        // given override_target_endpoint() shouldn't have that responsibility any more (it should just deal with endpoint).
         $course = $launchcontext->require(course_context::class)->course;
         $reslink = $launchcontext->get(resource_link_context::class)->resourcelink;
         global $DB;
@@ -294,8 +293,10 @@ class gradebookservices extends service_base {
 
         // Only inject parameters if the service is enabled for this tool.
         if (isset($this->get_typeconfig()['ltixservice_gradesynchronization'])) {
-            if ($this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_READ ||
-                $this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_FULL) {
+            if (
+                $this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_READ ||
+                $this->get_typeconfig()['ltixservice_gradesynchronization'] == self::GRADEBOOKSERVICES_FULL
+            ) {
                 // Check for used in context is only needed because there is no explicit site tool - course relation.
                 if ($this->is_allowed_in_context($this->get_type()->id, $course->id)) {
                     // Presently, if a link is marked as gradable, for grades to be supported, the following MUST be true:
@@ -305,7 +306,7 @@ class gradebookservices extends service_base {
                     // placements. For now, however, both are restricted to mod placements.
                     if (!is_null($reslink) && $reslink->get('gradable')) {
                         // TODO: improvement: For gradable links, consider asking the placement for its grade info,
-                        //  letting the placement decide if/how it manages grade items.
+                        // letting the placement decide if/how it manages grade items.
                         $component = $reslink->get('component');
                         [$type, $name] = \core_component::normalize_component($component);
                         if ($type === 'mod') {

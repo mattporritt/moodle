@@ -33,8 +33,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(v1p3_resource_link_launch_request_builder::class)]
-class v1p3_resource_link_launch_request_builder_test extends \basic_testcase {
-
+final class v1p3_resource_link_launch_request_builder_test extends \basic_testcase {
     /**
      * Return a default tool config suitable for v1p3 launches.
      *

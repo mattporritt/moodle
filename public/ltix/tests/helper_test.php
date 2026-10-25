@@ -1923,7 +1923,7 @@ final class helper_test extends lti_testcase {
 
         if ($switchedto) {
             $this->setUser($user);
-            $role = $DB->get_record('role', array('shortname' => $switchedto));
+            $role = $DB->get_record('role', ['shortname' => $switchedto]);
             role_switch($role->id, \context_course::instance($course->id));
         }
 
@@ -1940,12 +1940,12 @@ final class helper_test extends lti_testcase {
             'Student, no role switch' => [
                 'rolename' => 'student',
                 'switchedto' => null,
-                'expected' => ['Learner']
+                'expected' => ['Learner'],
             ],
             'Teacher, no role switch' => [
                 'rolename' => 'editingteacher',
                 'switchedto' => null,
-                'expected' => ['Instructor']
+                'expected' => ['Instructor'],
             ],
             'Admin, no role switch' => [
                 'rolename' => 'admin',
@@ -1954,17 +1954,17 @@ final class helper_test extends lti_testcase {
                     'Instructor',
                     'urn:lti:sysrole:ims/lis/Administrator',
                     'urn:lti:instrole:ims/lis/Administrator',
-                ]
+                ],
             ],
             'Admin, role switch student' => [
                 'rolename' => 'admin',
                 'switchedto' => 'student',
-                'expected' => ['Learner']
+                'expected' => ['Learner'],
             ],
             'Admin, role switch teacher' => [
                 'rolename' => 'admin',
                 'switchedto' => 'editingteacher',
-                'expected' => ['Instructor']
+                'expected' => ['Instructor'],
             ],
         ];
     }

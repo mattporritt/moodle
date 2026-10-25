@@ -30,8 +30,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(custom_param_substitutor_factory::class)]
-class custom_param_substitutor_factory_test extends \basic_testcase {
-
+final class custom_param_substitutor_factory_test extends \basic_testcase {
     /**
      * Data provider for supported versions.
      *

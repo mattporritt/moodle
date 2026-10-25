@@ -27,12 +27,14 @@ namespace core_ltix\local\lticore\message\context\item;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final readonly class pipeline_params_context {
-
     /**
      * Constructor.
      *
      * @param array $params the list of parameters built so far by the pipeline.
      */
-    public function __construct(public array $params) {
+    public function __construct(
+        /** @var array The list of parameters built so far by the pipeline. */
+        public array $params,
+    ) {
     }
 }

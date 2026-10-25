@@ -59,7 +59,7 @@ final class oauth_helper_test extends lti_testcase {
             'basic-lti-launch-request' => 'LtiResourceLinkRequest',
             'ContentItemSelectionRequest' => 'LtiDeepLinkingRequest',
             'ContentItemSelection' => 'LtiDeepLinkingResponse',
-            'LtiSubmissionReviewRequest' => 'LtiSubmissionReviewRequest'
+            'LtiSubmissionReviewRequest' => 'LtiSubmissionReviewRequest',
         ];
 
         $this->assertEquals($mapping, oauth_helper::get_jwt_message_type_mapping());

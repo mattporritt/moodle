@@ -32,8 +32,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[CoversClass(tool_consumer_resolver::class)]
-class tool_consumer_resolver_test extends \advanced_testcase {
-
+final class tool_consumer_resolver_test extends \advanced_testcase {
     /**
      * Helper returning a tool config stub.
      *
@@ -93,8 +92,8 @@ class tool_consumer_resolver_test extends \advanced_testcase {
         // The instance description should match site fullname (with HTML stripped).
         $this->assertArrayHasKey('tool_consumer_instance_description', $finalparams);
         $site = get_site();
-        $expectedDescription = trim(html_to_text($site->fullname, 0));
-        $this->assertEquals($expectedDescription, $finalparams['tool_consumer_instance_description']);
+        $expecteddescription = trim(html_to_text($site->fullname, 0));
+        $this->assertEquals($expecteddescription, $finalparams['tool_consumer_instance_description']);
     }
 
     /**
