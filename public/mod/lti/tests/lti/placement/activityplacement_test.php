@@ -64,6 +64,27 @@ final class activityplacement_test extends \advanced_testcase {
         $placementinstance->content_item_selection_capabilities($context);
     }
 
+    /**
+     * A user who can manage activities but cannot add course tools is refused.
+     *
+     * @return void
+     */
+    public function test_content_item_selection_capabilities_requires_addcoursetool(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $context = \context_course::instance($course->id);
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $roleid = $this->getDataGenerator()->create_role();
+        assign_capability('moodle/ltix:addcoursetool', CAP_PROHIBIT, $roleid, $context->id, true);
+        $this->getDataGenerator()->role_assign($roleid, $teacher->id, $context->id);
+        $placementinstance = placements_manager::get_instance()->get_deeplinking_placement_instance('mod_lti:activityplacement');
+
+        $this->setUser($teacher);
+        $this->assertTrue(has_capability('moodle/course:manageactivities', $context));
+        $this->expectException(\required_capability_exception::class);
+        $placementinstance->content_item_selection_capabilities($context);
+    }
+
 
     /**
      * Confirm that the placement instance returns the correct content item data formatter.

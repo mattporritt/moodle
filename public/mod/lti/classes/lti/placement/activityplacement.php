@@ -36,6 +36,7 @@ class activityplacement extends deeplinking_placement_handler {
 
     public function content_item_selection_capabilities(context $context): void {
         require_capability('moodle/course:manageactivities', $context);
+        require_capability('moodle/ltix:addcoursetool', $context);
     }
 
     #[\Override]

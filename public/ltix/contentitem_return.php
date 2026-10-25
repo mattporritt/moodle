@@ -72,7 +72,10 @@ if (!empty($jwt)) {
     \core_ltix\oauth_helper::verify_oauth_signature($id, $consumerkey);
 }
 
-// Check access and capabilities.
+// Check access and capabilities. Content can only be added in a context that is, or is inside, a course.
+if (!$context->get_course_context(false)) {
+    throw new \moodle_exception('invalidcontext');
+}
 if ($context instanceof context_course) {
     $course = $DB->get_record('course', ['id' => $context->instanceid], '*', MUST_EXIST);
     require_login($course);
@@ -85,8 +88,7 @@ if ($context instanceof context_course) {
 }
 
 require_sesskey();
-
-// TODO: Assess capability checks.
+require_capability('moodle/course:manageactivities', $context);
 
 $redirecturl = null;
 $returndata = null;
@@ -128,10 +130,12 @@ if (empty($errormsg) && !empty($contentitemsjson)) {
         $launchid = json_decode($data)->launchid ?? '';
 
         if ($placementtype = explode(',', $SESSION->$launchid)[7]) {
-            unset($SESSION->$launchid);
             // Get the relevant deep-linking placement instance, based on the received placement type.
             $placementinstance = \core_ltix\local\placement\placements_manager::get_instance()
                 ->get_deeplinking_placement_instance($placementtype);
+            // Confirm any capability restrictions that the placement has, as when the selection was started.
+            $placementinstance->content_item_selection_capabilities($context);
+            unset($SESSION->$launchid);
             // Check if the deep-linking placement instance defines a custom formatting logic for the returned content
             // item data. If a custom formatter is provided, apply it to the content items before passing the data to
             // the JS module. Otherwise, pass the content item data as-is in their original form.
@@ -139,6 +143,8 @@ if (empty($errormsg) && !empty($contentitemsjson)) {
                 $returndata = $contentitemformatter->format($contentitems, $tool);
             }
         }
+    } catch (required_capability_exception $e) {
+        throw $e;
     } catch (moodle_exception $e) {
         $errormsg = $e->getMessage();
     }
