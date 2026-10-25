@@ -28,7 +28,8 @@ require_once(__DIR__ . '/characterisation_trait.php');
  * later, such as one for placements, is checked without this test being edited. After a tool is deleted, no such table may still
  * hold rows for it, except the tables that already did on Moodle main before the migration. Those are listed in
  * KNOWN_LEFTOVERS. They are defects to be fixed, not behaviour to keep: removing a table from the list is welcome, adding one is
- * a regression.
+ * a regression. The exception is the data of an activity, such as its resource link: it stays while the activity does, as the
+ * activity itself does, and goes with the activity (decision D24).
  *
  * @package    mod_lti
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
@@ -48,12 +49,13 @@ final class tool_deletion_test extends \advanced_testcase {
     ];
 
     /**
-     * Tables that may hold rows for a deleted tool: the known leftovers, and the table of the line items.
+     * Tables that may hold rows for a deleted tool: the known leftovers, and the tables of the line items and of the resource
+     * links of activities, which keep their rows while the activity exists (D24).
      *
      * @return string[]
      */
     private function expected_leftovers(): array {
-        return array_merge(self::KNOWN_LEFTOVERS, [$this->lti_gradebookservices_table()]);
+        return array_merge(self::KNOWN_LEFTOVERS, [$this->lti_gradebookservices_table()], $this->lti_activity_bound_tables());
     }
 
     /**
@@ -139,8 +141,14 @@ final class tool_deletion_test extends \advanced_testcase {
         $leftovers = array_diff(array_keys($this->rows_for_tool($typeid)), $this->expected_leftovers());
         $this->assertSame([], array_values($leftovers), 'Deleting the tool left data in: ' . implode(', ', $leftovers));
 
-        // The activity is kept, the other tool is untouched.
+        // The activity is kept, and so is what belongs to it. The other tool is untouched.
         $this->assertTrue($DB->record_exists('lti', ['id' => $lti->id]));
+        $this->assertSame(0, $this->lti_resource_links_without_activity($typeid));
         $this->assertSame($keeperbefore, $this->rows_for_tool($keeper));
+
+        // What belongs to the activity goes when the activity does, as the activity table does on its own.
+        \core_courseformat\formatactions::cm($course)->delete($lti->cmid);
+        $this->assertSame(0, $this->lti_resource_links_for_tool($typeid));
+        $this->assertFalse($DB->record_exists('lti', ['id' => $lti->id]));
     }
 }

@@ -35,6 +35,7 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  *  - ltiservice_gradebookservices (table) => ltixservice_gradebookservices
  *  - the deep linking return URL's course parameter => contextid
  *  - the course of a tool restricted to a category, which has to be inside the category once the restriction is applied
+ *  - resource links, which keep a deleted tool's activities launchable (D24)
  *  - lti_delete_type()          => \core_ltix\helper::delete_type()
  *  - jwks_helper (mod_lti)      => \core_ltix\local\ltiopenid\jwks_helper
  *  - mod_lti generator          => core_ltix generator (create_tool_types)
@@ -505,5 +506,34 @@ trait characterisation_trait {
      */
     protected function lti_deep_linking_return_scope(\stdClass $course): array {
         return ['course', (int) $course->id];
+    }
+
+    /**
+     * Tables that keep rows for a deleted tool for as long as an activity of the tool exists, and are not leftovers.
+     *
+     * @return string[]
+     */
+    protected function lti_activity_bound_tables(): array {
+        return [];
+    }
+
+    /**
+     * The number of resource links of a tool.
+     *
+     * @param int $typeid the tool.
+     * @return int
+     */
+    protected function lti_resource_links_for_tool(int $typeid): int {
+        return 0;
+    }
+
+    /**
+     * The number of resource links of a tool whose activity no longer exists.
+     *
+     * @param int $typeid the tool.
+     * @return int
+     */
+    protected function lti_resource_links_without_activity(int $typeid): int {
+        return 0;
     }
 }
