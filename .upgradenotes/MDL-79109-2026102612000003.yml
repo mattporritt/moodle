@@ -1,0 +1,36 @@
+issueNumber: MDL-79109
+notes:
+  core_ltix:
+    - message: >-
+        The LTI constants, such as `LTI_LAUNCH_CONTAINER_DEFAULT`,
+        `LTI_TOOL_STATE_CONFIGURED`, `LTI_SETTING_ALWAYS`, `LTI_VERSION_1P3` and
+        `LTI_COURSEVISIBLE_PRECONFIGURED`, are now class constants of
+        `\core_ltix\constants`, with the same names and values. The global
+        constants defined in `mod/lti/locallib.php` and `ltix/constants.php` are
+        no longer defined. Plugins that use them must use the class constants.
+      type: changed
+    - message: >-
+        The `ltiid` field of the `lti_submission` table is renamed
+        `ltiresourcelinkid` and holds the id of the resource link. For
+        activities created before the upgrade the resource link id equals the
+        activity id, so existing data is unchanged.
+      type: changed
+    - message: >-
+        A new `\core_ltix\local\placement\service\resource_link_manager` class
+        creates, reads, updates and deletes resource links. `mod_lti` uses it
+        when an activity is added, updated or deleted.
+      type: improved
+    - message: >-
+        `\core_ltix\local\ltiservice\service_helper::accepts_grades()` takes a
+        `\core_ltix\local\lticore\models\resource_link` instead of an LTI
+        activity record, so the Basic Outcomes service no longer depends on the
+        activity record.
+      type: changed
+    - message: >-
+        The `core_ltix` privacy provider finds the LTI submissions of a user
+        through resource links.
+      type: changed
+    - message: >-
+        The upgrade steps that move LTI data into `core_ltix` can be run more
+        than once without error.
+      type: improved
