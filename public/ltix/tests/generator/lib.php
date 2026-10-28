@@ -156,6 +156,7 @@ class core_ltix_generator extends testing_module_generator {
      * - Placement config can be provided using a 'config_' prefix on any config array keys.
      * e.g. 'config_mykey' => 'test' would set 'mykey' to the value 'test'.
      * - The default_usage config key can be omitted and will be defaulted to 'enabled' in such cases.
+     * - If the tool already has a placement of the type, its configuration is replaced.
      *
      * @param array $data the tool placement data, including config.
      * @return stdClass the tool placement, including config which can be accessed via the 'config' property.
@@ -173,7 +174,17 @@ class core_ltix_generator extends testing_module_generator {
         );
         $placementconfig = array_diff_key($data, $placement);
         $placement = (object) $placement;
-        $placement->id = $DB->insert_record('lti_placement', $placement);
+        // Creating a tool can already have created the placement, so reuse it and replace its configuration.
+        $existingid = $DB->get_field('lti_placement', 'id', [
+            'toolid' => $placement->toolid,
+            'placementtypeid' => $placement->placementtypeid,
+        ]);
+        if ($existingid) {
+            $placement->id = $existingid;
+            $DB->delete_records('lti_placement_config', ['placementid' => $existingid]);
+        } else {
+            $placement->id = $DB->insert_record('lti_placement', $placement);
+        }
 
         $setconfig = [];
         foreach ($placementconfig as $name => $value) {
