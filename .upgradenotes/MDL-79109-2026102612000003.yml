@@ -5,10 +5,14 @@ notes:
         The LTI constants, such as `LTI_LAUNCH_CONTAINER_DEFAULT`,
         `LTI_TOOL_STATE_CONFIGURED`, `LTI_SETTING_ALWAYS`, `LTI_VERSION_1P3` and
         `LTI_COURSEVISIBLE_PRECONFIGURED`, are now class constants of
-        `\core_ltix\constants`, with the same names and values. The global
-        constants defined in `mod/lti/locallib.php` and `ltix/constants.php` are
-        no longer defined. Plugins that use them must use the class constants.
+        `\core_ltix\constants`, with the same names and values.
       type: changed
+    - message: >-
+        The global `LTI_*` constants that were defined in `mod/lti/locallib.php`
+        and `mod/lti/servicelib.php` are deprecated. They are still defined, with
+        their old values, in `mod/lti/locallib.php`. Use the constants of
+        `\core_ltix\constants` instead.
+      type: deprecated
     - message: >-
         The `ltiid` field of the `lti_submission` table is renamed
         `ltiresourcelinkid` and holds the id of the resource link. For

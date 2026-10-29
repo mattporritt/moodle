@@ -56,6 +56,107 @@ require_once($CFG->libdir . '/weblib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->dirroot . '/ltix/TrivialStore.php');
 
+// Deprecated global constants. They moved to \core_ltix\constants; they stay defined, with their old values, for third party code.
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_URL_DOMAIN_REGEX instead (MDL-84415). */
+define('LTI_URL_DOMAIN_REGEX', \core_ltix\constants::LTI_URL_DOMAIN_REGEX);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT instead (MDL-84415). */
+define('LTI_LAUNCH_CONTAINER_DEFAULT', \core_ltix\constants::LTI_LAUNCH_CONTAINER_DEFAULT);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED instead (MDL-84415). */
+define('LTI_LAUNCH_CONTAINER_EMBED', \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS instead (MDL-84415). */
+define('LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS', \core_ltix\constants::LTI_LAUNCH_CONTAINER_EMBED_NO_BLOCKS);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_LAUNCH_CONTAINER_WINDOW instead (MDL-84415). */
+define('LTI_LAUNCH_CONTAINER_WINDOW', \core_ltix\constants::LTI_LAUNCH_CONTAINER_WINDOW);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW instead (MDL-84415). */
+define('LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW', \core_ltix\constants::LTI_LAUNCH_CONTAINER_REPLACE_MOODLE_WINDOW);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_STATE_ANY instead (MDL-84415). */
+define('LTI_TOOL_STATE_ANY', \core_ltix\constants::LTI_TOOL_STATE_ANY);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED instead (MDL-84415). */
+define('LTI_TOOL_STATE_CONFIGURED', \core_ltix\constants::LTI_TOOL_STATE_CONFIGURED);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_STATE_PENDING instead (MDL-84415). */
+define('LTI_TOOL_STATE_PENDING', \core_ltix\constants::LTI_TOOL_STATE_PENDING);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_STATE_REJECTED instead (MDL-84415). */
+define('LTI_TOOL_STATE_REJECTED', \core_ltix\constants::LTI_TOOL_STATE_REJECTED);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_PROXY_TAB instead (MDL-84415). */
+define('LTI_TOOL_PROXY_TAB', \core_ltix\constants::LTI_TOOL_PROXY_TAB);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_PROXY_STATE_CONFIGURED instead (MDL-84415). */
+define('LTI_TOOL_PROXY_STATE_CONFIGURED', \core_ltix\constants::LTI_TOOL_PROXY_STATE_CONFIGURED);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_PROXY_STATE_PENDING instead (MDL-84415). */
+define('LTI_TOOL_PROXY_STATE_PENDING', \core_ltix\constants::LTI_TOOL_PROXY_STATE_PENDING);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_PROXY_STATE_ACCEPTED instead (MDL-84415). */
+define('LTI_TOOL_PROXY_STATE_ACCEPTED', \core_ltix\constants::LTI_TOOL_PROXY_STATE_ACCEPTED);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_TOOL_PROXY_STATE_REJECTED instead (MDL-84415). */
+define('LTI_TOOL_PROXY_STATE_REJECTED', \core_ltix\constants::LTI_TOOL_PROXY_STATE_REJECTED);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_SETTING_NEVER instead (MDL-84415). */
+define('LTI_SETTING_NEVER', \core_ltix\constants::LTI_SETTING_NEVER);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_SETTING_ALWAYS instead (MDL-84415). */
+define('LTI_SETTING_ALWAYS', \core_ltix\constants::LTI_SETTING_ALWAYS);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_SETTING_DELEGATE instead (MDL-84415). */
+define('LTI_SETTING_DELEGATE', \core_ltix\constants::LTI_SETTING_DELEGATE);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_COURSEVISIBLE_NO instead (MDL-84415). */
+define('LTI_COURSEVISIBLE_NO', \core_ltix\constants::LTI_COURSEVISIBLE_NO);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED instead (MDL-84415). */
+define('LTI_COURSEVISIBLE_PRECONFIGURED', \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER instead (MDL-84415). */
+define('LTI_COURSEVISIBLE_ACTIVITYCHOOSER', \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_VERSION_1 instead (MDL-84415). */
+define('LTI_VERSION_1', \core_ltix\constants::LTI_VERSION_1);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_VERSION_2 instead (MDL-84415). */
+define('LTI_VERSION_2', \core_ltix\constants::LTI_VERSION_2);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_VERSION_1P3 instead (MDL-84415). */
+define('LTI_VERSION_1P3', \core_ltix\constants::LTI_VERSION_1P3);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_RSA_KEY instead (MDL-84415). */
+define('LTI_RSA_KEY', \core_ltix\constants::LTI_RSA_KEY);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_JWK_KEYSET instead (MDL-84415). */
+define('LTI_JWK_KEYSET', \core_ltix\constants::LTI_JWK_KEYSET);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_DEFAULT_ORGID_SITEID instead (MDL-84415). */
+define('LTI_DEFAULT_ORGID_SITEID', \core_ltix\constants::LTI_DEFAULT_ORGID_SITEID);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_DEFAULT_ORGID_SITEHOST instead (MDL-84415). */
+define('LTI_DEFAULT_ORGID_SITEHOST', \core_ltix\constants::LTI_DEFAULT_ORGID_SITEHOST);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_ACCESS_TOKEN_LIFE instead (MDL-84415). */
+define('LTI_ACCESS_TOKEN_LIFE', \core_ltix\constants::LTI_ACCESS_TOKEN_LIFE);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_JWT_CLAIM_PREFIX instead (MDL-84415). */
+define('LTI_JWT_CLAIM_PREFIX', \core_ltix\constants::LTI_JWT_CLAIM_PREFIX);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_ITEM_TYPE instead (MDL-84415). */
+define('LTI_ITEM_TYPE', \core_ltix\constants::LTI_ITEM_TYPE);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_ITEM_MODULE instead (MDL-84415). */
+define('LTI_ITEM_MODULE', \core_ltix\constants::LTI_ITEM_MODULE);
+
+/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_SOURCE instead (MDL-84415). */
+define('LTI_SOURCE', \core_ltix\constants::LTI_SOURCE);
+
 /**
  * Return the mapping for standard message types to JWT message_type claim.
  *
