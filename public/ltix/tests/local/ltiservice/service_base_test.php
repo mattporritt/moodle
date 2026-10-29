@@ -88,6 +88,47 @@ final class service_base_test extends \advanced_testcase {
     }
 
     /**
+     * The deprecated methods carry the deprecated attribute, so tooling and callers can see they are deprecated.
+     *
+     * @param string $class The class declaring the method.
+     * @param string $method The deprecated method.
+     * @param string $replacement The replacement the attribute points to.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('deprecated_method_provider')]
+    public function test_deprecated_methods_have_the_deprecated_attribute(
+        string $class,
+        string $method,
+        string $replacement,
+    ): void {
+        $attributes = (new \ReflectionMethod($class, $method))->getAttributes(\core\attribute\deprecated::class);
+        $this->assertCount(1, $attributes);
+
+        $attribute = $attributes[0]->newInstance();
+        $this->assertSame('6.0', $attribute->since);
+        $this->assertSame($replacement, $attribute->replacement);
+    }
+
+    /**
+     * Provides the deprecated methods of the service and resource base classes.
+     *
+     * @return array
+     */
+    public static function deprecated_method_provider(): array {
+        return [
+            'service get_launch_parameters' => [
+                \core_ltix\local\ltiservice\service_base::class,
+                'get_launch_parameters',
+                '::get_launch_params',
+            ],
+            'resource parse_value' => [
+                \core_ltix\local\ltiservice\resource_base::class,
+                'parse_value',
+                '::parse_val',
+            ],
+        ];
+    }
+
+    /**
      * The deprecated get_launch_parameters() returns what get_launch_params() returns for the same launch.
      */
     public function test_get_launch_parameters_delegates_to_get_launch_params(): void {
