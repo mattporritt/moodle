@@ -741,7 +741,7 @@ class helper {
      * Splits the custom parameters field to the various parameters
      *
      * @param object    $toolproxy      Tool proxy instance object
-     * @param object    $tool           Tool instance object
+     * @param object|null $tool         Tool instance object, null for an activity with no tool type
      * @param array     $params         LTI launch parameters
      * @param string    $customstr      String containing the parameters
      * @param boolean   $islti2         True if an LTI 2 tool is being launched
@@ -755,7 +755,7 @@ class helper {
             $val = self::parse_custom_parameter($toolproxy, $tool, $params, $val, $islti2);
             $key2 = self::map_keyname($key);
             $retval['custom_' . $key2] = $val;
-            if (($islti2 || ($tool->ltiversion === LTI_VERSION_1P3)) && ($key != $key2)) {
+            if (($islti2 || ($tool?->ltiversion === LTI_VERSION_1P3)) && ($key != $key2)) {
                 $retval['custom_' . $key] = $val;
             }
         }
@@ -2711,7 +2711,7 @@ class helper {
      * This function builds the custom parameters
      *
      * @param object    $toolproxy      Tool proxy instance object
-     * @param object    $tool           Tool instance object
+     * @param object|null $tool         Tool instance object, null for an activity with no tool type
      * @param object    $instance       Tool placement instance object
      * @param array     $params         LTI launch parameters
      * @param string    $customstr      Custom parameters defined for tool

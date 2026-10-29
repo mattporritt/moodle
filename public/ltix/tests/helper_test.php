@@ -63,6 +63,73 @@ final class helper_test extends lti_testcase {
     }
 
     /**
+     * Run a callback with every PHP warning and notice turned into an exception.
+     *
+     * PHPUnit only reports a warning raised by the code under test, it does not fail the test.
+     *
+     * @param callable $callback The code to run.
+     * @return mixed What the callback returns.
+     */
+    private function without_php_warnings(callable $callback): mixed {
+        set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline): bool {
+            if (!(error_reporting() & $errno)) {
+                // Silenced with the @ operator.
+                return false;
+            }
+            throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+        });
+        $reporting = error_reporting(E_ALL);
+        try {
+            return $callback();
+        } finally {
+            error_reporting($reporting);
+            restore_error_handler();
+        }
+    }
+
+    /**
+     * An activity with no tool type has no tool, so splitting its custom parameters must not read the tool.
+     *
+     * @covers ::split_custom_parameters
+     */
+    public function test_split_custom_parameters_without_tool(): void {
+        $this->resetAfterTest();
+
+        $custom = $this->without_php_warnings(
+            fn() => helper::split_custom_parameters(null, null, [], "x=1\nReview:Chapter=2", false)
+        );
+
+        // Not an LTI 2 or LTI 1.3 launch, so only the mapped key name is sent.
+        $this->assertSame(['custom_x' => '1', 'custom_review_chapter' => '2'], $custom);
+    }
+
+    /**
+     * The launch data of an activity with no tool type is built without a PHP warning.
+     *
+     * @covers ::get_launch_data
+     * @covers ::build_custom_parameters
+     */
+    public function test_get_launch_data_for_activity_without_tool_type(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $instance = $this->getDataGenerator()->create_module('lti', [
+            'course' => $course->id,
+            'toolurl' => 'https://example.com/tool',
+            'resourcekey' => 'key',
+            'password' => 'secret',
+            'instructorcustomparameters' => "Review:Chapter=2\nx=1",
+        ]);
+
+        [, $params] = $this->without_php_warnings(fn() => helper::get_launch_data($instance));
+
+        $this->assertSame('2', $params['custom_review_chapter']);
+        $this->assertSame('1', $params['custom_x']);
+        $this->assertArrayNotHasKey('custom_Review:Chapter', $params);
+    }
+
+    /**
      * Test split_custom_parameters.
      * @covers ::split_custom_parameters
      */
