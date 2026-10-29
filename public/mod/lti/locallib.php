@@ -120,8 +120,8 @@ define('LTI_COURSEVISIBLE_NO', \core_ltix\constants::LTI_COURSEVISIBLE_NO);
 /** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED instead (MDL-84415). */
 define('LTI_COURSEVISIBLE_PRECONFIGURED', \core_ltix\constants::LTI_COURSEVISIBLE_PRECONFIGURED);
 
-/** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER instead (MDL-84415). */
-define('LTI_COURSEVISIBLE_ACTIVITYCHOOSER', \core_ltix\constants::LTI_COURSEVISIBLE_ACTIVITYCHOOSER);
+/** @deprecated since Moodle 6.0 This value is no longer used and has no replacement (MDL-84415). */
+define('LTI_COURSEVISIBLE_ACTIVITYCHOOSER', 2);
 
 /** @deprecated since Moodle 6.0 Use \core_ltix\constants::LTI_VERSION_1 instead (MDL-84415). */
 define('LTI_VERSION_1', \core_ltix\constants::LTI_VERSION_1);

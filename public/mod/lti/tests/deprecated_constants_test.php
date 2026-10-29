@@ -48,14 +48,18 @@ final class deprecated_constants_test extends \advanced_testcase {
     }
 
     /**
-     * Each global constant has the same value as its \core_ltix\constants replacement.
+     * Each global constant that has a \core_ltix\constants replacement has the same value as it.
      *
      * @param string $name The constant name.
      * @param mixed $expected The value in Moodle 5.3, not used here.
      */
     #[DataProvider('old_constants_provider')]
     public function test_global_constant_matches_class_constant(string $name, mixed $expected): void {
-        $this->assertSame(constant(\core_ltix\constants::class . '::' . $name), constant($name));
+        $classconstant = \core_ltix\constants::class . '::' . $name;
+        if (!defined($classconstant)) {
+            $this->markTestSkipped("$name has no \\core_ltix\\constants replacement");
+        }
+        $this->assertSame(constant($classconstant), constant($name));
     }
 
     /**
