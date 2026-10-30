@@ -64,4 +64,41 @@ final class generator_test extends \advanced_testcase {
         $this->assertEquals(0, $gitem->grademin);
         $this->assertEquals(GRADE_TYPE_VALUE, $gitem->gradetype);
     }
+
+    /**
+     * Test that create_tool_types() keeps the send name and send email options independent.
+     */
+    #[\PHPUnit\Framework\Attributes\CoversNothing]
+    public function test_create_tool_types_send_options(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/lti/locallib.php');
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_lti');
+
+        // Defaults.
+        $typeid = $generator->create_tool_types(['baseurl' => 'https://example.com/tool']);
+        $config = lti_get_type_config($typeid);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendname']);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendemailaddr']);
+
+        // Different values for each option are both kept.
+        $typeid = $generator->create_tool_types([
+            'baseurl' => 'https://example.com/tool',
+            'lti_sendname' => LTI_SETTING_NEVER,
+            'lti_sendemailaddr' => LTI_SETTING_ALWAYS,
+        ]);
+        $config = lti_get_type_config($typeid);
+        $this->assertEquals(LTI_SETTING_NEVER, $config['sendname']);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendemailaddr']);
+
+        // Setting only the name leaves the email option at its default.
+        $typeid = $generator->create_tool_types([
+            'baseurl' => 'https://example.com/tool',
+            'lti_sendname' => LTI_SETTING_NEVER,
+        ]);
+        $config = lti_get_type_config($typeid);
+        $this->assertEquals(LTI_SETTING_NEVER, $config['sendname']);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendemailaddr']);
+    }
 }
