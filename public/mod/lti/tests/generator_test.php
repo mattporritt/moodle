@@ -100,5 +100,58 @@ final class generator_test extends \advanced_testcase {
         $config = lti_get_type_config($typeid);
         $this->assertEquals(LTI_SETTING_NEVER, $config['sendname']);
         $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendemailaddr']);
+
+        // The mirror case: name always shared, email never shared.
+        $typeid = $generator->create_tool_types([
+            'baseurl' => 'https://example.com/tool',
+            'lti_sendname' => LTI_SETTING_ALWAYS,
+            'lti_sendemailaddr' => LTI_SETTING_NEVER,
+        ]);
+        $config = lti_get_type_config($typeid);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendname']);
+        $this->assertEquals(LTI_SETTING_NEVER, $config['sendemailaddr']);
+    }
+
+    /**
+     * Test that create_course_tool_types() keeps the send name and send email options independent.
+     */
+    #[\PHPUnit\Framework\Attributes\CoversNothing]
+    public function test_create_course_tool_types_send_options(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/lti/locallib.php');
+
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_lti');
+
+        // Defaults.
+        $typeid = $generator->create_course_tool_types([
+            'baseurl' => 'https://example.com/tool',
+            'course' => $course->id,
+        ]);
+        $config = lti_get_type_config($typeid);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendname']);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendemailaddr']);
+
+        // Different values for each option are both kept, in either direction.
+        $typeid = $generator->create_course_tool_types([
+            'baseurl' => 'https://example.com/tool',
+            'course' => $course->id,
+            'lti_sendname' => LTI_SETTING_NEVER,
+            'lti_sendemailaddr' => LTI_SETTING_ALWAYS,
+        ]);
+        $config = lti_get_type_config($typeid);
+        $this->assertEquals(LTI_SETTING_NEVER, $config['sendname']);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendemailaddr']);
+
+        $typeid = $generator->create_course_tool_types([
+            'baseurl' => 'https://example.com/tool',
+            'course' => $course->id,
+            'lti_sendname' => LTI_SETTING_ALWAYS,
+            'lti_sendemailaddr' => LTI_SETTING_NEVER,
+        ]);
+        $config = lti_get_type_config($typeid);
+        $this->assertEquals(LTI_SETTING_ALWAYS, $config['sendname']);
+        $this->assertEquals(LTI_SETTING_NEVER, $config['sendemailaddr']);
     }
 }
