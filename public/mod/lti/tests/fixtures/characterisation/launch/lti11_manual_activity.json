@@ -27,11 +27,11 @@
             }
         },
         "lti_message_type": "basic-lti-launch-request",
-        "lti_version": "LTI-1p{{type}}",
+        "lti_version": "LTI-1p0",
         "oauth_callback": "about:blank",
         "oauth_consumer_key": "manualkey",
         "oauth_signature_method": "HMAC-SHA1",
-        "oauth_version": "1.{{type}}",
+        "oauth_version": "1.0",
         "resource_link_description": "Launch intro",
         "resource_link_id": "{{instance}}",
         "resource_link_title": "Launch activity",

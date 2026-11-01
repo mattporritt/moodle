@@ -27,8 +27,9 @@ require_once(__DIR__ . '/characterisation_trait.php');
  * launch.php and contentitem.php end with exit, so PHPUnit cannot run them, and a call that has drifted from the function's
  * parameters (an argument added in the middle of the list) is only seen when a launch loses data. This is how a submission review
  * launch lost its for_user. The test reads each script, finds the arguments of the call, and asserts that each launch detail the
- * script holds in a variable is passed as the parameter of the same name. It checks the call, not the launch: running the script
- * needs a web request, which is in the backlog of the P7 report.
+ * script holds in a variable is passed as the parameter of the same name, that the courseid argument written as $cm->course is in
+ * the courseid position, and that no required parameter is left out. It checks the call, not the launch: running the script
+ * needs a web request, so a launch that goes wrong in another way is not seen here.
  *
  * @package    mod_lti
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
@@ -120,20 +121,25 @@ final class launch_call_sites_test extends \advanced_testcase {
         $parameters = $this->lti_login_initiation_parameters();
         $arguments = $this->call_arguments(file_get_contents("{$CFG->dirroot}/{$script}"), 'lti_initiate_login');
         $this->assertNotNull($arguments, "$script does not call the login initiation function");
-        $this->assertLessThanOrEqual(count($parameters), count($arguments));
+        $required = count(array_filter(
+            (new \ReflectionFunction('lti_initiate_login'))->getParameters(),
+            fn($parameter) => !$parameter->isOptional()
+        ));
+        $this->assertLessThanOrEqual(count($parameters), count($arguments), "$script passes too many arguments");
+        $this->assertGreaterThanOrEqual($required, count($arguments), "$script leaves out a required argument");
 
-        // The variables the scripts use for each launch detail, and the parameter each belongs to.
+        // The variables and expressions the scripts use for each launch detail, and the parameter each belongs to.
         $names = [
-            'foruserid' => 'foruserid', 'messagetype' => 'messagetype', 'msgtype' => 'messagetype', 'courseid' => 'courseid',
-            'cmid' => 'cmid', 'title' => 'title', 'text' => 'text',
+            '$foruserid' => 'foruserid', '$messagetype' => 'messagetype', '$msgtype' => 'messagetype',
+            '$courseid' => 'courseid', '$cm->course' => 'courseid', '$cmid' => 'cmid', '$title' => 'title', '$text' => 'text',
         ];
         $checked = 0;
         foreach ($arguments as $position => $argument) {
-            if (!preg_match('/^\$(\w+)$/', $argument, $matches) || !isset($names[$matches[1]])) {
+            if (!isset($names[$argument])) {
                 continue;
             }
             $this->assertSame(
-                $names[$matches[1]],
+                $names[$argument],
                 $parameters[$position] ?? null,
                 "$script passes $argument as argument " . ($position + 1) . ', which is parameter $' .
                     ($parameters[$position] ?? '?')

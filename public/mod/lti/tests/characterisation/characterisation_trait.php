@@ -28,7 +28,10 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  * to core_ltix. Everything that names a mod_lti function, class, capability or path lives in this trait. When a migration
  * slice moves one of them, this is the only file that changes, and the assertions in the tests stay as they are.
  *
- * Names used here and where they move to (see the P7 report):
+ * These tests are written ahead of a planned move of the LTI code out of mod_lti into core_ltix, so the names below are
+ * those the code is expected to have after that move. They do not exist yet.
+ *
+ * Names used here and where they move to:
  *  - lti_get_launch_data()      => \core_ltix\helper::get_launch_data()
  *  - mod_lti_external (WS)      => core_ltix external functions (the mod_lti ones stay as deprecated wrappers)
  *  - lti_initiate_login()       => \core_ltix\helper::initiate_login()

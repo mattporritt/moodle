@@ -113,6 +113,11 @@ trait launch_scenarios_trait {
                 'version' => self::LTI13, 'user' => 'student',
                 'tool' => ['lti_sendname' => self::NEVER, 'lti_sendemailaddr' => self::NEVER],
             ],
+            'lti13_privacy_teacher_allows' => [
+                'version' => self::LTI13, 'user' => 'student',
+                'tool' => ['lti_sendname' => self::DELEGATE, 'lti_sendemailaddr' => self::DELEGATE],
+                'activity' => ['instructorchoicesendname' => 1, 'instructorchoicesendemailaddr' => 1],
+            ],
             'lti13_privacy_teacher_declines' => [
                 'version' => self::LTI13, 'user' => 'student',
                 'tool' => ['lti_sendname' => self::DELEGATE, 'lti_sendemailaddr' => self::DELEGATE],
@@ -202,7 +207,8 @@ trait launch_scenarios_trait {
         $warnings = [];
         if ($scenario['tool'] === null) {
             set_error_handler(function (int $errno, string $errstr) use (&$warnings): bool {
-                if ($errno !== E_WARNING || $errstr !== 'Attempt to read property "ltiversion" on null') {
+                // Match the property name only, as PHP versions word this message differently.
+                if ($errno !== E_WARNING || !str_contains($errstr, 'ltiversion')) {
                     return false;
                 }
                 $warnings[] = $errstr;
