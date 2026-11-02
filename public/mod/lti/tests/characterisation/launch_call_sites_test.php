@@ -119,10 +119,10 @@ final class launch_call_sites_test extends \advanced_testcase {
     public function test_launch_details_are_passed_as_the_parameters_they_belong_to(string $script): void {
         global $CFG;
         $parameters = $this->lti_login_initiation_parameters();
-        $arguments = $this->call_arguments(file_get_contents("{$CFG->dirroot}/{$script}"), 'lti_initiate_login');
+        $arguments = $this->call_arguments(file_get_contents("{$CFG->dirroot}/{$script}"), $this->lti_login_initiation_function());
         $this->assertNotNull($arguments, "$script does not call the login initiation function");
         $required = count(array_filter(
-            (new \ReflectionFunction('lti_initiate_login'))->getParameters(),
+            (new \ReflectionFunction($this->lti_login_initiation_function()))->getParameters(),
             fn($parameter) => !$parameter->isOptional()
         ));
         $this->assertLessThanOrEqual(count($parameters), count($arguments), "$script passes too many arguments");
