@@ -216,7 +216,17 @@ final class services_endpoint_test extends \advanced_testcase {
         $this->resetAfterTest();
         $typeid = $this->create_course_and_tool();
 
-        $response = $this->call_nrps($typeid, [self::AGS_LINEITEM_READ]);
+        // The 401 path passes a null message to Exception, which PHP 8.1 and later reports as a deprecation. Ignore only that
+        // one deprecation here. MDL-90293 fixes it and should then remove this handler.
+        set_error_handler(
+            fn(int $errno, string $errstr): bool => str_contains($errstr, 'Passing null to parameter #1 ($message)'),
+            E_DEPRECATED
+        );
+        try {
+            $response = $this->call_nrps($typeid, [self::AGS_LINEITEM_READ]);
+        } finally {
+            restore_error_handler();
+        }
 
         $this->assertSame(401, $response->get_code());
         $this->assertEmpty($response->get_body());
