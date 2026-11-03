@@ -1,0 +1,26 @@
+{
+    "context": {
+        "id": "{{course}}",
+        "label": "C1",
+        "title": "Course One"
+    },
+    "id": "{{wwwroot}}/mod/lti/services.php/CourseSection/{{course}}/bindings/{{type}}/memberships",
+    "members": [
+        {
+            "lis_person_sourcedid": "U1",
+            "roles": [
+                "Learner"
+            ],
+            "status": "Active",
+            "user_id": "{{student}}"
+        },
+        {
+            "lis_person_sourcedid": "U2",
+            "roles": [
+                "Instructor"
+            ],
+            "status": "Active",
+            "user_id": "{{teacher}}"
+        }
+    ]
+}
