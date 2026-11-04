@@ -119,6 +119,18 @@ final class locallib_test extends mod_lti_testcase {
     }
 
     /**
+     * Custom parameters can be split for a manual instance with no tool type (null tool) without a warning.
+     */
+    public function test_split_custom_parameters_without_tool(): void {
+        $this->resetAfterTest();
+
+        $this->assertEquals(
+            ['custom_param' => 'test', 'custom_param2' => 'test2'],
+            lti_split_custom_parameters(null, null, [], "param=test\nparam2=test2", false)
+        );
+    }
+
+    /**
      * This test has been disabled because the test-tool is
      * being moved and probably it won't work anymore for this.
      * We should be testing here local stuff only and leave
