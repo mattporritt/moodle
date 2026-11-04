@@ -2543,6 +2543,10 @@ function lti_delete_type($id) {
     $DB->delete_records('lti_types', array('id' => $id));
     $DB->delete_records('lti_types_config', array('typeid' => $id));
     $DB->delete_records('lti_types_categories', array('typeid' => $id));
+    $DB->delete_records('lti_coursevisible', ['typeid' => $id]);
+    $DB->delete_records('lti_access_tokens', ['typeid' => $id]);
+    $DB->delete_records('lti_tool_settings', ['typeid' => $id]);
+    $DB->delete_records('ltiservice_gradebookservices', ['typeid' => $id]);
 }
 
 function lti_set_state_for_type($id, $state) {
