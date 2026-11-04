@@ -107,6 +107,31 @@ final class services_endpoint_test extends \advanced_testcase {
     }
 
     /**
+     * The members of an NRPS response, sorted by user id so that the order of the enrolment query does not matter.
+     *
+     * @param \mod_lti\local\ltiservice\response $response the NRPS response.
+     * @return array the response data, with the members sorted.
+     */
+    private function nrps_data(\mod_lti\local\ltiservice\response $response): array {
+        $data = json_decode($response->get_body(), true);
+        usort($data['members'], fn($a, $b) => (int) $a['user_id'] <=> (int) $b['user_id']);
+        return $data;
+    }
+
+    /**
+     * The member of an NRPS response with the given user id.
+     *
+     * @param \mod_lti\local\ltiservice\response $response the NRPS response.
+     * @param int $userid the user.
+     * @return array the member.
+     */
+    private function nrps_member(\mod_lti\local\ltiservice\response $response, int $userid): array {
+        $members = array_column($this->nrps_data($response)['members'], null, 'user_id');
+        $this->assertArrayHasKey((string) $userid, $members);
+        return $members[(string) $userid];
+    }
+
+    /**
      * Call the NRPS context memberships endpoint.
      *
      * @param int $typeid the tool.
@@ -140,7 +165,7 @@ final class services_endpoint_test extends \advanced_testcase {
         $this->assertSame(200, $response->get_code());
         $this->lti_assert_matches_fixture(
             'services/nrps_members.json',
-            json_decode($response->get_body(), true),
+            $this->nrps_data($response),
             $this->tokens($typeid)
         );
     }
@@ -157,7 +182,7 @@ final class services_endpoint_test extends \advanced_testcase {
         $this->assertSame(200, $response->get_code());
         $this->lti_assert_matches_fixture(
             'services/nrps_members_private.json',
-            json_decode($response->get_body(), true),
+            $this->nrps_data($response),
             $this->tokens($typeid)
         );
     }
@@ -171,14 +196,14 @@ final class services_endpoint_test extends \advanced_testcase {
 
         // The generator gives the email setting the value of the name setting, so set them apart afterwards.
         $this->set_privacy_settings($typeid, sendname: 0, sendemailaddr: 1);
-        $member = json_decode($this->call_nrps($typeid)->get_body(), true)['members'][0];
+        $member = $this->nrps_member($this->call_nrps($typeid), (int) $this->student->id);
         $this->assertSame('sam@example.com', $member['email']);
         $this->assertArrayNotHasKey('name', $member);
         $this->assertArrayNotHasKey('given_name', $member);
         $this->assertArrayNotHasKey('family_name', $member);
 
         $this->set_privacy_settings($typeid, sendname: 1, sendemailaddr: 0);
-        $member = json_decode($this->call_nrps($typeid)->get_body(), true)['members'][0];
+        $member = $this->nrps_member($this->call_nrps($typeid), (int) $this->student->id);
         $this->assertSame('Sam Student', $member['name']);
         $this->assertArrayNotHasKey('email', $member);
     }
@@ -210,7 +235,10 @@ final class services_endpoint_test extends \advanced_testcase {
     }
 
     /**
-     * A token without the scope, or for a tool without the service, is refused.
+     * A token that was not granted the NRPS scope is refused with a 401 and no body.
+     *
+     * Over HTTP on a site with developer debugging, the deprecation handled below is displayed and the status comes out as
+     * 8192, so the 401 is only observable in PHPUnit until MDL-90293 is fixed.
      */
     public function test_nrps_refuses_a_token_without_the_scope(): void {
         $this->resetAfterTest();
@@ -319,8 +347,10 @@ final class services_endpoint_test extends \advanced_testcase {
             json_encode($score)
         );
 
-        $this->assertNotSame(200, $response->get_code());
+        $this->assertSame(400, $response->get_code());
+        $this->assertSame('[]', $response->get_body());
         $this->assertEmpty($this->gradebook_grade($outsider->id));
+        $this->assertEmpty($this->gradebook_grade($this->student->id));
     }
 
     /**
