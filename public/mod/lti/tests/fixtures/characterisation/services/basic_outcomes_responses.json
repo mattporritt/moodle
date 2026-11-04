@@ -1,0 +1,38 @@
+{
+    "replace": {
+        "body": "replaceResultResponse",
+        "codeMajor": "success",
+        "description": "Grade replace response",
+        "messageRef": "message-1",
+        "operationRef": "replaceResultRequest",
+        "score": null,
+        "severity": "status"
+    },
+    "read": {
+        "body": "readResultResponse",
+        "codeMajor": "success",
+        "description": "Result read",
+        "messageRef": "message-1",
+        "operationRef": "readResultRequest",
+        "score": "0.8",
+        "severity": "status"
+    },
+    "delete": {
+        "body": "deleteResultResponse",
+        "codeMajor": "success",
+        "description": "Grade delete request",
+        "messageRef": "message-1",
+        "operationRef": "deleteResultRequest",
+        "score": null,
+        "severity": "status"
+    },
+    "readafterdelete": {
+        "body": "readResultResponse",
+        "codeMajor": "success",
+        "description": "Result read",
+        "messageRef": "message-1",
+        "operationRef": "readResultRequest",
+        "score": "",
+        "severity": "status"
+    }
+}
