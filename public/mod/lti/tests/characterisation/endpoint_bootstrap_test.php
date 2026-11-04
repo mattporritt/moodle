@@ -84,6 +84,33 @@ final class endpoint_bootstrap_test extends \advanced_testcase {
     }
 
     /**
+     * The list of endpoints is complete: every LTI script that defines NO_MOODLE_COOKIES is in it, and every script in it does.
+     *
+     * Only the LTI plugin's own directory is searched, and not its tests, so a new sessionless endpoint is not missed and a
+     * script that stops being one is noticed. Add the script to the list in the trait, or remove it, when this fails.
+     */
+    public function test_endpoint_list_matches_the_scripts_that_define_no_cookies(): void {
+        global $CFG;
+        $found = [];
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator("{$CFG->dirroot}/mod/lti", \FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($files as $file) {
+            $path = str_replace('\\', '/', $file->getPathname());
+            if ($file->getExtension() !== 'php' || str_contains($path, '/tests/') || str_contains($path, '/vendor/')) {
+                continue;
+            }
+            if (preg_match("/^\s*define\s*\(\s*['\"]NO_MOODLE_COOKIES['\"]\s*,/m", file_get_contents($path))) {
+                $found[] = substr($path, strlen($CFG->dirroot) + 1);
+            }
+        }
+        $listed = $this->lti_sessionless_endpoint_scripts();
+        sort($found);
+        sort($listed);
+        $this->assertSame($listed, $found, 'The LTI scripts that define NO_MOODLE_COOKIES differ from the list of endpoints');
+    }
+
+    /**
      * Find where a pattern first matches.
      *
      * @param string $code the code.
