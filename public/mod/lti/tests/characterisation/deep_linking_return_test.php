@@ -181,7 +181,7 @@ final class deep_linking_return_test extends \advanced_testcase {
         [$output, $thrown] = $this->lti_run_script($returnurl, [], ['JWT' => $response]);
 
         $this->assertStringNotContainsString('Forged', $output);
-        $this->assertNotNull($thrown);
+        $this->assertInstanceOf(\Firebase\JWT\SignatureInvalidException::class, $thrown);
     }
 
     /**
@@ -195,7 +195,9 @@ final class deep_linking_return_test extends \advanced_testcase {
         [$output, $thrown] = $this->lti_run_script($withoutsesskey, [], ['JWT' => $response]);
 
         $this->assertStringNotContainsString('No sesskey', $output);
-        $this->assertNotNull($thrown);
+        $this->assertInstanceOf(\moodle_exception::class, $thrown);
+        $this->assertSame('missingparam', $thrown->errorcode);
+        $this->assertStringContainsString('sesskey', $thrown->getMessage());
     }
 
     /**
@@ -210,8 +212,9 @@ final class deep_linking_return_test extends \advanced_testcase {
 
         [$output, $thrown] = $this->lti_run_script($returnurl, [], ['JWT' => $response]);
 
+        // The response is valid and the session key is the student's own, so only the capability check can refuse it.
         $this->assertStringNotContainsString('Student pick', $output);
-        $this->assertNotNull($thrown);
+        $this->assertInstanceOf(\required_capability_exception::class, $thrown);
     }
 
     /**

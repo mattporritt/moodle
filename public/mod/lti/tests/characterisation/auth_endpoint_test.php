@@ -73,6 +73,8 @@ final class auth_endpoint_test extends \advanced_testcase {
             'lti_publickeyset' => 'https://tool.example.com/jwks', 'lti_contentitem' => 1,
         ]);
         $this->lti = $this->lti_create_activity($this->course->id, [
+            // The resource key is blanked because lti_get_launch_data() uses the activity's own consumer key as the aud claim when
+            // one is set. test_activity_resource_key_is_the_audience records that case.
             'typeid' => $this->typeid, 'resourcekey' => '', 'password' => '', 'launchcontainer' => 2,
         ]);
         $PAGE->set_course($this->course);
@@ -145,6 +147,19 @@ final class auth_endpoint_test extends \advanced_testcase {
     }
 
     /**
+     * An activity with a resource key of its own sends that key, not the tool's client id, as the audience of the id_token.
+     */
+    public function test_activity_resource_key_is_the_audience(): void {
+        global $DB;
+        $DB->set_field('lti', 'resourcekey', 'activity-key', ['id' => $this->lti->id]);
+        $this->setUser($this->student);
+        $login = $this->lti_start_login($this->course->id, $this->typeid, $this->lti);
+        [$output] = $this->authenticate($login);
+        $claims = $this->id_token_claims($output);
+        $this->assertSame('activity-key', $claims['aud']);
+    }
+
+    /**
      * An activity set to open in a new window completes and tells the tool.
      */
     public function test_new_window_launch_completes(): void {
@@ -205,8 +220,10 @@ final class auth_endpoint_test extends \advanced_testcase {
     public function test_deep_linking_launch_is_refused_without_permission(): void {
         $this->setUser($this->student);
         $login = $this->lti_start_login($this->course->id, $this->typeid, null, 'ContentItemSelectionRequest');
-        [$output] = $this->authenticate($login);
+        [$output, $thrown] = $this->authenticate($login);
         $this->assert_no_id_token($output);
+        // Refused by throwing, not by posting an error to the tool.
+        $this->assertInstanceOf(\required_capability_exception::class, $thrown);
     }
 
     /**
@@ -251,38 +268,54 @@ final class auth_endpoint_test extends \advanced_testcase {
             true
         );
 
-        [$output] = $this->authenticate($login);
+        [$output, $thrown] = $this->authenticate($login);
         $this->assert_no_id_token($output);
+        // The require_login() call refuses first, by redirecting, before the view capability is checked. The test records the
+        // outcome only, so it does not show which of the two checks causes the refusal.
+        $this->assertInstanceOf(\moodle_exception::class, $thrown);
+        $this->assertSame('redirecterrordetected', $thrown->errorcode);
     }
 
     /**
-     * Requests that do not match what Moodle started are refused. A wrong client id or user is answered with an OAuth error.
+     * Requests that do not match what Moodle started are refused.
+     *
+     * @param array $override the request fields to change.
+     * @param string|null $error the OAuth error posted to the tool, or null when the endpoint throws instead.
+     * @param string|null $errorcode the error code of the exception thrown when no error is posted.
      */
-    public function test_mismatched_requests_are_refused(): void {
+    #[\PHPUnit\Framework\Attributes\DataProvider('mismatched_request_provider')]
+    public function test_mismatched_requests_are_refused(array $override, ?string $error, ?string $errorcode): void {
         $this->setUser($this->student);
-
         $login = $this->lti_start_login($this->course->id, $this->typeid, $this->lti);
-        [$output] = $this->authenticate($login, ['client_id' => 'someone-else']);
-        $this->assert_no_id_token($output);
-        $this->assertSame('unauthorized_client', $this->lti_form_fields($output)['error']);
-
-        $login = $this->lti_start_login($this->course->id, $this->typeid, $this->lti);
-        [$output] = $this->authenticate($login, ['login_hint' => (string) $this->teacher->id]);
-        $this->assert_no_id_token($output);
-        $this->assertSame('access_denied', $this->lti_form_fields($output)['error']);
-
-        $login = $this->lti_start_login($this->course->id, $this->typeid, $this->lti);
-        [$output] = $this->authenticate($login, ['response_type' => 'code']);
+        [$output, $thrown] = $this->authenticate($login, $override);
         $this->assert_no_id_token($output);
 
-        $login = $this->lti_start_login($this->course->id, $this->typeid, $this->lti);
-        [$output] = $this->authenticate($login, ['scope' => 'profile']);
-        $this->assert_no_id_token($output);
-
-        // A redirect URI the tool did not register is never posted to.
-        $login = $this->lti_start_login($this->course->id, $this->typeid, $this->lti);
-        [$output] = $this->authenticate($login, ['redirect_uri' => 'https://evil.example.com/steal']);
-        $this->assert_no_id_token($output);
+        if ($error !== null) {
+            $this->assertNull($thrown);
+            $this->assertSame($error, $this->lti_form_fields($output)['error']);
+            return;
+        }
+        $this->assertInstanceOf(\moodle_exception::class, $thrown);
+        $this->assertSame($errorcode, $thrown->errorcode);
+        // Nothing is posted to a redirect URI the tool did not register.
         $this->assertStringNotContainsString('evil.example.com', $output);
+    }
+
+    /**
+     * The requests that do not match the launch, and how the endpoint refuses each.
+     *
+     * @return array the request fields to change, the OAuth error posted, and the error code thrown instead.
+     */
+    public static function mismatched_request_provider(): array {
+        return [
+            'wrong client id' => [['client_id' => 'someone-else'], 'unauthorized_client', null],
+            'wrong user' => [['login_hint' => '2'], 'access_denied', null],
+            // The scope and response type are checked before the tool is known, so the endpoint cannot tell where to post an
+            // error and throws instead. These are the lines to tighten if the endpoint starts returning OAuth errors.
+            'wrong scope' => [['scope' => 'profile'], null, 'invalidrequest'],
+            // Known issue MDL-90294: an unsupported response type throws instead of returning unsupported_response_type.
+            'wrong response type' => [['response_type' => 'code'], null, 'invalidrequest'],
+            'unregistered redirect uri' => [['redirect_uri' => 'https://evil.example.com/steal'], null, 'invalidrequest'],
+        ];
     }
 }
