@@ -203,7 +203,7 @@ trait launch_scenarios_trait {
         $this->setUser($user);
         $PAGE->set_course($course);
 
-        // A manual activity with custom parameters raises a warning today (MDL-80654); the fix removes this capture.
+        // A manual activity with custom parameters raises a warning today (MDL-67341); the fix removes this capture.
         $warnings = [];
         if ($scenario['tool'] === null) {
             set_error_handler(function (int $errno, string $errstr) use (&$warnings): bool {
@@ -227,7 +227,7 @@ trait launch_scenarios_trait {
             }
         }
         if ($scenario['tool'] === null) {
-            $this->assertNotEmpty($warnings, 'The MDL-80654 warning is gone: remove this capture.');
+            $this->assertNotEmpty($warnings, 'The MDL-67341 warning is gone: remove this capture.');
         }
 
         $tokens = [
