@@ -72,6 +72,7 @@ require_once($CFG->dirroot . '/mod/lti/tests/mod_lti_testcase.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_get_ims_role')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_load_cartridge')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_get_lti_types_by_course')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('lti_delete_type')]
 final class locallib_test extends mod_lti_testcase {
     /**
      * Test the split parameters function
@@ -2361,5 +2362,59 @@ MwIDAQAB
         $this->assertCount(0, $coursetooltypes);
         $this->unassignUserCapability('mod/lti:addpreconfiguredinstance', (\core\context\course::instance($course->id))->id,
             $teacherrole->id);
+    }
+
+    /**
+     * Test that deleting a tool type removes the rows that reference it, and only those.
+     */
+    public function test_lti_delete_type_removes_referencing_rows(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_lti');
+        $tables = ['lti_coursevisible', 'lti_access_tokens', 'lti_tool_settings', 'ltiservice_gradebookservices'];
+
+        $typeids = [];
+        foreach ([1, 2] as $i) {
+            $typeid = $generator->create_tool_types([
+                'name' => "Tool $i",
+                'baseurl' => "https://example.com/tool/$i",
+                'state' => LTI_TOOL_STATE_CONFIGURED,
+            ]);
+            $DB->insert_record('lti_coursevisible', ['typeid' => $typeid, 'courseid' => $course->id, 'coursevisible' => 1]);
+            $DB->insert_record('lti_access_tokens', [
+                'typeid' => $typeid,
+                'scope' => '[]',
+                'token' => "token$i",
+                'validuntil' => time() + HOURSECS,
+                'timecreated' => time(),
+                'lastaccess' => null,
+            ]);
+            $DB->insert_record('lti_tool_settings', [
+                'toolproxyid' => 0,
+                'typeid' => $typeid,
+                'course' => $course->id,
+                'coursemoduleid' => null,
+                'settings' => '{}',
+                'timecreated' => time(),
+                'timemodified' => time(),
+            ]);
+            $DB->insert_record('ltiservice_gradebookservices', [
+                'gradeitemid' => $i,
+                'courseid' => $course->id,
+                'typeid' => $typeid,
+            ]);
+            $typeids[$i] = $typeid;
+        }
+
+        lti_delete_type($typeids[1]);
+
+        foreach ($tables as $table) {
+            $this->assertEquals(0, $DB->count_records($table, ['typeid' => $typeids[1]]), "Rows left in $table");
+            $this->assertEquals(1, $DB->count_records($table, ['typeid' => $typeids[2]]), "Other tool's row removed from $table");
+        }
+        $this->assertFalse($DB->record_exists('lti_types', ['id' => $typeids[1]]));
+        $this->assertTrue($DB->record_exists('lti_types', ['id' => $typeids[2]]));
     }
 }
