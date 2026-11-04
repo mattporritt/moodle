@@ -5,13 +5,13 @@ Feature: LTI endpoints called by other servers do not start a session
   I need those endpoints to send no cookie and no PHP debug output
 
   Scenario Outline: A sessionless endpoint sets no cookie
-    Then the LTI endpoint "<path>" should respond with "<contenttype>" and set no cookie
+    Then the LTI endpoint "<path>" should respond with status "<status>" and "<contenttype>" and set no cookie
 
     Examples:
-      | path                              | contenttype      |
-      | mod/lti/certs.php                 | application/json |
-      | mod/lti/openid-configuration.php  | application/json |
-      | mod/lti/services.php              | application/json |
-      | mod/lti/token.php                 | text/html        |
-      | mod/lti/service.php               | text/html        |
-      | mod/lti/openid-registration.php   | text/html        |
+      | path                              | status | contenttype      |
+      | mod/lti/certs.php                 | 200    | application/json |
+      | mod/lti/openid-configuration.php  | 200    | application/json |
+      | mod/lti/services.php              | 405    | application/json |
+      | mod/lti/token.php                 | 400    | text/html        |
+      | mod/lti/service.php               | 200    | text/html        |
+      | mod/lti/openid-registration.php   | 401    | text/html        |
