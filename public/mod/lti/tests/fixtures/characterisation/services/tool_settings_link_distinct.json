@@ -1,0 +1,27 @@
+{
+    "@context": "http://purl.imsglobal.org/ctx/lti/v2/ToolSettings",
+    "@graph": [
+        {
+            "@id": "{{wwwroot}}/mod/lti/services.php/toolproxy/{{proxy}}/custom",
+            "@type": "ToolProxy",
+            "custom": {
+                "systemkey": "system value"
+            }
+        },
+        {
+            "@id": "{{wwwroot}}/mod/lti/services.php/CourseSection/{{course}}/bindings/vendor/{{proxy}}/custom",
+            "@type": "ToolProxyBinding",
+            "custom": {
+                "contextkey": "context value"
+            }
+        },
+        {
+            "@id": "{{wwwroot}}/mod/lti/services.php/links/{{instance}}/custom",
+            "@type": "LtiLink",
+            "custom": {
+                "linkkey": "link value",
+                "shared": "from link"
+            }
+        }
+    ]
+}
