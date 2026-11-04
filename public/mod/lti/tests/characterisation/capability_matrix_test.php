@@ -26,9 +26,12 @@ require_once(__DIR__ . '/service_calls_trait.php');
  * Characterisation test: who may use the LTI pages and the app web service.
  *
  * For each entry point, a user who has exactly the capabilities it needs is allowed, a user who lacks any one of them is
- * refused, and the standard roles, a user who is not enrolled and a guest are allowed or refused as on main. The pages are run
- * in process as the user; the launch data web service is called as the user. The auth endpoint and the deep linking return are
- * covered with the LTI 1.3 tests, and the service endpoints in the services tests.
+ * refused, and the standard roles, a user who is not enrolled and a guest are allowed or refused as on main. A refusal is held
+ * to how main refuses: a user in the course who lacks a capability gets a nopermissions exception that names the capability,
+ * a user who is not enrolled and a guest are redirected to enrol (PHPUnit runs as a CLI script, so a redirect shows as a
+ * redirecterrordetected exception and the address is not visible), and the launch data web service gives requireloginerror.
+ * The pages are run in process as the user; the launch data web service is called as the user. The auth endpoint and the
+ * deep linking return are covered with the LTI 1.3 tests, and the service endpoints in the services tests.
  *
  * @package    mod_lti
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
@@ -38,6 +41,9 @@ require_once(__DIR__ . '/service_calls_trait.php');
 final class capability_matrix_test extends \advanced_testcase {
     use characterisation_trait;
     use service_calls_trait;
+
+    /** @var string The refusal of a user who cannot enter the course: a redirect to enrol. */
+    private const REDIRECT_TO_ENROL = 'redirect to enrol';
 
     /** @var \stdClass The course. */
     private \stdClass $course;
@@ -66,22 +72,27 @@ final class capability_matrix_test extends \advanced_testcase {
      * The users to try on each page, and whether the page allows them: a user with exactly the capabilities the page needs, one
      * who lacks each of them in turn, the standard roles, a user who is not enrolled and a guest.
      *
+     * The last element of a case says how the page answers: null when it lets the user in, REDIRECT_TO_ENROL when it sends the
+     * user to enrol, or the capability the user lacks and the page names in its refusal.
+     *
      * @param array $archetypes page => [student, teacher, editingteacher, manager] allowed, as on main.
-     * @return array[]
+     * @return array[] [page, kind, capabilities, refusal]
      */
     private static function matrix(array $archetypes): array {
         $cases = [];
         foreach (self::pages() as $page => [$script, $capabilities]) {
             $cases["{$page}: user with {$capabilities[0]}" . (count($capabilities) > 1 ? ' and the rest' : '')] =
-                [$page, 'capabilities', $capabilities, true];
+                [$page, 'capabilities', $capabilities, null];
             foreach ($capabilities as $missing) {
-                $cases["{$page}: user without {$missing}"] = [$page, 'capabilities', array_diff($capabilities, [$missing]), false];
+                $cases["{$page}: user without {$missing}"] =
+                    [$page, 'capabilities', array_diff($capabilities, [$missing]), $missing];
             }
             foreach (['student', 'teacher', 'editingteacher', 'manager'] as $index => $role) {
-                $cases["{$page}: {$role}"] = [$page, $role, [], $archetypes[$page][$index]];
+                // A role that is refused lacks the first capability the page asks for.
+                $cases["{$page}: {$role}"] = [$page, $role, [], $archetypes[$page][$index] ? null : $capabilities[0]];
             }
-            $cases["{$page}: user not enrolled"] = [$page, 'notenrolled', [], false];
-            $cases["{$page}: guest"] = [$page, 'guest', [], false];
+            $cases["{$page}: user not enrolled"] = [$page, 'notenrolled', [], self::REDIRECT_TO_ENROL];
+            $cases["{$page}: guest"] = [$page, 'guest', [], self::REDIRECT_TO_ENROL];
         }
         return $cases;
     }
@@ -167,42 +178,58 @@ final class capability_matrix_test extends \advanced_testcase {
      * @param string $page the page.
      * @param string $kind the kind of user.
      * @param string[] $capabilities the capabilities of a user of kind capabilities.
-     * @param bool $allowed whether the page lets the user in.
+     * @param string|null $refusal null when the page lets the user in, REDIRECT_TO_ENROL when it sends the user to enrol, or the
+     *      capability the user lacks.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('page_cases')]
-    public function test_a_page_lets_in_only_who_may_use_it(string $page, string $kind, array $capabilities, bool $allowed): void {
+    public function test_a_page_lets_in_only_who_may_use_it(
+        string $page,
+        string $kind,
+        array $capabilities,
+        ?string $refusal
+    ): void {
         $this->resetAfterTest();
         $this->create_course_and_activity();
         $this->set_user($kind, $capabilities);
 
         [$output, $thrown] = $this->lti_run_script(self::pages()[$page][0], $this->page_parameters($page));
 
-        if ($allowed) {
+        if ($refusal === null) {
             $this->assertNull($thrown, $thrown ? get_class($thrown) . ': ' . $thrown->getMessage() : '');
             $this->assertNotEmpty($output);
+        } else if ($refusal === self::REDIRECT_TO_ENROL) {
+            $this->assertInstanceOf(\moodle_exception::class, $thrown);
+            $this->assertSame('redirecterrordetected', $thrown->errorcode, $thrown->getMessage());
         } else {
             $this->assertInstanceOf(\moodle_exception::class, $thrown);
+            $this->assertSame('nopermissions', $thrown->errorcode, $thrown->getMessage());
+            // The refusal names the capability, except on coursetools.php, which gives one message for any user it refuses.
+            $named = $page === 'coursetools.php'
+                ? get_string('courseexternaltoolsnoviewpermissions', 'mod_lti')
+                : get_capability_string($refusal);
+            $this->assertStringContainsString($named, $thrown->getMessage());
         }
     }
 
     /**
      * The users to try on the launch data web service, and whether it gives them the launch data: a user with exactly the
-     * capability to view, one without it, the standard roles, a user not enrolled, a guest, and the activity hidden.
+     * capability to view, one without it, the standard roles, a user not enrolled, a guest, and the activity hidden. The last
+     * element is null when the web service gives the launch data, or the reason it gives for refusing with requireloginerror.
      *
-     * @return array[] [kind, capabilities, activity visible, allowed]
+     * @return array[] [kind, capabilities, activity visible, refusal reason]
      */
     public static function web_service_cases(): array {
         return [
-            'user with mod/lti:view' => ['capabilities', ['mod/lti:view'], true, true],
-            'user without mod/lti:view' => ['capabilities', [], true, false],
-            'student' => ['student', [], true, true],
-            'teacher' => ['teacher', [], true, true],
-            'editingteacher' => ['editingteacher', [], true, true],
-            'manager' => ['manager', [], true, true],
-            'user not enrolled' => ['notenrolled', [], true, false],
-            'guest' => ['guest', [], true, false],
-            'student, activity hidden' => ['student', [], false, false],
-            'teacher, activity hidden' => ['editingteacher', [], false, true],
+            'user with mod/lti:view' => ['capabilities', ['mod/lti:view'], true, null],
+            'user without mod/lti:view' => ['capabilities', [], true, 'Activity is hidden'],
+            'student' => ['student', [], true, null],
+            'teacher' => ['teacher', [], true, null],
+            'editingteacher' => ['editingteacher', [], true, null],
+            'manager' => ['manager', [], true, null],
+            'user not enrolled' => ['notenrolled', [], true, 'Not enrolled'],
+            'guest' => ['guest', [], true, 'Not enrolled'],
+            'student, activity hidden' => ['student', [], false, 'Activity is hidden'],
+            'teacher, activity hidden' => ['editingteacher', [], false, null],
         ];
     }
 
@@ -212,27 +239,32 @@ final class capability_matrix_test extends \advanced_testcase {
      * @param string $kind the kind of user.
      * @param string[] $capabilities the capabilities of a user of kind capabilities.
      * @param bool $visible whether the activity is visible to students.
-     * @param bool $allowed whether the web service gives the user the launch data.
+     * @param string|null $refusal null when the web service gives the user the launch data, or why it refuses.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('web_service_cases')]
     public function test_the_launch_data_web_service_serves_only_who_may_view(
         string $kind,
         array $capabilities,
         bool $visible,
-        bool $allowed
+        ?string $refusal
     ): void {
         $this->resetAfterTest();
         $this->create_course_and_activity();
         $this->create_activity_visibility($visible);
         $this->set_user($kind, $capabilities);
 
-        if ($allowed) {
+        if ($refusal === null) {
             $data = $this->lti_ws_get_tool_launch_data($this->lti->id);
             $this->assertNotEmpty($data['endpoint']);
             $this->assertNotEmpty($data['parameters']);
         } else {
-            $this->expectException(\moodle_exception::class);
-            $this->lti_ws_get_tool_launch_data($this->lti->id);
+            try {
+                $this->lti_ws_get_tool_launch_data($this->lti->id);
+                $this->fail('The web service gave the launch data.');
+            } catch (\moodle_exception $e) {
+                $this->assertSame('requireloginerror', $e->errorcode, $e->getMessage());
+                $this->assertSame($refusal, $e->debuginfo);
+            }
         }
     }
 
@@ -268,6 +300,9 @@ final class capability_matrix_test extends \advanced_testcase {
      */
     public function test_a_request_for_an_activity_with_no_tool_url_adds_a_pending_tool(): void {
         global $DB;
+        $this->markTestSkipped(
+            'Skipped until MDL-90478 is fixed: request_tool.php raises a database error for an activity with no tool URL.'
+        );
         $this->resetAfterTest();
         $this->create_course_and_activity();
         $lti = $this->lti_create_activity($this->course->id, [
@@ -276,9 +311,6 @@ final class capability_matrix_test extends \advanced_testcase {
         ]);
         $this->setAdminUser();
         $before = $DB->count_records('lti_types');
-        $this->markTestSkipped(
-            'Skipped until MDL-90478 is fixed: request_tool.php raises a database error for an activity with no tool URL.'
-        );
 
         [$output, $thrown] = $this->lti_run_script('/mod/lti/request_tool.php', ['instanceid' => $lti->id, 'sesskey' => sesskey()]);
 

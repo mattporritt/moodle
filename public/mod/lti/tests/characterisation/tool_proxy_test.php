@@ -256,11 +256,11 @@ final class tool_proxy_test extends \advanced_testcase {
      * A tool proxy that asks for a service that does not exist is rejected, and no tool is added.
      */
     public function test_a_tool_proxy_asking_for_a_service_that_does_not_exist_is_rejected(): void {
-        $this->resetAfterTest();
-        $this->start_registration();
         $this->markTestSkipped(
             'Skipped until MDL-90477 is fixed: a tool proxy asking for an unknown service raises a TypeError.'
         );
+        $this->resetAfterTest();
+        $this->start_registration();
 
         $toolproxy = $this->tool_proxy();
         $toolproxy['security_contract']['tool_service'][0]['service'] = 'tcp:NoSuchService';

@@ -222,4 +222,22 @@ final class basic_outcomes_test extends \advanced_testcase {
         $this->assertSame('Message signature not valid', $thrown->getMessage());
         $this->assertNull($this->gradebook_grade());
     }
+
+    /**
+     * A call leaves the exception handler and the php:// streams as it found them, whether or not the endpoint answers.
+     */
+    public function test_a_call_leaves_the_exception_handler_and_streams_as_it_found_them(): void {
+        $this->resetAfterTest();
+        $this->create_course_and_activity();
+        $handler = $this->lti_exception_handler();
+
+        $this->post($this->lti_basic_outcomes_message('readResult', $this->sourcedid()));
+        $this->assertSame($handler, $this->lti_exception_handler());
+        $this->post($this->lti_basic_outcomes_message('readResult', $this->sourcedid()), 'wrongsecret');
+        $this->assertDebuggingCalled();
+        $this->assertSame($handler, $this->lti_exception_handler());
+
+        $this->assertContains('php', stream_get_wrappers());
+        $this->assertSame('', stream_get_contents(fopen('php://memory', 'r')));
+    }
 }

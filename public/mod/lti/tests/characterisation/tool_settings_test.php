@@ -320,11 +320,11 @@ final class tool_settings_test extends \advanced_testcase {
      * A tool that is not an LTI 2.0 tool proxy can write its settings.
      */
     public function test_a_tool_that_is_not_a_tool_proxy_writes_its_settings(): void {
-        $this->resetAfterTest();
-        $this->create_course_and_activity();
         $this->markTestSkipped(
             'Skipped until MDL-90476 is fixed: saving settings with no tool proxy fails, as toolproxyid is NOT NULL.'
         );
+        $this->resetAfterTest();
+        $this->create_course_and_activity();
 
         foreach (['system', 'context', 'link'] as $level) {
             $response = $this->call($level, 'PUT', self::SIMPLE, json_encode(['key' => $level]));
@@ -337,11 +337,11 @@ final class tool_settings_test extends \advanced_testcase {
      * The settings of a link that does not exist give a 404 and not an error.
      */
     public function test_the_settings_of_an_unknown_link_are_a_404(): void {
-        $this->resetAfterTest();
-        $this->create_course_and_activity();
         $this->markTestSkipped(
             'Skipped until MDL-90480 is fixed: an unknown link raises a missing record exception, not a 404.'
         );
+        $this->resetAfterTest();
+        $this->create_course_and_activity();
 
         $this->lti->id = $this->lti->id + 1000;
         $response = $this->call('link', 'GET', self::SIMPLE);

@@ -224,6 +224,10 @@ trait service_calls_trait {
                     $this->data = self::$input;
                     return true;
                 }
+                // Another php:// stream (php://output, php://memory, ...) must be the real one. PHP has one wrapper per protocol,
+                // so put the built-in wrapper back for the fopen and this one again straight after. This is safe because PHP runs
+                // one script at a time, nothing else can open a php:// stream in between, and the finally block of the call
+                // restores the built-in wrapper whatever happens here.
                 stream_wrapper_restore('php');
                 $this->real = fopen($path, $mode);
                 stream_wrapper_unregister('php');
@@ -284,19 +288,32 @@ trait service_calls_trait {
             }
         };
         $stream::$input = $body;
+        $handler = $this->lti_exception_handler();
         stream_wrapper_unregister('php');
         stream_wrapper_register('php', get_class($stream));
         try {
             [$output, $thrown] = $this->lti_run_script($this->lti_basic_outcomes_script());
         } finally {
             stream_wrapper_restore('php');
-            // The script installs its own exception handler; take it off again, as a web request ends.
-            set_exception_handler(null);
-            restore_exception_handler();
-            restore_exception_handler();
+            // The script installs its own exception handler, however many it installs; put back the one the test had, as a web
+            // request ends. The count is bounded by the handlers on the stack, so a stack without the handler cannot loop.
+            while (($current = $this->lti_exception_handler()) !== $handler && $current !== null) {
+                restore_exception_handler();
+            }
             $this->lti_clear_request();
         }
         return [$output, $thrown];
+    }
+
+    /**
+     * The exception handler that is set now, without changing it.
+     *
+     * @return callable|null the handler, or null when there is none.
+     */
+    private function lti_exception_handler(): mixed {
+        $current = set_exception_handler(null);
+        restore_exception_handler();
+        return $current;
     }
 
     /**

@@ -257,11 +257,11 @@ final class ags_refusals_test extends \advanced_testcase {
      * A line item cannot be created for a link that does not exist: the call gives a 404 and no line item is added.
      */
     public function test_a_line_item_for_an_unknown_link_gives_a_404(): void {
-        $this->resetAfterTest();
-        $this->create_course();
         $this->markTestSkipped(
             'Skipped until MDL-90480 is fixed: main answers 403 for a link that does not exist, not 404.'
         );
+        $this->resetAfterTest();
+        $this->create_course();
 
         $before = $this->lti_line_items($this->course->id);
         $response = $this->call(
