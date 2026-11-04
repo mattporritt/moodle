@@ -32,6 +32,9 @@ require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
  * is backed up and restored into a new course and copied. The line items of the new course have to be what the tool created,
  * attached to the new course's activity and grade items. The test uses core's backup and copy APIs only.
  *
+ * Out of scope for this test: the remapping of course tools on restore, and restoring into an existing course. They are not
+ * characterised here, and only the AGS line items are.
+ *
  * @package    mod_lti
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

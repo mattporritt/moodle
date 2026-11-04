@@ -22,14 +22,15 @@ global $CFG;
 require_once(__DIR__ . '/characterisation_trait.php');
 
 /**
- * Characterisation test: deleting a tool leaves no data of its own behind.
+ * Characterisation test: deleting a tool leaves no data of its own behind, apart from the known leftovers.
  *
  * The test finds the LTI tables that point at a tool (a typeid or toolid column) from the database itself, so that a table added
  * later, such as one for placements, is checked without this test being edited. After a tool is deleted, no such table may still
  * hold rows for it, except the tables that already did on Moodle main before the migration. Those are listed in
- * KNOWN_LEFTOVERS. They are defects to be fixed, not behaviour to keep: removing a table from the list is welcome, adding one is
- * a regression. The exception is the data of an activity, such as its resource link: it stays while the activity does, as the
- * activity itself does, and goes with the activity (decision D24).
+ * KNOWN_LEFTOVERS. They are defects to be fixed (MDL-90291), not behaviour to keep: adding a table to the list is a regression.
+ * The test also checks that each listed table still holds the rows it was given, so the patch that fixes a leftover fails this
+ * test until it removes the table from the list. The exception is the data of an activity, such as its resource link: it stays
+ * while the activity does, as the activity itself does, and goes with the activity.
  *
  * @package    mod_lti
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
@@ -40,22 +41,29 @@ final class tool_deletion_test extends \advanced_testcase {
     use characterisation_trait;
 
     /**
-     * Tables that keep rows for a deleted tool on Moodle main.
+     * Tables that keep rows for a deleted tool on Moodle main, because lti_delete_type() does not remove them (MDL-90291).
      *
-     * The activity table is here by design: activities of a deleted tool stay in their courses.
+     * The patch for MDL-90291 has to remove each table it fixes from this list.
      */
     private const KNOWN_LEFTOVERS = [
-        'lti', 'lti_coursevisible', 'lti_access_tokens', 'lti_tool_settings',
+        'lti_coursevisible', 'lti_access_tokens', 'lti_tool_settings',
     ];
 
     /**
-     * Tables that may hold rows for a deleted tool: the known leftovers, and the tables of the line items and of the resource
-     * links of activities, which keep their rows while the activity exists (D24).
+     * Tables that may hold rows for a deleted tool: the known leftovers, the activity table, and the tables of the line items and
+     * of the resource links of activities.
+     *
+     * The activity table is here by design: activities of a deleted tool stay in their courses, and so do the line items and
+     * resource links that belong to them, until the activity is deleted.
      *
      * @return string[]
      */
     private function expected_leftovers(): array {
-        return array_merge(self::KNOWN_LEFTOVERS, [$this->lti_gradebookservices_table()], $this->lti_activity_bound_tables());
+        return array_merge(
+            self::KNOWN_LEFTOVERS,
+            ['lti', $this->lti_gradebookservices_table()],
+            $this->lti_activity_bound_tables()
+        );
     }
 
     /**
@@ -86,7 +94,8 @@ final class tool_deletion_test extends \advanced_testcase {
     }
 
     /**
-     * Give the tool the data that using it creates: a course level visibility override and an access token for a service call.
+     * Give the tool the data that using it creates: a course level visibility override, an access token for a service call and a
+     * tool setting.
      *
      * The tables are legacy tables, so this does nothing where they no longer exist.
      *
@@ -105,12 +114,18 @@ final class tool_deletion_test extends \advanced_testcase {
                 'validuntil' => time() + HOURSECS, 'timecreated' => time(),
             ]);
         }
+        if ($manager->table_exists('lti_tool_settings')) {
+            $DB->insert_record('lti_tool_settings', [
+                'toolproxyid' => 0, 'typeid' => $typeid, 'course' => $courseid, 'settings' => '{}',
+                'timecreated' => time(), 'timemodified' => time(),
+            ]);
+        }
     }
 
     /**
-     * Deleting a tool removes its type, configuration and category restrictions, and nothing new is left behind.
+     * Deleting a tool removes its type, configuration and category restrictions, and leaves only the known leftovers behind.
      */
-    public function test_deleting_a_tool_leaves_no_orphan_data(): void {
+    public function test_deleting_a_tool_leaves_only_known_data(): void {
         global $DB;
         $this->resetAfterTest();
         $generator = $this->getDataGenerator();
@@ -138,15 +153,24 @@ final class tool_deletion_test extends \advanced_testcase {
         $this->lti_delete_tool($typeid);
 
         $this->assertFalse($DB->record_exists('lti_types', ['id' => $typeid]));
-        $leftovers = array_diff(array_keys($this->rows_for_tool($typeid)), $this->expected_leftovers());
+        $after = $this->rows_for_tool($typeid);
+        $leftovers = array_diff(array_keys($after), $this->expected_leftovers());
         $this->assertSame([], array_values($leftovers), 'Deleting the tool left data in: ' . implode(', ', $leftovers));
+
+        // Each known leftover still holds the rows it was given. When one is fixed, it has to leave the list.
+        $manager = $DB->get_manager();
+        foreach (self::KNOWN_LEFTOVERS as $table) {
+            if ($manager->table_exists($table)) {
+                $this->assertArrayHasKey($table, $after, "$table keeps no rows of a deleted tool: remove it from KNOWN_LEFTOVERS");
+            }
+        }
 
         // The activity is kept, and so is what belongs to it. The other tool is untouched.
         $this->assertTrue($DB->record_exists('lti', ['id' => $lti->id]));
         $this->assertSame(0, $this->lti_resource_links_without_activity($typeid));
         $this->assertSame($keeperbefore, $this->rows_for_tool($keeper));
 
-        // What belongs to the activity goes when the activity does, as the activity table does on its own.
+        // What belongs to the activity goes when the activity does.
         \core_courseformat\formatactions::cm($course)->delete($lti->cmid);
         $this->assertSame(0, $this->lti_resource_links_for_tool($typeid));
         $this->assertFalse($DB->record_exists('lti', ['id' => $lti->id]));

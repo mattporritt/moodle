@@ -29,7 +29,8 @@ require_once(__DIR__ . '/characterisation_trait.php');
  * before config.php is loaded. A script cannot be run in PHPUnit with these constants, because defining them would change every
  * later test in the process, so this test reads each script and asserts that the constants are defined first.
  *
- * It asserts the declaration, not the cookie. The cookie itself needs a web request, which is in the backlog of the P7 report.
+ * It asserts the declaration, not the cookie. Checking that no cookie is sent needs a real web request, which this test does not
+ * make.
  *
  * @package    mod_lti
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>

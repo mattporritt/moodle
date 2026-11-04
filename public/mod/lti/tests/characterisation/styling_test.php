@@ -42,7 +42,10 @@ final class styling_test extends \advanced_testcase {
         $css = \theme_config::load($themename)->get_css_content();
 
         foreach (['.tool-card', '.tool-card-content', '.contentitem-modal', '.ltiframe', '#choice-list'] as $selector) {
-            $this->assertStringContainsString($selector, $css, "The CSS of $themename has no style for $selector");
+            // The selector has to start a rule or a selector list item, and end at a selector boundary, so that ".tool-card" is
+            // not satisfied by ".tool-card-content" or by a match inside a declaration or a comment.
+            $pattern = '/(?:^|[}\s,>+~])' . preg_quote($selector, '/') . '(?=[\s,{:.\[>+~#])/m';
+            $this->assertMatchesRegularExpression($pattern, $css, "The CSS of $themename has no style for $selector");
         }
     }
 }

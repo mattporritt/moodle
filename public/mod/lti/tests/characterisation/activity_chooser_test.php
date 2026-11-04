@@ -36,13 +36,6 @@ require_once(__DIR__ . '/characterisation_trait.php');
 final class activity_chooser_test extends \advanced_testcase {
     use characterisation_trait;
 
-    /** @var int Tool visibility: not offered to courses. */
-    private const NOT_VISIBLE = 0;
-    /** @var int Tool visibility: available when adding an external tool, not in the chooser. */
-    private const PRECONFIGURED = 1;
-    /** @var int Tool visibility: shown in the chooser. */
-    private const CHOOSER = 2;
-
     /**
      * Create a site tool.
      *
@@ -78,9 +71,9 @@ final class activity_chooser_test extends \advanced_testcase {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
-        $typeid = $this->create_site_tool('Chooser tool', self::CHOOSER);
-        $this->create_site_tool('Preconfigured only tool', self::PRECONFIGURED);
-        $this->create_site_tool('Hidden tool', self::NOT_VISIBLE);
+        $typeid = $this->create_site_tool('Chooser tool', LTI_COURSEVISIBLE_ACTIVITYCHOOSER);
+        $this->create_site_tool('Preconfigured only tool', LTI_COURSEVISIBLE_PRECONFIGURED);
+        $this->create_site_tool('Hidden tool', LTI_COURSEVISIBLE_NO);
 
         $titles = $this->titles($teacher, $course);
 
@@ -103,7 +96,7 @@ final class activity_chooser_test extends \advanced_testcase {
         $other = $generator->create_course();
         $teacher = $generator->create_and_enrol($course, 'editingteacher');
         $generator->enrol_user($teacher->id, $other->id, 'editingteacher');
-        $typeid = $this->create_site_tool('Toggled tool', self::CHOOSER);
+        $typeid = $this->create_site_tool('Toggled tool', LTI_COURSEVISIBLE_ACTIVITYCHOOSER);
 
         $this->setUser($teacher);
         $this->lti_set_chooser_visibility($typeid, (int) $course->id, false);
@@ -145,21 +138,21 @@ final class activity_chooser_test extends \advanced_testcase {
         $outside = $generator->create_course(['category' => $other->id]);
         $teacher = $generator->create_and_enrol($incategory, 'editingteacher');
         $generator->enrol_user($teacher->id, $outside->id, 'editingteacher');
-        $this->create_site_tool('Restricted tool', self::CHOOSER, ['lti_coursecategories' => $allowed->id]);
+        $this->create_site_tool('Restricted tool', LTI_COURSEVISIBLE_ACTIVITYCHOOSER, ['lti_coursecategories' => $allowed->id]);
 
         $this->assertContains('Restricted tool', $this->titles($teacher, $incategory));
         $this->assertNotContains('Restricted tool', $this->titles($teacher, $outside));
     }
 
     /**
-     * Tools are offered only to someone who may add preconfigured tools, and the manual entry only to someone who may add them.
+     * Tools are offered only to someone who may add preconfigured tools.
      */
     public function test_tools_need_permission_to_use(): void {
         global $DB;
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
-        $this->create_site_tool('Permission tool', self::CHOOSER);
+        $this->create_site_tool('Permission tool', LTI_COURSEVISIBLE_ACTIVITYCHOOSER);
         $this->assertContains('Permission tool', $this->titles($teacher, $course));
 
         $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);

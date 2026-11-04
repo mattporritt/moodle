@@ -38,7 +38,7 @@ require_once($CFG->dirroot . '/mod/lti/locallib.php');
  *  - ltiservice_gradebookservices (table) => ltixservice_gradebookservices
  *  - the deep linking return URL's course parameter => contextid
  *  - the course of a tool restricted to a category, which has to be inside the category once the restriction is applied
- *  - resource links, which keep a deleted tool's activities launchable (D24)
+ *  - resource links, which keep a deleted tool's activities launchable until the activity is deleted
  *  - lti_delete_type()          => \core_ltix\helper::delete_type()
  *  - jwks_helper (mod_lti)      => \core_ltix\local\ltiopenid\jwks_helper
  *  - mod_lti generator          => core_ltix generator (create_tool_types)
@@ -263,8 +263,8 @@ trait characterisation_trait {
     /**
      * The LTI entries in the activity chooser, as the user sees them in a course.
      *
-     * The chooser is core's content item service, so this only names the service, not any LTI code. It includes the "External
-     * tool" entry that adds an activity with no tool.
+     * The chooser is core's content item service, so this only names the service, not any LTI code. The entries are the
+     * preconfigured tools that are shown in the chooser.
      *
      * @param \stdClass $user the user.
      * @param \stdClass $course the course.
