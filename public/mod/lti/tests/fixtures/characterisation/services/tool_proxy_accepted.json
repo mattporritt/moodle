@@ -1,0 +1,6 @@
+{
+    "@context": "http://purl.imsglobal.org/ctx/lti/v2/ToolProxyId",
+    "@id": "{{wwwroot}}/mod/lti/services.php/toolproxy",
+    "@type": "ToolProxy",
+    "tool_proxy_guid": "{{guid}}"
+}
