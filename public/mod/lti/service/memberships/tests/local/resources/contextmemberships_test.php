@@ -29,23 +29,84 @@ use mod_lti\local\ltiservice\response;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(contextmemberships::class)]
 final class contextmemberships_test extends \advanced_testcase {
+    #[\Override]
+    protected function tearDown(): void {
+        unset($_SERVER['HTTP_AUTHORIZATION']);
+        parent::tearDown();
+    }
+
     /**
-     * A request that fails authentication is refused with a 401 and the standard reason, without PHP errors.
+     * Run the resource against a simulated request and return the response.
+     *
+     * @param int $courseid The course id in the request path.
+     * @param int $typeid The tool type id in the request path.
+     * @param string|null $authorization The Authorization header value, if any.
+     * @return response
      */
-    public function test_execute_unauthenticated_request_is_refused(): void {
+    private function execute_resource(int $courseid, int $typeid, ?string $authorization): response {
         global $CFG;
         require_once($CFG->dirroot . '/mod/lti/locallib.php');
-        $this->resetAfterTest();
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['PATH_INFO'] = '/CourseSection/1/bindings/1/memberships';
-        $_GET = ['type_id' => '1'];
+        $_SERVER['PATH_INFO'] = "/CourseSection/{$courseid}/bindings/{$typeid}/memberships";
+        $_GET = [];
+        if ($authorization !== null) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $authorization;
+        }
 
         $response = new response();
         $response->set_accept('application/vnd.ims.lti-nrps.v2.membershipcontainer+json');
         (new contextmemberships(new memberships()))->execute($response);
+        return $response;
+    }
+
+    /**
+     * A request that fails authentication is refused with a 401 and the standard reason, without PHP errors.
+     *
+     * @param string|null $authorization The Authorization header value, if any.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('unauthenticated_provider')]
+    public function test_execute_unauthenticated_request_is_refused(?string $authorization): void {
+        $this->resetAfterTest();
+
+        $response = $this->execute_resource(1, 1, $authorization);
 
         $this->assertSame(401, $response->get_code());
         $this->assertSame('Unauthorized', $response->get_reason());
+    }
+
+    /**
+     * Data provider for the unauthenticated request test.
+     *
+     * @return array
+     */
+    public static function unauthenticated_provider(): array {
+        return [
+            'without a token' => [null],
+            'with an invalid bearer token' => ['Bearer notarealtoken'],
+        ];
+    }
+
+    /**
+     * A request for a course the tool is not allowed in is refused with a 404 and the standard reason.
+     */
+    public function test_execute_tool_not_allowed_in_course_is_refused(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $othercourse = $this->getDataGenerator()->create_course();
+        $typeid = $this->getDataGenerator()->get_plugin_generator('mod_lti')->create_tool_types([
+            'name' => 'Test tool',
+            'baseurl' => 'https://example.com/tool',
+            'course' => $othercourse->id,
+            'ltiservice_memberships' => memberships::SERVICE_ENABLED,
+        ]);
+        $token = lti_new_access_token($typeid, [memberships::SCOPE_MEMBERSHIPS_READ]);
+
+        $response = $this->execute_resource($course->id, $typeid, 'Bearer ' . $token->token);
+
+        $this->assertSame(404, $response->get_code());
+        $this->assertSame('Not Found', $response->get_reason());
     }
 }
