@@ -62,6 +62,13 @@ if (!$ok) {
     $error = 'invalid_request';
     $desc = 'No launch id in LTI hint';
 }
+if ($ok) {
+    // Load the tool first, as its redirect URIs are needed to return any of the errors below.
+    $launchid = $ltimessagehint->launchid;
+    [$courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64] = explode(',', $SESSION->$launchid, 7);
+    unset($SESSION->$launchid);
+    $config = lti_get_type_type_config($typeid);
+}
 if ($ok && ($scope !== 'openid')) {
     $ok = false;
     $error = 'invalid_scope';
@@ -71,10 +78,6 @@ if ($ok && ($responsetype !== 'id_token')) {
     $error = 'unsupported_response_type';
 }
 if ($ok) {
-    $launchid = $ltimessagehint->launchid;
-    list($courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64) = explode(',', $SESSION->$launchid, 7);
-    unset($SESSION->$launchid);
-    $config = lti_get_type_type_config($typeid);
     $ok = ($clientid === $config->lti_clientid);
     if (!$ok) {
         $error = 'unauthorized_client';
