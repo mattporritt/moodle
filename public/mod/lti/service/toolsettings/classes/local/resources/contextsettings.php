@@ -198,7 +198,8 @@ class contextsettings extends \mod_lti\local\ltiservice\resource_base {
                 $this->params['product_code'] = $this->get_service()->get_tool_proxy()->guid;
             } else {
                 $this->params['vendor_code'] = 'tool';
-                $this->params['product_code'] = $this->get_service()->get_type()->id;
+                // Manually configured instances have no tool type.
+                $this->params['product_code'] = $this->get_service()->get_type()->id ?? 0;
             }
             $value = str_replace('$ToolProxyBinding.custom.url', parent::get_endpoint(), $value);
         }

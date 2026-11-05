@@ -66,6 +66,7 @@ require_once($CFG->dirroot . '/mod/lti/tests/mod_lti_testcase.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_split_parameters')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('lti_split_custom_parameters')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_get_tools_by_domain')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_tool_configuration_from_content_item')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_get_launch_data')]
@@ -124,10 +125,58 @@ final class locallib_test extends mod_lti_testcase {
     public function test_split_custom_parameters_without_tool(): void {
         $this->resetAfterTest();
 
-        $this->assertEquals(
-            ['custom_param' => 'test', 'custom_param2' => 'test2'],
-            lti_split_custom_parameters(null, null, [], "param=test\nparam2=test2", false)
-        );
+        $actual = lti_split_custom_parameters(null, null, [], "param=test\nparam2=test2", false);
+        $this->assertEquals(['custom_param' => 'test', 'custom_param2' => 'test2'], $actual);
+
+        // A key changed by lti_map_keyname() only gets the mapped name, as for any non LTI 1.3 launch.
+        $actual = lti_split_custom_parameters(null, null, [], "my-key=test", false);
+        $this->assertEquals(['custom_my_key' => 'test'], $actual);
+    }
+
+    /**
+     * An LTI 1.3 tool, or any LTI 2 launch, also gets the original key when it differs from the mapped key.
+     */
+    public function test_split_custom_parameters_original_key_by_ltiversion(): void {
+        $this->resetAfterTest();
+
+        $tool = new \stdClass();
+        $tool->enabledcapability = '';
+        $tool->parameter = '';
+
+        $tool->ltiversion = LTI_VERSION_1P3;
+        $actual = lti_split_custom_parameters(null, $tool, [], "my-key=test", false);
+        $this->assertEquals(['custom_my_key' => 'test', 'custom_my-key' => 'test'], $actual);
+
+        $tool->ltiversion = LTI_VERSION_1;
+        $actual = lti_split_custom_parameters(null, $tool, [], "my-key=test", false);
+        $this->assertEquals(['custom_my_key' => 'test'], $actual);
+
+        $actual = lti_split_custom_parameters(null, null, [], "my-key=test", true);
+        $this->assertEquals(['custom_my_key' => 'test', 'custom_my-key' => 'test'], $actual);
+    }
+
+    /**
+     * Service custom parameter variables resolve for a manual instance with no tool type (null tool) without an error.
+     */
+    public function test_split_custom_parameters_service_variables_without_tool(): void {
+        global $COURSE, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $COURSE = $this->getDataGenerator()->create_course();
+
+        $params = ['lis_person_name_full' => fullname($USER)];
+        $custom = "svc=\$ToolProxyBinding.memberships.url\n" .
+            "settings=\$ToolProxyBinding.custom.url\n" .
+            "plain=\$Person.name.full";
+        $values = lti_split_custom_parameters(null, null, $params, $custom, false);
+
+        $this->assertStringContainsString('/mod/lti/services.php/', $values['custom_svc']);
+        $this->assertStringContainsString('/memberships', $values['custom_svc']);
+        $this->assertStringNotContainsString('$ToolProxyBinding', $values['custom_svc']);
+        $this->assertStringContainsString('/mod/lti/services.php/', $values['custom_settings']);
+        $this->assertStringNotContainsString('$ToolProxyBinding', $values['custom_settings']);
+        $this->assertSame(fullname($USER), $values['custom_plain']);
     }
 
     /**
