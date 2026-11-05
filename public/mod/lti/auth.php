@@ -64,10 +64,17 @@ if (!$ok) {
 }
 if ($ok) {
     // Load the tool first, as its redirect URIs are needed to return any of the errors below.
+    // If the launch is not in the session (expired, replayed or forged hint) no config is loaded, and the
+    // request is refused below as there is no trusted redirect URI.
     $launchid = $ltimessagehint->launchid;
-    [$courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64] = explode(',', $SESSION->$launchid, 7);
-    unset($SESSION->$launchid);
-    $config = lti_get_type_type_config($typeid);
+    if (isset($SESSION->$launchid)) {
+        [$courseid, $typeid, $id, $messagetype, $foruserid, $titleb64, $textb64] = explode(',', $SESSION->$launchid, 7);
+        $config = lti_get_type_type_config($typeid);
+    } else {
+        $ok = false;
+        $error = 'invalid_request';
+        $desc = 'Unknown launch id in LTI hint';
+    }
 }
 if ($ok && ($scope !== 'openid')) {
     $ok = false;
@@ -78,6 +85,9 @@ if ($ok && ($responsetype !== 'id_token')) {
     $error = 'unsupported_response_type';
 }
 if ($ok) {
+    // The launch is single use. It is only consumed once the scope and response type checks have passed,
+    // so a tool that is sent invalid_scope or unsupported_response_type can retry with the same hints.
+    unset($SESSION->$launchid);
     $ok = ($clientid === $config->lti_clientid);
     if (!$ok) {
         $error = 'unauthorized_client';
