@@ -19,6 +19,8 @@ namespace mod_lti;
 /**
  * Tests for the LTI 1.3 authentication endpoint, mod/lti/auth.php.
  *
+ * The endpoint is a script, not a class or function, so there is nothing for a covers attribute to name.
+ *
  * @package    mod_lti
  * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -26,13 +28,12 @@ namespace mod_lti;
 #[\PHPUnit\Framework\Attributes\CoversNothing]
 final class auth_test extends \advanced_testcase {
     /**
-     * Send an authentication request for a started launch to the endpoint.
+     * Start a launch, and return the login request fields the platform sends to the tool.
      *
-     * @param array $override request fields to change.
-     * @return array [output, throwable or null]
+     * @return array
      */
-    private function authenticate(array $override): array {
-        global $CFG, $USER, $SESSION, $DB, $PAGE, $OUTPUT;
+    private function start_launch(): array {
+        global $CFG;
         require_once($CFG->dirroot . '/mod/lti/locallib.php');
 
         $course = $this->getDataGenerator()->create_course();
@@ -45,12 +46,18 @@ final class auth_test extends \advanced_testcase {
         ]);
         $this->setAdminUser();
         $form = lti_initiate_login($course->id, 0, null, lti_get_type_type_config($typeid), 'basic-lti-launch-request');
-        $document = new \DOMDocument();
-        @$document->loadHTML($form);
-        $login = [];
-        foreach ($document->getElementsByTagName('input') as $input) {
-            $login[$input->getAttribute('name')] = $input->getAttribute('value');
-        }
+        return $this->form_fields($form);
+    }
+
+    /**
+     * Send an authentication request to the endpoint.
+     *
+     * @param array $login the login request fields from {@see self::start_launch()}.
+     * @param array $override request fields to change.
+     * @return array [output, throwable or null]
+     */
+    private function send_request(array $login, array $override): array {
+        global $CFG, $USER, $SESSION, $DB, $PAGE, $OUTPUT;
 
         $_POST = $override + [
             'scope' => 'openid', 'response_type' => 'id_token', 'response_mode' => 'form_post',
@@ -61,17 +68,28 @@ final class auth_test extends \advanced_testcase {
         $_REQUEST = $_POST;
         $thrown = null;
         $workingdirectory = getcwd();
-        chdir($CFG->dirroot . '/mod/lti');
         ob_start();
         try {
+            chdir($CFG->dirroot . '/mod/lti');
             include($CFG->dirroot . '/mod/lti/auth.php');
         } catch (\Throwable $e) {
             $thrown = $e;
+        } finally {
+            $output = ob_get_clean();
+            chdir($workingdirectory);
+            $_POST = $_REQUEST = [];
         }
-        $output = ob_get_clean();
-        chdir($workingdirectory);
-        $_POST = $_REQUEST = [];
         return [$output, $thrown];
+    }
+
+    /**
+     * Start a launch and send an authentication request for it.
+     *
+     * @param array $override request fields to change.
+     * @return array [output, throwable or null]
+     */
+    private function authenticate(array $override): array {
+        return $this->send_request($this->start_launch(), $override);
     }
 
     /**
@@ -122,8 +140,27 @@ final class auth_test extends \advanced_testcase {
         return [
             'Unsupported response type' => [['response_type' => 'code'], 'unsupported_response_type'],
             'Invalid scope' => [['scope' => 'profile'], 'invalid_scope'],
+            'Invalid scope and unsupported response type' => [
+                ['scope' => 'profile', 'response_type' => 'code'], 'invalid_scope',
+            ],
             'Unknown client' => [['client_id' => 'someone-else'], 'unauthorized_client'],
+            'Login hint for a different user' => [['login_hint' => '-1'], 'access_denied'],
         ];
+    }
+
+    /**
+     * A valid request is not answered with an error.
+     */
+    public function test_valid_request_is_not_an_error(): void {
+        $this->resetAfterTest();
+
+        [$output, $thrown] = $this->authenticate([]);
+
+        $this->assertNull($thrown);
+        $fields = $this->form_fields($output);
+        $this->assertArrayNotHasKey('error', $fields);
+        $this->assertSame('tool-state', $fields['state']);
+        $this->assertArrayHasKey('id_token', $fields);
     }
 
     /**
@@ -139,5 +176,54 @@ final class auth_test extends \advanced_testcase {
 
         $this->assertInstanceOf(\moodle_exception::class, $thrown);
         $this->assertStringNotContainsString('evil.example.com', $output);
+    }
+
+    /**
+     * A launch id that is not in the session is refused as there is no trusted redirect URI.
+     *
+     * @param array $override request fields to change.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('unknown_launch_provider')]
+    public function test_unknown_launch_is_refused(array $override): void {
+        $this->resetAfterTest();
+
+        [$output, $thrown] = $this->authenticate(
+            ['lti_message_hint' => json_encode(['launchid' => 'ltilaunch-unknown'])] + $override
+        );
+
+        $this->assertInstanceOf(\moodle_exception::class, $thrown);
+        $this->assertSame('invalidrequest', $thrown->errorcode);
+        $this->assertStringNotContainsString('tool.example.com', $output);
+    }
+
+    /**
+     * Requests with an unknown launch id.
+     *
+     * @return array
+     */
+    public static function unknown_launch_provider(): array {
+        return [
+            'Valid parameters' => [[]],
+            'Unsupported response type' => [['response_type' => 'code']],
+            'Invalid scope' => [['scope' => 'profile']],
+        ];
+    }
+
+    /**
+     * A launch is not consumed by an invalid scope or unsupported response type, so the tool can retry.
+     */
+    public function test_launch_survives_scope_and_response_type_errors(): void {
+        $this->resetAfterTest();
+        $login = $this->start_launch();
+
+        [$output, $thrown] = $this->send_request($login, ['response_type' => 'code']);
+        $this->assertNull($thrown);
+        $this->assertSame('unsupported_response_type', $this->form_fields($output)['error']);
+
+        [$output, $thrown] = $this->send_request($login, []);
+        $this->assertNull($thrown);
+        $fields = $this->form_fields($output);
+        $this->assertArrayNotHasKey('error', $fields);
+        $this->assertArrayHasKey('id_token', $fields);
     }
 }
