@@ -194,8 +194,10 @@ abstract class resource_base {
             $url = str_replace('{config_type}', 'toolproxy', $url);
             $url = str_replace('{tool_proxy_id}', $toolproxy->guid, $url);
         } else {
+            // Manually configured instances have no tool type, so fall back to the typeid of 0 they are stored with.
+            $type = $this->get_service()->get_type();
             $url = str_replace('{config_type}', 'tool', $url);
-            $url = str_replace('{tool_proxy_id}', $this->get_service()->get_type()->id, $url);
+            $url = str_replace('{tool_proxy_id}', $type->id ?? 0, $url);
         }
 
         return $url;
