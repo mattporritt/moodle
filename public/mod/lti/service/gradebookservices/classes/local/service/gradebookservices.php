@@ -745,7 +745,9 @@ class gradebookservices extends service_base {
                     $gbs->subreviewurl = $subreviewurlstr;
                     $gbs->subreviewparams = $subreviewparams;
                     $DB->update_record('ltiservice_gradebookservices', $gbs);
-                } else {
+                } else if ($DB->record_exists('lti_types', ['id' => $ltiinstance->typeid])) {
+                    // Only create the row while the tool still exists. Deleting a tool removes its rows, and an
+                    // activity left behind must not recreate one that points at the deleted tool.
                     $baseurl = lti_get_type_type_config($ltiinstance->typeid)->lti_toolurl;
                     $DB->insert_record('ltiservice_gradebookservices', (object)array(
                         'gradeitemid' => $gradeitem->id,

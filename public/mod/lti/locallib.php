@@ -2540,6 +2540,11 @@ function lti_delete_type($id) {
         $DB->update_record('lti', $instance);
     }*/
 
+    // Delete the type and everything that references it together, so a failure cannot leave a half-deleted tool behind.
+    // The lti activity table and grade items are deliberately left alone. That includes the per-activity line item
+    // settings (resource id, tag, submission review) which gradebookservices holds against the type id: the tool can
+    // no longer be launched or called, so nothing can reach those rows, and keeping them would only leave orphans.
+    $transaction = $DB->start_delegated_transaction();
     $DB->delete_records('lti_types', array('id' => $id));
     $DB->delete_records('lti_types_config', array('typeid' => $id));
     $DB->delete_records('lti_types_categories', array('typeid' => $id));
@@ -2547,6 +2552,7 @@ function lti_delete_type($id) {
     $DB->delete_records('lti_access_tokens', ['typeid' => $id]);
     $DB->delete_records('lti_tool_settings', ['typeid' => $id]);
     $DB->delete_records('ltiservice_gradebookservices', ['typeid' => $id]);
+    $transaction->allow_commit();
 }
 
 function lti_set_state_for_type($id, $state) {

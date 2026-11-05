@@ -53,6 +53,7 @@
  * @return boolean
  */
 function xmldb_ltiservice_gradebookservices_upgrade($oldversion) {
+    global $DB;
 
     // Automatically generated Moodle v4.4.0 release upgrade line.
     // Put any upgrade step following this.
@@ -68,6 +69,16 @@ function xmldb_ltiservice_gradebookservices_upgrade($oldversion) {
 
     // Automatically generated Moodle v5.2.0 release upgrade line.
     // Put any upgrade step following this.
+
+    if ($oldversion < 2026042001) {
+        // Deleting a tool used to leave its line item rows behind. Remove the rows whose tool no longer exists.
+        $DB->execute("DELETE FROM {ltiservice_gradebookservices}
+                            WHERE typeid > 0
+                              AND NOT EXISTS (SELECT 1 FROM {lti_types} t WHERE t.id = {ltiservice_gradebookservices}.typeid)");
+
+        // Gradebookservices savepoint reached.
+        upgrade_plugin_savepoint(true, 2026042001, 'ltiservice', 'gradebookservices');
+    }
 
     return true;
 }

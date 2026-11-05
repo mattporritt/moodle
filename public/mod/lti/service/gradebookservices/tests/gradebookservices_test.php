@@ -38,6 +38,30 @@ final class gradebookservices_test extends \advanced_testcase {
     }
 
     /**
+     * Test that saving an LTI activity whose tool has been deleted does not recreate a gradebookservices row
+     * that points at the deleted tool.
+     *
+     * @covers ::update_coupled_gradebookservices
+     */
+    public function test_update_coupled_gradebookservices_after_tool_deleted(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $typeid = $this->create_type();
+        $course = $this->getDataGenerator()->create_course();
+        $ltiinstance = $this->create_graded_lti($typeid, $course, 'resource', 'tag');
+        $this->assertEquals(1, $DB->count_records('ltiservice_gradebookservices', ['typeid' => $typeid]));
+
+        lti_delete_type($typeid);
+        $this->assertEquals(0, $DB->count_records('ltiservice_gradebookservices', ['typeid' => $typeid]));
+
+        gradebookservices::update_coupled_gradebookservices($ltiinstance, 'resource2', 'tag2', null, null);
+
+        $this->assertEquals(0, $DB->count_records('ltiservice_gradebookservices', ['typeid' => $typeid]));
+    }
+
+    /**
      * @covers ::instance_added
      *
      * Test saving a graded LTI with resource and tag info (as a result of
