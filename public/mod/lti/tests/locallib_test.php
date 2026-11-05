@@ -73,6 +73,7 @@ require_once($CFG->dirroot . '/mod/lti/tests/mod_lti_testcase.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_load_cartridge')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_get_lti_types_by_course')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('lti_delete_type')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('lti_delete_tool_proxy')]
 final class locallib_test extends mod_lti_testcase {
     /**
      * Test the split parameters function
@@ -2416,5 +2417,111 @@ MwIDAQAB
         }
         $this->assertFalse($DB->record_exists('lti_types', ['id' => $typeids[1]]));
         $this->assertTrue($DB->record_exists('lti_types', ['id' => $typeids[2]]));
+    }
+
+    /**
+     * Test that deleting a tool proxy removes the rows of the tool types it owns, and leaves other tools alone.
+     */
+    public function test_lti_delete_tool_proxy_removes_referencing_rows(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_lti');
+        $tables = ['lti_coursevisible', 'lti_access_tokens', 'lti_tool_settings', 'ltiservice_gradebookservices'];
+
+        $proxyid = $DB->insert_record('lti_tool_proxies', (object) [
+            'name' => 'Proxy',
+            'state' => LTI_TOOL_PROXY_STATE_ACCEPTED,
+            'capabilityoffered' => '',
+            'serviceoffered' => '',
+            'createdby' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $typeids = [];
+        foreach ([1, 2] as $i) {
+            $typeid = $generator->create_tool_types([
+                'name' => "Tool $i",
+                'baseurl' => "https://example.com/tool/$i",
+                'state' => LTI_TOOL_STATE_CONFIGURED,
+            ]);
+            // Only the first tool belongs to the proxy that is deleted.
+            $DB->set_field('lti_types', 'toolproxyid', $i === 1 ? $proxyid : 0, ['id' => $typeid]);
+            $DB->insert_record('lti_coursevisible', ['typeid' => $typeid, 'courseid' => $course->id, 'coursevisible' => 1]);
+            $DB->insert_record('lti_access_tokens', [
+                'typeid' => $typeid,
+                'scope' => '[]',
+                'token' => "token$i",
+                'validuntil' => time() + HOURSECS,
+                'timecreated' => time(),
+                'lastaccess' => null,
+            ]);
+            $DB->insert_record('lti_tool_settings', [
+                'toolproxyid' => 0,
+                'typeid' => $typeid,
+                'course' => $course->id,
+                'coursemoduleid' => null,
+                'settings' => '{}',
+                'timecreated' => time(),
+                'timemodified' => time(),
+            ]);
+            $DB->insert_record('ltiservice_gradebookservices', [
+                'gradeitemid' => $i,
+                'courseid' => $course->id,
+                'typeid' => $typeid,
+            ]);
+            $typeids[$i] = $typeid;
+        }
+        // Settings stored against the proxy itself, rather than a tool type.
+        $DB->insert_record('lti_tool_settings', [
+            'toolproxyid' => $proxyid,
+            'typeid' => null,
+            'course' => $course->id,
+            'coursemoduleid' => null,
+            'settings' => '{}',
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        lti_delete_tool_proxy($proxyid);
+
+        foreach ($tables as $table) {
+            $this->assertEquals(0, $DB->count_records($table, ['typeid' => $typeids[1]]), "Rows left in $table");
+            $this->assertEquals(1, $DB->count_records($table, ['typeid' => $typeids[2]]), "Other tool's row removed from $table");
+        }
+        $this->assertEquals(0, $DB->count_records('lti_tool_settings', ['toolproxyid' => $proxyid]));
+        $this->assertFalse($DB->record_exists('lti_tool_proxies', ['id' => $proxyid]));
+        $this->assertTrue($DB->record_exists('lti_types', ['id' => $typeids[2]]));
+    }
+
+    /**
+     * Test that deleting a tool type leaves the lti activity and its grade item in place.
+     */
+    public function test_lti_delete_type_keeps_activity_and_grade_item(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_lti');
+        $typeid = $generator->create_tool_types([
+            'name' => 'Tool',
+            'baseurl' => 'https://example.com/tool',
+            'state' => LTI_TOOL_STATE_CONFIGURED,
+        ]);
+        $lti = $this->getDataGenerator()->create_module('lti', [
+            'course' => $course->id,
+            'typeid' => $typeid,
+            'instructorchoiceacceptgrades' => LTI_SETTING_ALWAYS,
+            'grade' => 10,
+        ]);
+
+        lti_delete_type($typeid);
+
+        $this->assertEquals($typeid, $DB->get_field('lti', 'typeid', ['id' => $lti->id]));
+        $this->assertTrue($DB->record_exists('grade_items', ['itemmodule' => 'lti', 'iteminstance' => $lti->id]));
+        $this->assertFalse($DB->record_exists('lti_types', ['id' => $typeid]));
     }
 }

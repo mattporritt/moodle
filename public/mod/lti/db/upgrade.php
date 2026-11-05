@@ -91,5 +91,17 @@ function xmldb_lti_upgrade($oldversion) {
     // Automatically generated Moodle v5.3.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2026100501) {
+        // Deleting a tool used to leave its rows behind in these tables. Remove the rows whose tool no longer exists.
+        foreach (['lti_coursevisible', 'lti_access_tokens', 'lti_tool_settings'] as $table) {
+            $DB->execute("DELETE FROM {{$table}}
+                                WHERE typeid > 0
+                                  AND NOT EXISTS (SELECT 1 FROM {lti_types} t WHERE t.id = {{$table}}.typeid)");
+        }
+
+        // Lti savepoint reached.
+        upgrade_mod_savepoint(true, 2026100501, 'lti');
+    }
+
     return true;
 }
