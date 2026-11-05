@@ -82,14 +82,14 @@ class contextmemberships extends resource_base {
         try {
             if (!$this->check_tool($params['tool_code'], $response->get_request_data(),
                 array(memberships::SCOPE_MEMBERSHIPS_READ))) {
-                throw new \Exception(null, 401);
+                throw new \Exception('', 401);
             }
             if (!($course = $DB->get_record('course', array('id' => $params['context_id']), 'id,shortname,fullname',
                 IGNORE_MISSING))) {
                 throw new \Exception("Not Found: Course {$params['context_id']} doesn't exist", 404);
             }
             if (!$this->get_service()->is_allowed_in_context($params['tool_code'], $course->id)) {
-                throw new \Exception(null, 404);
+                throw new \Exception('', 404);
             }
             if (!($context = \context_course::instance($course->id))) {
                 throw new \Exception("Not Found: Course instance {$course->id} doesn't exist", 404);

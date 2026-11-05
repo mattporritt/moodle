@@ -84,7 +84,7 @@ class lineitems extends resource_base {
 
         try {
             if (!$this->check_tool($typeid, $response->get_request_data(), $scopes)) {
-                throw new \Exception(null, 401);
+                throw new \Exception('', 401);
             }
             $typeid = $this->get_service()->get_type()->id;
             if (empty($contextid) || !($container ^ ($response->get_request_method() === self::HTTP_POST)) ||
@@ -239,7 +239,7 @@ class lineitems extends resource_base {
         if (is_numeric($json->scoreMaximum)) {
             $max = $json->scoreMaximum;
         } else {
-            throw new \Exception(null, 400);
+            throw new \Exception('', 400);
         }
         require_once($CFG->libdir.'/gradelib.php');
         $resourceid = (isset($json->resourceId)) ? $json->resourceId : '';
@@ -250,11 +250,11 @@ class lineitems extends resource_base {
         if ($ltilinkid != null) {
             if (is_null($typeid)) {
                 if (!gradebookservices::check_lti_id($ltilinkid, $contextid, $this->get_service()->get_tool_proxy()->id)) {
-                    throw new \Exception(null, 403);
+                    throw new \Exception('', 403);
                 }
             } else {
                 if (!gradebookservices::check_lti_1x_id($ltilinkid, $contextid, $typeid)) {
-                    throw new \Exception(null, 403);
+                    throw new \Exception('', 403);
                 }
             }
         }
