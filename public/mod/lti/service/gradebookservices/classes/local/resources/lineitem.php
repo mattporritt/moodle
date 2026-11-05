@@ -79,7 +79,7 @@ class lineitem extends resource_base {
 
         try {
             if (!$this->check_tool($typeid, $response->get_request_data(), $scopes)) {
-                throw new \Exception(null, 401);
+                throw new \Exception('', 401);
             }
             $typeid = $this->get_service()->get_type()->id;
             if (!($course = $DB->get_record('course', array('id' => $contextid), 'id', IGNORE_MISSING))) {
@@ -148,7 +148,7 @@ class lineitem extends resource_base {
         if (empty($json) ||
                 !isset($json->scoreMaximum) ||
                 !isset($json->label)) {
-            throw new \Exception(null, 400);
+            throw new \Exception('', 400);
         }
         $item = \grade_item::fetch(array('id' => $olditem->id, 'courseid' => $olditem->courseid));
         $gbs = gradebookservices::find_ltiservice_gradebookservice_for_lineitem($olditem->id);
@@ -161,7 +161,7 @@ class lineitem extends resource_base {
         }
         $item->itemname = $json->label;
         if (!is_numeric($json->scoreMaximum)) {
-            throw new \Exception(null, 400);
+            throw new \Exception('', 400);
         } else {
             if (grade_floats_different($oldgrademax,
                     grade_floatval($json->scoreMaximum))) {
@@ -208,7 +208,7 @@ class lineitem extends resource_base {
                     }
                 }
             } else {
-                throw new \Exception(null, 400);
+                throw new \Exception('', 400);
             }
         } else if (isset($json->ltiLinkId)) {
             if (is_numeric($json->ltiLinkId)) {
@@ -225,25 +225,25 @@ class lineitem extends resource_base {
                     }
                 }
             } else {
-                throw new \Exception(null, 400);
+                throw new \Exception('', 400);
             }
         }
         if ($ltilinkid != null) {
             if (is_null($typeid)) {
                 if (!gradebookservices::check_lti_id($ltilinkid, $item->courseid,
                         $this->get_service()->get_tool_proxy()->id)) {
-                            throw new \Exception(null, 403);
+                            throw new \Exception('', 403);
                 }
             } else {
                 if (!gradebookservices::check_lti_1x_id($ltilinkid, $item->courseid,
                         $typeid)) {
-                            throw new \Exception(null, 403);
+                            throw new \Exception('', 403);
                 }
             }
         }
         if ($updategradeitem) {
             if (!$item->update('mod/ltiservice_gradebookservices')) {
-                throw new \Exception(null, 500);
+                throw new \Exception('', 500);
             }
             if ($rescalegrades) {
                 $item->rescale_grades_keep_percentage(0, $oldgrademax, 0, $item->grademax);
@@ -298,15 +298,15 @@ class lineitem extends resource_base {
 
         $gradeitem = \grade_item::fetch(array('id' => $item->id));
         if (($gbs = gradebookservices::find_ltiservice_gradebookservice_for_lineitem($item->id)) == false) {
-            throw new \Exception(null, 403);
+            throw new \Exception('', 403);
         }
         if (!$gradeitem->delete('mod/ltiservice_gradebookservices')) {
-            throw new \Exception(null, 500);
+            throw new \Exception('', 500);
         } else {
             $sqlparams = array();
             $sqlparams['id'] = $gbs->id;
             if (!$DB->delete_records('ltiservice_gradebookservices', $sqlparams)) {
-                throw new \Exception(null, 500);
+                throw new \Exception('', 500);
             }
         }
     }

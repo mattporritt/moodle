@@ -500,7 +500,7 @@ class gradebookservices extends service_base {
         global $DB, $CFG;
         $source = 'mod' . $this->get_component_id();
         if ($DB->get_record('user', array('id' => $userid)) === false) {
-            throw new \Exception(null, 400);
+            throw new \Exception('', 400);
         }
         require_once($CFG->libdir . '/gradelib.php');
         $finalgrade = null;
@@ -550,7 +550,7 @@ class gradebookservices extends service_base {
         }
         if (!$result) {
             debugging("failed to save score for item ".$gradeitem->id." and user ".$grade->userid);
-            throw new \Exception(null, 500);
+            throw new \Exception('', 500);
         }
 
     }
