@@ -91,5 +91,20 @@ function xmldb_lti_upgrade($oldversion) {
     // Automatically generated Moodle v5.3.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2026110700) {
+        // Allow lti_tool_settings.toolproxyid to be null, as settings for LTI 1 tools have no tool proxy.
+        $table = new xmldb_table('lti_tool_settings');
+        $key = new xmldb_key('toolproxy', XMLDB_KEY_FOREIGN, ['toolproxyid'], 'lti_tool_proxies', ['id']);
+        $field = new xmldb_field('toolproxyid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'id');
+
+        // The foreign key index must be dropped before the field can be changed, then restored.
+        $dbman->drop_key($table, $key);
+        $dbman->change_field_notnull($table, $field);
+        $dbman->add_key($table, $key);
+
+        // Lti savepoint reached.
+        upgrade_mod_savepoint(true, 2026110700, 'lti');
+    }
+
     return true;
 }

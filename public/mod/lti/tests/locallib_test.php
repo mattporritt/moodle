@@ -2362,4 +2362,34 @@ MwIDAQAB
         $this->unassignUserCapability('mod/lti:addpreconfiguredinstance', (\core\context\course::instance($course->id))->id,
             $teacherrole->id);
     }
+
+    /**
+     * Test saving tool settings for an LTI 1.x tool, which has no tool proxy.
+     *
+     * @covers ::lti_set_tool_settings
+     * @covers ::lti_get_tool_settings
+     */
+    public function test_lti_set_tool_settings_without_tool_proxy(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        /** @var \mod_lti_generator $ltigenerator */
+        $ltigenerator = $this->getDataGenerator()->get_plugin_generator('mod_lti');
+        $typeid = $ltigenerator->create_tool_types(['baseurl' => 'http://example.com/tool']);
+
+        // A negative id identifies a tool type rather than a tool proxy.
+        lti_set_tool_settings(['key' => 'value'], -$typeid);
+        lti_set_tool_settings(['coursekey' => 'coursevalue'], -$typeid, $course->id);
+
+        $record = $DB->get_record('lti_tool_settings', ['typeid' => $typeid, 'course' => null], '*', MUST_EXIST);
+        $this->assertNull($record->toolproxyid);
+        $this->assertEquals(['key' => 'value'], lti_get_tool_settings(-$typeid));
+        $this->assertEquals(['coursekey' => 'coursevalue'], lti_get_tool_settings(-$typeid, $course->id));
+
+        // Saving again updates the existing record.
+        lti_set_tool_settings(['key' => 'updated'], -$typeid);
+        $this->assertEquals(['key' => 'updated'], lti_get_tool_settings(-$typeid));
+        $this->assertEquals(2, $DB->count_records('lti_tool_settings', ['typeid' => $typeid]));
+    }
 }
